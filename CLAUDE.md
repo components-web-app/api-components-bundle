@@ -291,7 +291,7 @@ CwaFixtureBuilder
   ->page(ref, uiSuffix, layout, ?route, ?routeName, isTemplate=false, ?Closure, ?uiClassNames): PageBuilder  (prepends 'CwaPage')
   ->pageData(AbstractPageData, ?template, ?route, ?routeName, ?Closure): PageDataBuilder
   ->component(AbstractComponent): ComponentBuilder
-  ->getRoute(routeName): Route
+  ->getRoute(routeName): Route                               (a route named in this load, else an existing route with that name)
   ->redirect(path, to: routeName, ?name): static             (a redirect Route to a named route; registered by its own name, derived from the path and suffixed -1, -2… when taken)
   ->afterRoutes(Closure(CwaFixtureBuilder)): static          (runs once, after routes exist and before positions are created)
   ->persist(object): static                                  (queued until flush() when called before it)
@@ -330,7 +330,7 @@ GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataCla
 - The flush phases, their flush counts, `onRoutesCreated` and #245 are unchanged. Children of kept page data are nested under the existing entity and generate under its route; if that parent has no route, generation still throws `UnroutedParentException`. `onRoutesCreated` is not called for page data that was kept or skipped. A builder's `getRoute()` returns the existing route for kept pages and page data.
 - A page data whose natural path belongs to something else is created and gets a suffixed route, so a second append creates it again. Give such page data an explicit `route:`.
 - **Report.** `AbstractCwaScaffold::load()` calls `reportSummary()`, which writes `CWA scaffold: created …; kept …; skipped …` to the running command's output and logs it at `info`. Each kept or skipped entity is logged at `notice`, created ones at `debug`. The output comes from `ConsoleOutputListener`, which holds the output of the running console command (`console.command`/`console.terminate`, a stack for nested commands, `kernel.reset`). The fixtures executor's own logger is private to the executor and a Monolog console handler shows only `warning` and above at default verbosity, so neither can print a summary at default verbosity. `getSummary()` returns the counts for tests; `withManager()` starts a new summary.
-- **The builder service is shared**, so every scaffold in one `doctrine:fixtures:load` shares its state. A Behat step that loads twice must use a fresh builder or a fresh kernel (`FixtureContext` does both).
+- **Each scaffold is its own load.** The builder service is shared, and the fixtures executor clears the entity manager after every fixture, so `withManager()` calls `reset()` and forgets everything the previous scaffold declared; the service is also tagged `kernel.reset`. A second scaffold reaches the first one's content only through the lookups above: redeclaring a layout or page by reference keeps it, and `getRoute()` falls back to an existing route with that name. Components it adds to a group the first scaffold created are not created, as for any kept group. Carrying builder state across scaffolds held detached entities and failed on flush (#344). `features/fixtures/append.feature` runs two scaffolds in one real `doctrine:fixtures:load`.
 
 ### `generate-fixtures` (#189, #321)
 

@@ -46,6 +46,7 @@ class ServicesResetterTest extends TestCase
             'silverback.api_components.data_collector.data',
             'silverback.security.jwt_event_listener',
             'silverback.api_components.event_listener.console.console_output',
+            'silverback.api_components.fixture.cwa_fixture_builder',
         ],
         'services_doctrine_orm_mercure_publisher.php' => ['silverback.api_components.mercure.resource_publisher'],
         'services_doctrine_orm_http_cache_purger.php' => ['silverback.api_components.http_cache.purger'],

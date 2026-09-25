@@ -127,3 +127,15 @@ Feature: Loading a scaffold into a database that already has one
     When I run the command "doctrine:fixtures:load --append --group=cwa_append"
     Then the command output should contain "CWA scaffold: kept"
     And the command output should not contain "created"
+
+  Scenario: Two scaffolds in one doctrine:fixtures:load share a layout through the database, not through the builder
+    When I run the command "doctrine:fixtures:load --append --group=cwa_two_scaffolds"
+    Then there should be 1 layout with the reference "shared-main"
+    And the page "shared-home" should use the layout "shared-main"
+    And the page "shared-about" should use the layout "shared-main"
+    And the group "primary" of the page "shared-home" should hold the components "Hero"
+    And the group "primary" of the page "shared-about" should hold the components "About text"
+    And the Route "/shared-old" should redirect to "/shared-home"
+    And there should be 1 component labelled "Logo"
+    And the command output should contain "CWA scaffold: created 1 page, 1 layout, 1 route, 2 groups, 2 components"
+    And the command output should contain "CWA scaffold: created 1 page, 2 routes, 1 group, 1 component; kept 1 layout"

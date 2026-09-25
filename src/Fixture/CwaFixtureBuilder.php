@@ -34,8 +34,9 @@ use Silverback\ApiComponentsBundle\Fixture\Builder\PageDataBuilder;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Symfony\Contracts\Service\ResetInterface;
 
-class CwaFixtureBuilder
+class CwaFixtureBuilder implements ResetInterface
 {
     private const string CREATED = CwaFixtureSummary::CREATED;
     private const string KEPT = CwaFixtureSummary::KEPT;
@@ -134,10 +135,40 @@ class CwaFixtureBuilder
 
     public function withManager(ObjectManager $manager): static
     {
+        $this->reset();
         $this->manager = $manager;
-        $this->summary = new CwaFixtureSummary();
 
         return $this;
+    }
+
+    public function reset(): void
+    {
+        $this->manager = null;
+        $this->parentContext = null;
+        $this->summary = new CwaFixtureSummary();
+        $this->layoutBuilders = [];
+        $this->pageSpecs = [];
+        $this->pageDataSpecs = [];
+        $this->orderedRouteSpecs = [];
+        $this->namedRoutes = [];
+        $this->createdRouteNames = [];
+        $this->afterRoutesCallbacks = [];
+        $this->redirectSpecs = [];
+        $this->componentBuilders = [];
+        $this->componentGroupMap = [];
+        $this->namedComponentGroups = [];
+        $this->persistedEntities = [];
+        $this->evaluatedNestedIds = [];
+        $this->firedCallbackIds = [];
+        $this->decisions = [];
+        $this->resolved = [];
+        $this->existing = [];
+        $this->skipped = [];
+        $this->skippedGroupBuilders = [];
+        $this->routedSpecs = [];
+        $this->hasPendingLinks = false;
+        $this->flushing = false;
+        $this->pendingPersists = [];
     }
 
     public function getSummary(): CwaFixtureSummary
@@ -279,6 +310,10 @@ class CwaFixtureBuilder
 
     public function getRoute(string $routeName): Route
     {
+        if (!isset($this->namedRoutes[$routeName]) && ($existing = $this->manager?->getRepository(Route::class)->findOneBy(['name' => $routeName])) instanceof Route) {
+            $this->existing[spl_object_id($existing)] = true;
+            $this->namedRoutes[$routeName] = $existing;
+        }
         if (!isset($this->namedRoutes[$routeName])) {
             throw new \LogicException(\sprintf('Named route "%s" not found. Did you call flush() before getRoute()?', $routeName));
         }

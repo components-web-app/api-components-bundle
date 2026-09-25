@@ -26,6 +26,7 @@ use Silverback\ApiComponentsBundle\Fixture\CwaFixtureBuilder;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Symfony\Component\HttpFoundation\File\File;
 
 class CwaFixtureBuilderTest extends TestCase
@@ -227,6 +228,49 @@ class CwaFixtureBuilderTest extends TestCase
 
         $this->expectException(\LogicException::class);
         $builder->getRoute('home-page');
+    }
+
+    public function test_with_manager_starts_a_new_load_that_forgets_the_previous_scaffold(): void
+    {
+        $firstPersisted = [];
+        $builder = $this->makeBuilder($this->collectingEm($firstPersisted));
+        $firstLayout = $builder->layout('main', 'Primary');
+        $firstLayout->group('top')->add(new DummyComponent());
+        $builder->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home');
+        $builder->afterRoutes(static function (): void {});
+        $builder->redirect('/old', to: 'home');
+        $builder->flush();
+
+        $secondPersisted = [];
+        $secondFlushCount = 0;
+        $builder->withManager($this->collectingEm($secondPersisted, $secondFlushCount));
+        $secondLayout = $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $builder->flush();
+
+        $this->assertNotSame($firstLayout, $secondLayout);
+        $this->assertSame(['about'], array_map(static fn (Page $p) => $p->reference, array_values(array_filter($secondPersisted, static fn ($e) => $e instanceof Page))));
+        $this->assertSame(['/about'], array_map(static fn (Route $r) => $r->getPath(), array_values(array_filter($secondPersisted, static fn ($e) => $e instanceof Route))));
+        $this->assertSame([], array_values(array_filter($secondPersisted, static fn ($e) => $e instanceof AbstractComponent)));
+        $this->assertSame($secondLayout->getLayout(), array_values(array_filter($secondPersisted, static fn ($e) => $e instanceof Page))[0]->layout);
+        $this->assertSame(2, $secondFlushCount);
+        $this->expectException(\LogicException::class);
+        $builder->getRoute('home');
+    }
+
+    public function test_reset_forgets_the_load(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $layout = $builder->layout('main', 'Primary');
+        $builder->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home');
+        $builder->flush();
+
+        $builder->reset();
+
+        $this->assertNotSame($layout, $builder->layout('main', 'Primary'));
+        $this->assertSame('CWA scaffold: nothing to load', (string) $builder->getSummary());
+        $this->expectException(\LogicException::class);
+        $builder->getRoute('home');
     }
 
     public function test_layout_group_creates_component_group_with_correct_properties(): void

@@ -583,6 +583,21 @@ class CwaFixtureBuilderAppendTest extends TestCase
         self::assertSame(1, $cwa->getSummary()->count(CwaFixtureSummary::SKIPPED, CwaFixtureSummary::ROUTE, 'name in use'));
     }
 
+    public function test_a_route_the_scaffold_does_not_declare_is_found_by_name(): void
+    {
+        $home = $this->existing(Route::class, ['name' => 'home'], $this->route('/', 'home'));
+        $cwa = $this->builder();
+
+        $cwa->layout('main', 'Primary');
+        $cwa->redirect('/old', to: 'home');
+        $cwa->flush();
+
+        self::assertSame($home, $cwa->getRoute('home'));
+        $redirects = array_values(array_filter($this->persistedOf(Route::class), static fn (Route $r) => null !== $r->getRedirect()));
+        self::assertCount(1, $redirects);
+        self::assertSame($home, $redirects[0]->getRedirect());
+    }
+
     public function test_on_routes_created_is_not_called_for_kept_page_data(): void
     {
         $route = $this->route('/conference', 'conference');

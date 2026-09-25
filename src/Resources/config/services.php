@@ -1915,7 +1915,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(UploadableAttributeReader::class),
             new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             new Reference('silverback.api_components.event_listener.console.console_output'),
-        ]);
+        ])
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(CwaFixtureBuilder::class, 'silverback.api_components.fixture.cwa_fixture_builder');
 
     $services
