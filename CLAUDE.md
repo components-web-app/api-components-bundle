@@ -229,6 +229,7 @@ Resources are fetched and cached **individually**. Never embed related data outs
 - `allowedComponents` matches by class-level (collection) IRI.
 - `ComponentPosition` moves repair `sortValue` collisions only where they occur, never by renumbering, because every change is a Mercure update (#278).
 - `ComponentPosition.component` is `ON DELETE SET NULL`, deliberately, so dynamic positions survive their fallback. Static positions are removed by `ComponentPositionEventListener` on an API delete only.
+- **A component matches a page data property by class hierarchy, never by short name** (#345). `PageDataMetadata::findPropertiesByComponentClass()` uses `is_a()` against the property's Doctrine target, so a property typed `AbstractComponent` or a parent component class holds any subclass. `PageDataProvider::findPageDataComponentMetadata()` is the one lookup behind usage counts (`clean-orphaned`, `/usage`), `ComponentVoter`'s page data reachability and `PropagateUpdatesListener`'s purge and Mercure fan-out, so a component held only by such a property is used, public only when the page data is on a live route, and propagates to the page data on edit.
 - `createdAt` is restored in `TimestampedNormalizer::denormalize()` (#213). `OBJECT_TO_POPULATE` is not always an instance of `$type` (a `PersistentCollection` when denormalizing a collection property), so gate on `instanceof`.
 
 ### Orphaned resource report (#190)

@@ -54,6 +54,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimes
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUnguardedTimestamped;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithParentTypedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RefreshToken;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedPageData;
@@ -2787,6 +2788,66 @@ final class DoctrineContext implements Context
         $this->manager->remove($resource);
         $this->manager->flush();
         $this->manager->clear();
+    }
+
+    /**
+     * @Given /^there is a DummyComponent held only by a page data property typed as its parent class(?: with the route path "([^"]*)")?$/
+     */
+    public function thereIsADummyComponentHeldByAParentTypedPageDataProperty(string $path = ''): void
+    {
+        $page = new Page();
+        $page->isTemplate = true;
+        $page->reference = 'parent typed page';
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $component = $this->thereIsADummyComponent();
+
+        $pageData = new PageDataWithParentTypedComponent();
+        $pageData->component = $component;
+        $pageData->page = $page;
+        $this->timestampedHelper->persistTimestampedFields($pageData, true);
+        $this->manager->persist($pageData);
+
+        if ('' !== $path) {
+            $route = new Route();
+            $route->setPath($path)->setName($path)->setPageData($pageData);
+            $this->timestampedHelper->persistTimestampedFields($route, true);
+            $this->manager->persist($route);
+        }
+
+        $this->manager->flush();
+        $this->restContext->resources['parent_typed_page_data'] = $this->iriConverter->getIriFromResource($pageData);
+        $this->manager->clear();
+    }
+
+    /**
+     * @When I run the clean orphaned command
+     */
+    public function iRunTheCleanOrphanedCommand(): void
+    {
+        $application = new Application($this->kernel);
+        $tester = new CommandTester($application->find('silverback:api-components:clean-orphaned'));
+        $this->commandException = null;
+        try {
+            $tester->execute([]);
+        } catch (\Throwable $exception) {
+            $this->commandException = $exception;
+        }
+        $this->manager->clear();
+    }
+
+    /**
+     * @Then the page data :name should still hold the resource :resource
+     */
+    public function thePageDataShouldStillHoldTheResource(string $name, string $resource): void
+    {
+        $this->manager->clear();
+        $pageData = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+        $component = $pageData->component ?? null;
+        if (!$component instanceof AbstractComponent || $this->iriConverter->getIriFromResource($component) !== $this->restContext->resources[$resource]) {
+            throw new \RuntimeException(\sprintf('The page data %s does not hold the resource %s', $this->restContext->resources[$name], $this->restContext->resources[$resource]));
+        }
     }
 
     private function createPageComponentGroup(string $pageName, string $reference): ComponentGroup

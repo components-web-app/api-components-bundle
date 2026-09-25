@@ -11,10 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\DataProvider;
 
-use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\IriConverterInterface;
-use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
-use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManager;
 use Doctrine\Persistence\ManagerRegistry;
@@ -36,7 +33,6 @@ class PageDataProvider
         private readonly RequestStack $requestStack,
         private readonly RouteRepository $routeRepository,
         private readonly IriConverterInterface $iriConverter,
-        private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
         private readonly PageDataMetadataProvider $pageDataMetadataProvider,
         private readonly ManagerRegistry $managerRegistry,
     ) {
@@ -82,11 +78,11 @@ class PageDataProvider
 
     public function findPageDataComponentMetadata(object $component): iterable
     {
-        $resourceShortName = $this->getComponentShortName($component);
-        if (!$resourceShortName) {
+        $componentClass = $this->getComponentClass($component);
+        if (!$componentClass) {
             return;
         }
-        $pageDataLocations = $this->getPageDataLocations($resourceShortName);
+        $pageDataLocations = $this->getPageDataLocations($componentClass);
         foreach ($pageDataLocations as $pageDataClassName => $properties) {
             if ($metadata = $this->findPageDataResourcesByPropertiesAndComponent($pageDataClassName, $properties, $component)) {
                 yield $metadata;
@@ -133,12 +129,12 @@ class PageDataProvider
         return new PageDataComponentMetadata($qb->getQuery()->getResult() ?: [], $properties);
     }
 
-    private function getPageDataLocations(string $resourceShortName): array
+    private function getPageDataLocations(string $componentClass): array
     {
         $pageDataMetadatas = $this->pageDataMetadataProvider->createAll();
         $pageDataLocations = [];
         foreach ($pageDataMetadatas as $pageDataMetadata) {
-            $resourceProperties = $pageDataMetadata->findPropertiesByComponentShortName($resourceShortName);
+            $resourceProperties = $pageDataMetadata->findPropertiesByComponentClass($componentClass);
             if ($resourceProperties->count() > 0) {
                 $pageDataLocations[$pageDataMetadata->getResourceClass()] = $resourceProperties->map(static function (PageDataPropertyMetadata $metadata) {
                     return $metadata->getProperty();
@@ -149,7 +145,7 @@ class PageDataProvider
         return $pageDataLocations;
     }
 
-    private function getComponentShortName(object $component): ?string
+    private function getComponentClass(object $component): ?string
     {
         $resourceClass = $component::class;
         if ($component instanceof Proxy) {
@@ -157,20 +153,9 @@ class PageDataProvider
             if (!$em) {
                 return null;
             }
-            if ($classMetadata = $em->getClassMetadata($resourceClass)) {
-                $resourceClass = $classMetadata->getName();
-            }
+            $resourceClass = $em->getClassMetadata($resourceClass)->getName();
         }
 
-        /** @var ResourceMetadataCollection $metadatas */
-        $metadatas = $this->resourceMetadataFactory->create($resourceClass);
-        /** @var ApiResource $metadata */
-        foreach ($metadatas as $metadata) {
-            if ($shortName = $metadata->getShortName()) {
-                return $shortName;
-            }
-        }
-
-        return null;
+        return $resourceClass;
     }
 }
