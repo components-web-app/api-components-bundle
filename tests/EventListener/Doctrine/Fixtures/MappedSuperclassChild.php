@@ -9,13 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
+namespace Silverback\ApiComponentsBundle\Tests\EventListener\Doctrine\Fixtures;
 
 use Doctrine\ORM\Mapping as ORM;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 
 #[ORM\MappedSuperclass]
-abstract class AbstractDummyAppComponent extends AbstractComponent
+abstract class MappedSuperclassChild extends DiscriminatorRoot
 {
     #[ORM\Column(nullable: true)]
     public ?string $theme = null;
