@@ -19,14 +19,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class UploadAction
 {
-    public function __construct(private NormalizerInterface|PublishableNormalizer $publishableNormalizer)
+    public function __construct(private PublishableNormalizer $publishableNormalizer)
     {
     }
 
@@ -46,12 +45,6 @@ class UploadAction
         $resourceClass = $request->attributes->get('_api_resource_class');
         $resource = $data ?? new $resourceClass();
 
-        /**
-         * if it IS publishable
-         * if NOT asking to update published ?published=true
-         * if it IS currently published
-         * if the user DOES have permission.
-         */
         $publishableAnnotationReader = $publishableStatusChecker->getAttributeReader();
         if ($publishableAnnotationReader->isConfigured($resource)) {
             $configuration = $publishableAnnotationReader->getConfiguration($resource);

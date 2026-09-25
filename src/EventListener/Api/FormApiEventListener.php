@@ -30,7 +30,7 @@ class FormApiEventListener
 {
     private FormSubmitHelper $formSubmitHelper;
     private SerializeFormatResolver $serializeFormatResolver;
-    private SerializerInterface $serializer;
+    private DecoderInterface $decoder;
     private FormViewFactory $formViewFactory;
     private IriConverterInterface $iriConverter;
 
@@ -46,7 +46,7 @@ class FormApiEventListener
         }
         $this->formSubmitHelper = $formSubmitHelper;
         $this->serializeFormatResolver = $serializeFormatResolver;
-        $this->serializer = $serializer;
+        $this->decoder = $serializer;
         $this->formViewFactory = $formViewFactory;
         $this->iriConverter = $iriConverter;
     }
@@ -65,7 +65,7 @@ class FormApiEventListener
         }
 
         $format = $this->serializeFormatResolver->getFormatFromRequest($request);
-        $requestContent = $this->serializer->decode($request->getContent(), $format, []);
+        $requestContent = $this->decoder->decode($request->getContent(), $format, []);
 
         $isPatch = Request::METHOD_PATCH === $request->getMethod();
         $data = $this->formSubmitHelper->process($data, $requestContent, $isPatch);

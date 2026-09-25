@@ -1,12 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Call to an undefined method Symfony\\Component\\Serializer\\Normalizer\\NormalizerInterface\:\:createDraft\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Action/Uploadable/UploadAction.php
-
-		-
 			message: '#^Attribute class JetBrains\\PhpStorm\\Pure does not exist\.$#'
 			identifier: attribute.notFound
 			count: 5
@@ -203,12 +197,6 @@ parameters:
 			identifier: trait.unused
 			count: 1
 			path: src/Entity/Utility/UploadableTrait.php
-
-		-
-			message: '#^Call to an undefined method Symfony\\Component\\Serializer\\SerializerInterface\:\:decode\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/EventListener/Api/FormApiEventListener.php
 
 		-
 			message: '#^Attribute class JetBrains\\PhpStorm\\ArrayShape does not exist\.$#'
@@ -413,18 +401,6 @@ parameters:
 			identifier: method.notFound
 			count: 1
 			path: src/Security/JWTManager.php
-
-		-
-			message: '#^Call to an undefined method Symfony\\Component\\Serializer\\Normalizer\\NormalizerInterface\:\:denormalize\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Serializer/Normalizer/DataUriNormalizer.php
-
-		-
-			message: '#^Call to an undefined method Symfony\\Component\\Serializer\\Normalizer\\NormalizerInterface\:\:supportsDenormalization\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Serializer/Normalizer/DataUriNormalizer.php
 
 		-
 			message: '#^Call to an undefined method Doctrine\\Persistence\\Mapping\\ClassMetadata\<object\>\:\:getAssociationMappings\(\)\.$#'
