@@ -349,18 +349,6 @@ parameters:
 			path: src/Security/EventListener/AccessDeniedListener.php
 
 		-
-			message: '#^Call to an undefined method Lexik\\Bundle\\JWTAuthenticationBundle\\Services\\JWTTokenManagerInterface\:\:getUserIdentityField\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Security/JWTManager.php
-
-		-
-			message: '#^Call to an undefined method Lexik\\Bundle\\JWTAuthenticationBundle\\Services\\JWTTokenManagerInterface\:\:setUserIdentityField\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Security/JWTManager.php
-
-		-
 			message: '#^If condition is always true\.$#'
 			identifier: if.alwaysTrue
 			count: 1
@@ -371,18 +359,6 @@ parameters:
 			identifier: arrayValues.list
 			count: 1
 			path: src/Serializer/Normalizer/UserNormalizer.php
-
-		-
-			message: '#^Call to an undefined method Symfony\\Component\\HttpFoundation\\Request\:\:getContentType\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Serializer/SerializeFormatResolver.php
-
-		-
-			message: '#^Call to function method_exists\(\) with Symfony\\Component\\HttpFoundation\\Request and ''getContentTypeFormat'' will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: src/Serializer/SerializeFormatResolver.php
 
 		-
 			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getId\(\)\.$#'
