@@ -4,8 +4,12 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.5](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.4...2.0.0-alpha.5) - 2026-09-25
+
 ### Breaking
 - `RouteGeneratorInterface` gains `generatePath()`: an application with its own route generator must implement it ([#335](https://github.com/components-web-app/api-components-bundle/pull/335))
+- A throttled password reset, email verification or new email confirmation request returns 429 with `Retry-After`, where it returned 200 ([#332](https://github.com/components-web-app/api-components-bundle/pull/332))
+- Registration and a new email address request whose email link is refused return 201, where they returned 400 for a user that had been saved ([#327](https://github.com/components-web-app/api-components-bundle/pull/327))
 
 ### Added
 - Fixture builder: `allow:` on page groups, `liveAt()` on pages and page data, `redirect()` and `afterRoutes()` ([#322](https://github.com/components-web-app/api-components-bundle/pull/322))
@@ -21,6 +25,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - The `UserPassword` constraint no longer fails with an undefined-method error for a signed-in user that is not the bundle's user, such as an in-memory admin ([#334](https://github.com/components-web-app/api-components-bundle/pull/334))
 
 ### Tooling
+- `CHANGELOG.md` is kept for every change, and pushing a tag publishes its section as the GitHub release notes ([#320](https://github.com/components-web-app/api-components-bundle/pull/320))
 - PHPStan: all 23 `method.notFound` baseline entries resolved; the baseline is down from 98 findings to 69 ([#334](https://github.com/components-web-app/api-components-bundle/pull/334))
 
 ## [2.0.0-alpha.4](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.3...2.0.0-alpha.4) - 2026-09-24
