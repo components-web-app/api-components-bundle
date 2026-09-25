@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
+use Silverback\ApiComponentsBundle\Repository\User\FindUserByUsernameTrait;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
@@ -23,6 +24,8 @@ use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
  */
 class EmailAddressManager
 {
+    use FindUserByUsernameTrait;
+
     private EntityManagerInterface $entityManager;
     private UserRepositoryInterface $userRepository;
     private PasswordHasherFactoryInterface $passwordHasherFactory;
@@ -58,7 +61,6 @@ class EmailAddressManager
             throw new InvalidArgumentException('Invalid token');
         }
 
-        // Check if another user now exists with this new email address before persisting!
         $existingUser = $this->userRepository->findExistingUserByNewEmail($user);
         if ($existingUser) {
             $user
@@ -82,11 +84,7 @@ class EmailAddressManager
 
     public function verifyEmailAddress(string $username, string $token): void
     {
-        $user = $this->userRepository->findOneBy(
-            [
-                'username' => $username,
-            ]
-        );
+        $user = $this->findUserByUsernameIn($this->userRepository, $username);
         if (!$user) {
             throw new InvalidArgumentException('User not found');
         }

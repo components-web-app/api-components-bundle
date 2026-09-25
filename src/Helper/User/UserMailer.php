@@ -149,17 +149,16 @@ class UserMailer
 
         try {
             $this->mailer->send($message);
-        } catch (TransportExceptionInterface $exception) {
-            $exception = new MailerTransportException($exception->getMessage());
-            $exception->appendDebug($exception->getDebug());
-            if ($logger = $this->container->get('logger')) {
-                $logger->error($exception->getMessage(), [
+        } catch (TransportExceptionInterface $transportException) {
+            if ($this->container->has('logger')) {
+                $exception = new MailerTransportException($transportException->getMessage());
+                $exception->appendDebug($transportException->getDebug());
+                $this->container->get('logger')->error($exception->getMessage(), [
                     'exception' => $exception,
                 ]);
-
-                return false;
             }
-            throw $exception;
+
+            return false;
         }
 
         return true;

@@ -15,6 +15,7 @@ use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Entity\User\UserInterface;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Form\AbstractType;
+use Silverback\ApiComponentsBundle\Repository\User\FindUserByUsernameTrait;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
@@ -28,6 +29,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class ChangePasswordType extends AbstractType
 {
+    use FindUserByUsernameTrait;
+
     private Security $security;
     private UserRepositoryInterface $userRepository;
     private string $userClass;
@@ -50,7 +53,6 @@ class ChangePasswordType extends AbstractType
         $builder
             ->add(
                 'username',
-                // cannot be HiddenType otherwise it will be null if empty - see: https://github.com/symfony/symfony/issues/39148
                 TextType::class,
                 [
                     'empty_data' => '',
@@ -89,10 +91,7 @@ class ChangePasswordType extends AbstractType
     {
         /** @var AbstractUser $securityUser */
         $securityUser = $this->security->getUser();
-
-        // With JWT, we are not hitting the database for the user, but in this case we should be.
-        // This is so we can detect change sets in the form listeners.
-        $databaseUser = $this->userRepository->find($securityUser->getId());
+        $databaseUser = $this->findUserByUsernameIn($this->userRepository, (string) $securityUser->getUsername());
 
         $resolver->setDefaults(
             [
