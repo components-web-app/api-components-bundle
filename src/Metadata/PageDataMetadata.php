@@ -94,10 +94,10 @@ class PageDataMetadata
         return $this;
     }
 
-    public function findPropertiesByComponentShortName(string $componentClass): Collection
+    public function findPropertiesByComponentClass(string $componentClass): Collection
     {
         return $this->properties->filter(static function (PageDataPropertyMetadata $propertyMetadata) use ($componentClass) {
-            return $propertyMetadata->getComponentShortName() === $componentClass;
+            return is_a($componentClass, $propertyMetadata->getComponentClass(), true);
         });
     }
 }

@@ -11,7 +11,7 @@ Feature: Page data metadata
     When I send a "GET" request to "/_/page_data_metadatas"
     Then the response status code should be 200
     And the JSON node "@context.properties" should be equal to "PageDataMetadata/properties"
-    And the JSON node "member" should have 5 elements
+    And the JSON node "member" should have 6 elements
     # the order is not consistent... and doesn't really need to be - if no cache vs if cached
 
   Scenario: I can get a single page data endpoint

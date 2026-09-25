@@ -665,7 +665,6 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(RequestStack::class),
             new Reference('silverback.doctrine.repository.route'),
             new Reference('api_platform.iri_converter'),
-            new Reference('silverback.metadata.api.component_resource_metadata_factory'),
             new Reference('silverback.metadata_provider.page_data'),
             new Reference(ManagerRegistry::class),
         ]);

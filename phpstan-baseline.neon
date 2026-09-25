@@ -36,11 +36,6 @@ parameters:
 			count: 1
 			path: src/Command/FormCachePurgeCommand.php
 
-		-
-			message: '#^If condition is always true\.$#'
-			identifier: if.alwaysTrue
-			count: 1
-			path: src/DataProvider/PageDataProvider.php
 
 		-
 			message: '#^Negated boolean expression is always false\.$#'
