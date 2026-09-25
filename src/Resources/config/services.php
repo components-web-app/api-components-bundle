@@ -1566,10 +1566,12 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(UserPasswordHasherInterface::class),
                 new Reference('silverback.repository.user'),
                 new Reference(PasswordHasherFactoryInterface::class),
-                '', // injected in dependency injection
-                '', // injected in dependency injection
-                '', // injected in dependency injection
-                '', // injected in dependency injection
+                '',
+                '',
+                '',
+                86400,
+                300,
+                300,
             ]
         );
     $services->alias(UserDataProcessor::class, 'silverback.api_components.helper.user.data_processor');
@@ -1645,6 +1647,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(UserMailer::class),
             new Reference(UserDataProcessor::class),
+            new Reference(EntityManagerInterface::class),
         ])
         ->tag('controller.service_arguments');
     $services->alias('silverback.api_components.action.user.resend_verify_email_address', ResendVerifyEmailAddressAction::class)->public();
@@ -1655,6 +1658,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference(UserMailer::class),
             new Reference(UserDataProcessor::class),
+            new Reference(EntityManagerInterface::class),
         ])
         ->tag('controller.service_arguments');
     $services->alias('silverback.api_components.action.user.resend_verify_new_email_address', ResendVerifyNewEmailAddressAction::class)->public();

@@ -199,6 +199,16 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given I add the logged in user's token to the request
+     */
+    public function iAddTheLoggedInUsersTokenToTheRequest(): void
+    {
+        $this->manager->clear();
+        $user = $this->iriConverter->getResourceFromIri($this->restContext->resources['login_user']);
+        $this->baseRestContext->iAddHeaderEqualTo('Authorization', 'Bearer ' . $this->jwtManager->create($user));
+    }
+
+    /**
      * @Given the logged in user has been deleted from the database
      */
     public function deleteLoggedInUser(): void
@@ -320,6 +330,31 @@ final class DoctrineContext implements Context
         if ($verificationToken) {
             $user->setEmailAddressVerifyToken($this->passwordHasher->hashPassword($user, $verificationToken));
         }
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given the user email verification was requested at :dateTime
+     */
+    public function theUserEmailVerificationWasRequestedAt(string $dateTime): void
+    {
+        /** @var User $user */
+        $user = $this->iriConverter->getResourceFromIri($this->restContext->resources['user']);
+        $user->setEmailAddressVerificationRequestedAt(new \DateTime($dateTime));
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given the logged in user has a new email address :emailAddress and confirmation token :token and the email was sent at :emailSentAt
+     */
+    public function theLoggedInUserHasANewEmailAddress(string $emailAddress, string $token, string $emailSentAt): void
+    {
+        /** @var User $user */
+        $user = $this->iriConverter->getResourceFromIri($this->restContext->resources['login_user']);
+        $user
+            ->setNewEmailAddress($emailAddress)
+            ->setNewEmailConfirmationToken($this->passwordHasher->hashPassword($user, $token))
+            ->setNewEmailAddressChangeRequestedAt(new \DateTime($emailSentAt));
         $this->manager->flush();
     }
 
@@ -2487,6 +2522,22 @@ final class DoctrineContext implements Context
         };
         if (null === $storedToken || !$this->passwordHasherFactory->getPasswordHasher($user)->verify($storedToken, $token)) {
             throw new \RuntimeException(\sprintf('The %s token for the user `%s` is no longer `%s`', $tokenName, $username, $token));
+        }
+    }
+
+    /**
+     * @Then the user :username should have no pending new email address
+     */
+    public function theUserShouldHaveNoPendingNewEmailAddress(string $username): void
+    {
+        $this->manager->clear();
+        /** @var AbstractUser|null $user */
+        $user = $this->manager->getRepository(User::class)->findOneBy(['username' => $username]);
+        if (!$user) {
+            throw new \RuntimeException(\sprintf('The user `%s` does not exist', $username));
+        }
+        if (null !== $user->getNewEmailAddress() || null !== $user->getNewEmailConfirmationToken()) {
+            throw new \RuntimeException(\sprintf('The user `%s` still has the pending new email address `%s`', $username, $user->getNewEmailAddress()));
         }
     }
 

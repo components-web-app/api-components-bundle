@@ -44,44 +44,29 @@ class UserMailer
 
     public function sendPasswordResetEmail(AbstractUser $user): bool
     {
-        $email = $this->container->get(PasswordResetEmailFactory::class)->create($user, $this->context);
-
-        if ($email) {
-            $user->setPasswordRequestedAt(new \DateTime());
-            $this->container->get('doctrine.orm.entity_manager')->flush();
-        } else {
-            $user->setPasswordRequestedAt(null);
-        }
-
-        return $this->send($email);
+        return $this->sendJobEmail(
+            $user,
+            PasswordResetEmailFactory::class,
+            static fn (?\DateTime $requestedAt) => $user->setPasswordRequestedAt($requestedAt),
+        );
     }
 
     public function sendChangeEmailConfirmationEmail(AbstractUser $user): bool
     {
-        $email = $this->container->get(ChangeEmailConfirmationEmailFactory::class)->create($user, $this->context);
-
-        if ($email) {
-            $user->setNewEmailAddressChangeRequestedAt(new \DateTime());
-            $this->container->get('doctrine.orm.entity_manager')->flush();
-        } else {
-            $user->setNewEmailAddressChangeRequestedAt(null);
-        }
-
-        return $this->send($email);
+        return $this->sendJobEmail(
+            $user,
+            ChangeEmailConfirmationEmailFactory::class,
+            static fn (?\DateTime $requestedAt) => $user->setNewEmailAddressChangeRequestedAt($requestedAt),
+        );
     }
 
     public function sendEmailVerifyEmail(AbstractUser $user): bool
     {
-        $email = $this->container->get(VerifyEmailFactory::class)->create($user, $this->context);
-
-        if ($email) {
-            $user->setEmailAddressVerificationRequestedAt(new \DateTime());
-            $this->container->get('doctrine.orm.entity_manager')->flush();
-        } else {
-            $user->setEmailAddressVerificationRequestedAt(null);
-        }
-
-        return $this->send($email);
+        return $this->sendJobEmail(
+            $user,
+            VerifyEmailFactory::class,
+            static fn (?\DateTime $requestedAt) => $user->setEmailAddressVerificationRequestedAt($requestedAt),
+        );
     }
 
     public function sendEmailVerifyEmailAfterWrite(AbstractUser $user): bool
@@ -112,6 +97,29 @@ class UserMailer
     public function sendPasswordChangedEmail(AbstractUser $user): bool
     {
         return $this->afterWrite($user, fn (): bool => $this->send($this->container->get(PasswordChangedEmailFactory::class)->create($user, $this->context)));
+    }
+
+    /**
+     * @param \Closure(?\DateTime): mixed $setRequestedAt
+     */
+    private function sendJobEmail(AbstractUser $user, string $factoryClass, \Closure $setRequestedAt): bool
+    {
+        $email = $this->container->get($factoryClass)->create($user, $this->context);
+
+        if (!$email) {
+            $setRequestedAt(null);
+
+            return false;
+        }
+
+        if (!$this->send($email)) {
+            return false;
+        }
+
+        $setRequestedAt(new \DateTime());
+        $this->container->get('doctrine.orm.entity_manager')->flush();
+
+        return true;
     }
 
     /**

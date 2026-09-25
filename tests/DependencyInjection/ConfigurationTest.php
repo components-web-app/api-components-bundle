@@ -157,6 +157,39 @@ class ConfigurationTest extends TestCase
         yield 'password reset' => ['password_reset'];
     }
 
+    public function test_each_email_flow_has_its_own_repeat_throttle_by_default(): void
+    {
+        $user = $this->process(self::minimalConfig())['user'];
+
+        self::assertSame(86400, $user['password_reset']['repeat_ttl_seconds']);
+        self::assertSame(300, $user['new_email_confirmation']['repeat_ttl_seconds']);
+        self::assertSame(300, $user['email_verification']['repeat_ttl_seconds']);
+    }
+
+    public function test_each_email_flow_repeat_throttle_can_be_configured(): void
+    {
+        $config = self::minimalConfig();
+        $config['user']['password_reset'] = ['repeat_ttl_seconds' => 60];
+        $config['user']['new_email_confirmation'] = ['repeat_ttl_seconds' => 120];
+        $config['user']['email_verification'] = ['repeat_ttl_seconds' => 180];
+
+        $user = $this->process($config)['user'];
+
+        self::assertSame(60, $user['password_reset']['repeat_ttl_seconds']);
+        self::assertSame(120, $user['new_email_confirmation']['repeat_ttl_seconds']);
+        self::assertSame(180, $user['email_verification']['repeat_ttl_seconds']);
+        self::assertSame(86400, $user['new_email_confirmation']['request_timeout_seconds']);
+        self::assertTrue($user['email_verification']['enabled']);
+    }
+
+    public function test_a_disabled_email_verification_still_resolves_its_repeat_throttle(): void
+    {
+        $config = self::minimalConfig();
+        $config['user']['email_verification'] = false;
+
+        self::assertSame(300, $this->process($config)['user']['email_verification']['repeat_ttl_seconds']);
+    }
+
     public function test_email_verification_can_be_disabled(): void
     {
         $config = self::minimalConfig();

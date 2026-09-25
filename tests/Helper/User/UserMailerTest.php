@@ -108,10 +108,8 @@ class UserMailerTest extends TestCase
         };
         $templateEmail = new TemplatedEmail();
 
-        $additionalExpectations = $this->createEmMockExpectation();
-
         $loggerMock = $this->createMock(Logger::class);
-        $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class, [...$additionalExpectations, [['logger'], $loggerMock]]);
+        $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class, [[['logger'], $loggerMock]]);
 
         $factoryMock
             ->expects(self::once())
@@ -345,6 +343,60 @@ class UserMailerTest extends TestCase
             self::assertSame($exception, $thrown);
         }
         self::assertSame([], $handler->getRecords());
+    }
+
+    public static function jobEmailRequestTimes(): iterable
+    {
+        yield 'password reset' => ['sendPasswordResetEmail', PasswordResetEmailFactory::class, static fn (AbstractUser $user): ?\DateTime => $user->getPasswordRequestedAt()];
+        yield 'email verify' => ['sendEmailVerifyEmail', VerifyEmailFactory::class, static fn (AbstractUser $user): ?\DateTime => $user->getEmailAddressVerificationRequestedAt()];
+        yield 'change email confirmation' => ['sendChangeEmailConfirmationEmail', ChangeEmailConfirmationEmailFactory::class, static fn (AbstractUser $user): ?\DateTime => $user->getNewEmailAddressChangeRequestedAt()];
+    }
+
+    #[AllowMockObjectsWithoutExpectations]
+    #[DataProvider('jobEmailRequestTimes')]
+    public function test_an_email_that_fails_to_send_leaves_the_request_time_unset_and_saves_nothing(string $method, string $factoryClass, \Closure $requestedAt): void
+    {
+        $user = $this->createNamedUser();
+        $factory = $this->createStub(AbstractUserEmailFactory::class);
+        $factory->method('create')->willReturn(new TemplatedEmail());
+        $this->mailerMock->expects(self::once())->method('send')->willThrowException($this->createStub(TransportExceptionInterface::class));
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::never())->method('flush');
+        $userMailer = $this->createMailerWithServices([
+            $factoryClass => $factory,
+            'doctrine.orm.entity_manager' => $entityManager,
+            'logger' => new Logger('test', [new TestHandler()]),
+        ]);
+
+        self::assertFalse($userMailer->{$method}($user));
+        self::assertNull($requestedAt($user));
+    }
+
+    #[AllowMockObjectsWithoutExpectations]
+    #[DataProvider('jobEmailRequestTimes')]
+    public function test_the_request_time_is_recorded_and_saved_only_after_the_email_was_sent(string $method, string $factoryClass, \Closure $requestedAt): void
+    {
+        $user = $this->createNamedUser();
+        $calls = [];
+        $factory = $this->createStub(AbstractUserEmailFactory::class);
+        $factory->method('create')->willReturn(new TemplatedEmail());
+        $this->mailerMock->expects(self::once())->method('send')->willReturnCallback(static function () use (&$calls, $user, $requestedAt) {
+            $calls[] = null === $requestedAt($user) ? 'send' : 'send after the request time was recorded';
+
+            return null;
+        });
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('flush')->willReturnCallback(static function () use (&$calls, $user, $requestedAt) {
+            $calls[] = null === $requestedAt($user) ? 'flush before the request time was recorded' : 'flush';
+        });
+        $userMailer = $this->createMailerWithServices([
+            $factoryClass => $factory,
+            'doctrine.orm.entity_manager' => $entityManager,
+        ]);
+
+        self::assertTrue($userMailer->{$method}($user));
+        self::assertSame(['send', 'flush'], $calls);
+        self::assertNotNull($requestedAt($user));
     }
 
     public function test_an_email_verification_after_a_write_is_sent(): void

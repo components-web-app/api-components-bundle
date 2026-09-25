@@ -163,6 +163,39 @@ Feature: Register process via a form
     And I should not receive any emails
 
   @loginUser
+  Scenario: Cancelling a pending request to change email address clears it, refuses its link and lets a new change start at once
+    Given there is a "new_email" form
+    And the logged in user has a new email address "new@example.com" and confirmation token "abc123" and the email was sent at "now"
+    And I add "referer" header equal to "http://www.website.com"
+    When I send a "POST" request to the resource "new_email_form" and the postfix "/submit" with body:
+    """
+    {
+      "new_email_address": {
+        "newEmailAddress": ""
+      }
+    }
+    """
+    Then the response status code should be 201
+    And I should not receive any emails
+    And the user "new_user" should have no pending new email address
+    When I send a "GET" request to "/confirm-email/new_user/new@example.com/abc123"
+    Then the response status code should be 404
+    And the new email address should be "user@example.com" for username "new_user"
+    Given I add the logged in user's token to the request
+    And I add "Content-Type" header equal to "application/ld+json"
+    And I add "referer" header equal to "http://www.website.com"
+    When I send a "POST" request to the resource "new_email_form" and the postfix "/submit" with body:
+    """
+    {
+      "new_email_address": {
+        "newEmailAddress": "new@example.com"
+      }
+    }
+    """
+    Then the response status code should be 201
+    And I should get a "change_email_confirmation" email sent
+
+  @loginUser
   Scenario: I can resend a new email address confirmation email with a new token
     Given there is a "new_email" form
     And there is a user with the username "my_username" password "password" and role "ROLE_USER" and the email address "user@example.com"

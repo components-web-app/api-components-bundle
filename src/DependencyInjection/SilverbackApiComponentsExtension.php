@@ -141,7 +141,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$allowedOrigins', $config['user']['email_links']['allowed_origins']);
         $definition->setArgument('$defaultOrigin', $config['user']['email_links']['default_origin']);
 
-        $this->setEmailVerificationArguments($container, $config['user']['email_verification'], $config['user']['password_reset']['repeat_ttl_seconds']);
+        $this->setEmailVerificationArguments($container, $config['user']);
         $this->setUserClassArguments($container, $config['user']['class_name']);
         $this->setMailerServiceArguments($container, $config);
 
@@ -190,8 +190,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$secureSubscriptions', $config['mercure']['secure_subscriptions']);
     }
 
-    private function setEmailVerificationArguments(ContainerBuilder $container, array $emailVerificationConfig, int $passwordRepeatTtl): void
+    private function setEmailVerificationArguments(ContainerBuilder $container, array $userConfig): void
     {
+        $emailVerificationConfig = $userConfig['email_verification'];
         $definition = $container->findDefinition(UserChecker::class);
         $definition->setArgument('$denyUnverifiedLogin', $emailVerificationConfig['deny_unverified_login']);
 
@@ -199,7 +200,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$initialEmailVerifiedState', $emailVerificationConfig['default_value']);
         $definition->setArgument('$verifyEmailOnRegister', $emailVerificationConfig['verify_on_register']);
         $definition->setArgument('$verifyEmailOnChange', $emailVerificationConfig['verify_on_change']);
-        $definition->setArgument('$tokenTtl', $passwordRepeatTtl);
+        $definition->setArgument('$passwordResetRepeatTtl', $userConfig['password_reset']['repeat_ttl_seconds']);
+        $definition->setArgument('$newEmailConfirmationRepeatTtl', $userConfig['new_email_confirmation']['repeat_ttl_seconds']);
+        $definition->setArgument('$emailVerificationRepeatTtl', $emailVerificationConfig['repeat_ttl_seconds']);
     }
 
     private function setUserClassArguments(ContainerBuilder $container, string $userClass): void

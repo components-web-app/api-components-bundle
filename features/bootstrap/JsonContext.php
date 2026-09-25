@@ -228,6 +228,25 @@ class JsonContext implements Context
         }
     }
 
+    /**
+     * @Then the response header :name should be a number of seconds between :min and :max
+     */
+    public function theResponseHeaderShouldBeANumberOfSecondsBetween(string $name, int $min, int $max): void
+    {
+        $value = null;
+        foreach ($this->jsonContext->getSession()->getResponseHeaders() as $headerName => $headerValue) {
+            if (strtolower($name) === strtolower((string) $headerName)) {
+                $value = \is_array($headerValue) ? implode(', ', $headerValue) : (string) $headerValue;
+            }
+        }
+        if (null === $value) {
+            throw new \RuntimeException(\sprintf('The response has no %s header.', $name));
+        }
+        if (!ctype_digit($value) || (int) $value < $min || (int) $value > $max) {
+            throw new \RuntimeException(\sprintf('The %s header "%s" is not a number of seconds between %d and %d.', $name, $value, $min, $max));
+        }
+    }
+
     private function getResponseCacheControl(): string
     {
         $cacheControl = '';
