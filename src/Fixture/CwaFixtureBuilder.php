@@ -637,7 +637,7 @@ class CwaFixtureBuilder
             if (null !== $entity->getRoute()) {
                 continue;
             }
-            if ('pageData' === $spec['type'] && null === $spec['route'] && $builder->isWithoutRoute()) {
+            if (null === $spec['route'] && $builder->isWithoutRoute()) {
                 $this->routedSpecs[$builderId] = true;
                 continue;
             }

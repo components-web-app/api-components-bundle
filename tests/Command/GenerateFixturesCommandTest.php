@@ -198,6 +198,15 @@ class GenerateFixturesCommandTest extends TestCase
         self::assertStringNotContainsString('->liveAt(', $code);
     }
 
+    public function test_a_page_without_a_route_is_emitted_without_one(): void
+    {
+        $this->page('parent', $this->layout('main', 'CwaLayoutPrimary'))->setTitle('Parent');
+
+        $code = $this->generate();
+
+        self::assertStringContainsString("\$page = \$cwa->page('parent', 'Primary', layout: 'main');\n        \$page->title('Parent');\n        \$page->withoutRoute();\n", $code);
+    }
+
     public function test_a_template_page_without_a_layout_is_emitted_with_an_empty_layout_reference(): void
     {
         $page = $this->page('template', null);
@@ -206,6 +215,7 @@ class GenerateFixturesCommandTest extends TestCase
         $code = $this->generate();
 
         self::assertStringContainsString("\$page = \$cwa->page('template', 'Primary', layout: '', isTemplate: true);", $code);
+        self::assertStringNotContainsString('withoutRoute', $code);
     }
 
     public function test_a_scheduled_or_draft_route_is_emitted_and_a_live_one_is_not(): void

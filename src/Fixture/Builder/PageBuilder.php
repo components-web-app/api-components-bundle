@@ -20,6 +20,7 @@ class PageBuilder
     private array $groupBuilders = [];
     private ?\Closure $nestedClosure = null;
     private bool $hasLiveAt = false;
+    private bool $withoutRoute = false;
     private ?\DateTimeImmutable $liveAt = null;
     private ?Page $existingPage = null;
 
@@ -74,6 +75,18 @@ class PageBuilder
     public function getLiveAt(): ?\DateTimeImmutable
     {
         return $this->liveAt;
+    }
+
+    public function withoutRoute(): self
+    {
+        $this->withoutRoute = true;
+
+        return $this;
+    }
+
+    public function isWithoutRoute(): bool
+    {
+        return $this->withoutRoute;
     }
 
     public function group(string $name, ?\Closure $configure = null, ?string $locationReference = null, array $allow = []): GroupBuilder

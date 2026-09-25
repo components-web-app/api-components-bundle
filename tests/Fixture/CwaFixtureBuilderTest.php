@@ -132,6 +132,51 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->flush();
     }
 
+    public function test_page_without_route_is_persisted_without_a_generated_route(): void
+    {
+        $persisted = [];
+        $flushCount = 0;
+        $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
+        $routeGenerator->expects($this->never())->method('create');
+
+        $builder = $this->makeBuilder($this->collectingEm($persisted, $flushCount), $routeGenerator);
+        $builder->layout('main', 'Primary');
+        $builder->page('parent', 'Primary', layout: 'main')->title('Parent')->withoutRoute();
+        $builder->flush();
+
+        $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
+        $this->assertCount(1, $pages);
+        $this->assertNull($pages[0]->getRoute());
+        $this->assertSame([], array_values(array_filter($persisted, static fn ($e) => $e instanceof Route)));
+        $this->assertSame(1, $flushCount);
+    }
+
+    public function test_an_explicit_route_wins_over_without_route_on_a_page(): void
+    {
+        $builder = $this->makeBuilder();
+        $builder->layout('main', 'Primary');
+        $page = $builder->page('parent', 'Primary', layout: 'main', route: '/parent', routeName: 'parent')->withoutRoute();
+        $builder->flush();
+
+        $this->assertSame('/parent', $page->getRoute()?->getPath());
+        $this->assertSame($page->getRoute(), $builder->getRoute('parent'));
+    }
+
+    public function test_a_child_with_an_explicit_route_under_a_page_without_route_keeps_it(): void
+    {
+        $builder = $this->makeBuilder(routeGenerator: $this->createStub(RouteGeneratorInterface::class));
+        $builder->layout('main', 'Primary');
+        $parent = $builder->page('parent', 'Primary', layout: 'main')->withoutRoute();
+        $parent->nested(static function (CwaFixtureBuilder $child): void {
+            $child->page('child', 'Primary', layout: 'main', route: '/parent/child', routeName: 'child');
+        });
+        $builder->flush();
+
+        $this->assertNull($parent->getRoute());
+        $this->assertSame('/parent/child', $builder->getRoute('child')->getPath());
+        $this->assertSame($parent->getPage(), $builder->getRoute('child')->getPage()?->getParentPage());
+    }
+
     public function test_page_without_route_and_not_template_calls_route_generator(): void
     {
         $persisted = [];

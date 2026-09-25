@@ -266,6 +266,30 @@ final class FixtureContext implements Context
     }
 
     /**
+     * @Given the site has a page :parent with no route and a child page :child at the route :path
+     */
+    public function theSiteHasARoutelessPageWithARoutedChild(string $parent, string $child, string $path): void
+    {
+        $cwa = $this->builder();
+        $cwa->layout('main', 'Primary');
+        $cwa->flush();
+        $layout = $this->manager->getRepository(Layout::class)->findOneBy(['reference' => 'main']);
+
+        $parentPage = $this->newPage($parent, $layout);
+        $parentPage->setTitle(ucfirst($parent));
+        $childPage = $this->newPage($child, $layout);
+        $childPage->setParentPage($parentPage);
+        $route = new Route();
+        $route->setPath($path);
+        $route->setName($child);
+        $route->setPage($childPage);
+        $childPage->setRoute($route);
+        $this->timestampedDataPersister->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+        $this->manager->flush();
+    }
+
+    /**
      * @When the site is generated as fixtures
      * @When the site is generated as fixtures to the file :fileName
      */
@@ -946,6 +970,19 @@ final class FixtureContext implements Context
             $this->uploadableFileManager,
             $this->uploadableAttributeReader,
         ))->withManager($this->manager);
+    }
+
+    private function newPage(string $reference, ?Layout $layout): Page
+    {
+        $page = new Page();
+        $page->reference = $reference;
+        $page->uiComponent = 'CwaPagePrimary';
+        $page->isTemplate = false;
+        $page->layout = $layout;
+        $this->timestampedDataPersister->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        return $page;
     }
 
     private function homePageGroup(): GroupBuilder

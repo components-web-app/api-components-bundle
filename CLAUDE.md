@@ -297,7 +297,7 @@ CwaFixtureBuilder
   ->persist(object): static                                  (queued until flush() when called before it)
   ->getSummary(): CwaFixtureSummary, ->reportSummary()       (what the last load created, kept and skipped)
 LayoutBuilder    ->group(name, allow: [], ?Closure, ?locationReference): GroupBuilder, ->uiClassNames(...)
-PageBuilder      ->title(), ->metaDescription(), ->uiClassNames(), ->group(name, ?Closure, ?locationReference, allow: []), ->liveAt(?DateTimeImmutable), ->nested(Closure), ->getRoute()
+PageBuilder      ->title(), ->metaDescription(), ->uiClassNames(), ->group(name, ?Closure, ?locationReference, allow: []), ->liveAt(?DateTimeImmutable), ->withoutRoute(), ->nested(Closure), ->getRoute()
 PageDataBuilder  ->liveAt(?DateTimeImmutable), ->withoutRoute(), ->nested(Closure), ->onRoutesCreated(Closure(array<PageBuilder>)), ->getRoute()
 ComponentBuilder ->uiComponent(suffix), ->uiClassNames(...), ->group(name, allow: [], ?Closure)
 GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataClass, propertyName, ?sort)
@@ -308,7 +308,7 @@ GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataCla
 - `PageBuilder::group()` takes `allow:` last so existing positional closure calls keep working.
 - `onRoutesCreated` may only mutate entities already persisted (set on the page data before `->pageData()` so phase one cascades them); it never calls `persist()`.
 - The builder handles timestamping, persisting, dedup of layouts/pages and groups, position sort values (×10), bidirectional links and parent propagation. `allow:` takes class names and resolves collection IRIs.
-- A page data with no explicit `route:` gets a generated one unless `->withoutRoute()` is set. `generate-fixtures` emits `->withoutRoute()` for page data that has no route.
+- A page or page data with no explicit `route:` gets a generated one unless `->withoutRoute()` is set; an explicit `route:` wins over it. `generate-fixtures` emits `->withoutRoute()` for page data and non-template pages that have no route.
 
 ### Loading into a database that already has content (#319)
 

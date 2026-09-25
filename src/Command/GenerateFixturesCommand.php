@@ -547,6 +547,9 @@ class GenerateFixturesCommand extends Command
         if (null !== $page->getMetaDescription()) {
             $code .= "{$indent}\$page->metaDescription(" . var_export($page->getMetaDescription(), true) . ");\n";
         }
+        if (null === $page->getRoute() && !$page->isTemplate) {
+            $code .= "{$indent}\$page->withoutRoute();\n";
+        }
         $liveAt = $this->liveAtExpression($page->getRoute());
         if (null !== $liveAt) {
             $code .= "{$indent}\$page->liveAt({$liveAt});\n";
