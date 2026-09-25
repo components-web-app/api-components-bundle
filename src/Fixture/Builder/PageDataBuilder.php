@@ -19,6 +19,8 @@ class PageDataBuilder
     private ?\Closure $nestedClosure = null;
     private ?\Closure $onRoutesCreated = null;
     private array $childPageRefs = [];
+    private bool $hasLiveAt = false;
+    private ?\DateTimeImmutable $liveAt = null;
 
     public function __construct(private readonly AbstractPageData $pageData)
     {
@@ -34,6 +36,24 @@ class PageDataBuilder
     public function getNestedClosure(): ?\Closure
     {
         return $this->nestedClosure;
+    }
+
+    public function liveAt(?\DateTimeImmutable $liveAt): self
+    {
+        $this->hasLiveAt = true;
+        $this->liveAt = $liveAt;
+
+        return $this;
+    }
+
+    public function hasLiveAt(): bool
+    {
+        return $this->hasLiveAt;
+    }
+
+    public function getLiveAt(): ?\DateTimeImmutable
+    {
+        return $this->liveAt;
     }
 
     public function onRoutesCreated(\Closure $cb): self

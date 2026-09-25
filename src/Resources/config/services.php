@@ -1459,6 +1459,11 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('console.command')
         ->args([
             new Reference(ManagerRegistry::class),
+            new Reference(IriConverterInterface::class),
+            new Reference(UploadableAttributeReader::class),
+            new Reference(PublishableAttributeReader::class),
+            new Reference(TimestampedAttributeReader::class),
+            new Reference(FilesystemProvider::class),
         ]);
 
     $services->alias(GenerateFixturesCommand::class, 'silverback.api_components.command.generate_fixtures');

@@ -247,17 +247,36 @@ CwaFixtureBuilder
   ->pageData(AbstractPageData, ?template, ?route, ?routeName, ?Closure): PageDataBuilder
   ->component(AbstractComponent): ComponentBuilder
   ->getRoute(routeName): Route
-LayoutBuilder    ->group(name, allow: [], ?Closure): GroupBuilder, ->uiClassNames(...)
-PageBuilder      ->title(), ->metaDescription(), ->uiClassNames(), ->group(name, ?Closure), ->nested(Closure), ->getRoute()
-PageDataBuilder  ->nested(Closure), ->onRoutesCreated(Closure(array<PageBuilder>)), ->getRoute()
+  ->redirect(path, to: routeName, ?name): static             (a redirect Route to a named route; registered by its own name)
+  ->afterRoutes(Closure(CwaFixtureBuilder)): static          (runs once, after routes exist and before positions are created)
+LayoutBuilder    ->group(name, allow: [], ?Closure, ?locationReference): GroupBuilder, ->uiClassNames(...)
+PageBuilder      ->title(), ->metaDescription(), ->uiClassNames(), ->group(name, ?Closure, ?locationReference, allow: []), ->liveAt(?DateTimeImmutable), ->nested(Closure), ->getRoute()
+PageDataBuilder  ->liveAt(?DateTimeImmutable), ->nested(Closure), ->onRoutesCreated(Closure(array<PageBuilder>)), ->getRoute()
 ComponentBuilder ->uiComponent(suffix), ->uiClassNames(...), ->group(name, allow: [], ?Closure)
 GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataClass, propertyName, ?sort)
 ```
 
 - **Routes:** an explicit `route:` creates that path. With no `route:`, a non-template page is generated from its title, and a template page gets none. A nested page is generated under its parent, and **a parent with no route throws `UnroutedParentException`**, so pass an explicit `route:`. A top-level entity with no route and no title is left as a draft.
-- **Flush phases:** persist layouts/pages/page data → flush → groups → flush → `RouteGenerator` breadth-first, parents first (`nested()` closures run here) → flush → `onRoutesCreated` callbacks → flush → positions and components → final flush. `getRoute()` is valid only after route generation.
+- **Flush phases:** persist layouts/pages/page data → flush → groups → flush → `RouteGenerator` breadth-first, parents first (`nested()` closures run here), then `liveAt` and redirects → flush → `onRoutesCreated` and `afterRoutes` callbacks → flush → positions and components → final flush. `getRoute()` is valid only after route generation, which is why anything referencing a route (a navigation link, a draft) is set in `afterRoutes`. Each phase flushes only when it did something; the unit tests pin those counts, so do not add an unconditional flush.
+- `PageBuilder::group()` takes `allow:` last so existing positional closure calls keep working.
 - `onRoutesCreated` may only mutate entities already persisted (set on the page data before `->pageData()` so phase one cascades them); it never calls `persist()`.
 - The builder handles timestamping, persisting, dedup of layouts/pages and groups, position sort values (×10), bidirectional links and parent propagation. `allow:` takes class names and resolves collection IRIs.
+
+### `generate-fixtures` (#189, #321)
+
+`silverback:api-components:generate-fixtures` writes a scaffold that reloads as the same site. `features/fixtures/generate_fixtures_round_trip.feature` is the authority: it builds a site with the builder, generates, purges, loads the generated file and compares. Add a scenario there for anything new the generator must carry.
+
+- The generated code uses numbered `$c[]` / `$g[]` variables and named arguments, never positional arguments after named ones.
+- Component and page data fields come from Doctrine metadata, not public properties. Each is written through its public property, else its setter. Identifiers, timestamps and uploadable storage fields are skipped; values equal to the property default are left out.
+- Stored files are copied to `assets/` beside the output file, without their token, and loaded back through `new File(...)`.
+- Route references and drafts go in `$cwa->afterRoutes()`. A draft is linked with its publishable association and passed to `$cwa->persist()`.
+- `allowedComponents` IRIs are mapped back to component classes through the IRI converter.
+- A group whose reference is not `<name>_<location>` is emitted with a `locationReference`, and its positions only once.
+- Only non-live `liveAt` values (future or null) are emitted.
+- Anything it cannot express is listed in the command output ("could not be reproduced"), never exported with `var_export`. Keep it that way: a scaffold that silently drops content is worse than one that says so.
+- Read entities through `initializeObject()` first: `ClassMetadata::getFieldValue()` does not initialise a lazy object, so a lazily loaded component reads as empty.
+
+> **A `#[ORM\MappedSuperclass]` between `AbstractComponent` and an application's components breaks queries.** `AbstractComponent` is JOINED with no discriminator map, so Doctrine builds one from every subclass and includes the mapped superclass, which has no table. Use an abstract `#[ORM\Entity]` for a shared base instead (see `AbstractDummyAppComponent`).
 
 ---
 

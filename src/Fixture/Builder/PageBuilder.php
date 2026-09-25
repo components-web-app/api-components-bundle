@@ -19,6 +19,8 @@ class PageBuilder
     /** @var array<string, GroupBuilder> */
     private array $groupBuilders = [];
     private ?\Closure $nestedClosure = null;
+    private bool $hasLiveAt = false;
+    private ?\DateTimeImmutable $liveAt = null;
 
     public function __construct(private readonly Page $page)
     {
@@ -55,10 +57,28 @@ class PageBuilder
         return $this;
     }
 
-    public function group(string $name, ?\Closure $configure = null, ?string $locationReference = null): GroupBuilder
+    public function liveAt(?\DateTimeImmutable $liveAt): self
+    {
+        $this->hasLiveAt = true;
+        $this->liveAt = $liveAt;
+
+        return $this;
+    }
+
+    public function hasLiveAt(): bool
+    {
+        return $this->hasLiveAt;
+    }
+
+    public function getLiveAt(): ?\DateTimeImmutable
+    {
+        return $this->liveAt;
+    }
+
+    public function group(string $name, ?\Closure $configure = null, ?string $locationReference = null, array $allow = []): GroupBuilder
     {
         if (!isset($this->groupBuilders[$name])) {
-            $this->groupBuilders[$name] = new GroupBuilder($name, [], $locationReference);
+            $this->groupBuilders[$name] = new GroupBuilder($name, $allow, $locationReference);
         }
         if (null !== $configure) {
             $configure($this->groupBuilders[$name]);

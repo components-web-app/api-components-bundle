@@ -4,6 +4,12 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Added
+- Fixture builder: `allow:` on page groups, `liveAt()` on pages and page data, `redirect()` and `afterRoutes()` ([#322](https://github.com/components-web-app/api-components-bundle/pull/322))
+
+### Fixed
+- `generate-fixtures` writes a scaffold that loads and gives back the same site: published state and drafts, uploaded files, component-owned and shared groups, relations, dates, inherited and non-public fields, meta descriptions, scheduled routes and redirects. It lists anything it cannot reproduce ([#322](https://github.com/components-web-app/api-components-bundle/pull/322))
+
 ## [2.0.0-alpha.4](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.3...2.0.0-alpha.4) - 2026-09-24
 
 ### Breaking
