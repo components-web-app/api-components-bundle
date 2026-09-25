@@ -27,6 +27,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use PHPUnit\Framework\Assert;
 use Ramsey\Uuid\Uuid;
+use Silverback\ApiComponentsBundle\ApiResource\OrphanedResourceReport;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
@@ -41,6 +42,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceReportStore;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
@@ -80,12 +82,14 @@ final class DoctrineContext implements Context
     private JsonContext $jsonContext;
     private RouteLiveResolver $routeLiveResolver;
     private KernelInterface $kernel;
+    private OrphanedResourceReportStore $orphanedResourceReportStore;
     private ?\Throwable $commandException = null;
     private PasswordHasherFactoryInterface $passwordHasherFactory;
 
-    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordHasherInterface $passwordHasher, JWTEncoderInterface $jwtEncoder, RouteLiveResolver $routeLiveResolver, KernelInterface $kernel, PasswordHasherFactoryInterface $passwordHasherFactory)
+    public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordHasherInterface $passwordHasher, JWTEncoderInterface $jwtEncoder, RouteLiveResolver $routeLiveResolver, KernelInterface $kernel, PasswordHasherFactoryInterface $passwordHasherFactory, OrphanedResourceReportStore $orphanedResourceReportStore)
     {
         $this->passwordHasherFactory = $passwordHasherFactory;
+        $this->orphanedResourceReportStore = $orphanedResourceReportStore;
         $this->kernel = $kernel;
         $this->routeLiveResolver = $routeLiveResolver;
         $this->doctrine = $doctrine;
@@ -2648,5 +2652,103 @@ final class DoctrineContext implements Context
 
         $this->manager->flush();
         $this->manager->clear();
+    }
+
+    /**
+     * @BeforeScenario
+     *
+     * @AfterScenario
+     */
+    public function clearOrphanedResourcesReport(): void
+    {
+        $this->orphanedResourceReportStore->clear();
+    }
+
+    /**
+     * @Given an orphaned resources report has been stored
+     */
+    public function anOrphanedResourcesReportHasBeenStored(): void
+    {
+        $this->orphanedResourceReportStore->save(new OrphanedResourceReport(new \DateTimeImmutable()));
+    }
+
+    /**
+     * @Then no orphaned resources report should have been stored
+     */
+    public function noOrphanedResourcesReportShouldHaveBeenStored(): void
+    {
+        if (null !== $this->orphanedResourceReportStore->fetch()) {
+            throw new \RuntimeException('An orphaned resources report was stored');
+        }
+    }
+
+    /**
+     * @Given there is an orphaned ComponentGroup
+     */
+    public function thereIsAnOrphanedComponentGroup(): void
+    {
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = 'orphaned-group';
+        $componentGroup->location = 'orphaned-group';
+        $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+        $this->manager->persist($componentGroup);
+        $this->manager->flush();
+        $this->restContext->resources['orphaned_component_group'] = $this->iriConverter->getIriFromResource($componentGroup);
+    }
+
+    /**
+     * @Given the Page :name has a ComponentPosition with neither a component nor a page data property
+     */
+    public function thePageHasAnEmptyComponentPosition(string $name): void
+    {
+        $position = new ComponentPosition();
+        $position->componentGroup = $this->createPageComponentGroup($name, 'empty-position-group');
+        $position->sortValue = 0;
+        $this->timestampedHelper->persistTimestampedFields($position, true);
+        $this->manager->persist($position);
+        $this->manager->flush();
+        $this->restContext->resources['empty_position'] = $this->iriConverter->getIriFromResource($position);
+    }
+
+    /**
+     * @Given the Page :name holds the resource :resource
+     */
+    public function thePageHoldsTheResource(string $name, string $resource): void
+    {
+        /** @var AbstractComponent $component */
+        $component = $this->iriConverter->getResourceFromIri($this->restContext->resources[$resource]);
+        $position = new ComponentPosition();
+        $position->componentGroup = $this->createPageComponentGroup($name, 'held-resource-group');
+        $position->component = $component;
+        $position->sortValue = 0;
+        $this->timestampedHelper->persistTimestampedFields($position, true);
+        $this->manager->persist($position);
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given the resource :name has been removed from the database
+     */
+    public function theResourceHasBeenRemovedFromTheDatabase(string $name): void
+    {
+        $this->manager->clear();
+        $resource = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+        $this->manager->remove($resource);
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    private function createPageComponentGroup(string $pageName, string $reference): ComponentGroup
+    {
+        /** @var Page $page */
+        $page = $this->iriConverter->getResourceFromIri($this->restContext->resources[$pageName]);
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = $reference;
+        $componentGroup->location = $reference;
+        $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+        $this->manager->persist($componentGroup);
+        $page->addComponentGroup($componentGroup);
+
+        return $componentGroup;
     }
 }

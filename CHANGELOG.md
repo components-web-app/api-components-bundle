@@ -6,6 +6,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Added
 - Fixture builder: `allow:` on page groups, `liveAt()` on pages and page data, `redirect()` and `afterRoutes()` ([#322](https://github.com/components-web-app/api-components-bundle/pull/322))
+- Orphaned resource report: `POST /_/orphaned_resources/scan` and `GET /_/orphaned_resources` (admin) list unowned groups, empty positions and unused components ([#329](https://github.com/components-web-app/api-components-bundle/pull/329))
 
 ### Fixed
 - `generate-fixtures` writes a scaffold that loads and gives back the same site: published state and drafts, uploaded files, component-owned and shared groups, relations, dates, inherited and non-public fields, meta descriptions, scheduled routes and redirects. It lists anything it cannot reproduce ([#322](https://github.com/components-web-app/api-components-bundle/pull/322))
