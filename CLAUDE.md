@@ -111,6 +111,27 @@ A gate that fails when a host is slow gets re-run until a real failure is waved 
 | `ComponentGroup` | Ordered `ComponentPosition`s in a page, layout or component. |
 | `ComponentPosition` | A slot holding one component, or a dynamic `pageDataProperty` resolved from page data. |
 
+### API endpoints
+
+API Platform routes are prefixed by `RoutingPrefixResourceMetadataCollectionFactory` (`/_/` for bundle resources); the template imports them all under `/_api`. Security routes and `/_/health` are plain Symfony routes from `routing/all.php`.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /_/routes/{path}` | Resolve a path to a Route. A gated route is 404 for the public (#224). |
+| `GET /_/routes` | Route collection; the sitemap source. Filtered on the inherited `liveAt` (#234). |
+| `POST /_/routes/generate` | Generate a Route for a Page/PageData. 422 when the parent has no route (#245). |
+| `PATCH /_/routes/{id}` | Optional `cascadeChildPaths: true` rewrites descendant paths and creates redirects (#256). |
+| `GET /_/routes/{id}/children` | Recursive child tree, admin-only, unfiltered by publication. |
+| `GET /_/routes/{id}/redirects` | The redirect chain; gated nodes pruned for non-admins. |
+| `GET /_/resource_manifest/{id}` | Manifest by route path (`/…`) or Page/PageData UUID. |
+| `POST /_/rendered_html/purge` | Purge `cwa-html` only (`ROLE_ADMIN`, 204; 502 on failure) (#243, #311). |
+| `POST /_/http_cache/purge` | Flush the whole HTTP cache (`ROLE_ADMIN`, 204; 501 when unsupported, 502 on failure) (#290). |
+| `POST /_/orphaned_resources/scan`, `GET /_/orphaned_resources` | Orphan report (`ROLE_ADMIN`). See **Orphaned resource report**. |
+| `GET /_/health` | Uncached readiness check, 200 or 503 (#312). |
+| `GET /me` | The current user. |
+| `GET /password/reset/request/{username}`, `/resend-verify-email/{username}`, `/resend-verify-new-email/{username}` | Requests whose job is an email: 400 and nothing changed when the link is refused (#326). |
+| `GET /verify-email/{username}/{token}`, `/confirm-email/{username}/{emailAddress}/{token}` | Token links from those emails. |
+
 ### Page hierarchy and routes
 
 - **Routes are the publication mechanism.** Page data is editable by IRI before it has a Route; a Route is created when it goes public. So hierarchy lives on `AbstractPage` (`$parentPage` / `$parentPageData`), never on `Route`: a parent must be settable before either page has a URL.
@@ -300,6 +321,10 @@ GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataCla
 ## Open issues
 
 - **#186 — page-level `publishedAt` on `AbstractPage`. Do not start this** (Daniel, 2026-08-14). Component permission inheritance, the front-end draft/live UX and the hero-component state conflict are unresolved, and building the API side first would decide them. `liveAt` (#224) complements it but cannot express "draft page on a live URL".
+- **#319 — idempotent `--append` fixture loads. Do last.** Skip whatever already exists; a group missing from an existing owner can be created. Open: how to recognise existing page data (route path, or a new `reference`). Decisions so far are on the issue.
+- **#325 — one unreachable invalidation URL stops purges to the others.** The loop is in API Platform's `SurrogateKeysPurger`; Daniel is taking it up with API Platform before any bundle workaround.
+- **#324 — PHPStan `method.notFound` baseline entries.** Background work, a class at a time.
+- **#259 — Flex recipe.** Parked until the stable release.
 - **#222 — config guards still carrying the #214 pattern:** `user.class_name`, `refresh_token.*`, `publishable.permission`, `refresh_token.options.class`. Each fix may force configuration on existing applications (a BC break). Verify each empirically before deciding.
 - `make:page-data --properties a b` (space-separated) fails in Symfony's input binding before the maker runs; comma-separated and repeated options work.
 - Uploads: no field-level "generic file vs image" flag yet (#199 item 3).
