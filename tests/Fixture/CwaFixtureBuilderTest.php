@@ -2145,4 +2145,185 @@ class CwaFixtureBuilderTest extends TestCase
 
         $this->assertSame(['bold', 'dark'], $component->uiClassNames);
     }
+
+    public function test_page_group_allows_the_given_component_classes(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturnCallback(
+            static fn ($resource) => \is_string($resource) ? '/_/some_components' : '/_/pages/home'
+        );
+
+        $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
+        $builder->layout('main', 'Primary');
+        $builder->page('home', 'Primary', layout: 'main', route: '/')->group('primary', allow: [\stdClass::class]);
+        $builder->flush();
+
+        $groups = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup));
+        $this->assertCount(1, $groups);
+        $this->assertSame(['/_/some_components'], $groups[0]->allowedComponents);
+    }
+
+    public function test_page_live_at_is_set_on_an_explicit_route(): void
+    {
+        $persisted = [];
+        $builder = $this->makeBuilder($this->collectingEm($persisted));
+        $liveAt = new \DateTimeImmutable('2999-01-01');
+
+        $builder->layout('main', 'Primary');
+        $builder->page('home', 'Primary', layout: 'main', route: '/')->liveAt($liveAt);
+        $builder->page('draft', 'Primary', layout: 'main', route: '/draft')->liveAt(null);
+        $builder->flush();
+
+        $routes = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route));
+        $this->assertSame($liveAt, $routes[0]->getLiveAt());
+        $this->assertNull($routes[1]->getLiveAt());
+    }
+
+    public function test_page_live_at_is_set_on_a_generated_route(): void
+    {
+        $persisted = [];
+        $builder = $this->makeBuilder($this->collectingEm($persisted), routeGenerator: $this->autoRouteGenerator());
+
+        $builder->layout('main', 'Primary');
+        $builder->page('home', 'Primary', layout: 'main')->liveAt(null);
+        $builder->flush();
+
+        $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
+        $this->assertNotNull($pages[0]->getRoute());
+        $this->assertNull($pages[0]->getRoute()->getLiveAt());
+    }
+
+    public function test_route_keeps_its_default_live_at_when_none_is_given(): void
+    {
+        $persisted = [];
+        $builder = $this->makeBuilder($this->collectingEm($persisted));
+
+        $builder->layout('main', 'Primary');
+        $builder->page('home', 'Primary', layout: 'main', route: '/');
+        $builder->flush();
+
+        $routes = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route));
+        $this->assertNotNull($routes[0]->getLiveAt());
+    }
+
+    public function test_page_data_live_at_is_set_on_explicit_and_generated_routes(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), routeGenerator: $this->autoRouteGenerator());
+        $liveAt = new \DateTimeImmutable('2999-01-01');
+        $explicit = new class extends AbstractPageData {};
+        $generated = new class extends AbstractPageData {};
+
+        $builder->pageData($explicit, route: '/explicit')->liveAt($liveAt);
+        $builder->pageData($generated)->liveAt(null);
+        $builder->flush();
+
+        $this->assertSame($liveAt, $explicit->getRoute()->getLiveAt());
+        $this->assertNull($generated->getRoute()->getLiveAt());
+    }
+
+    public function test_redirects_are_created_to_named_routes_in_order_and_are_named(): void
+    {
+        $persisted = [];
+        $builder = $this->makeBuilder($this->collectingEm($persisted));
+
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $builder->redirect('/old', to: 'about', name: 'old')->redirect('/older', to: 'old');
+        $builder->flush();
+        $builder->flush();
+
+        $redirects = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route && null !== $e->getRedirect()));
+        $this->assertCount(2, $redirects);
+        $this->assertSame('/old', $redirects[0]->getPath());
+        $this->assertSame('old', $redirects[0]->getName());
+        $this->assertSame($builder->getRoute('about'), $redirects[0]->getRedirect());
+        $this->assertSame('older', $redirects[1]->getName());
+        $this->assertSame($redirects[0], $redirects[1]->getRedirect());
+        $this->assertSame($redirects[1], $builder->getRoute('older'));
+    }
+
+    public function test_redirect_to_an_unknown_route_name_throws(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $builder->redirect('/old', to: 'missing');
+
+        $this->expectException(\LogicException::class);
+        $builder->flush();
+    }
+
+    public function test_after_routes_callbacks_run_once_after_routes_and_before_positions_are_created(): void
+    {
+        $persisted = [];
+        $flushCount = 0;
+        $builder = $this->makeBuilder($this->collectingEm($persisted, $flushCount));
+        $component = new class extends AbstractComponent {};
+        $seen = [];
+
+        $builder->layout('main', 'Primary')->group('nav')->add($component);
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $builder->afterRoutes(static function (CwaFixtureBuilder $cwa) use (&$seen, &$persisted): void {
+            $seen[] = [
+                $cwa->getRoute('about')->getPath(),
+                \count(array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition)),
+            ];
+        });
+        $builder->flush();
+        $flushesAfterFirst = $flushCount;
+        $builder->flush();
+
+        $this->assertSame([['/about', 0]], $seen);
+        $this->assertCount(1, array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition));
+        $this->assertSame($flushesAfterFirst, $flushCount);
+    }
+
+    public function test_after_routes_changes_are_flushed(): void
+    {
+        $flushCount = 0;
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+        $builder->flush();
+        $withoutCallback = $flushCount;
+
+        $flushCount = 0;
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+        $builder->afterRoutes(static function (): void {});
+        $builder->flush();
+
+        $this->assertSame($withoutCallback + 1, $flushCount);
+    }
+
+    public function test_a_redirect_added_after_a_flush_is_created_by_the_next_flush_and_timestamped(): void
+    {
+        $persisted = [];
+        $flushCount = 0;
+        $timestamped = [];
+        $builder = $this->makeBuilder($this->collectingEm($persisted, $flushCount), timestampedPersister: $this->recordingTimestampedPersister($timestamped));
+
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $builder->redirect('/old', to: 'about');
+        $builder->flush();
+        $builder->redirect('/older', to: 'old');
+        $flushesBefore = $flushCount;
+        $builder->flush();
+
+        $redirects = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route && null !== $e->getRedirect()));
+        $this->assertSame(['/old', '/older'], array_map(static fn (Route $r) => $r->getPath(), $redirects));
+        $this->assertSame($flushesBefore + 1, $flushCount);
+        $timestampedRedirects = array_values(array_filter($timestamped, static fn ($call) => $call['entity'] instanceof Route && null !== $call['entity']->getRedirect()));
+        $this->assertCount(2, $timestampedRedirects);
+        $this->assertTrue($timestampedRedirects[1]['isNew']);
+    }
+
+    public function test_live_at_on_a_template_page_without_a_route_is_ignored(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+
+        $builder->layout('main', 'Primary');
+        $page = $builder->page('template', 'Primary', layout: 'main', isTemplate: true)->liveAt(null);
+        $builder->flush();
+
+        $this->assertNull($page->getRoute());
+    }
 }

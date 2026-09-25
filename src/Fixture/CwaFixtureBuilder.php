@@ -66,6 +66,12 @@ class CwaFixtureBuilder
     /** @var array<string, Route> */
     private array $namedRoutes = [];
 
+    /** @var array<int, \Closure> */
+    private array $afterRoutesCallbacks = [];
+
+    /** @var array<int, array{path: string, to: string, name: ?string, route: ?Route}> */
+    private array $redirectSpecs = [];
+
     /** @var array<int, ComponentBuilder> keyed by spl_object_id of the AbstractComponent */
     private array $componentBuilders = [];
 
@@ -203,6 +209,20 @@ class CwaFixtureBuilder
         }
 
         return $this->componentBuilders[$oid];
+    }
+
+    public function afterRoutes(\Closure $callback): static
+    {
+        $this->afterRoutesCallbacks[] = $callback;
+
+        return $this;
+    }
+
+    public function redirect(string $path, string $to, ?string $name = null): static
+    {
+        $this->redirectSpecs[] = ['path' => $path, 'to' => $to, 'name' => $name, 'route' => null];
+
+        return $this;
     }
 
     public function getRoute(string $routeName): Route
@@ -434,6 +454,7 @@ class CwaFixtureBuilder
                     }
                     $hadNew = true;
                 }
+                $this->applyLiveAt($spec['builder'], $page);
             } else {
                 $pageData = $spec['builder']->getPageData();
                 if (null !== $pageData->getRoute()) {
@@ -456,11 +477,32 @@ class CwaFixtureBuilder
                     }
                     $hadNew = true;
                 }
+                $this->applyLiveAt($spec['builder'], $pageData);
             }
+        }
+
+        foreach ($this->redirectSpecs as $index => $spec) {
+            if (null !== $spec['route']) {
+                continue;
+            }
+            $route = $this->createExplicitRoute($spec['path'], $spec['name']);
+            $route->setRedirect($this->getRoute($spec['to']));
+            $this->timestampedPersister->persistTimestampedFields($route, true);
+            $this->manager->persist($route);
+            $this->namedRoutes[$route->getName()] = $route;
+            $this->redirectSpecs[$index]['route'] = $route;
+            $hadNew = true;
         }
 
         if ($hadNew) {
             $this->manager->flush();
+        }
+    }
+
+    private function applyLiveAt(PageBuilder|PageDataBuilder $builder, AbstractPage $page): void
+    {
+        if ($builder->hasLiveAt()) {
+            $page->getRoute()?->setLiveAt($builder->getLiveAt());
         }
     }
 
@@ -483,6 +525,12 @@ class CwaFixtureBuilder
                 $spec['builder']->getChildPageRefs(),
             )));
             $cb($childBuilders);
+            $hasChanges = true;
+        }
+
+        foreach ($this->afterRoutesCallbacks as $index => $callback) {
+            unset($this->afterRoutesCallbacks[$index]);
+            $callback($this);
             $hasChanges = true;
         }
 

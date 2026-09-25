@@ -79,12 +79,6 @@ parameters:
 			path: src/Command/FormCachePurgeCommand.php
 
 		-
-			message: '#^Strict comparison using \!\=\= between false and string will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: src/Command/GenerateFixturesCommand.php
-
-		-
 			message: '#^Call to an undefined method Symfony\\Component\\Console\\Helper\\HelperInterface\:\:ask\(\)\.$#'
 			identifier: method.notFound
 			count: 1
