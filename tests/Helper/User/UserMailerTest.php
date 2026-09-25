@@ -34,6 +34,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\DependencyInjection\ServiceLocator;
+use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\RawMessage;
@@ -100,40 +101,6 @@ class UserMailerTest extends TestCase
         $result = $this->userMailer->sendPasswordResetEmail($user);
         $this->assertFalse($result);
         $this->assertNull($user->getPasswordRequestedAt());
-    }
-
-    public function test_exception_thrown_if_mailer_send_throws_exception(): void
-    {
-        $user = new class extends AbstractUser {
-        };
-        $templateEmail = new TemplatedEmail();
-
-        $loggerMock = $this->createMock(Logger::class);
-        $factoryMock = $this->getFactoryFromContainerMock(PasswordResetEmailFactory::class, [[['logger'], $loggerMock]]);
-
-        $factoryMock
-            ->expects(self::once())
-            ->method('create')
-            ->with($user, self::TEST_CONTEXT)
-            ->willReturn($templateEmail);
-
-        $mockException = $this->createStub(TransportExceptionInterface::class);
-        $this->mailerMock
-            ->expects(self::once())
-            ->method('send')
-            ->with($templateEmail)
-            ->willThrowException($mockException);
-
-        $loggerMock
-            ->expects(self::once())
-            ->method('error')
-            ->with(
-                self::anything(),
-                self::callback(static fn (array $ctx) => isset($ctx['exception']) && $ctx['exception'] instanceof MailerTransportException)
-            );
-
-        $result = $this->userMailer->sendPasswordResetEmail($user);
-        $this->assertFalse($result);
     }
 
     public function test_send_password_reset_email(): void
@@ -374,6 +341,62 @@ class UserMailerTest extends TestCase
 
     #[AllowMockObjectsWithoutExpectations]
     #[DataProvider('jobEmailRequestTimes')]
+    public function test_an_email_that_fails_to_send_without_a_logger_leaves_the_request_time_unset_and_saves_nothing(string $method, string $factoryClass, \Closure $requestedAt): void
+    {
+        $user = $this->createNamedUser();
+        $this->mailerMock->expects(self::once())->method('send')->willThrowException(new TransportException('unreachable'));
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::never())->method('flush');
+        $userMailer = $this->createMailerWithServices([
+            $factoryClass => $this->createEmailFactory(),
+            'doctrine.orm.entity_manager' => $entityManager,
+        ]);
+
+        self::assertFalse($userMailer->{$method}($user));
+        self::assertNull($requestedAt($user));
+    }
+
+    #[AllowMockObjectsWithoutExpectations]
+    #[DataProvider('afterWriteEmails')]
+    public function test_an_email_after_a_write_that_fails_to_send_without_a_logger_is_not_sent(string $method, string $factoryClass): void
+    {
+        $this->mailerMock->expects(self::once())->method('send')->willThrowException(new TransportException('unreachable'));
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::never())->method('flush');
+        $userMailer = $this->createMailerWithServices([
+            $factoryClass => $this->createEmailFactory(),
+            'doctrine.orm.entity_manager' => $entityManager,
+        ]);
+
+        self::assertFalse($userMailer->{$method}($this->createNamedUser()));
+    }
+
+    #[AllowMockObjectsWithoutExpectations]
+    #[DataProvider('afterWriteEmails')]
+    public function test_an_email_after_a_write_that_fails_to_send_is_logged_with_the_transport_debug(string $method, string $factoryClass): void
+    {
+        $transportException = new TransportException('unreachable');
+        $transportException->appendDebug('SMTP 421 service not available');
+        $this->mailerMock->expects(self::once())->method('send')->willThrowException($transportException);
+        $handler = new TestHandler();
+        $userMailer = $this->createMailerWithServices([
+            $factoryClass => $this->createEmailFactory(),
+            'doctrine.orm.entity_manager' => $this->createStub(EntityManagerInterface::class),
+            'logger' => new Logger('test', [$handler]),
+        ]);
+
+        self::assertFalse($userMailer->{$method}($this->createNamedUser()));
+        $records = $handler->getRecords();
+        self::assertCount(1, $records);
+        self::assertSame(Level::Error, $records[0]->level);
+        self::assertSame('unreachable', $records[0]->message);
+        $logged = $records[0]->context['exception'];
+        self::assertInstanceOf(MailerTransportException::class, $logged);
+        self::assertSame('SMTP 421 service not available', $logged->getDebug());
+    }
+
+    #[AllowMockObjectsWithoutExpectations]
+    #[DataProvider('jobEmailRequestTimes')]
     public function test_the_request_time_is_recorded_and_saved_only_after_the_email_was_sent(string $method, string $factoryClass, \Closure $requestedAt): void
     {
         $user = $this->createNamedUser();
@@ -424,6 +447,14 @@ class UserMailerTest extends TestCase
         $user->setUsername('refused_user');
 
         return $user;
+    }
+
+    private function createEmailFactory(): AbstractUserEmailFactory
+    {
+        $factory = $this->createStub(AbstractUserEmailFactory::class);
+        $factory->method('create')->willReturn(new TemplatedEmail());
+
+        return $factory;
     }
 
     private function createRefusingFactory(\Throwable $exception): AbstractUserEmailFactory
