@@ -100,6 +100,27 @@ Feature: Loading a scaffold into a database that already has one
     Then the database contents should be unchanged
     And the last load summary should not contain "created"
 
+  Scenario: A redirect whose derived name belongs to a route created in the same load gets a unique name
+    Given the scaffold has a layout "main" with a group "top" holding the components "Logo"
+    And the scaffold has a page "about" using the layout "main" at the route "/about-us" with a group "primary" holding the components "Text"
+    And the scaffold has a redirect from "/about" to the route "about"
+    When the scaffold is loaded
+    Then the Route "/about" should redirect to "/about-us"
+    And the route "/about-us" should be named "about"
+    And the route "/about" should be named "about-1"
+    When the database contents are recorded
+    And the scaffold is loaded again without purging
+    Then the database contents should be unchanged
+
+  Scenario: A redirect whose derived name belongs to an existing route gets a unique name
+    Given the scaffold has a layout "main" with a group "top" holding the components "Logo"
+    And the scaffold has a page "about" using the layout "main" at the route "/about-us" with a group "primary" holding the components "Text"
+    When the scaffold is loaded
+    And the scaffold has a redirect from "/about" to the route "about"
+    And the scaffold is loaded again without purging
+    Then the Route "/about" should redirect to "/about-us"
+    And the route "/about" should be named "about-1"
+
   Scenario: doctrine:fixtures:load prints the summary at default verbosity
     When I run the command "doctrine:fixtures:load --append --group=cwa_append"
     Then the command output should contain "CWA scaffold: created"

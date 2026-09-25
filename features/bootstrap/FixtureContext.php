@@ -659,6 +659,27 @@ final class FixtureContext implements Context
     }
 
     /**
+     * @Given the scaffold has a redirect from :from to the route :to
+     */
+    public function theScaffoldHasARedirect(string $from, string $to): void
+    {
+        $this->scaffold[] = static function (CwaFixtureBuilder $cwa) use ($from, $to): void {
+            $cwa->redirect($from, to: $to);
+        };
+    }
+
+    /**
+     * @Then the route :path should be named :name
+     */
+    public function theRouteShouldBeNamed(string $path, string $name): void
+    {
+        $actual = $this->findRoute($path)->getName();
+        if ($name !== $actual) {
+            throw new \RuntimeException(\sprintf('The route "%s" is named %s, expected "%s".', $path, var_export($actual, true), $name));
+        }
+    }
+
+    /**
      * @Given the scaffold adds the components :labels to the group :group of the page :page
      * @Given the scaffold adds a group :group holding the components :labels to the page :page
      */

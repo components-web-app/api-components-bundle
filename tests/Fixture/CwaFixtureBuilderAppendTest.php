@@ -553,6 +553,36 @@ class CwaFixtureBuilderAppendTest extends TestCase
         self::assertSame(1, $cwa->getSummary()->count(CwaFixtureSummary::KEPT, CwaFixtureSummary::ROUTE));
     }
 
+    public function test_a_redirect_whose_derived_name_belongs_to_an_existing_route_gets_a_suffix(): void
+    {
+        $this->existing(Route::class, ['name' => 'about'], $this->route('/about-us', 'about'));
+        $this->existing(Route::class, ['name' => 'about-1'], $this->route('/about-them', 'about-1'));
+        $cwa = $this->builder();
+
+        $cwa->layout('main', 'Primary');
+        $cwa->page('new', 'Primary', layout: 'main', route: '/new', routeName: 'new');
+        $cwa->redirect('/about', to: 'new');
+        $cwa->flush();
+
+        $redirects = array_values(array_filter($this->persistedOf(Route::class), static fn (Route $r) => null !== $r->getRedirect()));
+        self::assertSame(['about-2'], array_map(static fn (Route $r) => $r->getName(), $redirects));
+    }
+
+    public function test_a_redirect_whose_given_name_belongs_to_an_existing_route_is_skipped(): void
+    {
+        $existing = $this->existing(Route::class, ['name' => 'old'], $this->route('/older', 'old'));
+        $cwa = $this->builder();
+
+        $cwa->layout('main', 'Primary');
+        $cwa->page('new', 'Primary', layout: 'main', route: '/new', routeName: 'new');
+        $cwa->redirect('/old', to: 'new', name: 'old');
+        $cwa->flush();
+
+        self::assertSame([], array_values(array_filter($this->persistedOf(Route::class), static fn (Route $r) => null !== $r->getRedirect())));
+        self::assertSame($existing, $cwa->getRoute('old'));
+        self::assertSame(1, $cwa->getSummary()->count(CwaFixtureSummary::SKIPPED, CwaFixtureSummary::ROUTE, 'name in use'));
+    }
+
     public function test_on_routes_created_is_not_called_for_kept_page_data(): void
     {
         $route = $this->route('/conference', 'conference');

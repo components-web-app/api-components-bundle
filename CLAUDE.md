@@ -292,7 +292,7 @@ CwaFixtureBuilder
   ->pageData(AbstractPageData, ?template, ?route, ?routeName, ?Closure): PageDataBuilder
   ->component(AbstractComponent): ComponentBuilder
   ->getRoute(routeName): Route
-  ->redirect(path, to: routeName, ?name): static             (a redirect Route to a named route; registered by its own name)
+  ->redirect(path, to: routeName, ?name): static             (a redirect Route to a named route; registered by its own name, derived from the path and suffixed -1, -2… when taken)
   ->afterRoutes(Closure(CwaFixtureBuilder)): static          (runs once, after routes exist and before positions are created)
   ->persist(object): static                                  (queued until flush() when called before it)
   ->getSummary(): CwaFixtureSummary, ->reportSummary()       (what the last load created, kept and skipped)
@@ -308,6 +308,7 @@ GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataCla
 - `PageBuilder::group()` takes `allow:` last so existing positional closure calls keep working.
 - `onRoutesCreated` may only mutate entities already persisted (set on the page data before `->pageData()` so phase one cascades them); it never calls `persist()`.
 - The builder handles timestamping, persisting, dedup of layouts/pages and groups, position sort values (×10), bidirectional links and parent propagation. `allow:` takes class names and resolves collection IRIs.
+- `Route.name` is unique. A redirect's derived name is made unique against the database and every route the builder created, as `RouteGenerator` does. A redirect `name:` already given to a route in the same load throws, naming that route.
 - A page or page data with no explicit `route:` gets a generated one unless `->withoutRoute()` is set; an explicit `route:` wins over it. `generate-fixtures` emits `->withoutRoute()` for page data and non-template pages that have no route.
 
 ### Loading into a database that already has content (#319)
@@ -322,7 +323,7 @@ GroupBuilder     ->add(AbstractComponent, ?sort), ->pageDataPosition(pageDataCla
 | Page data with `withoutRoute()` | nothing | created only when its template page or its parent is created in the same load; otherwise skipped as `unidentifiable` |
 | Group | its reference as built (`name_<owner IRI>` or `name_<locationReference>`) | reused and linked to the owner if needed; **none of its positions or components are created**, including ones new to the scaffold, since components have no identity |
 | Explicit route of a new page or page data | path, or name | the entity is created without a route and the route is left alone (`skipped route (path in use)`); the `routeName` resolves to the route at that path |
-| Redirect | path | kept and registered under its name |
+| Redirect | path, or its `name:` | kept and registered under its name; a `name:` that belongs to another path is `skipped route (name in use)` and registered to that route |
 
 - **Anything reached only through a skipped subtree is not created.** The builder keeps a set of skipped scaffold objects: the scaffold copies of kept entities and everything new they reference, and every component in a kept group (recursively through component-owned groups, including components added to the group later in `afterRoutes`). `persist()`, positions and component builders check whether the object reaches a skipped one through owning associations before persisting it. So a generated scaffold's draft, whose `publishedResource` is a component in a kept group, is skipped rather than persisted with a duplicate of its published component. **Never persist a scaffold object without that check**: `persistWithAssociations()` walks owning associations and would write the whole skipped subtree.
 - `persist()` called before `flush()` is queued until the page and group decisions exist; called during `flush()` (in `afterRoutes` or `onRoutesCreated`) it runs at once.

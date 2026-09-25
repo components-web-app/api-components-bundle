@@ -2289,6 +2289,56 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame($redirects[1], $builder->getRoute('older'));
     }
 
+    public function test_a_redirect_whose_derived_name_is_taken_by_a_route_of_the_same_load_gets_a_suffix(): void
+    {
+        $persisted = [];
+        $builder = $this->makeBuilder($this->collectingEm($persisted), $this->autoRouteGenerator());
+
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about-us', routeName: 'about');
+        $builder->redirect('/about', to: 'about')->redirect('/about/', to: 'about');
+        $builder->flush();
+
+        $redirects = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route && null !== $e->getRedirect()));
+        $this->assertSame(['about-1', 'about-2'], array_map(static fn (Route $r) => $r->getName(), $redirects));
+        $this->assertSame('/about-us', $builder->getRoute('about')->getPath());
+        $this->assertSame($redirects[0], $builder->getRoute('about-1'));
+    }
+
+    public function test_a_redirect_whose_derived_name_is_taken_by_a_generated_route_gets_a_suffix(): void
+    {
+        $persisted = [];
+        $generator = $this->createStub(RouteGeneratorInterface::class);
+        $generator->method('create')->willReturnCallback(static function (object $entity): Route {
+            $route = (new Route())->setPath('/about-us')->setName('about');
+            $entity->setRoute($route);
+
+            return $route;
+        });
+        $builder = $this->makeBuilder($this->collectingEm($persisted), $generator);
+
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', routeName: 'about-page')->title('About');
+        $builder->redirect('/about', to: 'about-page');
+        $builder->flush();
+
+        $redirects = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route && null !== $e->getRedirect()));
+        $this->assertSame(['about-1'], array_map(static fn (Route $r) => $r->getName(), $redirects));
+    }
+
+    public function test_a_redirect_given_a_name_already_used_in_the_same_load_throws_naming_the_clash(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about-us', routeName: 'about');
+        $builder->redirect('/about', to: 'about', name: 'about');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('The redirect "/about" cannot be named "about", because the route "/about-us" already has that name.');
+        $builder->flush();
+    }
+
     public function test_redirect_to_an_unknown_route_name_throws(): void
     {
         $builder = $this->makeBuilder($this->collectingEm());
