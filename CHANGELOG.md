@@ -32,6 +32,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - A fixture `redirect()` whose derived route name is taken gets a suffixed name instead of failing on the unique constraint ([#347](https://github.com/components-web-app/api-components-bundle/pull/347))
 - Two scaffold classes in one `doctrine:fixtures:load` no longer fail on detached entities: each scaffold starts a new builder load and `getRoute()` finds existing routes by name ([#347](https://github.com/components-web-app/api-components-bundle/pull/347))
 
+### Tooling
+- The Behat suite runs as concurrent shards (`bin/behat-parallel`) with coverage merged into one report, and the test app hashes passwords at bcrypt cost 4: about 9x faster locally ([#360](https://github.com/components-web-app/api-components-bundle/pull/360))
+
 ## [2.0.0-alpha.5](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.4...2.0.0-alpha.5) - 2026-09-25
 
 ### Breaking
