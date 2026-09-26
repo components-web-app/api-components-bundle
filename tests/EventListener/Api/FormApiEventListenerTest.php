@@ -16,67 +16,76 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
-use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
-use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Model\Form\FormView;
-use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpKernel\Event\ViewEvent;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Serializer;
 
 class FormApiEventListenerTest extends TestCase
 {
-    public static function methodProvider(): iterable
+    /**
+     * @return iterable<string, array{string, string, bool}>
+     */
+    public static function submitRequests(): iterable
     {
-        yield 'valid POST is a full submit and succeeds' => [Request::METHOD_POST, true, false, 1];
-        yield 'invalid POST is a full submit and does not succeed' => [Request::METHOD_POST, false, false, 0];
-        yield 'valid PATCH is a partial submit and only validates' => [Request::METHOD_PATCH, true, true, 0];
-        yield 'invalid PATCH is a partial submit and does not succeed' => [Request::METHOD_PATCH, false, true, 0];
+        yield 'POST to /submit' => [Request::METHOD_POST, '/component/forms/abc/submit', true];
+        yield 'PATCH to /submit' => [Request::METHOD_PATCH, '/component/forms/abc/submit', true];
+        yield 'PUT to /submit' => [Request::METHOD_PUT, '/component/forms/abc/submit', false];
+        yield 'GET to /submit' => [Request::METHOD_GET, '/component/forms/abc/submit', false];
+        yield 'POST elsewhere' => [Request::METHOD_POST, '/component/forms/abc', false];
+        yield 'POST to a path containing submit' => [Request::METHOD_POST, '/component/forms/submit/abc', false];
     }
 
-    #[DataProvider('methodProvider')]
-    public function test_post_is_a_full_submit_and_patch_is_a_partial_validate_only_submit(string $method, bool $valid, bool $expectedPartialSubmit, int $expectedSuccessCalls): void
+    #[DataProvider('submitRequests')]
+    public function test_a_submit_is_a_post_or_patch_to_a_path_ending_in_submit(string $method, string $path, bool $expected): void
     {
-        $formView = $this->createFormView($valid);
+        self::assertSame($expected, FormApiEventListener::isSubmitRequest(Request::create($path, $method)));
+    }
 
-        $formSubmitHelper = $this->createMock(FormSubmitHelper::class);
-        $formSubmitHelper->expects(self::once())
-            ->method('process')
-            ->with(self::isInstanceOf(Form::class), ['test' => ['name' => 'John']], $expectedPartialSubmit)
-            ->willReturnCallback(static function (Form $form) use ($formView) {
-                $form->formView = $formView;
-
-                return $form;
-            });
-        $formSubmitHelper->expects(self::exactly($expectedSuccessCalls))->method('handleSuccess')->willReturn(null);
-
+    public function test_an_invalid_submit_response_is_unprocessable_and_carries_the_canonical_iri(): void
+    {
         $form = new Form();
-        $event = $this->createViewEvent($method, $form);
-        $this->createListener($formSubmitHelper, $formView)->onPreSerialize($event);
+        $form->formView = $this->formView(false);
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturn('/component/forms/abc');
+        $response = new Response('{"@id":"/component/forms/abc/submit"}');
 
-        self::assertSame($form, $event->getControllerResult());
+        (new FormApiEventListener($iriConverter))->onPostRespond($this->event(Request::METHOD_POST, $form, $response));
+
+        self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $response->getStatusCode());
+        self::assertSame('{"@id":"\/component\/forms\/abc"}', $response->getContent());
     }
 
-    public function test_put_is_not_handled_as_a_submission(): void
+    public function test_a_valid_submit_response_keeps_its_status(): void
     {
-        $formView = $this->createFormView(true);
-
-        $formSubmitHelper = $this->createMock(FormSubmitHelper::class);
-        $formSubmitHelper->expects(self::never())->method('process');
-        $formSubmitHelper->expects(self::never())->method('handleSuccess');
-
         $form = new Form();
-        $event = $this->createViewEvent(Request::METHOD_PUT, $form);
-        $this->createListener($formSubmitHelper, $formView)->onPreSerialize($event);
+        $form->formView = $this->formView(true);
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturn('/component/forms/abc');
+        $response = new Response('{"@id":"/component/forms/abc"}');
 
-        self::assertSame($form, $event->getControllerResult());
+        (new FormApiEventListener($iriConverter))->onPostRespond($this->event(Request::METHOD_POST, $form, $response));
+
+        self::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        self::assertSame('{"@id":"/component/forms/abc"}', $response->getContent());
     }
 
-    private function createFormView(bool $valid): FormView
+    public function test_a_response_that_is_not_a_submit_is_left_alone(): void
+    {
+        $form = new Form();
+        $form->formView = $this->formView(false);
+        $iriConverter = $this->createMock(IriConverterInterface::class);
+        $iriConverter->expects(self::never())->method('getIriFromResource');
+        $response = new Response('{"@id":"/component/forms/abc/submit"}');
+
+        (new FormApiEventListener($iriConverter))->onPostRespond($this->event(Request::METHOD_PUT, $form, $response));
+
+        self::assertSame(Response::HTTP_OK, $response->getStatusCode());
+    }
+
+    private function formView(bool $valid): FormView
     {
         $symfonyForm = $this->createStub(FormInterface::class);
         $symfonyForm->method('isValid')->willReturn($valid);
@@ -86,26 +95,11 @@ class FormApiEventListenerTest extends TestCase
         return $formView;
     }
 
-    private function createListener(FormSubmitHelper $formSubmitHelper, FormView $formView): FormApiEventListener
+    private function event(string $method, Form $form, Response $response): ResponseEvent
     {
-        $formViewFactory = $this->createStub(FormViewFactory::class);
-        $formViewFactory->method('create')->willReturn($formView);
-
-        return new FormApiEventListener(
-            $formSubmitHelper,
-            new SerializeFormatResolver(new RequestStack(), 'json'),
-            new Serializer([], [new JsonEncoder()]),
-            $formViewFactory,
-            $this->createStub(IriConverterInterface::class),
-        );
-    }
-
-    private function createViewEvent(string $method, Form $form): ViewEvent
-    {
-        $request = Request::create('/component/forms/abc/submit', $method, content: '{"test":{"name":"John"}}');
-        $request->setRequestFormat('json');
+        $request = Request::create('/component/forms/abc/submit', $method);
         $request->attributes->set('data', $form);
 
-        return new ViewEvent($this->createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST, $form);
+        return new ResponseEvent($this->createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST, $response);
     }
 }

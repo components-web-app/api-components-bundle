@@ -13,8 +13,10 @@ namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\CollectionSerializeStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionRemovalStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\FormSerializeStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\PublishableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UploadableWriteStateProcessor;
@@ -115,6 +117,18 @@ class StateDecoratorServicesTest extends TestCase
             DownloadStateProvider::class,
             'api_platform.state_provider.read',
             -50,
+        ];
+        yield 'collection filled before serialization, inside the form view' => [
+            'silverback.api_components.api_platform.state_processor.collection_serialize',
+            CollectionSerializeStateProcessor::class,
+            'api_platform.state_processor.serialize',
+            20,
+        ];
+        yield 'form view and submit before serialization' => [
+            'silverback.api_components.api_platform.state_processor.form_serialize',
+            FormSerializeStateProcessor::class,
+            'api_platform.state_processor.serialize',
+            10,
         ];
     }
 

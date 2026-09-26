@@ -13,87 +13,18 @@ namespace Silverback\ApiComponentsBundle\EventListener\Api;
 
 use ApiPlatform\Metadata\IriConverterInterface;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
-use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
-use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
-use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\HttpKernel\Event\ViewEvent;
-use Symfony\Component\Serializer\Encoder\DecoderInterface;
-use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class FormApiEventListener
 {
-    private FormSubmitHelper $formSubmitHelper;
-    private SerializeFormatResolver $serializeFormatResolver;
-    private DecoderInterface $decoder;
-    private FormViewFactory $formViewFactory;
-    private IriConverterInterface $iriConverter;
-
     public function __construct(
-        FormSubmitHelper $formSubmitHelper,
-        SerializeFormatResolver $serializeFormatResolver,
-        SerializerInterface $serializer,
-        FormViewFactory $formViewFactory,
-        IriConverterInterface $iriConverter,
+        private readonly IriConverterInterface $iriConverter,
     ) {
-        if (!$serializer instanceof DecoderInterface) {
-            throw new \InvalidArgumentException(\sprintf('$serializer must be also be an instance of %s', DecoderInterface::class));
-        }
-        $this->formSubmitHelper = $formSubmitHelper;
-        $this->serializeFormatResolver = $serializeFormatResolver;
-        $this->decoder = $serializer;
-        $this->formViewFactory = $formViewFactory;
-        $this->iriConverter = $iriConverter;
-    }
-
-    public function onPreSerialize(ViewEvent $event): void
-    {
-        $this->decorateOutput($event);
-        $this->handleFormData($event);
-    }
-
-    private function handleFormData(ViewEvent $event): void
-    {
-        $request = $event->getRequest();
-        if (!$data = $this->getData($request)) {
-            return;
-        }
-
-        $format = $this->serializeFormatResolver->getFormatFromRequest($request);
-        $requestContent = $this->decoder->decode($request->getContent(), $format, []);
-
-        $isPatch = Request::METHOD_PATCH === $request->getMethod();
-        $data = $this->formSubmitHelper->process($data, $requestContent, $isPatch);
-
-        if (!$isPatch && $data->formView->getForm()->isValid()) {
-            $result = $this->formSubmitHelper->handleSuccess($data);
-            if ($result) {
-                $data = $result;
-            }
-        }
-
-        $event->setControllerResult($data);
-        if (!$data instanceof Response) {
-            $request->attributes->set('data', $data);
-        }
-    }
-
-    private function decorateOutput(ViewEvent $event): void
-    {
-        $request = $event->getRequest();
-        $data = $request->attributes->get('data');
-        if (
-            empty($data)
-            || !$data instanceof Form
-        ) {
-            return;
-        }
-        $data->formView = $this->formViewFactory->create($data);
     }
 
     public function onPostRespond(ResponseEvent $event): void
@@ -125,21 +56,18 @@ class FormApiEventListener
         }
     }
 
-    private function getData(Request $request): ?Form
+    public static function isSubmitRequest(Request $request): bool
     {
         $postfix = '/submit';
 
-        $data = $request->attributes->get('data');
-        $method = $request->getMethod();
-        if (
-            empty($data)
-            || !$data instanceof Form
-            || !\in_array($method, [Request::METHOD_POST, Request::METHOD_PATCH], true)
-            || 0 !== substr_compare($request->getPathInfo(), $postfix, -\strlen($postfix))
-        ) {
-            return null;
-        }
+        return \in_array($request->getMethod(), [Request::METHOD_POST, Request::METHOD_PATCH], true)
+            && 0 === substr_compare($request->getPathInfo(), $postfix, -\strlen($postfix));
+    }
 
-        return $data;
+    private function getData(Request $request): ?Form
+    {
+        $data = $request->attributes->get('data');
+
+        return $data instanceof Form && self::isSubmitRequest($request) ? $data : null;
     }
 }

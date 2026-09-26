@@ -49,8 +49,10 @@ use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataCollector\CwaDataCollector;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\CollectionSerializeStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionRemovalStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\FormSerializeStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\PublishableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UploadableWriteStateProcessor;
@@ -209,7 +211,6 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\MailerInterface;
@@ -351,9 +352,20 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('api_platform.metadata.resource.metadata_collection_factory'),
                 new Reference('api_platform.state_provider.parameter'),
             ]
-        )
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_SERIALIZE, 'method' => 'onPreSerialize']);
+        );
     $services->alias(CollectionApiEventListener::class, 'silverback.api_components.event_listener.api.collection');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_processor.collection_serialize')
+        ->class(CollectionSerializeStateProcessor::class)
+        ->decorate('api_platform.state_processor.serialize', null, 20)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.state_processor.collection_serialize.inner'),
+                new Reference(CollectionApiEventListener::class),
+            ]
+        );
+    $services->alias(CollectionSerializeStateProcessor::class, 'silverback.api_components.api_platform.state_processor.collection_serialize');
 
     $services
         ->set('silverback.helper.component_position_sort_value')
@@ -525,16 +537,26 @@ return static function (ContainerConfigurator $configurator) {
         ->class(FormApiEventListener::class)
         ->args(
             [
-                new Reference(FormSubmitHelper::class),
-                new Reference(SerializeFormatResolver::class),
-                new Reference(SerializerInterface::class),
-                new Reference(FormViewFactory::class),
                 new Reference(IriConverterInterface::class),
             ]
         )
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_SERIALIZE, 'method' => 'onPreSerialize'])
         ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
     $services->alias(FormApiEventListener::class, 'silverback.api_components.event_listener.api.form');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_processor.form_serialize')
+        ->class(FormSerializeStateProcessor::class)
+        ->decorate('api_platform.state_processor.serialize', null, 10)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.state_processor.form_serialize.inner'),
+                new Reference(FormViewFactory::class),
+                new Reference(FormSubmitHelper::class),
+                new Reference(SerializeFormatResolver::class),
+                new Reference(SerializerInterface::class),
+            ]
+        );
+    $services->alias(FormSerializeStateProcessor::class, 'silverback.api_components.api_platform.state_processor.form_serialize');
 
     $services
         ->set('silverback.api_components.helper.form.form_submit')

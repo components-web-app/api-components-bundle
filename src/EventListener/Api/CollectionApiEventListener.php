@@ -27,7 +27,6 @@ use Silverback\ApiComponentsBundle\Exception\OutOfBoundsException;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
@@ -56,20 +55,7 @@ class CollectionApiEventListener
         return $data instanceof Collection && Collection::class === $to;
     }
 
-    public function onPreSerialize(ViewEvent $event): void
-    {
-        $request = $event->getRequest();
-        $data = $request->attributes->get('data');
-        if (
-            empty($data)
-            || !$data instanceof Collection
-        ) {
-            return;
-        }
-        $this->transform($data);
-    }
-
-    private function transform(Collection $object): Collection
+    public function transform(Collection $object): Collection
     {
         $parameters = $this->resourceRouteFinder->findByIri($object->getResourceIri());
         $attributes = AttributesExtractor::extractAttributes($parameters);
