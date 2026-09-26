@@ -154,23 +154,35 @@ jobs:
           flags: phpunit
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
-      - name: Run Infection Mutation Tests
+      - name: Download Infection
         if: matrix.coverage
-        env: # Or as an environment variable
-          STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
         run: |
           wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar
           wget https://github.com/infection/infection/releases/download/$INFECTION_VERSION/infection.phar.asc
           gpg --import .github/infection-signing-key.asc
           gpg --with-fingerprint --verify infection.phar.asc infection.phar
           chmod +x infection.phar
-          ./infection.phar --coverage=build/logs/phpunit --min-covered-msi=80 --threads=30
+      - name: Run Infection Mutation Tests
+        if: matrix.coverage && github.event_name != 'pull_request'
+        env:
+          STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+        run: ./infection.phar --coverage=build/logs/phpunit --min-covered-msi=80 --threads=30
+      - name: Run Infection Mutation Tests on changed lines
+        if: matrix.coverage && github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ -f "$(git rev-parse --git-dir)/shallow" ]; then UNSHALLOW=--unshallow; else UNSHALLOW=; fi
+          git fetch --no-tags $UNSHALLOW origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
+          echo "Merge base of origin/$BASE_REF and HEAD: $(git merge-base "origin/$BASE_REF" HEAD)"
+          git diff --stat "origin/$BASE_REF...HEAD" -- src
+          ./infection.phar --coverage=build/logs/phpunit --min-covered-msi=80 --threads=30 --git-diff-lines --git-diff-base="origin/$BASE_REF" --ignore-msi-with-no-mutations
       - name: Upload Infection Mutation Logs
-        if: matrix.coverage
+        if: always() && matrix.coverage
         uses: actions/upload-artifact@v4
         with:
           name: infection-logs-php${{ matrix.php }}
-          path: infection.log
+          path: build/logs/infection*
 
   behat:
     name: Behat (Symfony ${{ matrix.symfony }}) (API Platform ${{ matrix.api-platform }}) (PHP ${{ matrix.php }})
