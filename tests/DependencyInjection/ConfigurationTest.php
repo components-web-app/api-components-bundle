@@ -370,6 +370,34 @@ class ConfigurationTest extends TestCase
         self::assertSame('%env(default::DEFAULT_ORIGIN)%', $emailLinks['default_origin']);
     }
 
+    public function test_orphaned_files_are_reported_only_after_an_hour_and_nothing_is_excluded_by_default(): void
+    {
+        self::assertSame(
+            ['minimum_age' => 3600, 'excluded_paths' => []],
+            $this->process(self::minimalConfig())['orphaned_files']
+        );
+    }
+
+    public function test_the_orphaned_files_minimum_age_and_excluded_paths_can_be_configured(): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_files'] = ['minimum_age' => 0, 'excluded_paths' => ['exports/', 'avatars/']];
+
+        self::assertSame(
+            ['minimum_age' => 0, 'excluded_paths' => ['exports/', 'avatars/']],
+            $this->process($config)['orphaned_files']
+        );
+    }
+
+    public function test_a_negative_orphaned_files_minimum_age_is_rejected(): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_files']['minimum_age'] = -1;
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->process($config);
+    }
+
     public function test_orphaned_resource_notifications_have_no_recipients_by_default(): void
     {
         self::assertSame(

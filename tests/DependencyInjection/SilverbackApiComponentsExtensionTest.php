@@ -37,6 +37,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
+use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
@@ -367,6 +368,17 @@ class SilverbackApiComponentsExtensionTest extends TestCase
     public function test_a_disallowed_request_origin_is_mapped_to_bad_request(): void
     {
         self::assertTrue(is_a(DisallowedRequestOriginException::class, UnparseableRequestHeaderException::class, true));
+    }
+
+    public function test_the_orphaned_files_configuration_reaches_the_detector(): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_files'] = ['minimum_age' => 60, 'excluded_paths' => ['exports/']];
+
+        [$container] = $this->load($config);
+
+        self::assertSame(60, $this->argument($container, OrphanedFileDetector::class, '$minimumAge'));
+        self::assertSame(['exports/'], $this->argument($container, OrphanedFileDetector::class, '$excludedPaths'));
     }
 
     public function test_orphaned_resource_notifications_are_wired_with_no_recipients_by_default(): void

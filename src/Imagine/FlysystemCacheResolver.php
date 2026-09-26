@@ -36,6 +36,11 @@ class FlysystemCacheResolver implements ResolverInterface
         $this->visibility = $visibility;
     }
 
+    public function getCachePrefix(): string
+    {
+        return $this->cachePrefix;
+    }
+
     public function isStored($path, $filter): bool
     {
         return $this->filesystem->fileExists($this->getFilePath($path, $filter));
@@ -82,7 +87,6 @@ class FlysystemCacheResolver implements ResolverInterface
 
     protected function getFileUrl($path, $filter): string
     {
-        // crude way of sanitizing URL scheme ("protocol") part
         $path = str_replace('://', '---', $path);
 
         return $this->cachePrefix . '/' . $filter . '/' . ltrim($path, '/');
