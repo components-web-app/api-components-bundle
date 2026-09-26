@@ -4,10 +4,18 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- `silverback:api-components:clean-orphaned` no longer deletes anything: it is now an alias of `scan-orphaned`, which only scans. Delete orphans through the API (`DELETE` per IRI, or `POST /_/orphaned_resources/delete`) ([#353](https://github.com/components-web-app/api-components-bundle/pull/353))
+
 ### Added
+- `POST /_/orphaned_resources/delete` (admin) deletes selected orphans (`iris`) or all of them (`all: true`), re-checked against a fresh scan, and returns what was deleted and what was rejected ([#353](https://github.com/components-web-app/api-components-bundle/pull/353))
 - Fixture builder: `PageBuilder::withoutRoute()` keeps a non-template page without a route; `generate-fixtures --namespace` sets the generated class's namespace ([#347](https://github.com/components-web-app/api-components-bundle/pull/347))
 
+### Changed
+- `silverback:api-components:scan-orphaned` (alias `clean-orphaned`) runs the same scan as `POST /_/orphaned_resources/scan` synchronously, stores the report `GET /_/orphaned_resources` returns, and prints the counts per kind (IRIs with `-v`) ([#353](https://github.com/components-web-app/api-components-bundle/pull/353))
+
 ### Fixed
+- A delete leaves nothing for the next orphan scan: a component removed by a cascade takes the groups it owns and its unused draft with it. An explicit `DELETE` of a published component still keeps its draft ([#353](https://github.com/components-web-app/api-components-bundle/pull/353))
 - A fixture `redirect()` whose `name:` belongs to a route created in the same load throws even when its path already exists, instead of re-pointing that name at the existing route ([#352](https://github.com/components-web-app/api-components-bundle/pull/352))
 - A component held by a page data property typed as a parent class (such as `AbstractComponent`) counts as used, so `clean-orphaned` no longer deletes it; it is public only when the page data is on a live route, and editing it purges and publishes the page data ([#349](https://github.com/components-web-app/api-components-bundle/pull/349))
 - The new email address and change password forms and `/verify-email` look the user up through `UserRepositoryInterface::loadUserByIdentifier()` instead of the undeclared `find()`/`findOneBy()` ([#346](https://github.com/components-web-app/api-components-bundle/pull/346))

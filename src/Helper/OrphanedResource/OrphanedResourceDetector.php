@@ -28,6 +28,10 @@ class OrphanedResourceDetector
 {
     use ClassMetadataTrait;
 
+    public const string COMPONENT_GROUPS = 'componentGroups';
+    public const string COMPONENT_POSITIONS = 'componentPositions';
+    public const string COMPONENTS = 'components';
+
     public function __construct(
         ManagerRegistry $registry,
         private readonly PublishableAttributeReader $publishableAttributeReader,
@@ -38,18 +42,32 @@ class OrphanedResourceDetector
 
     public function detect(): OrphanedResourceReport
     {
-        $entityManager = $this->getEntityManager(AbstractComponent::class);
+        $orphans = $this->findOrphans();
 
         return new OrphanedResourceReport(
             new \DateTimeImmutable(),
-            $this->findOrphanedComponentGroups($entityManager),
-            $this->findEmptyComponentPositions($entityManager),
-            $this->findUnusedComponents($entityManager),
+            array_keys($orphans[self::COMPONENT_GROUPS]),
+            array_keys($orphans[self::COMPONENT_POSITIONS]),
+            array_keys($orphans[self::COMPONENTS]),
         );
     }
 
     /**
-     * @return list<string>
+     * @return array{componentGroups: array<string, array{class-string, mixed}>, componentPositions: array<string, array{class-string, mixed}>, components: array<string, array{class-string, mixed}>}
+     */
+    public function findOrphans(): array
+    {
+        $entityManager = $this->getEntityManager(AbstractComponent::class);
+
+        return [
+            self::COMPONENT_GROUPS => $this->findOrphanedComponentGroups($entityManager),
+            self::COMPONENT_POSITIONS => $this->findEmptyComponentPositions($entityManager),
+            self::COMPONENTS => $this->findUnusedComponents($entityManager),
+        ];
+    }
+
+    /**
+     * @return array<string, array{class-string, mixed}>
      */
     private function findOrphanedComponentGroups(EntityManagerInterface $entityManager): array
     {
@@ -62,11 +80,11 @@ class OrphanedResourceDetector
             ->getQuery()
             ->getResult();
 
-        return $this->toSortedIris($entityManager, array_map(static fn (array $row) => [ComponentGroup::class, $row['id']], $ids));
+        return $this->toSortedReferences($entityManager, array_map(static fn (array $row) => [ComponentGroup::class, $row['id']], $ids));
     }
 
     /**
-     * @return list<string>
+     * @return array<string, array{class-string, mixed}>
      */
     private function findEmptyComponentPositions(EntityManagerInterface $entityManager): array
     {
@@ -78,11 +96,11 @@ class OrphanedResourceDetector
             ->getQuery()
             ->getResult();
 
-        return $this->toSortedIris($entityManager, array_map(static fn (array $row) => [ComponentPosition::class, $row['id']], $ids));
+        return $this->toSortedReferences($entityManager, array_map(static fn (array $row) => [ComponentPosition::class, $row['id']], $ids));
     }
 
     /**
-     * @return list<string>
+     * @return array<string, array{class-string, mixed}>
      */
     private function findUnusedComponents(EntityManagerInterface $entityManager): array
     {
@@ -117,7 +135,7 @@ class OrphanedResourceDetector
             }
         }
 
-        return $this->toSortedIris($entityManager, array_map(
+        return $this->toSortedReferences($entityManager, array_map(
             static fn (array $row) => [$componentClasses[(int) $row['type']], $row['id']],
             $queryBuilder->getQuery()->getResult()
         ));
@@ -151,16 +169,16 @@ class OrphanedResourceDetector
     /**
      * @param array<array{class-string, mixed}> $references
      *
-     * @return list<string>
+     * @return array<string, array{class-string, mixed}>
      */
-    private function toSortedIris(EntityManagerInterface $entityManager, array $references): array
+    private function toSortedReferences(EntityManagerInterface $entityManager, array $references): array
     {
-        $iris = [];
-        foreach ($references as [$class, $id]) {
-            $iris[] = $this->iriConverter->getIriFromResource($entityManager->getReference($class, $id));
+        $sorted = [];
+        foreach ($references as $reference) {
+            $sorted[$this->iriConverter->getIriFromResource($entityManager->getReference($reference[0], $reference[1]))] = $reference;
         }
-        sort($iris);
+        ksort($sorted, \SORT_STRING);
 
-        return $iris;
+        return $sorted;
     }
 }

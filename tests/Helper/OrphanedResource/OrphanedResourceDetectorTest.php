@@ -11,33 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Helper\OrphanedResource;
 
-use ApiPlatform\Metadata\IriConverterInterface;
-use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Logging\Middleware;
-use Doctrine\DBAL\Types\Type;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Events;
-use Doctrine\ORM\ORMSetup;
-use Doctrine\ORM\Tools\SchemaTool;
-use Doctrine\Persistence\ManagerRegistry;
-use PHPUnit\Framework\TestCase;
-use Psr\Log\AbstractLogger;
-use Ramsey\Uuid\Doctrine\UuidType;
-use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
-use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
-use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
-use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
-use Silverback\ApiComponentsBundle\Entity\Core\Layout;
-use Silverback\ApiComponentsBundle\Entity\Core\Page;
-use Silverback\ApiComponentsBundle\EventListener\Doctrine\MappedSuperclassDiscriminatorMapListener;
-use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
-use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
-use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
-use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceDetector;
-use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
+use Silverback\ApiComponentsBundle\ApiResource\OrphanedResourceReport;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyNavigationLink;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
@@ -45,55 +19,8 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWi
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithRestrictedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedComponent;
 
-class OrphanedResourceDetectorTest extends TestCase
+class OrphanedResourceDetectorTest extends OrphanedResourceDatabaseTestCase
 {
-    private EntityManager $entityManager;
-    private TimestampedDataPersister $timestampedDataPersister;
-    private OrphanedResourceDetector $detector;
-
-    private AbstractLogger $queryLogger;
-
-    protected function setUp(): void
-    {
-        if (!Type::hasType('uuid')) {
-            Type::addType('uuid', UuidType::class);
-        }
-        $registry = $this->createStub(ManagerRegistry::class);
-        $configuration = ORMSetup::createAttributeMetadataConfig([
-            __DIR__ . '/../../../src/Entity',
-            __DIR__ . '/../../Functional/TestBundle/Entity',
-        ], true);
-        $configuration->enableNativeLazyObjects(true);
-        $this->queryLogger = new class extends AbstractLogger {
-            /** @var list<string> */
-            public array $queries = [];
-
-            public function log($level, \Stringable|string $message, array $context = []): void
-            {
-                if (isset($context['sql'])) {
-                    $this->queries[] = $context['sql'];
-                }
-            }
-        };
-        $configuration->setMiddlewares([new Middleware($this->queryLogger)]);
-        $this->entityManager = new EntityManager(DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $configuration), $configuration);
-        $registry->method('getManagerForClass')->willReturn($this->entityManager);
-
-        $events = $this->entityManager->getEventManager();
-        $events->addEventListener(Events::loadClassMetadata, new TablePrefixExtension('_acb_'));
-        $events->addEventListener(Events::loadClassMetadata, new MappedSuperclassDiscriminatorMapListener());
-        $events->addEventListener(Events::loadClassMetadata, new PublishableListener(new PublishableAttributeReader($registry)));
-        $events->addEventListener(Events::loadClassMetadata, new UploadableListener(new UploadableAttributeReader($registry, true)));
-        $events->addEventListener(Events::loadClassMetadata, new TimestampedListener(new TimestampedAttributeReader($registry)));
-        (new SchemaTool($this->entityManager))->createSchema($this->entityManager->getMetadataFactory()->getAllMetadata());
-
-        $this->timestampedDataPersister = new TimestampedDataPersister($registry, new TimestampedAttributeReader($registry));
-
-        $iriConverter = $this->createStub(IriConverterInterface::class);
-        $iriConverter->method('getIriFromResource')->willReturnCallback($this->iri(...));
-        $this->detector = new OrphanedResourceDetector($registry, new PublishableAttributeReader($registry), $iriConverter);
-    }
-
     public function test_a_group_with_no_page_layout_or_component_owner_is_reported(): void
     {
         $orphan = $this->group('orphan');
@@ -236,82 +163,29 @@ class OrphanedResourceDetectorTest extends TestCase
         self::assertCount(3, $this->queryLogger->queries);
     }
 
-    private function detect(): \Silverback\ApiComponentsBundle\ApiResource\OrphanedResourceReport
+    public function test_the_orphans_are_keyed_by_iri_with_their_class_and_identifier_in_report_order(): void
+    {
+        $group = $this->group('orphan');
+        $position = $this->position($this->pageGroup());
+        $component = $this->persist(new DummyPublishableComponent());
+        $this->detect();
+
+        self::assertSame(
+            [
+                'componentGroups' => [$this->iri($group) => [$group::class, (string) $group->getId()]],
+                'componentPositions' => [$this->iri($position) => [$position::class, (string) $position->getId()]],
+                'components' => [$this->iri($component) => [DummyPublishableComponent::class, (string) $component->getId()]],
+            ],
+            array_map(static fn (array $orphans) => array_map(static fn (array $reference) => [$reference[0], (string) $reference[1]], $orphans), $this->detector->findOrphans())
+        );
+    }
+
+    private function detect(): OrphanedResourceReport
     {
         $this->entityManager->flush();
         $this->entityManager->clear();
         $this->queryLogger->queries = [];
 
         return $this->detector->detect();
-    }
-
-    private function iri(object $resource): string
-    {
-        $metadata = $this->entityManager->getClassMetadata($resource::class);
-
-        return \sprintf('/%s/%s', $metadata->getName(), $metadata->getIdentifierValues($resource)['id']);
-    }
-
-    /**
-     * @template T of object
-     *
-     * @param T $entity
-     *
-     * @return T
-     */
-    private function persist(object $entity): object
-    {
-        if ($this->timestampedDataPersister->isConfigured($entity)) {
-            $this->timestampedDataPersister->persistTimestampedFields($entity, true);
-        }
-        $this->entityManager->persist($entity);
-
-        return $entity;
-    }
-
-    private function group(string $reference): ComponentGroup
-    {
-        $group = new ComponentGroup();
-        $group->reference = $reference;
-        $group->location = $reference;
-
-        return $this->persist($group);
-    }
-
-    private function pageGroup(): ComponentGroup
-    {
-        $group = $this->group('page-group');
-        $this->page()->addComponentGroup($group);
-
-        return $group;
-    }
-
-    private function page(): Page
-    {
-        $page = new Page();
-        $page->reference = 'page-' . bin2hex(random_bytes(4));
-        $page->isTemplate = true;
-
-        return $this->persist($page);
-    }
-
-    private function layout(): Layout
-    {
-        $layout = new Layout();
-        $layout->reference = 'layout';
-
-        return $this->persist($layout);
-    }
-
-    private function position(ComponentGroup $group, ?AbstractComponent $component = null): ComponentPosition
-    {
-        $position = new ComponentPosition();
-        $position->componentGroup = $group;
-        $position->sortValue = 0;
-        if ($component) {
-            $position->component = $this->persist($component);
-        }
-
-        return $this->persist($position);
     }
 }

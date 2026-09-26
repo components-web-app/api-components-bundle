@@ -43,7 +43,6 @@ use Silverback\ApiComponentsBundle\AttributeReader\ExplicitAllowOnlyAttributeRea
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
-use Silverback\ApiComponentsBundle\Command\CleanOrphanedCommand;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\GenerateFixturesCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
@@ -1452,18 +1451,6 @@ return static function (ContainerConfigurator $configurator) {
         );
     $services->alias(UserCreateCommand::class, 'silverback.api_components.command.user_create');
 
-    $services
-        ->set('silverback.api_components.command.clean_orphaned')
-        ->class(CleanOrphanedCommand::class)
-        ->tag('console.command')
-        ->args(
-            [
-                new Reference('silverback.helper.orphaned_resource_helper'),
-                new Reference(ManagerRegistry::class),
-            ]
-        );
-    $services->alias(CleanOrphanedCommand::class, 'silverback.api_components.command.clean_orphaned');
-
     $services->set('silverback.api_components.command.generate_fixtures', GenerateFixturesCommand::class)
         ->tag('console.command')
         ->args([
@@ -1772,6 +1759,8 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('silverback.metadata_factory.page_data'),
                 new Reference('silverback.metadata_factory.component_usage'),
                 new Reference(ManagerRegistry::class),
+                new Reference('silverback.api_components.attribute_reader.publishable'),
+                new Reference('silverback.api_components.data_provider.page_data'),
             ]
         );
 

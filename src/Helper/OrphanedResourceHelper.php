@@ -11,7 +11,10 @@
 
 namespace Silverback\ApiComponentsBundle\Helper;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
+use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
@@ -31,6 +34,8 @@ final readonly class OrphanedResourceHelper
         private PageDataMetadataFactoryInterface $pageDataMetadataFactory,
         private ComponentUsageMetadataFactory $usageMetadataFactory,
         private ManagerRegistry $registry,
+        private PublishableAttributeReader $publishableAttributeReader,
+        private PageDataProvider $pageDataProvider,
     ) {
     }
 
@@ -44,6 +49,12 @@ final readonly class OrphanedResourceHelper
         foreach ($resource->getComponentGroups() as $componentGroup) {
             $this->removeOrphanedComponentGroup($componentGroup, $resource);
         }
+    }
+
+    public function handleRemovedOrphanedComponent(AbstractComponent $component): void
+    {
+        $this->handleRemovedRootResource($component);
+        $this->removeUnusedDraft($component);
     }
 
     public function handleRemovedComponentGroup(ComponentGroup $componentGroup): void
@@ -78,49 +89,16 @@ final readonly class OrphanedResourceHelper
         }
     }
 
-    public function checkAndRemoveOrphanedComponentGroup(ComponentGroup $componentGroup): bool
-    {
-        if ($componentGroup->pages->count() || $componentGroup->layouts->count() || $componentGroup->components->count()) {
-            return false;
-        }
-        $groupManager = $this->registry->getManagerForClass(ComponentGroup::class);
-
-        $positionManager = $this->registry->getManagerForClass(ComponentPosition::class);
-        foreach ($componentGroup->componentPositions as $componentPosition) {
-            $positionManager?->remove($componentPosition);
-            $this->removeOrphanedComponentPosition($componentPosition);
-        }
-
-        $groupManager?->remove($componentGroup);
-        $groupManager?->flush();
-        $positionManager?->flush();
-
-        return true;
-    }
-
-    public function checkAndRemoveOrphanedComponent(AbstractComponent $component): bool
-    {
-        return $this->removeOrphanedComponent($component, 0, true);
-    }
-
     private function isComponentGroupInOtherLocations(ComponentGroup $componentGroup, AbstractComponent|Page|Layout|null $deletedLocation = null): bool
     {
         if (!$deletedLocation) {
             return false;
         }
-        foreach ($componentGroup->pages as $page) {
-            if ($page !== $deletedLocation) {
-                return true;
-            }
-        }
-        foreach ($componentGroup->layouts as $layout) {
-            if ($layout !== $deletedLocation) {
-                return true;
-            }
-        }
-        foreach ($componentGroup->components as $component) {
-            if ($component !== $deletedLocation) {
-                return true;
+        foreach ([$componentGroup->pages, $componentGroup->layouts, $componentGroup->components] as $owners) {
+            foreach ($owners as $owner) {
+                if ($owner !== $deletedLocation && !$this->isScheduledForDelete($owner)) {
+                    return true;
+                }
             }
         }
 
@@ -129,12 +107,10 @@ final readonly class OrphanedResourceHelper
 
     private function removeOrphanedComponentGroup(ComponentGroup $componentGroup, AbstractComponent|Page|Layout|null $deletedLocation = null): void
     {
-        $groupExistsElsewhere = $this->isComponentGroupInOtherLocations($componentGroup, $deletedLocation);
-        if ($groupExistsElsewhere) {
+        if ($this->isScheduledForDelete($componentGroup) || $this->isComponentGroupInOtherLocations($componentGroup, $deletedLocation)) {
             return;
         }
-        $groupManager = $this->registry->getManagerForClass(ComponentGroup::class);
-        $groupManager?->remove($componentGroup);
+        $this->registry->getManagerForClass(ComponentGroup::class)?->remove($componentGroup);
 
         $positionManager = $this->registry->getManagerForClass(ComponentPosition::class);
         foreach ($componentGroup->componentPositions as $componentPosition) {
@@ -150,20 +126,61 @@ final readonly class OrphanedResourceHelper
         }
     }
 
-    private function removeOrphanedComponent(ComponentInterface $component, int $countCheck = 1, bool $doFlush = false): bool
+    private function removeOrphanedComponent(ComponentInterface $component): void
     {
-        $metadata = $this->usageMetadataFactory->create($component);
-        if ($countCheck === $metadata->getTotal()) {
-            $resourceClass = $component::class;
-            $manager = $this->registry->getManagerForClass($resourceClass);
-            $manager?->remove($component);
-            if ($doFlush) {
-                $manager?->flush();
-            }
+        if ($this->isScheduledForDelete($component) || 1 !== $this->usageMetadataFactory->create($component)->getTotal()) {
+            return;
+        }
+        $this->registry->getManagerForClass($component::class)?->remove($component);
+        if ($component instanceof AbstractComponent) {
+            $this->handleRemovedOrphanedComponent($component);
+        }
+    }
 
+    private function removeUnusedDraft(AbstractComponent $component): void
+    {
+        $entityManager = $this->registry->getManagerForClass($component::class);
+        if (!$entityManager instanceof EntityManagerInterface || !$this->publishableAttributeReader->isConfigured($component)) {
+            return;
+        }
+        $configuration = $this->publishableAttributeReader->getConfiguration($component);
+        $draft = $entityManager->getClassMetadata($component::class)->getFieldValue($component, $configuration->reverseAssociationName);
+        if (!$draft instanceof AbstractComponent || $this->isScheduledForDelete($draft) || $this->hasSurvivingPosition($component) || $this->isInUse($draft)) {
+            return;
+        }
+        $entityManager->remove($draft);
+        $this->handleRemovedOrphanedComponent($draft);
+    }
+
+    private function isInUse(AbstractComponent $component): bool
+    {
+        if ($this->hasSurvivingPosition($component)) {
             return true;
+        }
+        foreach ($this->pageDataProvider->findPageDataComponentMetadata($component) as $pageDataComponentMetadata) {
+            if (\count($pageDataComponentMetadata->getPageDataResources())) {
+                return true;
+            }
         }
 
         return false;
+    }
+
+    private function hasSurvivingPosition(AbstractComponent $component): bool
+    {
+        foreach ($component->getComponentPositions() as $position) {
+            if (!$this->isScheduledForDelete($position)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isScheduledForDelete(object $resource): bool
+    {
+        $entityManager = $this->registry->getManagerForClass($resource::class);
+
+        return $entityManager instanceof EntityManagerInterface && $entityManager->getUnitOfWork()->isScheduledForDelete($resource);
     }
 }

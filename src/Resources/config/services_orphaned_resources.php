@@ -11,8 +11,11 @@
 
 use ApiPlatform\Metadata\IriConverterInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentsBundle\Command\ScanOrphanedCommand;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\OrphanedResourceDeletionStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\OrphanedResourceScanStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\OrphanedResourceReportStateProvider;
+use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceDeleter;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceReportStore;
 use Silverback\ApiComponentsBundle\Message\ScanOrphanedResourcesMessage;
@@ -73,4 +76,37 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
     $services->alias('silverback.api_components.api_platform.state_provider.orphaned_resource_report', OrphanedResourceReportStateProvider::class);
+
+    $services
+        ->set('silverback.api_components.orphaned_resource.deleter')
+        ->class(OrphanedResourceDeleter::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference(ManagerRegistry::class),
+            new Reference('silverback.api_components.orphaned_resource.detector'),
+            new Reference('silverback.helper.orphaned_resource_helper'),
+            new Reference(IriConverterInterface::class),
+        ]);
+    $services->alias(OrphanedResourceDeleter::class, 'silverback.api_components.orphaned_resource.deleter');
+
+    $services
+        ->set(OrphanedResourceDeletionStateProcessor::class)
+        ->args([
+            new Reference('silverback.api_components.orphaned_resource.deleter'),
+            new Reference('silverback.api_components.message_handler.scan_orphaned_resources'),
+        ])
+        ->autoconfigure(false)
+        ->tag('api_platform.state_processor');
+    $services->alias('silverback.api_components.api_platform.state_processor.orphaned_resource_deletion', OrphanedResourceDeletionStateProcessor::class);
+
+    $services
+        ->set('silverback.api_components.command.scan_orphaned')
+        ->class(ScanOrphanedCommand::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference('silverback.api_components.message_handler.scan_orphaned_resources'),
+        ])
+        ->tag('console.command', ['command' => ScanOrphanedCommand::NAME])
+        ->tag('console.command', ['command' => ScanOrphanedCommand::LEGACY_NAME]);
+    $services->alias(ScanOrphanedCommand::class, 'silverback.api_components.command.scan_orphaned');
 };
