@@ -49,6 +49,8 @@ use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataCollector\CwaDataCollector;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionRemovalStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
@@ -74,7 +76,6 @@ use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\CacheHeadersEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentPositionEventListener;
-use Silverback\ApiComponentsBundle\EventListener\Api\DeletedResourceEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UnpublishedRouteExceptionListener;
@@ -1783,14 +1784,16 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('doctrine.repository_service');
 
     $services
-        ->set('silverback.event_listener.api.orphaned_component')
-        ->class(DeletedResourceEventListener::class)
+        ->set('silverback.api_components.api_platform.state_processor.deleted_resource')
+        ->class(DeletedResourceStateProcessor::class)
+        ->decorate('api_platform.state_processor.locator', null, 30)
         ->args(
             [
+                new Reference('silverback.api_components.api_platform.state_processor.deleted_resource.inner'),
                 new Reference('silverback.helper.orphaned_resource_helper'),
             ]
-        )
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite']);
+        );
+    $services->alias(DeletedResourceStateProcessor::class, 'silverback.api_components.api_platform.state_processor.deleted_resource');
 
     $services
         ->set('silverback.helper.orphaned_resource_helper')
@@ -1808,14 +1811,20 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set('silverback.event_listener.api.position_remove')
         ->class(ComponentPositionEventListener::class)
+        ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
+
+    $services
+        ->set('silverback.api_components.api_platform.state_processor.component_position_removal')
+        ->class(ComponentPositionRemovalStateProcessor::class)
+        ->decorate('api_platform.state_processor.locator', null, 40)
         ->args(
             [
+                new Reference('silverback.api_components.api_platform.state_processor.component_position_removal.inner'),
                 new Reference(ManagerRegistry::class),
                 new Reference(PublishableStatusChecker::class),
             ]
-        )
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite'])
-        ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
+        );
+    $services->alias(ComponentPositionRemovalStateProcessor::class, 'silverback.api_components.api_platform.state_processor.component_position_removal');
 
     $services
         ->set('silverback.api_components.event_listener.api.cache_headers')

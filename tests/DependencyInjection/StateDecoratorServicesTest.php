@@ -13,6 +13,8 @@ namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionRemovalStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentUsageStateProvider;
@@ -59,6 +61,18 @@ class StateDecoratorServicesTest extends TestCase
             RouteRedirectStateProcessor::class,
             'api_platform.state_processor.locator',
             50,
+        ];
+        yield 'delete cascade before the remove, after publishable and uploadable' => [
+            'silverback.api_components.api_platform.state_processor.deleted_resource',
+            DeletedResourceStateProcessor::class,
+            'api_platform.state_processor.locator',
+            30,
+        ];
+        yield 'component position removal before the remove, after the delete cascade' => [
+            'silverback.api_components.api_platform.state_processor.component_position_removal',
+            ComponentPositionRemovalStateProcessor::class,
+            'api_platform.state_processor.locator',
+            40,
         ];
     }
 
