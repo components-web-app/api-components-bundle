@@ -22,15 +22,12 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\HttpKernel\Event\ViewEvent;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
  */
-final class PublishableEventListener
+class PublishableEventListener
 {
     use ApiEventListenerTrait;
     use ClassMetadataTrait;
@@ -48,63 +45,6 @@ final class PublishableEventListener
     ) {
         $this->publishableAttributeReader = $publishableStatusChecker->getAttributeReader();
         $this->initRegistry($registry);
-    }
-
-    public function onPreWrite(ViewEvent $event): void
-    {
-        $request = $event->getRequest();
-        $attributes = $this->getAttributes($request);
-        if (
-            empty($attributes['data'])
-            || !$this->publishableAttributeReader->isConfigured($attributes['class'])
-            || $request->isMethod(Request::METHOD_DELETE)
-            || $request->isMethod(Request::METHOD_GET)
-            || $attributes['operation'] instanceof CollectionOperationInterface
-        ) {
-            return;
-        }
-
-        $publishable = $this->checkMergeDraftIntoPublished($request, $attributes['data']);
-        $event->setControllerResult($publishable);
-    }
-
-    public function onPostRead(RequestEvent $event): void
-    {
-        $request = $event->getRequest();
-        $attributes = $this->getAttributes($request);
-        if (
-            empty($attributes['data'])
-            || !$this->publishableAttributeReader->isConfigured($attributes['class'])
-            || !$request->isMethod(Request::METHOD_GET)
-            || $attributes['operation'] instanceof CollectionOperationInterface
-        ) {
-            return;
-        }
-
-        $this->checkMergeDraftIntoPublished($request, $attributes['data'], true);
-    }
-
-    public function onPostDeserialize(RequestEvent $event): void
-    {
-        $request = $event->getRequest();
-        $attributes = $this->getAttributes($request);
-        if (
-            empty($attributes['data'])
-            || !$this->publishableAttributeReader->isConfigured($attributes['class'])
-            || !($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH))
-        ) {
-            return;
-        }
-
-        $configuration = $this->publishableAttributeReader->getConfiguration($attributes['class']);
-
-        // User cannot change the publication date of the original resource
-        if (
-            true === $this->publishableStatusChecker->isRequestForPublished($request)
-            && $this->getValue($request->attributes->get('previous_data'), $configuration->fieldName) !== $this->getValue($attributes['data'], $configuration->fieldName)
-        ) {
-            throw new UnprocessableEntityHttpException('You cannot change the publication date of a published resource.');
-        }
     }
 
     public function onPostRespond(ResponseEvent $event): void
@@ -163,12 +103,7 @@ final class PublishableEventListener
         }
     }
 
-    private function getValue(object $object, string $property)
-    {
-        return $this->getClassMetadata($object)->getFieldValue($object, $property);
-    }
-
-    private function checkMergeDraftIntoPublished(Request $request, object $data, bool $flushDatabase = false): object
+    public function mergeDueDraft(Request $request, object $data, bool $flushDatabase = false): object
     {
         if (!$this->publishableStatusChecker->isActivePublishedAt($data)) {
             return $data;

@@ -51,6 +51,7 @@ use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataCollector\CwaDataCollector;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionRemovalStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\PublishableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
@@ -59,6 +60,8 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentUsageStat
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DenyAccessStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\FormStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableDeserializeStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableReadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceManifestStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteChildrenStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteGenerateStateProvider;
@@ -203,7 +206,6 @@ use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\UrlHelper;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -760,11 +762,47 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(UploadableFileManager::class),
             ]
         )
-        ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_READ, 'method' => 'onPostRead'])
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite'])
-        ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_DESERIALIZE, 'method' => 'onPostDeserialize'])
         ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
     $services->alias(PublishableEventListener::class, 'silverback.api_components.event_listener.api.publishable');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_provider.publishable_read')
+        ->class(PublishableReadStateProvider::class)
+        ->decorate('api_platform.state_provider.read', null, -30)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.state_provider.publishable_read.inner'),
+                new Reference(PublishableStatusChecker::class),
+                new Reference(PublishableEventListener::class),
+            ]
+        );
+    $services->alias(PublishableReadStateProvider::class, 'silverback.api_components.api_platform.state_provider.publishable_read');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_provider.publishable_deserialize')
+        ->class(PublishableDeserializeStateProvider::class)
+        ->decorate('api_platform.state_provider.deserialize', null, -10)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.state_provider.publishable_deserialize.inner'),
+                new Reference(PublishableStatusChecker::class),
+                new Reference('doctrine'),
+            ]
+        );
+    $services->alias(PublishableDeserializeStateProvider::class, 'silverback.api_components.api_platform.state_provider.publishable_deserialize');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_processor.publishable_write')
+        ->class(PublishableWriteStateProcessor::class)
+        ->decorate('api_platform.state_processor.locator', null, 10)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.state_processor.publishable_write.inner'),
+                new Reference(PublishableStatusChecker::class),
+                new Reference(PublishableEventListener::class),
+            ]
+        );
+    $services->alias(PublishableWriteStateProcessor::class, 'silverback.api_components.api_platform.state_processor.publishable_write');
 
     $services
         ->set('silverback.api_components.helper.publishable.status_checker')

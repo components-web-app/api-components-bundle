@@ -15,10 +15,13 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionRemovalStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\PublishableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentUsageStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DenyAccessStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableDeserializeStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableReadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteGenerateStateProvider;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -73,6 +76,24 @@ class StateDecoratorServicesTest extends TestCase
             ComponentPositionRemovalStateProcessor::class,
             'api_platform.state_processor.locator',
             40,
+        ];
+        yield 'publishable merge on read between deny access and component usage' => [
+            'silverback.api_components.api_platform.state_provider.publishable_read',
+            PublishableReadStateProvider::class,
+            'api_platform.state_provider.read',
+            -30,
+        ];
+        yield 'publication date guard after deserialization and its security check' => [
+            'silverback.api_components.api_platform.state_provider.publishable_deserialize',
+            PublishableDeserializeStateProvider::class,
+            'api_platform.state_provider.deserialize',
+            -10,
+        ];
+        yield 'publishable merge outermost on the write, so the merged resource is what is persisted' => [
+            'silverback.api_components.api_platform.state_processor.publishable_write',
+            PublishableWriteStateProcessor::class,
+            'api_platform.state_processor.locator',
+            10,
         ];
     }
 
