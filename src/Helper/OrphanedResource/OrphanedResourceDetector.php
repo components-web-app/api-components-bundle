@@ -59,50 +59,121 @@ class OrphanedResourceDetector
     {
         $entityManager = $this->getEntityManager(AbstractComponent::class);
 
+        $groups = $this->findUnanchoredGroups($entityManager);
+        $positions = $this->findCandidatePositions($entityManager);
+        [$componentClasses, $components] = $this->findCandidateComponents($entityManager);
+
+        $reaches = [];
+        $live = [];
+        foreach ($groups as $group => ['owners' => $owners]) {
+            foreach ($owners as $owner) {
+                if (isset($components[$owner])) {
+                    $reaches['c' . $owner][] = 'g' . $group;
+                } else {
+                    $live['g' . $group] = true;
+                }
+            }
+        }
+        foreach ($components as $component => ['published' => $published]) {
+            if (null !== $published && isset($components[$published])) {
+                $reaches['c' . $published][] = 'c' . $component;
+            } elseif (null !== $published) {
+                $live['c' . $component] = true;
+            }
+        }
+        foreach ($positions as ['group' => $group, 'component' => $component]) {
+            if (null !== $component && isset($components[$component])) {
+                $reaches['g' . $group][] = 'c' . $component;
+            }
+        }
+
+        $queue = array_keys($live);
+        while (null !== ($node = array_pop($queue))) {
+            foreach ($reaches[$node] ?? [] as $reached) {
+                if (!isset($live[$reached])) {
+                    $live[$reached] = true;
+                    $queue[] = $reached;
+                }
+            }
+        }
+
+        $orphanedGroups = [];
+        foreach ($groups as $group => ['id' => $id]) {
+            if (!isset($live['g' . $group])) {
+                $orphanedGroups[] = [ComponentGroup::class, $id];
+            }
+        }
+        $orphanedPositions = [];
+        foreach ($positions as ['id' => $id, 'group' => $group, 'empty' => $empty]) {
+            if ($empty || (isset($groups[$group]) && !isset($live['g' . $group]))) {
+                $orphanedPositions[] = [ComponentPosition::class, $id];
+            }
+        }
+        $orphanedComponents = [];
+        foreach ($components as $component => ['id' => $id, 'type' => $type, 'published' => $published]) {
+            if (null === $published && !isset($live['c' . $component])) {
+                $orphanedComponents[] = [$componentClasses[$type], $id];
+            }
+        }
+
         return [
-            self::COMPONENT_GROUPS => $this->findOrphanedComponentGroups($entityManager),
-            self::COMPONENT_POSITIONS => $this->findEmptyComponentPositions($entityManager),
-            self::COMPONENTS => $this->findUnusedComponents($entityManager),
+            self::COMPONENT_GROUPS => $this->toSortedReferences($entityManager, $orphanedGroups),
+            self::COMPONENT_POSITIONS => $this->toSortedReferences($entityManager, $orphanedPositions),
+            self::COMPONENTS => $this->toSortedReferences($entityManager, $orphanedComponents),
         ];
     }
 
     /**
-     * @return array<string, array{class-string, mixed}>
+     * @return array<string, array{id: mixed, owners: list<string>}>
      */
-    private function findOrphanedComponentGroups(EntityManagerInterface $entityManager): array
+    private function findUnanchoredGroups(EntityManagerInterface $entityManager): array
     {
-        $ids = $entityManager->createQueryBuilder()
-            ->select('g.id')
+        $rows = $entityManager->createQueryBuilder()
+            ->select('g.id AS id', 'o.id AS owner')
             ->from(ComponentGroup::class, 'g')
+            ->leftJoin('g.components', 'o')
             ->andWhere('g.pages IS EMPTY')
             ->andWhere('g.layouts IS EMPTY')
-            ->andWhere('g.components IS EMPTY')
             ->getQuery()
             ->getResult();
 
-        return $this->toSortedReferences($entityManager, array_map(static fn (array $row) => [ComponentGroup::class, $row['id']], $ids));
+        $groups = [];
+        foreach ($rows as $row) {
+            $groups[(string) $row['id']]['id'] = $row['id'];
+            $groups[(string) $row['id']]['owners'] ??= [];
+            if (null !== $row['owner']) {
+                $groups[(string) $row['id']]['owners'][] = (string) $row['owner'];
+            }
+        }
+
+        return $groups;
     }
 
     /**
-     * @return array<string, array{class-string, mixed}>
+     * @return list<array{id: mixed, group: string, component: ?string, empty: bool}>
      */
-    private function findEmptyComponentPositions(EntityManagerInterface $entityManager): array
+    private function findCandidatePositions(EntityManagerInterface $entityManager): array
     {
-        $ids = $entityManager->createQueryBuilder()
-            ->select('p.id')
+        $rows = $entityManager->createQueryBuilder()
+            ->select('p.id AS id', 'IDENTITY(p.componentGroup) AS grp', 'IDENTITY(p.component) AS component', 'CASE WHEN p.component IS NULL AND p.pageDataProperty IS NULL THEN 1 ELSE 0 END AS empty')
             ->from(ComponentPosition::class, 'p')
-            ->andWhere('p.component IS NULL')
-            ->andWhere('p.pageDataProperty IS NULL')
+            ->innerJoin('p.componentGroup', 'g')
+            ->andWhere('(g.pages IS EMPTY AND g.layouts IS EMPTY) OR (p.component IS NULL AND p.pageDataProperty IS NULL)')
             ->getQuery()
             ->getResult();
 
-        return $this->toSortedReferences($entityManager, array_map(static fn (array $row) => [ComponentPosition::class, $row['id']], $ids));
+        return array_map(static fn (array $row) => [
+            'id' => $row['id'],
+            'group' => (string) $row['grp'],
+            'component' => null === $row['component'] ? null : (string) $row['component'],
+            'empty' => 1 === (int) $row['empty'],
+        ], $rows);
     }
 
     /**
-     * @return array<string, array{class-string, mixed}>
+     * @return array{list<class-string>, array<string, array{id: mixed, type: int, published: ?string}>}
      */
-    private function findUnusedComponents(EntityManagerInterface $entityManager): array
+    private function findCandidateComponents(EntityManagerInterface $entityManager): array
     {
         $componentClasses = array_values($entityManager->getClassMetadata(AbstractComponent::class)->discriminatorMap);
         usort($componentClasses, static fn (string $a, string $b) => \count(class_parents($b)) <=> \count(class_parents($a)));
@@ -114,9 +185,10 @@ class OrphanedResourceDetector
 
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('c.id AS id', $type . ' AS type')
-            ->from(AbstractComponent::class, 'c');
-        $this->excludeReferenced($queryBuilder, ComponentPosition::class, 'component');
+            ->from(AbstractComponent::class, 'c')
+            ->andWhere(\sprintf('c.id NOT IN (SELECT IDENTITY(ap.component) FROM %s ap JOIN ap.componentGroup ag WHERE ap.component IS NOT NULL AND (ag.pages IS NOT EMPTY OR ag.layouts IS NOT EMPTY))', ComponentPosition::class));
 
+        $published = [];
         foreach ($entityManager->getMetadataFactory()->getAllMetadata() as $metadata) {
             if ($metadata->isMappedSuperclass) {
                 continue;
@@ -129,16 +201,27 @@ class OrphanedResourceDetector
             if (is_a($metadata->getName(), AbstractComponent::class, true) && $this->publishableAttributeReader->isConfigured($metadata->getName())) {
                 $field = $this->publishableAttributeReader->getConfiguration($metadata->getName())->associationName;
                 if ($metadata->hasAssociation($field) && !$metadata->isInheritedAssociation($field)) {
-                    $alias = 'd' . \count($queryBuilder->getDQLPart('where')?->getParts() ?? []);
-                    $queryBuilder->andWhere(\sprintf('c.id NOT IN (SELECT %1$s.id FROM %2$s %1$s WHERE %1$s.%3$s IS NOT NULL)', $alias, $metadata->getName(), $field));
+                    $alias = 'published' . \count($published);
+                    $published[] = $alias;
+                    $queryBuilder->addSelect(\sprintf('(SELECT IDENTITY(d%1$s.%2$s) FROM %3$s d%1$s WHERE d%1$s.id = c.id) AS %1$s', $alias, $field, $metadata->getName()));
                 }
             }
         }
 
-        return $this->toSortedReferences($entityManager, array_map(
-            static fn (array $row) => [$componentClasses[(int) $row['type']], $row['id']],
-            $queryBuilder->getQuery()->getResult()
-        ));
+        $components = [];
+        foreach ($queryBuilder->getQuery()->getResult() as $row) {
+            $publishedId = null;
+            foreach ($published as $alias) {
+                $publishedId ??= $row[$alias];
+            }
+            $components[(string) $row['id']] = [
+                'id' => $row['id'],
+                'type' => (int) $row['type'],
+                'published' => null === $publishedId ? null : (string) $publishedId,
+            ];
+        }
+
+        return [$componentClasses, $components];
     }
 
     /**

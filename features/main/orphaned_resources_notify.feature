@@ -14,8 +14,8 @@ Feature: Emailing admins when the orphaned resource report changes
     Then the console command should have exited with 0
     And the console command output should contain "The report has changed: a notification was sent."
     And an orphaned resources notification should have been sent to "admin@website.com, webmaster@website.com"
-    And the orphaned resources notification should count 1 component group, 2 component positions and 3 components
-    And the orphaned resources notification should list as new the resources "orphaned_group, empty_position, orphaned_group_empty_position, unused_component, unused_published, owning_component"
+    And the orphaned resources notification should count 2 component groups, 4 component positions and 5 components
+    And the orphaned resources notification should list as new the resources "orphaned_group, owned_group, empty_position, orphaned_group_position, orphaned_group_empty_position, owned_position, unused_component, orphaned_group_component, unused_published, owning_component, owned_component"
     And the orphaned resources notification should link to "https://admin.website.com/_cwa/orphaned"
 
   Scenario: A first report with no orphans sends nothing
@@ -46,7 +46,7 @@ Feature: Emailing admins when the orphaned resource report changes
     And there is an orphaned ComponentGroup
     When I run the scheduled orphaned resources scan
     Then an orphaned resources notification should have been sent to "admin@website.com, webmaster@website.com"
-    And the orphaned resources notification should count 2 component groups, 2 component positions and 3 components
+    And the orphaned resources notification should count 3 component groups, 4 component positions and 5 components
     And the orphaned resources notification should list as new the resources "orphaned_component_group"
 
   @loginAdmin
@@ -68,7 +68,7 @@ Feature: Emailing admins when the orphaned resource report changes
     And the response status code should be 202
     When I run the scheduled orphaned resources scan
     Then an orphaned resources notification should have been sent to "admin@website.com, webmaster@website.com"
-    And the orphaned resources notification should list as new the resources "orphaned_group, empty_position, orphaned_group_empty_position, unused_component, unused_published, owning_component"
+    And the orphaned resources notification should list as new the resources "orphaned_group, owned_group, empty_position, orphaned_group_position, orphaned_group_empty_position, owned_position, unused_component, orphaned_group_component, unused_published, owning_component, owned_component"
 
   @loginAdmin
   Scenario: A scheduled scan alerts on orphans the refresh after a bulk delete found first
@@ -115,7 +115,7 @@ Feature: Emailing admins when the orphaned resource report changes
     And I run the scheduled orphaned resources scan with "--no-notify"
     When I run the scheduled orphaned resources scan
     Then an orphaned resources notification should have been sent to "admin@website.com, webmaster@website.com"
-    And the orphaned resources notification should list as new the resources "orphaned_group, empty_position, orphaned_group_empty_position, unused_component, unused_published, owning_component"
+    And the orphaned resources notification should list as new the resources "orphaned_group, owned_group, empty_position, orphaned_group_position, orphaned_group_empty_position, owned_position, unused_component, orphaned_group_component, unused_published, owning_component, owned_component"
 
   Scenario: With no recipients configured nothing is sent
     Given there is a site with every kind of orphan and every kind of use
@@ -148,7 +148,7 @@ Feature: Emailing admins when the orphaned resource report changes
     When I run the scheduled orphaned resources scan
     Then the console command output should contain "The report has changed: a notification was sent."
     And an orphaned resources notification should have been sent to "admin@website.com, webmaster@website.com"
-    And the orphaned resources notification should list as new the resources "orphaned_group, empty_position, orphaned_group_empty_position, unused_component, unused_published, owning_component"
+    And the orphaned resources notification should list as new the resources "orphaned_group, owned_group, empty_position, orphaned_group_position, orphaned_group_empty_position, owned_position, unused_component, orphaned_group_component, unused_published, owning_component, owned_component"
 
   @loginAdmin
   Scenario: The HTTP scan never sends a notification

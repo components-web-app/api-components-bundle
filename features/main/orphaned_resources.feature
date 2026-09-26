@@ -23,6 +23,17 @@ Feature: Reporting orphaned component groups, positions and components
     And the JSON node "components" should list exactly the resources "dummy_component"
 
   @loginAdmin
+  Scenario: A scan follows an orphaned group down to everything nothing else links into the tree
+    Given there is an orphaned ComponentGroup with nested, shared, page data and draft descendants
+    When I send a "POST" request to "/_/orphaned_resources/scan"
+    Then the response status code should be 202
+    When I send a "GET" request to "/_/orphaned_resources"
+    Then the response status code should be 200
+    And the JSON node "componentGroups" should list exactly the resources "chain_group, chain_owned_group"
+    And the JSON node "componentPositions" should list exactly the resources "chain_position, chain_owned_position, cycle_position, shared_position, page_data_position, parent_typed_position, published_position"
+    And the JSON node "components" should list exactly the resources "chain_component, chain_owned_component, chained_published"
+
+  @loginAdmin
   Scenario: A draft and a component used only through a page data property are not reported
     Given there is a routed Page with a component group and a component with the path "/clean"
     And there is a published resource with a draft

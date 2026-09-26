@@ -12,9 +12,9 @@ Feature: Scanning for orphaned resources from the console
     And I count the component groups, positions and components
     When I run the console command "silverback:api-components:scan-orphaned"
     Then the console command should have exited with 0
-    And the console command output should contain "Component groups: 1"
-    And the console command output should contain "Component positions: 2"
-    And the console command output should contain "Components: 3"
+    And the console command output should contain "Component groups: 2"
+    And the console command output should contain "Component positions: 4"
+    And the console command output should contain "Components: 5"
     And the console command output should not contain the IRI of the resource "unused_component"
     And the component group, position and component counts should be unchanged
 
@@ -22,16 +22,16 @@ Feature: Scanning for orphaned resources from the console
     Given there is a site with every kind of orphan and every kind of use
     When I run the console command "silverback:api-components:scan-orphaned" verbosely
     Then the console command should have exited with 0
-    And the console command output should list exactly the resources "orphaned_group" under "Component groups"
-    And the console command output should list exactly the resources "empty_position, orphaned_group_empty_position" under "Component positions"
-    And the console command output should list exactly the resources "unused_component, unused_published, owning_component" under "Components"
+    And the console command output should list exactly the resources "orphaned_group, owned_group" under "Component groups"
+    And the console command output should list exactly the resources "empty_position, orphaned_group_position, orphaned_group_empty_position, owned_position" under "Component positions"
+    And the console command output should list exactly the resources "unused_component, orphaned_group_component, unused_published, owning_component, owned_component" under "Components"
 
   Scenario: clean-orphaned is an alias of the scan command and deletes nothing
     Given there is a site with every kind of orphan and every kind of use
     And I count the component groups, positions and components
     When I run the console command "silverback:api-components:clean-orphaned" verbosely
     Then the console command should have exited with 0
-    And the console command output should list exactly the resources "unused_component, unused_published, owning_component" under "Components"
+    And the console command output should list exactly the resources "unused_component, orphaned_group_component, unused_published, owning_component, owned_component" under "Components"
     And the component group, position and component counts should be unchanged
 
   @loginAdmin
@@ -40,9 +40,9 @@ Feature: Scanning for orphaned resources from the console
     When I run the console command "silverback:api-components:scan-orphaned"
     And I send a "GET" request to "/_/orphaned_resources"
     Then the response status code should be 200
-    And the JSON node "componentGroups" should list exactly the resources "orphaned_group"
-    And the JSON node "componentPositions" should list exactly the resources "empty_position, orphaned_group_empty_position"
-    And the JSON node "components" should list exactly the resources "unused_component, unused_published, owning_component"
+    And the JSON node "componentGroups" should list exactly the resources "orphaned_group, owned_group"
+    And the JSON node "componentPositions" should list exactly the resources "empty_position, orphaned_group_position, orphaned_group_empty_position, owned_position"
+    And the JSON node "components" should list exactly the resources "unused_component, orphaned_group_component, unused_published, owning_component, owned_component"
 
   @loginAdmin
   Scenario: The scan command stores the same report as the HTTP scan
@@ -65,9 +65,9 @@ Feature: Scanning for orphaned resources from the console
     When the API restarts with an empty application cache
     And I send a "GET" request to "/_/orphaned_resources"
     Then the response status code should be 200
-    And the JSON node "componentGroups" should list exactly the resources "orphaned_group"
-    And the JSON node "componentPositions" should list exactly the resources "empty_position, orphaned_group_empty_position"
-    And the JSON node "components" should list exactly the resources "unused_component, unused_published, owning_component"
+    And the JSON node "componentGroups" should list exactly the resources "orphaned_group, owned_group"
+    And the JSON node "componentPositions" should list exactly the resources "empty_position, orphaned_group_position, orphaned_group_empty_position, owned_position"
+    And the JSON node "components" should list exactly the resources "unused_component, orphaned_group_component, unused_published, owning_component, owned_component"
 
   @loginAdmin
   Scenario: The report's generation time has sub-second precision

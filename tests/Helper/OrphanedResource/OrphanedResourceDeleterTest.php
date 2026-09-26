@@ -225,6 +225,63 @@ class OrphanedResourceDeleterTest extends OrphanedResourceDatabaseTestCase
         self::assertSame([$this->iri($shared)], $result->deleted['componentGroups']);
     }
 
+    public function test_a_resource_orphaned_only_through_its_group_can_be_selected(): void
+    {
+        $group = $this->group('orphan');
+        $component = new DummyComponent();
+        $position = $this->position($group, $component);
+        $this->flushAndClear();
+
+        $result = $this->deleter->delete([$this->iri($position), $this->iri($component)]);
+
+        self::assertSame([], $result->rejected);
+        self::assertSame([$this->iri($position)], $result->deleted['componentPositions']);
+        self::assertSame([$this->iri($component)], $result->deleted['components']);
+        self::assertNotNull($this->entityManager->find($group::class, $group->getId()));
+    }
+
+    public function test_deleting_all_deletes_exactly_what_the_scan_listed_and_leaves_nothing_for_the_next_scan(): void
+    {
+        $outer = $this->group('outer');
+        $twice = new DummyComponent();
+        $this->position($outer, $twice);
+        $this->position($outer, $twice);
+        $owner = new DummyComponent();
+        $this->position($outer, $owner);
+        $owned = $this->group('owned');
+        $owner->addComponentGroup($owned);
+        $this->position($owned, new DummyComponent());
+        $this->position($owned, $owner);
+        $shared = new DummyComponent();
+        $this->position($outer, $shared);
+        $this->position($this->pageGroup(), $shared);
+        $published = new DummyPublishableComponent();
+        $this->position($outer, $published);
+        $draft = $this->persist((new DummyPublishableComponent())->setPublishedResource($published));
+        $draftGroup = $this->group('draft-owned');
+        $draft->addComponentGroup($draftGroup);
+        $this->position($draftGroup, new DummyComponent());
+        $this->flushAndClear();
+        $scanned = $this->detector->detect();
+
+        $result = $this->deleter->delete(null);
+
+        self::assertSame($scanned->componentGroups, $result->deleted['componentGroups']);
+        self::assertSame($scanned->componentPositions, $result->deleted['componentPositions']);
+        $expectedComponents = [...$scanned->components, $this->iri($draft)];
+        sort($expectedComponents);
+        self::assertSame($expectedComponents, $result->deleted['components']);
+        self::assertCount(3, $scanned->componentGroups);
+        self::assertCount(8, $scanned->componentPositions);
+        self::assertCount(5, $scanned->components);
+        $this->entityManager->clear();
+        $rescanned = $this->detector->detect();
+        self::assertSame([], $rescanned->componentGroups);
+        self::assertSame([], $rescanned->componentPositions);
+        self::assertSame([], $rescanned->components);
+        self::assertSame([$this->iri($shared)], $this->remaining(DummyComponent::class));
+    }
+
     public function test_everything_is_deleted_in_one_flush(): void
     {
         $this->group('orphan');

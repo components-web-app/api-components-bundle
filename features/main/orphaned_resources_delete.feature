@@ -77,9 +77,9 @@ Feature: Deleting orphaned resources
     When I request the deletion of the orphaned resources "unused_component, orphaned_group"
     And I send a "GET" request to "/_/orphaned_resources"
     Then the response status code should be 200
-    And the JSON node "componentGroups" should have 0 elements
-    And the JSON node "componentPositions" should list exactly the resources "empty_position"
-    And the JSON node "components" should list exactly the resources "unused_published, owning_component"
+    And the JSON node "componentGroups" should list exactly the resources "owned_group"
+    And the JSON node "componentPositions" should list exactly the resources "empty_position, owned_position"
+    And the JSON node "components" should list exactly the resources "unused_published, owning_component, owned_component"
 
   @loginAdmin
   Scenario Outline: A request must name its IRIs or ask for all, but not both
