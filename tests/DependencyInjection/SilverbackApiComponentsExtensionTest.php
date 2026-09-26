@@ -31,11 +31,13 @@ use Silverback\ApiComponentsBundle\Exception\HttpCachePurgeFailedException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
+use Silverback\ApiComponentsBundle\Factory\OrphanedResource\OrphanedResourcesChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
+use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
@@ -365,5 +367,31 @@ class SilverbackApiComponentsExtensionTest extends TestCase
     public function test_a_disallowed_request_origin_is_mapped_to_bad_request(): void
     {
         self::assertTrue(is_a(DisallowedRequestOriginException::class, UnparseableRequestHeaderException::class, true));
+    }
+
+    public function test_orphaned_resource_notifications_are_wired_with_no_recipients_by_default(): void
+    {
+        [$container] = $this->load(self::minimalConfig());
+
+        self::assertSame([], $this->argument($container, OrphanedResourceNotifier::class, '$recipients'));
+        self::assertSame('/_cwa/orphaned', $this->argument($container, OrphanedResourceNotifier::class, '$adminPagePath'));
+        self::assertSame('Orphaned resources changed on {{ website_name }}', $this->argument($container, OrphanedResourcesChangedEmailFactory::class, '$subject'));
+        self::assertSame(['website_name' => 'Test Website'], $this->argument($container, OrphanedResourcesChangedEmailFactory::class, '$context'));
+    }
+
+    public function test_orphaned_resource_notification_configuration_reaches_the_notifier(): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_resources']['notify'] = [
+            'recipients' => ['admin@example.com'],
+            'admin_page_path' => '/admin/orphans',
+            'subject' => 'Orphans',
+        ];
+
+        [$container] = $this->load($config);
+
+        self::assertSame(['admin@example.com'], $this->argument($container, OrphanedResourceNotifier::class, '$recipients'));
+        self::assertSame('/admin/orphans', $this->argument($container, OrphanedResourceNotifier::class, '$adminPagePath'));
+        self::assertSame('Orphans', $this->argument($container, OrphanedResourcesChangedEmailFactory::class, '$subject'));
     }
 }

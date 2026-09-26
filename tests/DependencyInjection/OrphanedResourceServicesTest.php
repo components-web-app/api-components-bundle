@@ -22,18 +22,26 @@ use Silverback\ApiComponentsBundle\Command\ScanOrphanedCommand;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\OrphanedResourceDeletionStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\OrphanedResourceScanStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\OrphanedResourceReportStateProvider;
+use Silverback\ApiComponentsBundle\Factory\OrphanedResource\OrphanedResourcesChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceDeleter;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceDetector;
+use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotificationResult;
+use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
+use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceReportChange;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceReportStore;
+use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Message\ScanOrphanedResourcesMessage;
 use Silverback\ApiComponentsBundle\MessageHandler\ScanOrphanedResourcesHandler;
-use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Silverback\ApiComponentsBundle\Tests\Helper\OrphanedResource\InMemoryOrphanedResourceReportStore;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\Compiler\ResolveClassPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 
@@ -42,16 +50,50 @@ class OrphanedResourceServicesTest extends TestCase
     private const string BUS_ID = 'messenger.default_bus';
     private const string DETECTOR_ID = 'silverback.api_components.orphaned_resource.detector';
     private const string HANDLER_ID = 'silverback.api_components.message_handler.scan_orphaned_resources';
+    private const string STORE_ID = 'silverback.api_components.orphaned_resource.report_store';
+    private const string NOTIFIER_ID = 'silverback.api_components.orphaned_resource.notifier';
+    private const string EMAIL_FACTORY_ID = 'silverback.api_components.factory.orphaned_resource.changed_email';
 
-    public function test_the_report_is_stored_in_the_application_cache_pool(): void
+    public function test_the_report_is_stored_through_doctrine(): void
+    {
+        $container = $this->loadContainer(false);
+        $definition = $container->getDefinition(self::STORE_ID);
+
+        self::assertSame(OrphanedResourceReportStore::class, $definition->getClass());
+        self::assertFalse($definition->isAutoconfigured());
+        self::assertSame([ManagerRegistry::class], array_map('strval', $definition->getArguments()));
+        self::assertSame(self::STORE_ID, (string) $container->getAlias(OrphanedResourceReportStore::class));
+    }
+
+    public function test_the_notifier_is_wired_to_the_mailer_the_email_factory_the_link_resolver_and_an_optional_logger(): void
+    {
+        $container = $this->loadContainer(false);
+        $definition = $container->getDefinition(self::NOTIFIER_ID);
+
+        self::assertSame(OrphanedResourceNotifier::class, $definition->getClass());
+        self::assertFalse($definition->isAutoconfigured());
+        self::assertSame(MailerInterface::class, (string) $definition->getArgument('$mailer'));
+        self::assertSame(self::EMAIL_FACTORY_ID, (string) $definition->getArgument('$emailFactory'));
+        self::assertSame(RefererUrlResolver::class, (string) $definition->getArgument('$urlResolver'));
+        self::assertSame([], $definition->getArgument('$recipients'));
+        self::assertSame('/_cwa/orphaned', $definition->getArgument('$adminPagePath'));
+        $logger = $definition->getArgument('$logger');
+        self::assertInstanceOf(Reference::class, $logger);
+        self::assertSame('logger', (string) $logger);
+        self::assertSame(ContainerInterface::NULL_ON_INVALID_REFERENCE, $logger->getInvalidBehavior());
+        self::assertSame(self::NOTIFIER_ID, (string) $container->getAlias(OrphanedResourceNotifier::class));
+    }
+
+    public function test_the_email_factory_renders_with_twig(): void
     {
         $container = $this->loadContainer();
+        $definition = $container->getDefinition(self::EMAIL_FACTORY_ID);
 
-        self::assertSame(
-            'cache.app',
-            (string) $container->getDefinition('silverback.api_components.orphaned_resource.report_store')->getArgument(0)
-        );
-        self::assertSame('silverback.api_components.orphaned_resource.report_store', (string) $container->getAlias(OrphanedResourceReportStore::class));
+        self::assertSame(OrphanedResourcesChangedEmailFactory::class, $definition->getClass());
+        self::assertFalse($definition->isAutoconfigured());
+        self::assertSame('twig', (string) $definition->getArgument('$twig'));
+        self::assertSame('Orphaned resources changed on {{ website_name }}', $definition->getArgument('$subject'));
+        self::assertSame(self::EMAIL_FACTORY_ID, (string) $container->getAlias(OrphanedResourcesChangedEmailFactory::class));
     }
 
     public function test_the_detector_is_wired_to_doctrine_the_publishable_reader_and_the_iri_converter(): void
@@ -150,7 +192,7 @@ class OrphanedResourceServicesTest extends TestCase
             [['command' => 'silverback:api-components:scan-orphaned'], ['command' => 'silverback:api-components:clean-orphaned']],
             $definition->getTag('console.command')
         );
-        self::assertSame([self::HANDLER_ID], array_map('strval', $definition->getArguments()));
+        self::assertSame([self::HANDLER_ID, self::NOTIFIER_ID], array_map('strval', $definition->getArguments()));
     }
 
     public function test_the_scan_command_stores_the_report_and_prints_the_counts_per_kind(): void
@@ -174,6 +216,104 @@ class OrphanedResourceServicesTest extends TestCase
         $tester->execute([], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
         self::assertSame("Component groups: 1\n  /_/component_groups/1\nComponent positions: 0\nComponents: 0\n", $tester->getDisplay());
+    }
+
+    public function test_the_scan_command_notifies_on_a_change_and_says_so(): void
+    {
+        $container = $this->loadContainer();
+        $container->set(self::DETECTOR_ID, $this->detectorReturning(['/_/component_groups/1']));
+        $notifier = $this->createMock(OrphanedResourceNotifier::class);
+        $notifier->expects(self::once())
+            ->method('notify')
+            ->with(self::callback(static fn (OrphanedResourceReportChange $change) => null === $change->previous && ['/_/component_groups/1'] === $change->report->componentGroups))
+            ->willReturn(OrphanedResourceNotificationResult::Sent);
+        $container->set(self::NOTIFIER_ID, $notifier);
+        $tester = new CommandTester($container->get(ScanOrphanedCommand::class));
+
+        self::assertSame(0, $tester->execute([]));
+
+        self::assertStringEndsWith("Components: 0\nThe report has changed: a notification was sent.\n", $tester->getDisplay());
+    }
+
+    public function test_the_scan_command_compares_with_the_previously_stored_report(): void
+    {
+        $container = $this->loadContainer();
+        $container->get(OrphanedResourceReportStore::class)->save(new OrphanedResourceReport(new \DateTimeImmutable(), ['/_/component_groups/9']));
+        $container->set(self::DETECTOR_ID, $this->detectorReturning(['/_/component_groups/1']));
+        $notifier = $this->createMock(OrphanedResourceNotifier::class);
+        $notifier->expects(self::once())
+            ->method('notify')
+            ->with(self::callback(static fn (OrphanedResourceReportChange $change) => ['/_/component_groups/9'] === $change->previous?->componentGroups))
+            ->willReturn(OrphanedResourceNotificationResult::Unchanged);
+        $container->set(self::NOTIFIER_ID, $notifier);
+        $tester = new CommandTester($container->get(ScanOrphanedCommand::class));
+
+        self::assertSame(0, $tester->execute([]));
+
+        self::assertStringEndsWith("Components: 0\nThe report has not changed: no notification was sent.\n", $tester->getDisplay());
+    }
+
+    public function test_a_failed_notification_is_reported_but_the_command_succeeds_and_keeps_the_report(): void
+    {
+        $container = $this->loadContainer();
+        $container->set(self::DETECTOR_ID, $this->detectorReturning(['/_/component_groups/1']));
+        $notifier = $this->createStub(OrphanedResourceNotifier::class);
+        $notifier->method('notify')->willReturn(OrphanedResourceNotificationResult::Failed);
+        $container->set(self::NOTIFIER_ID, $notifier);
+        $tester = new CommandTester($container->get(ScanOrphanedCommand::class));
+
+        self::assertSame(0, $tester->execute([]));
+
+        self::assertStringEndsWith("Components: 0\nThe report has changed, but the notification could not be sent. The error has been logged.\n", $tester->getDisplay());
+        self::assertSame(['/_/component_groups/1'], $container->get(OrphanedResourceReportStore::class)->fetch()?->componentGroups);
+    }
+
+    public function test_the_scan_command_says_nothing_about_notifications_when_no_recipients_are_configured(): void
+    {
+        $container = $this->loadContainer();
+        $container->set(self::DETECTOR_ID, $this->detectorReturning([]));
+        $notifier = $this->createStub(OrphanedResourceNotifier::class);
+        $notifier->method('notify')->willReturn(OrphanedResourceNotificationResult::NoRecipients);
+        $container->set(self::NOTIFIER_ID, $notifier);
+        $tester = new CommandTester($container->get(ScanOrphanedCommand::class));
+
+        $tester->execute([]);
+
+        self::assertSame("Component groups: 0\nComponent positions: 0\nComponents: 0\n", $tester->getDisplay());
+    }
+
+    public function test_the_scan_command_does_not_notify_with_no_notify(): void
+    {
+        $container = $this->loadContainer();
+        $container->set(self::DETECTOR_ID, $this->detectorReturning(['/_/component_groups/1']));
+        $notifier = $this->createMock(OrphanedResourceNotifier::class);
+        $notifier->expects(self::never())->method('notify');
+        $container->set(self::NOTIFIER_ID, $notifier);
+        $tester = new CommandTester($container->get(ScanOrphanedCommand::class));
+
+        self::assertSame(0, $tester->execute(['--no-notify' => true]));
+
+        self::assertSame("Component groups: 1\nComponent positions: 0\nComponents: 0\n", $tester->getDisplay());
+        self::assertSame(['/_/component_groups/1'], $container->get(OrphanedResourceReportStore::class)->fetch()?->componentGroups);
+    }
+
+    public function test_the_http_scan_and_the_deletion_refresh_never_notify(): void
+    {
+        $container = $this->loadContainer();
+        $container->set(self::DETECTOR_ID, $this->detectorReturning(['/_/component_groups/1']));
+        $notifier = $this->createMock(OrphanedResourceNotifier::class);
+        $notifier->expects(self::never())->method('notify');
+        $container->set(self::NOTIFIER_ID, $notifier);
+        $deleter = $this->createStub(OrphanedResourceDeleter::class);
+        $deleter->method('delete')->willReturn(new OrphanedResourceDeletion());
+        $container->set('silverback.api_components.orphaned_resource.deleter', $deleter);
+        $request = new OrphanedResourceDeletion();
+        $request->all = true;
+
+        $container->get(OrphanedResourceScanStateProcessor::class)->process(null, new Post());
+        $container->get(OrphanedResourceDeletionStateProcessor::class)->process($request, new Post());
+
+        self::assertSame(['/_/component_groups/1'], $container->get(OrphanedResourceReportStore::class)->fetch()?->componentGroups);
     }
 
     public function test_the_deletion_processor_keeps_its_class_name_as_service_id_and_is_wired_explicitly(): void
@@ -250,13 +390,18 @@ class OrphanedResourceServicesTest extends TestCase
         return $detector;
     }
 
-    private function loadContainer(): ContainerBuilder
+    private function loadContainer(bool $withTestDoubles = true): ContainerBuilder
     {
         $container = new ContainerBuilder();
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../../src/Resources/config'));
         $loader->load('services_orphaned_resources.php');
         (new ResolveClassPass())->process($container);
-        $container->set('cache.app', new ArrayAdapter());
+        if ($withTestDoubles) {
+            $container->set(self::STORE_ID, new InMemoryOrphanedResourceReportStore());
+            $notifier = $this->createStub(OrphanedResourceNotifier::class);
+            $notifier->method('notify')->willReturn(OrphanedResourceNotificationResult::NoRecipients);
+            $container->set(self::NOTIFIER_ID, $notifier);
+        }
 
         return $container;
     }

@@ -50,3 +50,7 @@ services:
     Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\EventSubscriber\TemplatedEmailMessageEventSubscriber:
         tags:
             - { name: kernel.event_subscriber }
+
+    Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\SwitchableMailer:
+        decorates: mailer.mailer
+        arguments: ['@.inner']

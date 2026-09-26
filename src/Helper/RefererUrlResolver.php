@@ -41,6 +41,13 @@ class RefererUrlResolver
         return $this->getOrigin() . $path->path;
     }
 
+    public function getDefaultOriginUrl(RelativeUrlPath $path): string
+    {
+        $defaultOrigin = $this->getDefaultOrigin() ?? throw new InvalidArgumentException('To generate an absolute URL without a request, a default origin for links in emails must be configured');
+
+        return $defaultOrigin . $path->path;
+    }
+
     public function getOrigin(): string
     {
         $defaultOrigin = $this->getDefaultOrigin();

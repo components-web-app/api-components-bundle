@@ -1,0 +1,30 @@
+{% extends "@SilverbackApiComponents/emails/_template.html.twig" %}
+
+{% block content %}
+    {% set kinds = {componentGroups: 'Component groups', componentPositions: 'Component positions', components: 'Components'} %}
+    <h1 class="text-center">Orphaned Resources Have Changed</h1>
+    <spacer size="16"></spacer>
+    <p>Hello,</p>
+    <p>The scheduled scan of {{ website_name }} found a different set of orphaned resources from the last scan.</p>
+    <p>
+        {% for kind, label in kinds %}
+            {{ label }}: {{ counts[kind] }}<br/>
+        {% endfor %}
+    </p>
+    {% if resolved_count > 0 %}
+        <p>{{ resolved_count }} {{ resolved_count == 1 ? 'resource is' : 'resources are' }} no longer orphaned.</p>
+    {% endif %}
+    {% for kind, label in kinds %}
+        {% if added[kind] is not empty %}
+            <p>New {{ label|lower }} since the last scan:<br/>
+                {% for iri in added[kind] %}
+                    {{ iri }}<br/>
+                {% endfor %}
+            </p>
+        {% endif %}
+    {% endfor %}
+    {% if admin_url is not null %}
+        <button class="large expand" href="{{ admin_url }}">Review Orphaned Resources</button>
+    {% endif %}
+    {% include "@SilverbackApiComponents/emails/_signature.html.twig" %}
+{% endblock %}

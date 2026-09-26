@@ -22,6 +22,9 @@ use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\HttpFoundation\Cookie;
+use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Exception\InvalidArgumentException as MimeInvalidArgumentException;
+use Symfony\Component\Mime\Exception\RfcComplianceException;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -49,6 +52,7 @@ class Configuration implements ConfigurationInterface
         $this->addEnabledComponentsNode($rootNode);
         $this->addUserNode($rootNode);
         $this->addHttpCacheNode($rootNode);
+        $this->addOrphanedResourcesNode($rootNode);
 
         return $treeBuilder;
     }
@@ -89,6 +93,70 @@ class Configuration implements ConfigurationInterface
                     ->end()
                 ->end()
             ->end();
+    }
+
+    private function addOrphanedResourcesNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('orphaned_resources')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('notify')
+                            ->addDefaultsIfNotSet()
+                            ->info('Emails sent by `silverback:api-components:scan-orphaned` when its result differs from the last stored report. No recipients means no emails.')
+                            ->children()
+                                ->variableNode('recipients')
+                                    ->info('Email addresses: a list, or one comma-separated string so that an environment variable can supply them.')
+                                    ->defaultValue([])
+                                    ->validate()
+                                        ->ifTrue(static fn (mixed $recipients): bool => !self::areEmailAddresses($recipients))
+                                        ->thenInvalid('The orphaned resources notification recipients %s must be email addresses.')
+                                    ->end()
+                                ->end()
+                                ->scalarNode('admin_page_path')
+                                    ->info('The front-end path of the admin page listing orphaned resources, linked from the email on the `user.email_links.default_origin`.')
+                                    ->cannotBeEmpty()
+                                    ->defaultValue('/_cwa/orphaned')
+                                ->end()
+                                ->scalarNode('subject')->cannotBeEmpty()->defaultValue('Orphaned resources changed on {{ website_name }}')->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    private static function areEmailAddresses(mixed $recipients): bool
+    {
+        if (\is_string($recipients)) {
+            $recipients = explode(',', $recipients);
+        }
+        if (!\is_array($recipients)) {
+            return false;
+        }
+        foreach ($recipients as $recipient) {
+            if (!\is_string($recipient)) {
+                return false;
+            }
+            $recipient = trim($recipient);
+            if ('' !== $recipient && !str_contains($recipient, '%') && !self::isEmailAddress($recipient)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static function isEmailAddress(string $value): bool
+    {
+        try {
+            new Address($value);
+        } catch (RfcComplianceException|MimeInvalidArgumentException) {
+            return false;
+        }
+
+        return true;
     }
 
     private function addMercureNode(ArrayNodeDefinition $rootNode): void

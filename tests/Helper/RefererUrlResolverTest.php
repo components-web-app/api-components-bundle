@@ -157,6 +157,25 @@ class RefererUrlResolverTest extends TestCase
         self::assertSame('https://default.example.com', self::resolver(defaultOrigin: 'https://default.example.com', withRequest: false)->getOrigin());
     }
 
+    public function test_a_default_origin_url_ignores_an_allowed_request_origin(): void
+    {
+        $resolver = self::resolver(['origin' => 'https://www.example.com'], self::ALLOWED, 'https://admin.example.com:8443/');
+
+        self::assertSame('https://admin.example.com:8443/_cwa/orphaned', $resolver->getDefaultOriginUrl(RelativeUrlPath::fromConfiguration('_cwa/orphaned')));
+    }
+
+    public function test_a_default_origin_url_needs_a_default_origin(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        self::resolver(['origin' => 'https://www.example.com'], self::ALLOWED, '')->getDefaultOriginUrl(RelativeUrlPath::fromConfiguration('/_cwa/orphaned'));
+    }
+
+    public function test_a_default_origin_url_needs_a_valid_default_origin(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        self::resolver([], self::ALLOWED, 'not an origin', false)->getDefaultOriginUrl(RelativeUrlPath::fromConfiguration('/_cwa/orphaned'));
+    }
+
     public function test_an_empty_default_origin_is_no_default(): void
     {
         $this->expectException(UnparseableRequestHeaderException::class);

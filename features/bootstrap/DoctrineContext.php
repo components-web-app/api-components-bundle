@@ -25,18 +25,26 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Monolog\Handler\TestHandler;
+use Monolog\Level;
+use Monolog\LogRecord;
 use PHPUnit\Framework\Assert;
+use Psr\Cache\CacheItemPoolInterface;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\ApiResource\OrphanedResourceReport;
+use Silverback\ApiComponentsBundle\Command\ScanOrphanedCommand;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
+use Silverback\ApiComponentsBundle\Entity\Core\OrphanedResourceReportRecord;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Exception\MailerTransportException;
+use Silverback\ApiComponentsBundle\Factory\OrphanedResource\OrphanedResourcesChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
@@ -59,18 +67,23 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RefreshTok
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedPageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\EventSubscriber\TemplatedEmailMessageEventSubscriber;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\NestedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class DoctrineContext implements Context
 {
+    private const string ORPHANED_RESOURCES_RECIPIENTS_ENV = 'ORPHANED_RESOURCES_NOTIFY_RECIPIENTS';
+
     private ManagerRegistry $doctrine;
     private RestContext $restContext;
     private ?BehatchRestContext $baseRestContext;
@@ -94,6 +107,10 @@ final class DoctrineContext implements Context
     private array $structuralResourceCounts = [];
     /** @var array<string, list<string>> */
     private array $rememberedOrphanedResourcesReport = [];
+    /** @var list<TemplatedEmail> */
+    private array $orphanedResourcesNotifications = [];
+    /** @var list<LogRecord> */
+    private array $scheduledScanLogRecords = [];
     private PasswordHasherFactoryInterface $passwordHasherFactory;
 
     public function __construct(ManagerRegistry $doctrine, JWTTokenManagerInterface $jwtManager, IriConverterInterface $iriConverter, TimestampedDataPersister $timestampedHelper, UserPasswordHasherInterface $passwordHasher, JWTEncoderInterface $jwtEncoder, RouteLiveResolver $routeLiveResolver, KernelInterface $kernel, PasswordHasherFactoryInterface $passwordHasherFactory, OrphanedResourceReportStore $orphanedResourceReportStore)
@@ -2716,16 +2733,6 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @BeforeScenario
-     *
-     * @AfterScenario
-     */
-    public function clearOrphanedResourcesReport(): void
-    {
-        $this->orphanedResourceReportStore->clear();
-    }
-
-    /**
      * @Given an orphaned resources report has been stored
      */
     public function anOrphanedResourcesReportHasBeenStored(): void
@@ -3056,6 +3063,210 @@ final class DoctrineContext implements Context
         if ($expected !== $actual) {
             throw new \RuntimeException(\sprintf('The command output lists %s under "%s", expected %s. Output: %s', json_encode($actual), $heading, json_encode($expected), $this->commandOutput));
         }
+    }
+
+    /**
+     * @When /^I run the scheduled orphaned resources scan(?: with "([^"]*)")?$/
+     */
+    public function iRunTheScheduledOrphanedResourcesScan(string $option = ''): void
+    {
+        $kernel = new \AppKernel($this->kernel->getEnvironment(), $this->kernel->isDebug());
+        $kernel->boot();
+        try {
+            $container = $kernel->getContainer()->get('test.service_container');
+            $tester = new CommandTester((new Application($kernel))->find(ScanOrphanedCommand::NAME));
+            $this->commandStatusCode = $tester->execute('' === $option ? [] : [$option => true]);
+            $this->commandOutput = $tester->getDisplay();
+            $emails = iterator_to_array($container->get(TemplatedEmailMessageEventSubscriber::class)->getMessages(), false);
+            $this->orphanedResourcesNotifications = array_values(array_filter(
+                $emails,
+                static fn (TemplatedEmail $email) => str_starts_with((string) $email->getHeaders()->get('X-Message-ID')?->getBodyAsString(), OrphanedResourcesChangedEmailFactory::MESSAGE_ID_PREFIX . '-')
+            ));
+            /** @var TestHandler $handler */
+            $handler = $container->get('app.monolog.test_handler');
+            $this->scheduledScanLogRecords = $handler->getRecords();
+        } finally {
+            $kernel->shutdown();
+        }
+        $this->manager->clear();
+    }
+
+    /**
+     * @When the API restarts with an empty application cache
+     */
+    public function theApiRestartsWithAnEmptyApplicationCache(): void
+    {
+        $kernel = new \AppKernel($this->kernel->getEnvironment(), $this->kernel->isDebug());
+        $kernel->boot();
+        try {
+            /** @var CacheItemPoolInterface $pool */
+            $pool = $kernel->getContainer()->get('test.service_container')->get('cache.app');
+            if (!$pool->clear()) {
+                throw new \RuntimeException('The application cache could not be cleared');
+            }
+        } finally {
+            $kernel->shutdown();
+        }
+        $this->manager->clear();
+    }
+
+    /**
+     * @Then the orphaned resources report should be stored in the database
+     */
+    public function theOrphanedResourcesReportShouldBeStoredInTheDatabase(): void
+    {
+        $table = $this->manager->getClassMetadata(OrphanedResourceReportRecord::class)->getTableName();
+        $rows = $this->manager->getConnection()->fetchAllAssociative(\sprintf('SELECT component_groups, component_positions, components FROM %s', $table));
+        if (1 !== \count($rows)) {
+            throw new \RuntimeException(\sprintf('Expected one stored report row, found %d', \count($rows)));
+        }
+        $expected = [
+            'component_groups' => ['orphaned_group'],
+            'component_positions' => ['empty_position', 'orphaned_group_empty_position'],
+            'components' => ['unused_component', 'unused_published', 'owning_component'],
+        ];
+        foreach ($expected as $column => $names) {
+            $stored = json_decode($rows[0][$column], true, 512, \JSON_THROW_ON_ERROR);
+            $iris = array_map(fn (string $name) => $this->restContext->resources[$name], $names);
+            sort($stored);
+            sort($iris);
+            if ($stored !== $iris) {
+                throw new \RuntimeException(\sprintf('The stored %s are %s, expected %s', $column, json_encode($stored), json_encode($iris)));
+            }
+        }
+    }
+
+    /**
+     * @Given no recipients are configured for orphaned resources notifications
+     */
+    public function noRecipientsAreConfiguredForOrphanedResourcesNotifications(): void
+    {
+        $_SERVER[self::ORPHANED_RESOURCES_RECIPIENTS_ENV] = $_ENV[self::ORPHANED_RESOURCES_RECIPIENTS_ENV] = '';
+    }
+
+    /**
+     * @BeforeScenario
+     *
+     * @AfterScenario
+     */
+    public function resetOrphanedResourcesNotifications(): void
+    {
+        unset($_SERVER[self::ORPHANED_RESOURCES_RECIPIENTS_ENV], $_ENV[self::ORPHANED_RESOURCES_RECIPIENTS_ENV]);
+        $this->orphanedResourcesNotifications = [];
+        $this->scheduledScanLogRecords = [];
+    }
+
+    /**
+     * @Then an orphaned resources notification should have been sent to :recipients
+     */
+    public function anOrphanedResourcesNotificationShouldHaveBeenSentTo(string $recipients): void
+    {
+        $email = $this->theOrphanedResourcesNotification();
+        $expected = array_map('trim', explode(',', $recipients));
+        $actual = array_map(static fn (Address $address) => $address->getAddress(), $email->getTo());
+        if ($expected !== $actual) {
+            throw new \RuntimeException(\sprintf('The notification was sent to %s, expected %s', json_encode($actual), json_encode($expected)));
+        }
+    }
+
+    /**
+     * @Then no orphaned resources notification should have been sent
+     */
+    public function noOrphanedResourcesNotificationShouldHaveBeenSent(): void
+    {
+        if ([] !== $this->orphanedResourcesNotifications) {
+            throw new \RuntimeException(\sprintf('%d orphaned resources notifications were sent', \count($this->orphanedResourcesNotifications)));
+        }
+    }
+
+    /**
+     * @Then /^the orphaned resources notification should count (\d+) component groups?, (\d+) component positions? and (\d+) components?$/
+     */
+    public function theOrphanedResourcesNotificationShouldCount(int $componentGroups, int $componentPositions, int $components): void
+    {
+        $expected = ['componentGroups' => $componentGroups, 'componentPositions' => $componentPositions, 'components' => $components];
+        $counts = $this->theOrphanedResourcesNotification()->getContext()['counts'] ?? null;
+        if ($expected !== $counts) {
+            throw new \RuntimeException(\sprintf('The notification counts %s, expected %s', json_encode($counts), json_encode($expected)));
+        }
+    }
+
+    /**
+     * @Then the orphaned resources notification should list as new the resources :names
+     */
+    public function theOrphanedResourcesNotificationShouldListAsNewTheResources(string $names): void
+    {
+        $expected = array_map(fn (string $name) => $this->restContext->resources[trim($name)], explode(',', $names));
+        $added = $this->theOrphanedResourcesNotification()->getContext()['added'] ?? [];
+        $actual = array_merge(...array_values($added));
+        sort($expected);
+        sort($actual);
+        if ($expected !== $actual) {
+            throw new \RuntimeException(\sprintf('The notification lists as new %s, expected %s', json_encode($actual), json_encode($expected)));
+        }
+    }
+
+    /**
+     * @Then the orphaned resources notification should link to :url
+     */
+    public function theOrphanedResourcesNotificationShouldLinkTo(string $url): void
+    {
+        $email = $this->theOrphanedResourcesNotification();
+        $link = $email->getContext()['admin_url'] ?? null;
+        if ($url !== $link) {
+            throw new \RuntimeException(\sprintf('The notification links to %s, expected %s', var_export($link, true), $url));
+        }
+        if (!str_contains((string) $email->getHtmlBody(), 'href="' . $url . '"')) {
+            throw new \RuntimeException(\sprintf('The rendered notification does not link to %s: %s', $url, $email->getHtmlBody()));
+        }
+    }
+
+    /**
+     * @Then the orphaned resources notification should not link to the admin page
+     */
+    public function theOrphanedResourcesNotificationShouldNotLinkToTheAdminPage(): void
+    {
+        $email = $this->theOrphanedResourcesNotification();
+        if (null !== ($email->getContext()['admin_url'] ?? null) || str_contains((string) $email->getHtmlBody(), '/_cwa/orphaned')) {
+            throw new \RuntimeException('The notification links to the admin page');
+        }
+    }
+
+    /**
+     * @Then a missing link in the orphaned resources notification should have been logged
+     */
+    public function aMissingLinkInTheOrphanedResourcesNotificationShouldHaveBeenLogged(): void
+    {
+        foreach ($this->scheduledScanLogRecords as $record) {
+            if (Level::Warning === $record->level && str_contains($record->message, 'without a link to the admin page')) {
+                return;
+            }
+        }
+
+        throw new \RuntimeException('No missing link was logged for the orphaned resources notification');
+    }
+
+    /**
+     * @Then the failed orphaned resources notification should have been logged
+     */
+    public function theFailedOrphanedResourcesNotificationShouldHaveBeenLogged(): void
+    {
+        foreach ($this->scheduledScanLogRecords as $record) {
+            if (Level::Error === $record->level && ($record->context['exception'] ?? null) instanceof MailerTransportException) {
+                return;
+            }
+        }
+
+        throw new \RuntimeException('No failed orphaned resources notification was logged');
+    }
+
+    private function theOrphanedResourcesNotification(): TemplatedEmail
+    {
+        if (1 !== \count($this->orphanedResourcesNotifications)) {
+            throw new \RuntimeException(\sprintf('Expected one orphaned resources notification, %d were sent. Output: %s', \count($this->orphanedResourcesNotifications), $this->commandOutput));
+        }
+
+        return $this->orphanedResourcesNotifications[0];
     }
 
     /**

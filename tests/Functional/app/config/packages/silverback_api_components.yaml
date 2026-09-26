@@ -37,3 +37,6 @@ silverback_api_components:
     route_security:
         - { route: "/user-area*", security: "is_granted('ROLE_USER')" }
     routable_security: "is_granted('ROLE_ADMIN')"
+    orphaned_resources:
+        notify:
+            recipients: '%env(ORPHANED_RESOURCES_NOTIFY_RECIPIENTS)%'

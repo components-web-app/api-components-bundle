@@ -369,4 +369,124 @@ class ConfigurationTest extends TestCase
         self::assertSame(['%env(ALLOWED_ORIGIN)%'], $emailLinks['allowed_origins']);
         self::assertSame('%env(default::DEFAULT_ORIGIN)%', $emailLinks['default_origin']);
     }
+
+    public function test_orphaned_resource_notifications_have_no_recipients_by_default(): void
+    {
+        self::assertSame(
+            [
+                'recipients' => [],
+                'admin_page_path' => '/_cwa/orphaned',
+                'subject' => 'Orphaned resources changed on {{ website_name }}',
+            ],
+            $this->process(self::minimalConfig())['orphaned_resources']['notify']
+        );
+    }
+
+    public function test_orphaned_resource_notifications_can_be_configured(): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_resources']['notify'] = [
+            'recipients' => ['admin@example.com', 'ops@example.com'],
+            'admin_page_path' => '/admin/orphans',
+            'subject' => 'Orphans',
+        ];
+
+        self::assertSame(
+            ['recipients' => ['admin@example.com', 'ops@example.com'], 'admin_page_path' => '/admin/orphans', 'subject' => 'Orphans'],
+            $this->process($config)['orphaned_resources']['notify']
+        );
+    }
+
+    public function test_an_orphaned_resource_notification_recipient_that_is_not_an_email_address_is_rejected(): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_resources']['notify']['recipients'] = ['admin@example.com', 'not an email'];
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('not an email');
+        $this->process($config);
+    }
+
+    public function test_orphaned_resource_notification_recipients_from_environment_variables_are_left_to_run_time(): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_resources']['notify']['recipients'] = ['%env(ORPHAN_RECIPIENT)%'];
+
+        self::assertSame(['%env(ORPHAN_RECIPIENT)%'], $this->process($config)['orphaned_resources']['notify']['recipients']);
+    }
+
+    public function test_orphaned_resource_notification_recipients_may_be_one_comma_separated_string(): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_resources']['notify']['recipients'] = 'admin@example.com, ops@example.com';
+
+        self::assertSame('admin@example.com, ops@example.com', $this->process($config)['orphaned_resources']['notify']['recipients']);
+    }
+
+    public function test_an_invalid_address_in_a_comma_separated_recipients_string_is_rejected(): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_resources']['notify']['recipients'] = 'admin@example.com,not an email';
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('not an email');
+        $this->process($config);
+    }
+
+    public function test_orphaned_resource_notification_recipients_may_be_an_unresolved_parameter_while_prepending(): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_resources']['notify']['recipients'] = '%env(ORPHAN_RECIPIENTS)%';
+
+        self::assertSame('%env(ORPHAN_RECIPIENTS)%', $this->process($config)['orphaned_resources']['notify']['recipients']);
+    }
+
+    public function test_orphaned_resource_notification_recipients_from_an_environment_variable_are_left_to_run_time(): void
+    {
+        BaseNode::setPlaceholderUniquePrefix('env_orphan_test');
+        try {
+            $config = self::minimalConfig();
+            $config['orphaned_resources']['notify']['recipients'] = 'env_orphan_test_RECIPIENTS';
+
+            $recipients = $this->process($config)['orphaned_resources']['notify']['recipients'];
+        } finally {
+            BaseNode::resetPlaceholders();
+        }
+
+        self::assertSame('env_orphan_test_RECIPIENTS', $recipients);
+    }
+
+    #[DataProvider('invalidRecipientsProvider')]
+    public function test_orphaned_resource_notification_recipients_that_are_not_strings_are_rejected(mixed $recipients): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_resources']['notify']['recipients'] = $recipients;
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->process($config);
+    }
+
+    public static function invalidRecipientsProvider(): iterable
+    {
+        yield 'a number' => [5];
+        yield 'a list holding a list' => [[['admin@example.com']]];
+    }
+
+    public function test_an_empty_orphaned_resource_notification_subject_is_rejected(): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_resources']['notify']['subject'] = '';
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->process($config);
+    }
+
+    public function test_an_empty_orphaned_resource_admin_page_path_is_rejected(): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_resources']['notify']['admin_page_path'] = '';
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->process($config);
+    }
 }
