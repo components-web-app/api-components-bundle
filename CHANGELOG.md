@@ -4,8 +4,16 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- The bundle no longer prepends `api_platform.use_symfony_listeners: true`, so applications run on API Platform's default `MainController` and state provider/processor chain. Its behaviour moved from `EventPriorities` listeners to decorators of `api_platform.state_provider.read`/`deserialize`/`validate` and `api_platform.state_processor.locator`/`serialize`, which run under either setting; an application that sets the flag itself keeps working. Removed services and methods: `DenyAccessListener`, `ComponentUsageEventListener`, `RouteEventListener`, `DeletedResourceEventListener`, `UploadableEventListener`, and the `onPreRead`/`onPostRead`/`onPreWrite`/`onPostWrite`/`onPostDeserialize`/`onPreSerialize` methods of the remaining API listeners ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
+- The upload and download operations no longer set `UploadAction`/`DownloadAction` as their controller; `UploadStateProvider`/`DownloadStateProvider` call them from the read chain, marked by the operation's `silverback_upload`/`silverback_download` extra property ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
+
 ### Fixed
 - Stored files, their imagine variants and `_acb_file_info` rows are deleted whenever Doctrine removes an uploadable entity (group, page and orphan cascades, `POST /_/orphaned_resources/delete`, direct removal), only after the flush succeeds, and never while another row still references the path; a failed file delete is logged, not a 500 ([#372](https://github.com/components-web-app/api-components-bundle/pull/372))
+- `GET /me` and `GET /…/{id}/usage` work with `use_symfony_listeners: false`: `/me` keeps the controller of the `Get` it is built from and `UserStateProvider` resolves the token user itself, and the usage operation is named after its key ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
+
+### Tooling
+- `API_PLATFORM_USE_SYMFONY_LISTENERS=0|1` sets the flag in the Behat test app, with a cache directory per value, and CI runs one Behat leg with it on ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
 
 ## [2.0.0-alpha.7](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.6...2.0.0-alpha.7) - 2026-09-26
 
