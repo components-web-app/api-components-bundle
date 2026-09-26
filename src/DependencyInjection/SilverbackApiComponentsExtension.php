@@ -25,6 +25,7 @@ use Silverback\ApiComponentsBundle\Exception\HttpCachePurgeFailedException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
+use Silverback\ApiComponentsBundle\Factory\OrphanedResource\OrphanedResourcesChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
@@ -40,6 +41,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
@@ -140,6 +142,14 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition = $container->findDefinition(RefererUrlResolver::class);
         $definition->setArgument('$allowedOrigins', $config['user']['email_links']['allowed_origins']);
         $definition->setArgument('$defaultOrigin', $config['user']['email_links']['default_origin']);
+
+        $definition = $container->findDefinition(OrphanedResourceNotifier::class);
+        $definition->setArgument('$recipients', $config['orphaned_resources']['notify']['recipients']);
+        $definition->setArgument('$adminPagePath', $config['orphaned_resources']['notify']['admin_page_path']);
+
+        $definition = $container->findDefinition(OrphanedResourcesChangedEmailFactory::class);
+        $definition->setArgument('$subject', $config['orphaned_resources']['notify']['subject']);
+        $definition->setArgument('$context', ['website_name' => $config['website_name']]);
 
         $this->setEmailVerificationArguments($container, $config['user']);
         $this->setUserClassArguments($container, $config['user']['class_name']);

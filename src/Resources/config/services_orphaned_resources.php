@@ -15,14 +15,18 @@ use Silverback\ApiComponentsBundle\Command\ScanOrphanedCommand;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\OrphanedResourceDeletionStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\OrphanedResourceScanStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\OrphanedResourceReportStateProvider;
+use Silverback\ApiComponentsBundle\Factory\OrphanedResource\OrphanedResourcesChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceDeleter;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceDetector;
+use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceReportStore;
+use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Message\ScanOrphanedResourcesMessage;
 use Silverback\ApiComponentsBundle\MessageHandler\ScanOrphanedResourcesHandler;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Mailer\MailerInterface;
 
 return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
@@ -32,7 +36,7 @@ return static function (ContainerConfigurator $configurator) {
         ->class(OrphanedResourceReportStore::class)
         ->autoconfigure(false)
         ->args([
-            new Reference('cache.app'),
+            new Reference(ManagerRegistry::class),
         ]);
     $services->alias(OrphanedResourceReportStore::class, 'silverback.api_components.orphaned_resource.report_store');
 
@@ -100,11 +104,37 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias('silverback.api_components.api_platform.state_processor.orphaned_resource_deletion', OrphanedResourceDeletionStateProcessor::class);
 
     $services
+        ->set('silverback.api_components.factory.orphaned_resource.changed_email')
+        ->class(OrphanedResourcesChangedEmailFactory::class)
+        ->autoconfigure(false)
+        ->args([
+            '$twig' => new Reference('twig'),
+            '$subject' => 'Orphaned resources changed on {{ website_name }}',
+            '$context' => [],
+        ]);
+    $services->alias(OrphanedResourcesChangedEmailFactory::class, 'silverback.api_components.factory.orphaned_resource.changed_email');
+
+    $services
+        ->set('silverback.api_components.orphaned_resource.notifier')
+        ->class(OrphanedResourceNotifier::class)
+        ->autoconfigure(false)
+        ->args([
+            '$mailer' => new Reference(MailerInterface::class),
+            '$emailFactory' => new Reference('silverback.api_components.factory.orphaned_resource.changed_email'),
+            '$urlResolver' => new Reference(RefererUrlResolver::class),
+            '$recipients' => [],
+            '$adminPagePath' => '/_cwa/orphaned',
+            '$logger' => new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ]);
+    $services->alias(OrphanedResourceNotifier::class, 'silverback.api_components.orphaned_resource.notifier');
+
+    $services
         ->set('silverback.api_components.command.scan_orphaned')
         ->class(ScanOrphanedCommand::class)
         ->autoconfigure(false)
         ->args([
             new Reference('silverback.api_components.message_handler.scan_orphaned_resources'),
+            new Reference('silverback.api_components.orphaned_resource.notifier'),
         ])
         ->tag('console.command', ['command' => ScanOrphanedCommand::NAME])
         ->tag('console.command', ['command' => ScanOrphanedCommand::LEGACY_NAME]);

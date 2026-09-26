@@ -16,6 +16,9 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\OrphanedResourceScanStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\OrphanedResourceReportStateProvider;
+use Silverback\ApiComponentsBundle\Entity\Core\OrphanedResourceReportRecord;
+use Symfony\Component\Serializer\Attribute\Context;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 #[ApiResource]
 #[Get(
@@ -41,6 +44,7 @@ final readonly class OrphanedResourceReport
      * @param list<string> $components
      */
     public function __construct(
+        #[Context([DateTimeNormalizer::FORMAT_KEY => OrphanedResourceReportRecord::GENERATED_AT_FORMAT])]
         public \DateTimeImmutable $generatedAt,
         public array $componentGroups = [],
         public array $componentPositions = [],

@@ -52,3 +52,27 @@ Feature: Scanning for orphaned resources from the console
     And I send a "POST" request to "/_/orphaned_resources/scan"
     Then the response status code should be 202
     And the stored orphaned resources report should list the same resources as the remembered one
+
+  Scenario: The scan command stores the report in the database
+    Given there is a site with every kind of orphan and every kind of use
+    When I run the scheduled orphaned resources scan
+    Then the orphaned resources report should be stored in the database
+
+  @loginAdmin
+  Scenario: The report survives a restart of the API with an empty application cache
+    Given there is a site with every kind of orphan and every kind of use
+    And I run the scheduled orphaned resources scan
+    When the API restarts with an empty application cache
+    And I send a "GET" request to "/_/orphaned_resources"
+    Then the response status code should be 200
+    And the JSON node "componentGroups" should list exactly the resources "orphaned_group"
+    And the JSON node "componentPositions" should list exactly the resources "empty_position, orphaned_group_empty_position"
+    And the JSON node "components" should list exactly the resources "unused_component, unused_published, owning_component"
+
+  @loginAdmin
+  Scenario: The report's generation time has sub-second precision
+    Given there is a site with every kind of orphan and every kind of use
+    And I run the scheduled orphaned resources scan
+    When I send a "GET" request to "/_/orphaned_resources"
+    Then the response status code should be 200
+    And the JSON node "generatedAt" should match "/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}[+-]\d{2}:\d{2}$/"

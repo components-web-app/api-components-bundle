@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\MessageHandler;
 
 use Silverback\ApiComponentsBundle\ApiResource\OrphanedResourceReport;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceDetector;
+use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceReportChange;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceReportStore;
 use Silverback\ApiComponentsBundle\Message\ScanOrphanedResourcesMessage;
 
@@ -31,9 +32,13 @@ class ScanOrphanedResourcesHandler
 
     public function scan(): OrphanedResourceReport
     {
-        $report = $this->detector->detect();
-        $this->store->save($report);
+        return $this->scanAndCompare()->report;
+    }
 
-        return $report;
+    public function scanAndCompare(): OrphanedResourceReportChange
+    {
+        $report = $this->detector->detect();
+
+        return new OrphanedResourceReportChange($report, $this->store->save($report));
     }
 }

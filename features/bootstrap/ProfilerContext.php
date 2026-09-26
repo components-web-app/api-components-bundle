@@ -35,6 +35,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\Unreacha
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\EventSubscriber\TemplatedEmailMessageEventSubscriber;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\SwitchableMailer;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\MercureBundle\DataCollector\MercureDataCollector;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -167,6 +168,24 @@ class ProfilerContext implements Context
         }
 
         throw new ExpectationException(\sprintf('No refused email link was logged for the user %s.', $username), $this->minkContext->getSession()->getDriver());
+    }
+
+    /**
+     * @BeforeScenario
+     *
+     * @AfterScenario
+     */
+    public function resetMailer(): void
+    {
+        SwitchableMailer::setUnreachable(false);
+    }
+
+    /**
+     * @Given the mailer is unreachable
+     */
+    public function theMailerIsUnreachable(): void
+    {
+        SwitchableMailer::setUnreachable(true);
     }
 
     /**

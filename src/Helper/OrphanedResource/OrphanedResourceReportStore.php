@@ -11,50 +11,51 @@
 
 namespace Silverback\ApiComponentsBundle\Helper\OrphanedResource;
 
-use Psr\Cache\CacheItemPoolInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
 use Silverback\ApiComponentsBundle\ApiResource\OrphanedResourceReport;
+use Silverback\ApiComponentsBundle\Entity\Core\OrphanedResourceReportRecord;
 
 class OrphanedResourceReportStore
 {
-    public const string CACHE_KEY = 'silverback_api_components.orphaned_resource_report';
-
-    public function __construct(private readonly CacheItemPoolInterface $cachePool)
+    public function __construct(private readonly ManagerRegistry $registry)
     {
     }
 
-    public function save(OrphanedResourceReport $report): void
+    public function save(OrphanedResourceReport $report): ?OrphanedResourceReport
     {
-        $item = $this->cachePool->getItem(self::CACHE_KEY);
-        $item->set([
-            'generatedAt' => $report->generatedAt->format(\DateTimeInterface::ATOM),
-            'componentGroups' => $report->componentGroups,
-            'componentPositions' => $report->componentPositions,
-            'components' => $report->components,
-        ]);
-        $this->cachePool->save($item);
+        $manager = $this->getManager();
+        $record = $manager->find(OrphanedResourceReportRecord::class, OrphanedResourceReportRecord::ID);
+        $previous = $record?->toReport();
+        if (null === $record) {
+            $record = new OrphanedResourceReportRecord();
+            $manager->persist($record);
+        }
+        $record->update($report);
+        $manager->flush();
+
+        return $previous;
     }
 
     public function fetch(): ?OrphanedResourceReport
     {
-        $item = $this->cachePool->getItem(self::CACHE_KEY);
-        if (!$item->isHit()) {
-            return null;
-        }
-        $data = $item->get();
-        if (!\is_array($data)) {
-            return null;
-        }
-
-        return new OrphanedResourceReport(
-            new \DateTimeImmutable($data['generatedAt']),
-            $data['componentGroups'],
-            $data['componentPositions'],
-            $data['components'],
-        );
+        return $this->getManager()->find(OrphanedResourceReportRecord::class, OrphanedResourceReportRecord::ID)?->toReport();
     }
 
     public function clear(): void
     {
-        $this->cachePool->deleteItem(self::CACHE_KEY);
+        $manager = $this->getManager();
+        $record = $manager->find(OrphanedResourceReportRecord::class, OrphanedResourceReportRecord::ID);
+        if (null === $record) {
+            return;
+        }
+        $manager->remove($record);
+        $manager->flush();
+    }
+
+    private function getManager(): ObjectManager
+    {
+        return $this->registry->getManagerForClass(OrphanedResourceReportRecord::class)
+            ?? throw new \LogicException(\sprintf('No Doctrine manager is configured for %s', OrphanedResourceReportRecord::class));
     }
 }

@@ -7,3 +7,4 @@ parameters:
     env(MAILER_DSN): null://null
     env(MAILER_EMAIL): test@website.com
     env(API_SECRET_TOKEN): not_a_secret
+    env(ORPHANED_RESOURCES_NOTIFY_RECIPIENTS): 'admin@website.com,webmaster@website.com'
