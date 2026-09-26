@@ -5,7 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Fixed
-- Stored files, their imagine variants and `_acb_file_info` rows are deleted whenever Doctrine removes an uploadable entity (group, page and orphan cascades, `POST /_/orphaned_resources/delete`, direct removal), only after the flush succeeds, and never while another row still references the path; a failed file delete is logged, not a 500 ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+- Stored files, their imagine variants and `_acb_file_info` rows are deleted whenever Doctrine removes an uploadable entity (group, page and orphan cascades, `POST /_/orphaned_resources/delete`, direct removal), only after the flush succeeds, and never while another row still references the path; a failed file delete is logged, not a 500 ([#372](https://github.com/components-web-app/api-components-bundle/pull/372))
 
 ## [2.0.0-alpha.7](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.6...2.0.0-alpha.7) - 2026-09-26
 
