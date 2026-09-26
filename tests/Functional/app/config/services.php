@@ -47,7 +47,7 @@ return static function (ContainerConfigurator $container) {
         ->set(LocalFilesystemAdapter::class)
         ->args(
             [
-                '%kernel.project_dir%/public/uploads',
+                '%kernel.project_dir%/public/uploads' . \AppKernel::shardSuffix(),
             ]
         )
         ->tag(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, ['alias' => 'local']);
@@ -55,7 +55,7 @@ return static function (ContainerConfigurator $container) {
     $services
         ->set('silverback.api_components.test.filesystem_adapter.public_url_local', LocalFilesystemAdapter::class)
         ->args([
-            '%kernel.project_dir%/public/uploads',
+            '%kernel.project_dir%/public/uploads' . \AppKernel::shardSuffix(),
         ])
         ->tag(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, ['alias' => 'public_url_local', 'config' => ['public_url' => 'http://localhost/uploads']]);
 

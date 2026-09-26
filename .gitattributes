@@ -11,3 +11,4 @@
 /travis.php.ini export-ignore
 /tests export-ignore
 /features export-ignore
+/bin export-ignore

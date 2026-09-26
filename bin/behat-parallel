@@ -1,0 +1,281 @@
+#!/usr/bin/env php
+<?php
+
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+use SebastianBergmann\CodeCoverage\CodeCoverage;
+use SebastianBergmann\CodeCoverage\Report\Clover;
+
+const USAGE = <<<'USAGE'
+    Usage: php bin/behat-parallel [--shards=N] [--junit=DIR] [--list] [-- <behat options>]
+
+      --shards=N   Number of Behat processes to run at once (default: CPU count, at most 4)
+      --junit=DIR  Write each shard's JUnit report to DIR/shard-<n>
+      --list       Print the feature files assigned to each shard and exit
+      --           Everything after this is passed to every Behat process
+                   (e.g. -- --profile=default-coverage --tags='~@wip')
+
+    Each shard runs with BEHAT_SHARD=<n>, which gives it its own cache directory,
+    SQLite database and upload directory under tests/Functional/app/var/shard-<n>.
+    Coverage shards are merged into one Clover report at build/logs/behat/clover.xml
+    (or BEHAT_COVERAGE_CLOVER).
+
+    USAGE;
+
+$projectDir = dirname(__DIR__);
+chdir($projectDir);
+
+$shards = null;
+$junitDir = null;
+$listOnly = false;
+$behatArgs = [];
+$args = array_slice($argv, 1);
+while ([] !== $args) {
+    $arg = array_shift($args);
+    if ('--' === $arg) {
+        $behatArgs = $args;
+        break;
+    }
+    if (str_starts_with($arg, '--shards=')) {
+        $shards = (int) substr($arg, 9);
+    } elseif (str_starts_with($arg, '--junit=')) {
+        $junitDir = substr($arg, 8);
+    } elseif ('--list' === $arg) {
+        $listOnly = true;
+    } elseif ('--help' === $arg || '-h' === $arg) {
+        echo USAGE;
+        exit(0);
+    } else {
+        fwrite(\STDERR, "Unknown option $arg\n\n" . USAGE);
+        exit(2);
+    }
+}
+
+$shards ??= min(4, cpuCount());
+if ($shards < 1) {
+    fwrite(\STDERR, "--shards must be at least 1\n");
+    exit(2);
+}
+
+$features = featureFiles($projectDir . '/features');
+$shards = min($shards, count($features));
+$assignments = assign($features, $shards);
+
+if ($listOnly) {
+    foreach ($assignments as $shard => $assignment) {
+        printf("Shard %d (weight %d)\n", $shard, $assignment['weight']);
+        foreach ($assignment['files'] as $file) {
+            echo '  ' . $file . \PHP_EOL;
+        }
+    }
+    exit(0);
+}
+
+$varDir = $projectDir . '/tests/Functional/app/var';
+$clover = getenv('BEHAT_COVERAGE_CLOVER') ?: $projectDir . '/build/logs/behat/clover.xml';
+$phpArgs = [];
+foreach (['memory_limit', 'error_reporting', 'pcov.enabled'] as $setting) {
+    $value = ini_get($setting);
+    if (false !== $value && '' !== $value) {
+        $phpArgs[] = '-d';
+        $phpArgs[] = $setting . '=' . $value;
+    }
+}
+
+$processes = [];
+foreach ($assignments as $shard => $assignment) {
+    $shardDir = $varDir . '/shard-' . $shard;
+    if (!is_dir($shardDir) && !mkdir($shardDir, 0777, true) && !is_dir($shardDir)) {
+        throw new RuntimeException("Could not create $shardDir");
+    }
+    $coverageFile = $shardDir . '/coverage.ser';
+    if (is_file($coverageFile)) {
+        unlink($coverageFile);
+    }
+    $log = $shardDir . '/behat.log';
+    $command = [\PHP_BINARY, ...$phpArgs, 'vendor/bin/behat', '--no-interaction', '--format=progress', '--out=std'];
+    if (null !== $junitDir) {
+        $command[] = '--format=junit';
+        $command[] = '--out=' . rtrim($junitDir, '/') . '/shard-' . $shard;
+    }
+    $command = [...$command, ...$behatArgs, ...$assignment['files']];
+    $env = getenv();
+    $env['BEHAT_SHARD'] = (string) $shard;
+    $env['BEHAT_COVERAGE_SERIALIZED'] = $coverageFile;
+    $process = proc_open($command, [0 => ['file', '/dev/null', 'r'], 1 => ['file', $log, 'w'], 2 => ['redirect', 1]], $pipes, $projectDir, $env);
+    if (!is_resource($process)) {
+        throw new RuntimeException("Could not start shard $shard");
+    }
+    $processes[$shard] = ['process' => $process, 'log' => $log, 'coverage' => $coverageFile, 'start' => microtime(true), 'files' => count($assignment['files'])];
+    printf("Shard %d started: %d feature files\n", $shard, count($assignment['files']));
+}
+
+$failed = false;
+$totals = [];
+$running = $processes;
+while ([] !== $running) {
+    foreach ($running as $shard => $info) {
+        $status = proc_get_status($info['process']);
+        if ($status['running']) {
+            continue;
+        }
+        proc_close($info['process']);
+        unset($running[$shard]);
+        $exitCode = $status['exitcode'];
+        $output = (string) file_get_contents($info['log']);
+        $summary = summary($output);
+        foreach ($summary['counts'] as $key => $count) {
+            $totals[$key] = ($totals[$key] ?? 0) + $count;
+        }
+        printf("\n=== Shard %d finished in %.1fs with exit code %d: %s\n", $shard, microtime(true) - $info['start'], $exitCode, $summary['line']);
+        if (0 !== $exitCode) {
+            $failed = true;
+            echo $output;
+        }
+    }
+    if ([] !== $running) {
+        usleep(200000);
+    }
+}
+
+printf("\nAll shards: %d scenarios, %d steps\n", $totals['scenarios'] ?? 0, $totals['steps'] ?? 0);
+
+$coverageFiles = array_values(array_filter(array_column($processes, 'coverage'), 'is_file'));
+if ([] !== $coverageFiles) {
+    if (count($coverageFiles) !== count($processes)) {
+        fwrite(\STDERR, "Only some shards wrote coverage, so no merged report was written\n");
+        exit(1);
+    }
+    require $projectDir . '/vendor/autoload.php';
+    $merged = null;
+    foreach ($coverageFiles as $file) {
+        $coverage = unserialize((string) file_get_contents($file));
+        if (!$coverage instanceof CodeCoverage) {
+            fwrite(\STDERR, "$file does not hold a code coverage object\n");
+            exit(1);
+        }
+        if (null === $merged) {
+            $merged = $coverage;
+        } else {
+            $merged->merge($coverage);
+        }
+    }
+    if (!is_dir(dirname($clover))) {
+        mkdir(dirname($clover), 0777, true);
+    }
+    (new Clover())->process($merged->getReport(), $clover);
+    printf("Merged coverage of %d shards into %s\n", count($coverageFiles), $clover);
+}
+
+exit($failed ? 1 : 0);
+
+function cpuCount(): int
+{
+    $count = (int) trim((string) (shell_exec('nproc 2>/dev/null') ?: shell_exec('sysctl -n hw.ncpu 2>/dev/null')));
+
+    return max(1, $count);
+}
+
+/**
+ * @return list<string>
+ */
+function featureFiles(string $directory): array
+{
+    $files = [];
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS)) as $file) {
+        if ('feature' === $file->getExtension()) {
+            $files[] = substr($file->getPathname(), strlen(dirname($directory)) + 1);
+        }
+    }
+    sort($files);
+
+    return $files;
+}
+
+function weight(string $file): int
+{
+    $weight = 0;
+    $inExamples = false;
+    $headerSeen = false;
+    foreach (file($file, \FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+        $line = trim($line);
+        if (preg_match('/^(Scenario|Example):/', $line)) {
+            ++$weight;
+            $inExamples = false;
+        } elseif (preg_match('/^(Scenario Outline|Scenario Template|Background):/', $line)) {
+            $inExamples = false;
+        } elseif (preg_match('/^(Examples|Scenarios):/', $line)) {
+            $inExamples = true;
+            $headerSeen = false;
+        } elseif ($inExamples && str_starts_with($line, '|')) {
+            if ($headerSeen) {
+                ++$weight;
+            }
+            $headerSeen = true;
+        } elseif ($inExamples && '' !== $line && !str_starts_with($line, '#') && !str_starts_with($line, '@')) {
+            $inExamples = false;
+        }
+    }
+
+    return max(1, $weight);
+}
+
+/**
+ * @param list<string> $features
+ *
+ * @return array<int, array{weight: int, files: list<string>}>
+ */
+function assign(array $features, int $shards): array
+{
+    $weights = [];
+    foreach ($features as $feature) {
+        $weights[$feature] = weight($feature);
+    }
+    uksort($weights, static fn (string $a, string $b) => [$weights[$b], $a] <=> [$weights[$a], $b]);
+
+    $assignments = [];
+    for ($shard = 1; $shard <= $shards; ++$shard) {
+        $assignments[$shard] = ['weight' => 0, 'files' => []];
+    }
+    foreach ($weights as $feature => $weight) {
+        $lightest = array_key_first($assignments);
+        foreach ($assignments as $shard => $assignment) {
+            if ($assignment['weight'] < $assignments[$lightest]['weight']) {
+                $lightest = $shard;
+            }
+        }
+        $assignments[$lightest]['weight'] += $weight;
+        $assignments[$lightest]['files'][] = $feature;
+    }
+    foreach ($assignments as &$assignment) {
+        sort($assignment['files']);
+    }
+
+    return $assignments;
+}
+
+/**
+ * @return array{line: string, counts: array<string, int>}
+ */
+function summary(string $output): array
+{
+    $output = (string) preg_replace('/\e\[[0-9;]*m/', '', $output);
+    $counts = [];
+    $lines = [];
+    foreach (['scenarios', 'steps'] as $key) {
+        $singular = rtrim($key, 's');
+        if (preg_match('/^(\d+) (' . $key . '|' . $singular . ') \(.*\)$/m', $output, $match)) {
+            $counts[$key] = (int) $match[1];
+            $lines[] = $match[0];
+        }
+    }
+
+    return ['line' => [] === $lines ? 'no summary found' : implode(', ', $lines), 'counts' => $counts];
+}
