@@ -15,7 +15,7 @@ use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
+use Silverback\ApiComponentsBundle\Helper\User\UserWriteNotifier;
 
 /**
  * @implements ProcessorInterface<mixed, mixed>
@@ -29,7 +29,7 @@ final readonly class UserNotificationStateProcessor implements ProcessorInterfac
      */
     public function __construct(
         private ProcessorInterface $decorated,
-        private UserEventListener $userEventListener,
+        private UserWriteNotifier $userWriteNotifier,
     ) {
     }
 
@@ -46,7 +46,7 @@ final readonly class UserNotificationStateProcessor implements ProcessorInterfac
         }
 
         $previousData = HttpOperation::METHOD_POST === $operation->getMethod() ? null : ($context['previous_data'] ?? null);
-        $this->userEventListener->postWrite($data, $previousData instanceof AbstractUser ? $previousData : null);
+        $this->userWriteNotifier->notify($data, $previousData instanceof AbstractUser ? $previousData : null);
 
         return $result;
     }

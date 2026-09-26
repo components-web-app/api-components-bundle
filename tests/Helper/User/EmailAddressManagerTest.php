@@ -14,10 +14,11 @@ namespace Silverback\ApiComponentsBundle\Tests\Helper\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
+use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
+use Silverback\ApiComponentsBundle\Helper\User\UserWriteNotifier;
 use Silverback\ApiComponentsBundle\Tests\Command\InMemoryUserRepository;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactory;
@@ -88,7 +89,7 @@ class EmailAddressManagerTest extends TestCase
             new InMemoryUserRepository($users),
             new PasswordHasherFactory([PasswordAuthenticatedUserInterface::class => ['algorithm' => 'plaintext']]),
             $this->createStub(UserDataProcessor::class),
-            $this->createStub(UserEventListener::class),
+            new UserWriteNotifier($this->createStub(UserMailer::class)),
         );
     }
 }

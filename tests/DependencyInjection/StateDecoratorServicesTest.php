@@ -28,6 +28,9 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableDeseria
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableReadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteGenerateStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UploadStateProvider;
+use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
+use Silverback\ApiComponentsBundle\Helper\User\UserWriteNotifier;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
@@ -146,6 +149,29 @@ class StateDecoratorServicesTest extends TestCase
         $inner = $definition->getArgument(0);
         self::assertInstanceOf(Reference::class, $inner);
         self::assertSame($id . '.inner', (string) $inner);
+        self::assertSame($id, (string) $container->getAlias($class));
+    }
+
+    /**
+     * @return iterable<string, array{string, class-string}>
+     */
+    public static function helpers(): iterable
+    {
+        yield 'draft merger' => ['silverback.api_components.helper.publishable.draft_merger', PublishableDraftMerger::class];
+        yield 'user write notifier' => ['silverback.api_components.helper.user.write_notifier', UserWriteNotifier::class];
+        yield 'collection populator' => ['silverback.api_components.helper.collection.populator', CollectionPopulator::class];
+    }
+
+    #[DataProvider('helpers')]
+    public function test_the_helpers_the_decorators_call_are_plain_services_not_listeners(string $id, string $class): void
+    {
+        $container = new ContainerBuilder();
+        (new PhpFileLoader($container, new FileLocator(__DIR__ . '/../../src/Resources/config')))->load('services.php');
+
+        $definition = $container->getDefinition($id);
+
+        self::assertSame($class, $definition->getClass());
+        self::assertSame([], $definition->getTags());
         self::assertSame($id, (string) $container->getAlias($class));
     }
 }

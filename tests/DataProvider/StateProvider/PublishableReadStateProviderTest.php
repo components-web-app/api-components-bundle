@@ -17,50 +17,65 @@ use ApiPlatform\Metadata\GraphQl\Query;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\State\ProviderInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableReadStateProvider;
-use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
-use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Silverback\ApiComponentsBundle\Tests\Helper\Publishable\PublishableDatabaseTrait;
 use Symfony\Component\HttpFoundation\Request;
 
 class PublishableReadStateProviderTest extends TestCase
 {
-    public function test_reading_a_publishable_item_returns_it_with_any_due_draft_merged_and_flushed(): void
-    {
-        $read = new DummyPublishableComponent();
-        $published = new DummyPublishableComponent();
-        $request = new Request();
-        $listener = $this->createMock(PublishableEventListener::class);
-        $listener->expects(self::once())->method('mergeDueDraft')->with($request, $read, true)->willReturn($published);
+    use PublishableDatabaseTrait;
 
-        self::assertSame($published, $this->provider($read, $listener)->provide(new Get(), [], ['request' => $request]));
+    protected function setUp(): void
+    {
+        $this->setUpPublishableDatabase();
+    }
+
+    public function test_reading_a_due_draft_returns_its_published_resource_with_the_draft_merged_and_removed(): void
+    {
+        [$published, $draft] = $this->persistPublishedWithDraft(new \DateTime('-2 days'), new \DateTime('-1 day'));
+        $draftId = $draft->getId();
+        $request = new Request();
+
+        $result = $this->provider($draft)->provide(new Get(), [], ['request' => $request]);
+
+        self::assertSame($published, $result);
+        self::assertSame('draft', $published->reference);
+        self::assertSame($published, $request->attributes->get('data'));
+        $this->entityManager->clear();
+        self::assertNull($this->entityManager->find(DummyPublishableComponent::class, $draftId));
     }
 
     /**
-     * @return iterable<string, array{mixed, Operation, bool}>
+     * @return iterable<string, array{Operation, bool}>
      */
     public static function unmerged(): iterable
     {
-        yield 'a write' => [new DummyPublishableComponent(), new Patch(), true];
-        yield 'a collection' => [new DummyPublishableComponent(), new GetCollection(), true];
-        yield 'a resource that is not publishable' => [new DummyComponent(), new Get(), true];
-        yield 'nothing read' => [null, new Get(), true];
-        yield 'an operation that is not HTTP' => [new DummyPublishableComponent(), new Query(), true];
-        yield 'no request' => [new DummyPublishableComponent(), new Get(), false];
+        yield 'a write' => [new Patch(), true];
+        yield 'a collection' => [new GetCollection(), true];
+        yield 'an operation that is not HTTP' => [new Query(), true];
+        yield 'no request' => [new Get(), false];
     }
 
     #[DataProvider('unmerged')]
-    public function test_nothing_is_merged_for(mixed $data, Operation $operation, bool $withRequest): void
+    public function test_a_due_draft_is_not_merged_for(Operation $operation, bool $withRequest): void
     {
-        $listener = $this->createMock(PublishableEventListener::class);
-        $listener->expects(self::never())->method('mergeDueDraft');
+        [$published, $draft] = $this->persistPublishedWithDraft(new \DateTime('-2 days'), new \DateTime('-1 day'));
 
-        self::assertSame($data, $this->provider($data, $listener)->provide($operation, [], $withRequest ? ['request' => new Request()] : []));
+        self::assertSame($draft, $this->provider($draft)->provide($operation, [], $withRequest ? ['request' => new Request()] : []));
+        self::assertSame('published', $published->reference);
+        self::assertSame($published, $draft->getPublishedResource());
+    }
+
+    public function test_a_resource_that_is_not_publishable_and_nothing_read_are_returned_unchanged(): void
+    {
+        $component = new DummyComponent();
+
+        self::assertSame($component, $this->provider($component)->provide(new Get(), [], ['request' => new Request()]));
+        self::assertNull($this->provider(null)->provide(new Get(), [], ['request' => new Request()]));
     }
 
     public function test_the_inner_provider_receives_the_operation_uri_variables_and_context(): void
@@ -69,22 +84,14 @@ class PublishableReadStateProviderTest extends TestCase
         $inner = $this->createMock(ProviderInterface::class);
         $inner->expects(self::once())->method('provide')->with($operation, ['id' => 1], ['a' => 'b'])->willReturn(null);
 
-        (new PublishableReadStateProvider($inner, $this->statusChecker(), $this->createStub(PublishableEventListener::class)))->provide($operation, ['id' => 1], ['a' => 'b']);
+        (new PublishableReadStateProvider($inner, $this->publishableStatusChecker, $this->publishableDraftMerger))->provide($operation, ['id' => 1], ['a' => 'b']);
     }
 
-    private function provider(mixed $data, PublishableEventListener $listener): PublishableReadStateProvider
+    private function provider(?object $data): PublishableReadStateProvider
     {
         $inner = $this->createStub(ProviderInterface::class);
         $inner->method('provide')->willReturn($data);
 
-        return new PublishableReadStateProvider($inner, $this->statusChecker(), $listener);
-    }
-
-    private function statusChecker(): PublishableStatusChecker
-    {
-        $statusChecker = $this->createStub(PublishableStatusChecker::class);
-        $statusChecker->method('getAttributeReader')->willReturn(new PublishableAttributeReader($this->createStub(ManagerRegistry::class)));
-
-        return $statusChecker;
+        return new PublishableReadStateProvider($inner, $this->publishableStatusChecker, $this->publishableDraftMerger);
     }
 }

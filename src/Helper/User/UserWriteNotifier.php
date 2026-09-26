@@ -9,22 +9,21 @@
  * file that was distributed with this source code.
  */
 
-namespace Silverback\ApiComponentsBundle\EventListener\Api;
+namespace Silverback\ApiComponentsBundle\Helper\User;
 
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
-use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-readonly class UserEventListener
+final readonly class UserWriteNotifier
 {
     public function __construct(
         private UserMailer $userMailer,
     ) {
     }
 
-    public function postWrite(AbstractUser $user, ?AbstractUser $previousUser): void
+    public function notify(AbstractUser $user, ?AbstractUser $previousUser): void
     {
         if (!$previousUser) {
             $this->userMailer->sendWelcomeEmail($user);

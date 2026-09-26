@@ -14,7 +14,7 @@ namespace Silverback\ApiComponentsBundle\DataProcessor\StateProcessor;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
-use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
+use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
 
 /**
  * @implements ProcessorInterface<mixed, mixed>
@@ -28,14 +28,14 @@ final readonly class CollectionSerializeStateProcessor implements ProcessorInter
      */
     public function __construct(
         private ProcessorInterface $decorated,
-        private CollectionApiEventListener $collectionApiEventListener,
+        private CollectionPopulator $collectionPopulator,
     ) {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
         if ($data instanceof Collection) {
-            $this->collectionApiEventListener->transform($data);
+            $this->collectionPopulator->populate($data);
         }
 
         return $this->decorated->process($data, $operation, $uriVariables, $context);

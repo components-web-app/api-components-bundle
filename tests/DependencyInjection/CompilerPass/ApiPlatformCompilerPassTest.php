@@ -15,8 +15,8 @@ use ApiPlatform\Metadata\Exception\InvalidArgumentException;
 use Doctrine\ORM\OptimisticLockException;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ApiPlatformCompilerPass;
-use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
+use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -58,7 +58,7 @@ class ApiPlatformCompilerPassTest extends TestCase
 
         (new ApiPlatformCompilerPass())->process($container);
 
-        self::assertSame('perPage', $container->getDefinition(CollectionApiEventListener::class)->getArgument('$itemsPerPageParameterName'));
+        self::assertSame('perPage', $container->getDefinition(CollectionPopulator::class)->getArgument('$itemsPerPageParameterName'));
     }
 
     public function test_the_api_platform_purge_listener_is_replaced_when_a_purger_is_configured(): void
@@ -130,7 +130,7 @@ class ApiPlatformCompilerPassTest extends TestCase
         $container = new ContainerBuilder();
         $container->setParameter('api_platform.collection.pagination.items_per_page_parameter_name', 'perPage');
         $container->setParameter('api_platform.exception_to_status', []);
-        $container->setDefinition(CollectionApiEventListener::class, new Definition(CollectionApiEventListener::class));
+        $container->setDefinition(CollectionPopulator::class, new Definition(CollectionPopulator::class));
         $container->setDefinition(self::FLUSHER_ID, new Definition());
         $container->setDefinition('api_platform.doctrine.listener.http_cache.purge', new Definition());
         $container->setDefinition('silverback.api_components.http_cache.purger', new Definition());

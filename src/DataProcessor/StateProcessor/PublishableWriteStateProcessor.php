@@ -15,7 +15,7 @@ use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -32,7 +32,7 @@ final readonly class PublishableWriteStateProcessor implements ProcessorInterfac
     public function __construct(
         private ProcessorInterface $decorated,
         private PublishableStatusChecker $publishableStatusChecker,
-        private PublishableEventListener $publishableEventListener,
+        private PublishableDraftMerger $publishableDraftMerger,
     ) {
     }
 
@@ -47,7 +47,7 @@ final readonly class PublishableWriteStateProcessor implements ProcessorInterfac
             && !\in_array($operation->getMethod(), [HttpOperation::METHOD_GET, HttpOperation::METHOD_DELETE], true)
             && $this->publishableStatusChecker->getAttributeReader()->isConfigured($data)
         ) {
-            $data = $this->publishableEventListener->mergeDueDraft($request, $data);
+            $data = $this->publishableDraftMerger->mergeDueDraft($request, $data);
         }
 
         return $this->decorated->process($data, $operation, $uriVariables, $context);

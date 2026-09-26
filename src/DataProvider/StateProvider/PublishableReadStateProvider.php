@@ -15,7 +15,7 @@ use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -32,7 +32,7 @@ final readonly class PublishableReadStateProvider implements ProviderInterface
     public function __construct(
         private ProviderInterface $decorated,
         private PublishableStatusChecker $publishableStatusChecker,
-        private PublishableEventListener $publishableEventListener,
+        private PublishableDraftMerger $publishableDraftMerger,
     ) {
     }
 
@@ -52,6 +52,6 @@ final readonly class PublishableReadStateProvider implements ProviderInterface
             return $data;
         }
 
-        return $this->publishableEventListener->mergeDueDraft($request, $data, true);
+        return $this->publishableDraftMerger->mergeDueDraft($request, $data, true);
     }
 }

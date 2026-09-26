@@ -82,12 +82,10 @@ use Silverback\ApiComponentsBundle\Event\ImagineStoreEvent;
 use Silverback\ApiComponentsBundle\Event\JWTRefreshedEvent;
 use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\CacheHeadersEventListener;
-use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentPositionEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UnpublishedRouteExceptionListener;
-use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Console\ConsoleOutputListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\MappedSuperclassDiscriminatorMapListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
@@ -130,10 +128,12 @@ use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
 use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResourceHelper;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteAncestorGateResolver;
@@ -147,6 +147,7 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
+use Silverback\ApiComponentsBundle\Helper\User\UserWriteNotifier;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Mercure\PublishableAwareHub;
@@ -338,8 +339,8 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(ChangePasswordListener::class, 'silverback.api_components.event_listener.form.change_password');
 
     $services
-        ->set('silverback.api_components.event_listener.api.collection')
-        ->class(CollectionApiEventListener::class)
+        ->set('silverback.api_components.helper.collection.populator')
+        ->class(CollectionPopulator::class)
         ->autoconfigure(false)
         ->args(
             [
@@ -353,7 +354,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('api_platform.state_provider.parameter'),
             ]
         );
-    $services->alias(CollectionApiEventListener::class, 'silverback.api_components.event_listener.api.collection');
+    $services->alias(CollectionPopulator::class, 'silverback.api_components.helper.collection.populator');
 
     $services
         ->set('silverback.api_components.api_platform.state_processor.collection_serialize')
@@ -362,7 +363,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('silverback.api_components.api_platform.state_processor.collection_serialize.inner'),
-                new Reference(CollectionApiEventListener::class),
+                new Reference(CollectionPopulator::class),
             ]
         );
     $services->alias(CollectionSerializeStateProcessor::class, 'silverback.api_components.api_platform.state_processor.collection_serialize');
@@ -433,7 +434,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('silverback.repository.user'),
                 new Reference(PasswordHasherFactoryInterface::class),
                 new Reference(UserDataProcessor::class),
-                new Reference(UserEventListener::class),
+                new Reference(UserWriteNotifier::class),
             ]
         );
     $services->alias(EmailAddressManager::class, 'silverback.api_components.helper.user.email_address_manager');
@@ -458,7 +459,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(ManagerRegistry::class),
                 new Reference(TimestampedAttributeReader::class),
                 new Reference('silverback.helper.timestamped_data_persister'),
-                new Reference(UserEventListener::class),
+                new Reference(UserWriteNotifier::class),
                 new Reference(NormalizerInterface::class),
                 new Reference(UserDataProcessor::class),
             ]
@@ -783,11 +784,22 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(PublishableStatusChecker::class),
                 new Reference('doctrine'),
                 new Reference('api_platform.validator'),
-                new Reference(UploadableFileManager::class),
             ]
         )
         ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => EventPriorities::POST_RESPOND, 'method' => 'onPostRespond']);
     $services->alias(PublishableEventListener::class, 'silverback.api_components.event_listener.api.publishable');
+
+    $services
+        ->set('silverback.api_components.helper.publishable.draft_merger')
+        ->class(PublishableDraftMerger::class)
+        ->args(
+            [
+                new Reference(PublishableStatusChecker::class),
+                new Reference('doctrine'),
+                new Reference(UploadableFileManager::class),
+            ]
+        );
+    $services->alias(PublishableDraftMerger::class, 'silverback.api_components.helper.publishable.draft_merger');
 
     $services
         ->set('silverback.api_components.api_platform.state_provider.publishable_read')
@@ -797,7 +809,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference('silverback.api_components.api_platform.state_provider.publishable_read.inner'),
                 new Reference(PublishableStatusChecker::class),
-                new Reference(PublishableEventListener::class),
+                new Reference(PublishableDraftMerger::class),
             ]
         );
     $services->alias(PublishableReadStateProvider::class, 'silverback.api_components.api_platform.state_provider.publishable_read');
@@ -823,7 +835,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference('silverback.api_components.api_platform.state_processor.publishable_write.inner'),
                 new Reference(PublishableStatusChecker::class),
-                new Reference(PublishableEventListener::class),
+                new Reference(PublishableDraftMerger::class),
             ]
         );
     $services->alias(PublishableWriteStateProcessor::class, 'silverback.api_components.api_platform.state_processor.publishable_write');
@@ -1605,14 +1617,14 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(UserEnabledEmailFactory::class, 'silverback.api_components.factory.user.mailer.user_enabled_email');
 
     $services
-        ->set('silverback.api_components.event_listener.api.user')
-        ->class(UserEventListener::class)
+        ->set('silverback.api_components.helper.user.write_notifier')
+        ->class(UserWriteNotifier::class)
         ->args(
             [
                 new Reference(UserMailer::class),
             ]
         );
-    $services->alias(UserEventListener::class, 'silverback.api_components.event_listener.api.user');
+    $services->alias(UserWriteNotifier::class, 'silverback.api_components.helper.user.write_notifier');
 
     $services
         ->set('silverback.api_components.api_platform.state_processor.user_notification')
@@ -1621,7 +1633,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('silverback.api_components.api_platform.state_processor.user_notification.inner'),
-                new Reference(UserEventListener::class),
+                new Reference(UserWriteNotifier::class),
             ]
         );
     $services->alias(UserNotificationStateProcessor::class, 'silverback.api_components.api_platform.state_processor.user_notification');

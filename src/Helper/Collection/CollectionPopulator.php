@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Silverback\ApiComponentsBundle\EventListener\Api;
+namespace Silverback\ApiComponentsBundle\Helper\Collection;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\CollectionOperationInterface;
@@ -33,7 +33,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-class CollectionApiEventListener
+final class CollectionPopulator
 {
     use UriVariablesResolverTrait;
 
@@ -50,12 +50,7 @@ class CollectionApiEventListener
     ) {
     }
 
-    public function supportsTransformation($data, string $to, array $context = []): bool
-    {
-        return $data instanceof Collection && Collection::class === $to;
-    }
-
-    public function transform(Collection $object): Collection
+    public function populate(Collection $object): Collection
     {
         $parameters = $this->resourceRouteFinder->findByIri($object->getResourceIri());
         $attributes = AttributesExtractor::extractAttributes($parameters);
@@ -63,7 +58,6 @@ class CollectionApiEventListener
         if (!$request) {
             return $object;
         }
-        // Fetch the collection with computed context
         $resourceClass = $attributes['resource_class'];
 
         $getCollectionOperation = $this->findGetCollectionOperation($resourceClass);
@@ -71,10 +65,8 @@ class CollectionApiEventListener
             return $object;
         }
 
-        // Build context
         $collectionContext = ['operation' => $getCollectionOperation, 'resource_class' => $resourceClass];
 
-        // Build filters
         $filters = [];
         if (($perPage = $object->getPerPage()) !== null) {
             $filters[$this->itemsPerPageParameterName] = $perPage;
@@ -87,14 +79,11 @@ class CollectionApiEventListener
             $requestFilters = $queryString ? RequestParser::parseRequestParams($queryString) : null;
         }
         if ($requestFilters) {
-            // not += because we want to overwrite with an empty string if provided in querystring.
-            // e.g. a default search value could be overridden by no search value
             $filters = array_merge($filters, $requestFilters);
         }
 
         $collectionContext['filters'] = $filters;
 
-        // Compose context for provider
         $collectionContext += $normalizationContext = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
         try {
             $uriVariables = $this->getOperationUriVariables($getCollectionOperation, $parameters, $resourceClass);
@@ -108,14 +97,11 @@ class CollectionApiEventListener
                 $clonedRequest->attributes->set('_api_query_parameters', $clonedRequest->query->all());
             }
             $this->parameterProvider->provide($getCollectionOperation, $uriVariables, [...$collectionContext, 'request' => $clonedRequest, 'uri_variables' => $uriVariables]);
-            // Operation $operation, array $uriVariables = [], array $context = []
             $collectionData = $this->provider->provide($getCollectionOperation, $uriVariables, $collectionContext);
         } catch (InvalidIdentifierException $e) {
             throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
         }
 
-        // Normalize the collection into an array
-        // Pagination disabled
         if (\is_array($collectionData)) {
             $collection = $collectionData;
         } else {
@@ -127,7 +113,6 @@ class CollectionApiEventListener
         $format = $this->serializeFormatResolver->getFormatFromRequest($request);
         $normalizedCollection = $this->itemNormalizer->normalize($collection, $format, $normalizationContext);
 
-        // Update the original collection resource
         $object->setCollection($normalizedCollection);
 
         return $object;

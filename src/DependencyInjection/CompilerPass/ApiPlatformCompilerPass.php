@@ -12,7 +12,7 @@
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
 use ApiPlatform\Symfony\Bundle\DependencyInjection\Configuration as ApiPlatformConfiguration;
-use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
+use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
 use Symfony\Component\Config\Definition\ArrayNode;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -31,7 +31,7 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
     {
         $itemsPerPageParameterName = $container->getParameter('api_platform.collection.pagination.items_per_page_parameter_name');
 
-        $container->findDefinition(CollectionApiEventListener::class)->setArgument('$itemsPerPageParameterName', $itemsPerPageParameterName);
+        $container->findDefinition(CollectionPopulator::class)->setArgument('$itemsPerPageParameterName', $itemsPerPageParameterName);
 
         if ($container->hasAlias('api_platform.http_cache.purger')) {
             // we have implemented fully custom logic

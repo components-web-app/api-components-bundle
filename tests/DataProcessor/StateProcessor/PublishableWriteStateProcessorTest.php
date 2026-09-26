@@ -20,19 +20,22 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\State\ProcessorInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\PublishableWriteStateProcessor;
-use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
-use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
-use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Silverback\ApiComponentsBundle\Tests\Helper\Publishable\PublishableDatabaseTrait;
 use Symfony\Component\HttpFoundation\Request;
 
 class PublishableWriteStateProcessorTest extends TestCase
 {
+    use PublishableDatabaseTrait;
+
+    protected function setUp(): void
+    {
+        $this->setUpPublishableDatabase();
+    }
+
     /**
      * @return iterable<string, array{Operation}>
      */
@@ -44,49 +47,51 @@ class PublishableWriteStateProcessorTest extends TestCase
     }
 
     #[DataProvider('writes')]
-    public function test_the_write_persists_the_resource_with_any_due_draft_merged_without_flushing(Operation $operation): void
+    public function test_writing_a_due_draft_persists_its_published_resource_with_the_draft_merged_and_removal_left_to_the_write(Operation $operation): void
     {
-        $written = new DummyPublishableComponent();
-        $merged = new DummyPublishableComponent();
+        [$published, $draft] = $this->persistPublishedWithDraft(new \DateTime('-2 days'), new \DateTime('-1 day'));
         $request = new Request();
-        $listener = $this->createMock(PublishableEventListener::class);
-        $listener->expects(self::once())->method('mergeDueDraft')->with($request, $written)->willReturn($merged);
         $inner = $this->createMock(ProcessorInterface::class);
-        $inner->expects(self::once())->method('process')->with($merged, $operation, ['id' => 1], ['request' => $request])->willReturn('persisted');
+        $inner->expects(self::once())->method('process')->with($published, $operation, ['id' => 1], ['request' => $request])->willReturn('persisted');
 
-        self::assertSame('persisted', (new PublishableWriteStateProcessor($inner, $this->statusChecker(), $listener))->process($written, $operation, ['id' => 1], ['request' => $request]));
+        $result = (new PublishableWriteStateProcessor($inner, $this->publishableStatusChecker, $this->publishableDraftMerger))->process($draft, $operation, ['id' => 1], ['request' => $request]);
+
+        self::assertSame('persisted', $result);
+        self::assertSame('draft', $published->reference);
+        self::assertTrue($this->entityManager->getUnitOfWork()->isScheduledForDelete($draft));
     }
 
     /**
-     * @return iterable<string, array{mixed, Operation, bool}>
+     * @return iterable<string, array{Operation, bool}>
      */
     public static function unmerged(): iterable
     {
-        yield 'a delete' => [new DummyPublishableComponent(), new Delete(), true];
-        yield 'a read' => [new DummyPublishableComponent(), new Get(), true];
-        yield 'a collection' => [new DummyPublishableComponent(), new GetCollection(), true];
-        yield 'a resource that is not publishable' => [new DummyComponent(), new Patch(), true];
-        yield 'no object' => [null, new Patch(), true];
-        yield 'an operation that is not HTTP' => [new DummyPublishableComponent(), new Mutation(), true];
-        yield 'no request' => [new DummyPublishableComponent(), new Patch(), false];
+        yield 'a delete' => [new Delete(), true];
+        yield 'a read' => [new Get(), true];
+        yield 'a collection' => [new GetCollection(), true];
+        yield 'an operation that is not HTTP' => [new Mutation(), true];
+        yield 'no request' => [new Patch(), false];
     }
 
     #[DataProvider('unmerged')]
-    public function test_the_data_is_persisted_unchanged_for(mixed $data, Operation $operation, bool $withRequest): void
+    public function test_a_due_draft_is_persisted_unmerged_for(Operation $operation, bool $withRequest): void
     {
-        $listener = $this->createMock(PublishableEventListener::class);
-        $listener->expects(self::never())->method('mergeDueDraft');
+        [$published, $draft] = $this->persistPublishedWithDraft(new \DateTime('-2 days'), new \DateTime('-1 day'));
         $inner = $this->createMock(ProcessorInterface::class);
-        $inner->expects(self::once())->method('process')->with($data)->willReturn('persisted');
+        $inner->expects(self::once())->method('process')->with($draft)->willReturn('persisted');
 
-        self::assertSame('persisted', (new PublishableWriteStateProcessor($inner, $this->statusChecker(), $listener))->process($data, $operation, [], $withRequest ? ['request' => new Request()] : []));
+        self::assertSame('persisted', (new PublishableWriteStateProcessor($inner, $this->publishableStatusChecker, $this->publishableDraftMerger))->process($draft, $operation, [], $withRequest ? ['request' => new Request()] : []));
+        self::assertSame('published', $published->reference);
     }
 
-    private function statusChecker(): PublishableStatusChecker
+    public function test_a_resource_that_is_not_publishable_and_no_object_are_persisted_unchanged(): void
     {
-        $statusChecker = $this->createStub(PublishableStatusChecker::class);
-        $statusChecker->method('getAttributeReader')->willReturn(new PublishableAttributeReader($this->createStub(ManagerRegistry::class)));
+        $component = new DummyComponent();
+        $inner = $this->createStub(ProcessorInterface::class);
+        $inner->method('process')->willReturnArgument(0);
+        $processor = new PublishableWriteStateProcessor($inner, $this->publishableStatusChecker, $this->publishableDraftMerger);
 
-        return $statusChecker;
+        self::assertSame($component, $processor->process($component, new Patch(), [], ['request' => new Request()]));
+        self::assertNull($processor->process(null, new Patch(), [], ['request' => new Request()]));
     }
 }

@@ -224,7 +224,7 @@ parameters:
 			path: src/EventListener/Form/EntityPersistFormListener.php
 
 		-
-			message: '#^Property Silverback\\ApiComponentsBundle\\EventListener\\Form\\EntityPersistFormListener\:\:\$userEventListener \(Silverback\\ApiComponentsBundle\\EventListener\\Api\\UserEventListener\|null\) is never assigned null so it can be removed from the property type\.$#'
+			message: '#^Property Silverback\\ApiComponentsBundle\\EventListener\\Form\\EntityPersistFormListener\:\:\$userWriteNotifier \(Silverback\\ApiComponentsBundle\\Helper\\User\\UserWriteNotifier\|null\) is never assigned null so it can be removed from the property type\.$#'
 			identifier: property.unusedType
 			count: 1
 			path: src/EventListener/Form/EntityPersistFormListener.php

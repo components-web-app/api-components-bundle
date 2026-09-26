@@ -17,11 +17,12 @@ use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
-use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
+use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
+use Silverback\ApiComponentsBundle\Helper\User\UserWriteNotifier;
 use Silverback\ApiComponentsBundle\Model\Form\FormView;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
@@ -66,7 +67,7 @@ class EntityPersistFormListenerTest extends TestCase
             $this->createStub(ManagerRegistry::class),
             new TimestampedAttributeReader($this->createStub(ManagerRegistry::class)),
             $this->createStub(TimestampedDataPersister::class),
-            $this->createStub(UserEventListener::class),
+            new UserWriteNotifier($this->createStub(UserMailer::class)),
             $this->createStub(NormalizerInterface::class),
             $this->createStub(UserDataProcessor::class),
         );
@@ -83,7 +84,7 @@ class EntityPersistFormListenerTest extends TestCase
             $registry,
             new TimestampedAttributeReader($registry),
             $this->createStub(TimestampedDataPersister::class),
-            $this->createStub(UserEventListener::class),
+            new UserWriteNotifier($this->createStub(UserMailer::class)),
             new Serializer([], [new JsonEncoder()]),
             $this->createStub(UserDataProcessor::class),
         );
