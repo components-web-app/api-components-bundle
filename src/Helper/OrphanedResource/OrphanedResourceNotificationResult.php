@@ -17,4 +17,9 @@ enum OrphanedResourceNotificationResult
     case Unchanged;
     case Sent;
     case Failed;
+
+    public function advancesBaseline(): bool
+    {
+        return self::Sent === $this || self::Unchanged === $this;
+    }
 }

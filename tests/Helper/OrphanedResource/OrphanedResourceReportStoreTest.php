@@ -54,21 +54,6 @@ class OrphanedResourceReportStoreTest extends OrphanedResourceDatabaseTestCase
         );
     }
 
-    public function test_saving_returns_the_report_it_replaced(): void
-    {
-        $store = $this->store();
-
-        self::assertNull($store->save(new OrphanedResourceReport(new \DateTimeImmutable(), ['/g/1'])));
-        $this->entityManager->clear();
-
-        $previous = $store->save(new OrphanedResourceReport(new \DateTimeImmutable(), [], ['/p/1']));
-
-        self::assertNotNull($previous);
-        self::assertSame(['/g/1'], $previous->componentGroups);
-        self::assertSame([], $previous->componentPositions);
-        self::assertSame(['/p/1'], $store->fetch()?->componentPositions);
-    }
-
     public function test_a_later_report_replaces_the_earlier_one(): void
     {
         $store = $this->store();
@@ -95,6 +80,63 @@ class OrphanedResourceReportStoreTest extends OrphanedResourceDatabaseTestCase
         $this->store()->clear();
 
         self::assertNull($this->store()->fetch());
+    }
+
+    public function test_nothing_is_notified_before_a_notification_is_recorded(): void
+    {
+        $this->store()->save(new OrphanedResourceReport(new \DateTimeImmutable(), ['/g/1']));
+
+        self::assertNull($this->store()->fetchNotified());
+    }
+
+    public function test_the_last_notified_report_is_read_back_from_the_same_row(): void
+    {
+        $store = $this->store();
+        $store->save(new OrphanedResourceReport(new \DateTimeImmutable(), ['/g/1']));
+        $store->markNotified(new OrphanedResourceReport(new \DateTimeImmutable('2026-09-25T10:11:12.345678+00:00'), ['/g/1'], ['/p/1'], ['/c/1']));
+        $this->entityManager->clear();
+
+        $notified = $store->fetchNotified();
+
+        self::assertNotNull($notified);
+        self::assertSame('2026-09-25T10:11:12.345678+00:00', $notified->generatedAt->format('Y-m-d\TH:i:s.uP'));
+        self::assertSame(['/g/1'], $notified->componentGroups);
+        self::assertSame(['/p/1'], $notified->componentPositions);
+        self::assertSame(['/c/1'], $notified->components);
+        self::assertSame(1, (int) $this->entityManager->getConnection()->fetchOne('SELECT COUNT(*) FROM _acb_orphaned_resource_report'));
+    }
+
+    public function test_saving_a_report_leaves_the_last_notified_report_alone(): void
+    {
+        $store = $this->store();
+        $store->save(new OrphanedResourceReport(new \DateTimeImmutable(), ['/g/1']));
+        $store->markNotified(new OrphanedResourceReport(new \DateTimeImmutable(), ['/g/1']));
+        $store->save(new OrphanedResourceReport(new \DateTimeImmutable(), ['/g/2']));
+        $this->entityManager->clear();
+
+        self::assertSame(['/g/1'], $store->fetchNotified()?->componentGroups);
+        self::assertSame(['/g/2'], $store->fetch()?->componentGroups);
+    }
+
+    public function test_recording_a_notification_leaves_the_stored_report_alone(): void
+    {
+        $store = $this->store();
+        $store->save(new OrphanedResourceReport(new \DateTimeImmutable(), ['/g/2']));
+        $store->markNotified(new OrphanedResourceReport(new \DateTimeImmutable(), ['/g/1']));
+        $this->entityManager->clear();
+
+        self::assertSame(['/g/2'], $store->fetch()?->componentGroups);
+    }
+
+    public function test_recording_a_notification_without_a_stored_report_stores_it_as_the_report_too(): void
+    {
+        $store = $this->store();
+        $store->markNotified(new OrphanedResourceReport(new \DateTimeImmutable('2026-09-25T10:11:12.000001+00:00'), ['/g/1']));
+        $this->entityManager->clear();
+
+        self::assertSame(['/g/1'], $store->fetch()?->componentGroups);
+        self::assertSame('2026-09-25T10:11:12.000001+00:00', $store->fetch()?->generatedAt->format('Y-m-d\TH:i:s.uP'));
+        self::assertSame(['/g/1'], $store->fetchNotified()?->componentGroups);
     }
 
     public function test_the_record_converts_to_and_from_a_report(): void

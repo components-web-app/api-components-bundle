@@ -5,7 +5,7 @@
     <h1 class="text-center">Orphaned Resources Have Changed</h1>
     <spacer size="16"></spacer>
     <p>Hello,</p>
-    <p>The scheduled scan of {{ website_name }} found a different set of orphaned resources from the last scan.</p>
+    <p>A scan of {{ website_name }} found a different set of orphaned resources from the last alert.</p>
     <p>
         {% for kind, label in kinds %}
             {{ label }}: {{ counts[kind] }}<br/>
@@ -16,7 +16,7 @@
     {% endif %}
     {% for kind, label in kinds %}
         {% if added[kind] is not empty %}
-            <p>New {{ label|lower }} since the last scan:<br/>
+            <p>New {{ label|lower }} since the last alert:<br/>
                 {% for iri in added[kind] %}
                     {{ iri }}<br/>
                 {% endfor %}

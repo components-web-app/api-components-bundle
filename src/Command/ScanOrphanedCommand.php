@@ -37,8 +37,8 @@ class ScanOrphanedCommand extends Command
     {
         $this
             ->setDescription('Scans for orphaned component groups, empty component positions and unused components, and stores the report the admin API returns. It never deletes anything.')
-            ->setHelp('Prints the number of orphans of each kind; add -v to list their IRIs. When the result differs from the last stored report, the recipients configured under silverback_api_components.orphaned_resources.notify are emailed; --no-notify skips that. Orphans are deleted through the API: DELETE per IRI, or POST /_/orphaned_resources/delete.')
-            ->addOption('notify', null, InputOption::VALUE_NEGATABLE, 'Email the configured recipients when the report has changed since the last scan', true);
+            ->setHelp('Prints the number of orphans of each kind; add -v to list their IRIs. When the result differs from the orphans at the last alert, the recipients configured under silverback_api_components.orphaned_resources.notify are emailed; --no-notify skips that. Orphans are deleted through the API: DELETE per IRI, or POST /_/orphaned_resources/delete.')
+            ->addOption('notify', null, InputOption::VALUE_NEGATABLE, 'Email the configured recipients when the orphans have changed since the last alert', true);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -60,7 +60,9 @@ class ScanOrphanedCommand extends Command
         }
 
         if ($input->getOption('notify')) {
-            $message = match ($this->notifier->notify($change)) {
+            $result = $this->notifier->notify($change);
+            $this->scanner->recordNotification($change, $result);
+            $message = match ($result) {
                 OrphanedResourceNotificationResult::Sent => 'The report has changed: a notification was sent.',
                 OrphanedResourceNotificationResult::Unchanged => 'The report has not changed: no notification was sent.',
                 OrphanedResourceNotificationResult::Failed => 'The report has changed, but the notification could not be sent. The error has been logged.',

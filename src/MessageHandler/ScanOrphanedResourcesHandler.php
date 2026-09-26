@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\MessageHandler;
 
 use Silverback\ApiComponentsBundle\ApiResource\OrphanedResourceReport;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceDetector;
+use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotificationResult;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceReportChange;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceReportStore;
 use Silverback\ApiComponentsBundle\Message\ScanOrphanedResourcesMessage;
@@ -38,7 +39,15 @@ class ScanOrphanedResourcesHandler
     public function scanAndCompare(): OrphanedResourceReportChange
     {
         $report = $this->detector->detect();
+        $this->store->save($report);
 
-        return new OrphanedResourceReportChange($report, $this->store->save($report));
+        return new OrphanedResourceReportChange($report, $this->store->fetchNotified());
+    }
+
+    public function recordNotification(OrphanedResourceReportChange $change, OrphanedResourceNotificationResult $result): void
+    {
+        if ($result->advancesBaseline()) {
+            $this->store->markNotified($change->report);
+        }
     }
 }

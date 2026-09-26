@@ -3207,6 +3207,25 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Then /^the orphaned resources notification should report (\d+) resources? no longer orphaned$/
+     */
+    public function theOrphanedResourcesNotificationShouldReportResourcesNoLongerOrphaned(int $count): void
+    {
+        $email = $this->theOrphanedResourcesNotification();
+        $resolved = $email->getContext()['resolved_count'] ?? null;
+        if ($count !== $resolved) {
+            throw new \RuntimeException(\sprintf('The notification reports %s resources no longer orphaned, expected %d', var_export($resolved, true), $count));
+        }
+        $sentence = 1 === $count ? '1 resource is no longer orphaned' : \sprintf('%d resources are no longer orphaned', $count);
+        if ((0 === $count) === str_contains((string) $email->getHtmlBody(), 'no longer orphaned')) {
+            throw new \RuntimeException(\sprintf('The rendered notification is wrong about resources no longer orphaned: %s', $email->getHtmlBody()));
+        }
+        if (0 !== $count && !str_contains((string) $email->getHtmlBody(), $sentence)) {
+            throw new \RuntimeException(\sprintf('The rendered notification does not say "%s": %s', $sentence, $email->getHtmlBody()));
+        }
+    }
+
+    /**
      * @Then the orphaned resources notification should link to :url
      */
     public function theOrphanedResourcesNotificationShouldLinkTo(string $url): void

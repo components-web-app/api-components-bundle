@@ -152,6 +152,7 @@ class OrphanedResourceServicesTest extends TestCase
         self::assertNull($container->get(OrphanedResourceScanStateProcessor::class)->process(null, new Post()));
 
         self::assertSame(['/_/component_groups/1'], $container->get(OrphanedResourceReportStore::class)->fetch()?->componentGroups);
+        self::assertNull($container->get(OrphanedResourceReportStore::class)->fetchNotified());
     }
 
     public function test_the_handler_stores_the_detected_report(): void
@@ -225,7 +226,7 @@ class OrphanedResourceServicesTest extends TestCase
         $notifier = $this->createMock(OrphanedResourceNotifier::class);
         $notifier->expects(self::once())
             ->method('notify')
-            ->with(self::callback(static fn (OrphanedResourceReportChange $change) => null === $change->previous && ['/_/component_groups/1'] === $change->report->componentGroups))
+            ->with(self::callback(static fn (OrphanedResourceReportChange $change) => null === $change->baseline && ['/_/component_groups/1'] === $change->report->componentGroups))
             ->willReturn(OrphanedResourceNotificationResult::Sent);
         $container->set(self::NOTIFIER_ID, $notifier);
         $tester = new CommandTester($container->get(ScanOrphanedCommand::class));
@@ -235,15 +236,17 @@ class OrphanedResourceServicesTest extends TestCase
         self::assertStringEndsWith("Components: 0\nThe report has changed: a notification was sent.\n", $tester->getDisplay());
     }
 
-    public function test_the_scan_command_compares_with_the_previously_stored_report(): void
+    public function test_the_scan_command_compares_with_the_last_alert_not_the_stored_report(): void
     {
         $container = $this->loadContainer();
-        $container->get(OrphanedResourceReportStore::class)->save(new OrphanedResourceReport(new \DateTimeImmutable(), ['/_/component_groups/9']));
+        $store = $container->get(OrphanedResourceReportStore::class);
+        $store->markNotified(new OrphanedResourceReport(new \DateTimeImmutable(), ['/_/component_groups/9']));
+        $store->save(new OrphanedResourceReport(new \DateTimeImmutable(), ['/_/component_groups/8']));
         $container->set(self::DETECTOR_ID, $this->detectorReturning(['/_/component_groups/1']));
         $notifier = $this->createMock(OrphanedResourceNotifier::class);
         $notifier->expects(self::once())
             ->method('notify')
-            ->with(self::callback(static fn (OrphanedResourceReportChange $change) => ['/_/component_groups/9'] === $change->previous?->componentGroups))
+            ->with(self::callback(static fn (OrphanedResourceReportChange $change) => ['/_/component_groups/9'] === $change->baseline?->componentGroups))
             ->willReturn(OrphanedResourceNotificationResult::Unchanged);
         $container->set(self::NOTIFIER_ID, $notifier);
         $tester = new CommandTester($container->get(ScanOrphanedCommand::class));
@@ -251,6 +254,36 @@ class OrphanedResourceServicesTest extends TestCase
         self::assertSame(0, $tester->execute([]));
 
         self::assertStringEndsWith("Components: 0\nThe report has not changed: no notification was sent.\n", $tester->getDisplay());
+        self::assertSame(['/_/component_groups/1'], $store->fetchNotified()?->componentGroups);
+    }
+
+    public function test_a_sent_notification_advances_the_last_alert(): void
+    {
+        $container = $this->loadContainer();
+        $container->set(self::DETECTOR_ID, $this->detectorReturning(['/_/component_groups/1']));
+        $notifier = $this->createStub(OrphanedResourceNotifier::class);
+        $notifier->method('notify')->willReturn(OrphanedResourceNotificationResult::Sent);
+        $container->set(self::NOTIFIER_ID, $notifier);
+
+        (new CommandTester($container->get(ScanOrphanedCommand::class)))->execute([]);
+
+        self::assertSame(['/_/component_groups/1'], $container->get(OrphanedResourceReportStore::class)->fetchNotified()?->componentGroups);
+    }
+
+    public function test_no_notify_leaves_the_last_alert_alone(): void
+    {
+        $container = $this->loadContainer();
+        $store = $container->get(OrphanedResourceReportStore::class);
+        $store->markNotified(new OrphanedResourceReport(new \DateTimeImmutable(), ['/_/component_groups/9']));
+        $container->set(self::DETECTOR_ID, $this->detectorReturning(['/_/component_groups/1']));
+        $notifier = $this->createMock(OrphanedResourceNotifier::class);
+        $notifier->expects(self::never())->method('notify');
+        $container->set(self::NOTIFIER_ID, $notifier);
+
+        (new CommandTester($container->get(ScanOrphanedCommand::class)))->execute(['--no-notify' => true]);
+
+        self::assertSame(['/_/component_groups/9'], $store->fetchNotified()?->componentGroups);
+        self::assertSame(['/_/component_groups/1'], $store->fetch()?->componentGroups);
     }
 
     public function test_a_failed_notification_is_reported_but_the_command_succeeds_and_keeps_the_report(): void

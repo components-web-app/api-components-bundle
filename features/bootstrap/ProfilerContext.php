@@ -189,6 +189,14 @@ class ProfilerContext implements Context
     }
 
     /**
+     * @Given the mailer is reachable again
+     */
+    public function theMailerIsReachableAgain(): void
+    {
+        SwitchableMailer::setUnreachable(false);
+    }
+
+    /**
      * @Given the Mercure hub is unreachable
      */
     public function theMercureHubIsUnreachable(): void
