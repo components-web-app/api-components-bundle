@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.6](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.5...2.0.0-alpha.6) - 2026-09-26
+
 ### Breaking
 - Upgrade step: the orphaned resource report is now stored in a new table, `_acb_orphaned_resource_report`. Generate and run a migration (`doctrine:migrations:diff`). Reports previously held in `cache.app` are not migrated; `GET /_/orphaned_resources` is 404 until the next scan ([#354](https://github.com/components-web-app/api-components-bundle/pull/354))
 - `silverback:api-components:clean-orphaned` no longer deletes anything: it is now an alias of `scan-orphaned`, which only scans. Delete orphans through the API (`DELETE` per IRI, or `POST /_/orphaned_resources/delete`) ([#353](https://github.com/components-web-app/api-components-bundle/pull/353))
