@@ -64,6 +64,13 @@ final class CoverageContext implements Context
             return;
         }
 
+        $serialized = getenv('BEHAT_COVERAGE_SERIALIZED');
+        if (\is_string($serialized) && '' !== $serialized) {
+            file_put_contents($serialized, serialize(self::$coverage));
+
+            return;
+        }
+
         (new Clover())->process(self::$coverage->getReport(), self::target());
     }
 

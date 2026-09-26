@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Tooling
+- The Behat suite runs as concurrent shards (`bin/behat-parallel`) with coverage merged into one report, and the test app hashes passwords at bcrypt cost 4: about 9x faster locally ([#360](https://github.com/components-web-app/api-components-bundle/pull/360))
+
 ## [2.0.0-alpha.6](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.5...2.0.0-alpha.6) - 2026-09-26
 
 ### Breaking

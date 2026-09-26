@@ -46,7 +46,19 @@ class AppKernel extends Kernel
 
     public function getCacheDir(): string
     {
-        return $this->getProjectDir() . '/var/cache/' . $this->environment . $this->getRoutePrefixSuffix();
+        return $this->getVarDir() . '/cache/' . $this->environment . $this->getRoutePrefixSuffix();
+    }
+
+    public static function shardSuffix(): string
+    {
+        $shard = preg_replace('/[^A-Za-z0-9]+/', '', (string) getenv('BEHAT_SHARD'));
+
+        return '' === $shard ? '' : '/shard-' . $shard;
+    }
+
+    private function getVarDir(): string
+    {
+        return $this->getProjectDir() . '/var' . self::shardSuffix();
     }
 
     protected function getContainerClass(): string
@@ -61,7 +73,7 @@ class AppKernel extends Kernel
 
     public function getLogDir(): string
     {
-        return $this->getProjectDir() . '/var/log';
+        return $this->getVarDir() . '/log';
     }
 
     public function getProjectDir(): string

@@ -18,6 +18,7 @@ use Behat\MinkExtension\Context\MinkContext;
 use FriendsOfBehat\SymfonyExtension\Driver\SymfonyDriver;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
+use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -30,6 +31,7 @@ final class RoutePrefixContext implements Context
     private static array $kernels = [];
 
     private ?KernelInterface $kernel = null;
+    private ?AbstractBrowser $mainClient = null;
     private MinkContext $minkContext;
     private ProfilerContext $profilerContext;
     private RestContext $restContext;
@@ -55,6 +57,8 @@ final class RoutePrefixContext implements Context
     {
         $this->kernel?->shutdown();
         $this->kernel = null;
+        $this->mainClient?->restart();
+        $this->mainClient = null;
     }
 
     /**
@@ -64,7 +68,7 @@ final class RoutePrefixContext implements Context
     {
         $this->kernel = $this->getBootedKernel($prefix);
 
-        $previousClient = $this->minkContext->getSession()->getDriver()->getClient();
+        $previousClient = $this->mainClient = $this->minkContext->getSession()->getDriver()->getClient();
         $driver = new SymfonyDriver($this->kernel, $this->minkContext->getMinkParameter('base_url'));
         foreach ($previousClient->getCookieJar()->all() as $cookie) {
             $driver->getClient()->getCookieJar()->set($cookie);
