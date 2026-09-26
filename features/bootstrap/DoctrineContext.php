@@ -2939,6 +2939,65 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is an orphaned ComponentGroup with nested, shared, page data and draft descendants
+     */
+    public function thereIsAnOrphanedGroupWithNestedSharedPageDataAndDraftDescendants(): void
+    {
+        $page = new Page();
+        $page->reference = 'chain-live-page';
+        $page->isTemplate = false;
+        $this->persistTimestamped($page);
+        $route = new Route();
+        $route->setPath('/chain-live')->setName('/chain-live')->setPage($page);
+        $this->persistTimestamped($route);
+        $liveGroup = $this->buildOrphanComparisonGroup('live_group');
+        $page->addComponentGroup($liveGroup);
+
+        $chainGroup = $this->buildOrphanComparisonGroup('chain_group');
+        $chainComponent = $this->buildOrphanComparisonComponent('chain_component');
+        $this->buildOrphanComparisonPosition('chain_position', $chainGroup, $chainComponent);
+        $chainOwnedGroup = $this->buildOrphanComparisonGroup('chain_owned_group');
+        $chainComponent->addComponentGroup($chainOwnedGroup);
+        $this->buildOrphanComparisonPosition('chain_owned_position', $chainOwnedGroup, $this->buildOrphanComparisonComponent('chain_owned_component'));
+        $this->buildOrphanComparisonPosition('cycle_position', $chainOwnedGroup, $chainComponent);
+
+        $sharedComponent = $this->buildOrphanComparisonComponent('shared_component');
+        $this->buildOrphanComparisonPosition('shared_position', $chainGroup, $sharedComponent);
+        $this->buildOrphanComparisonPosition('shared_live_position', $liveGroup, $sharedComponent);
+
+        $sharedOwnedGroup = $this->buildOrphanComparisonGroup('shared_owned_group');
+        $chainComponent->addComponentGroup($sharedOwnedGroup);
+        $page->addComponentGroup($sharedOwnedGroup);
+        $this->buildOrphanComparisonPosition('shared_owned_position', $sharedOwnedGroup, $this->buildOrphanComparisonComponent('shared_owned_component'));
+
+        $template = new Page();
+        $template->reference = 'chain-template';
+        $template->isTemplate = true;
+        $this->persistTimestamped($template);
+        $pageData = new PageDataWithComponent();
+        $pageData->page = $template;
+        $pageData->component = $this->buildOrphanComparisonComponent('page_data_component');
+        $this->persistTimestamped($pageData);
+        $this->buildOrphanComparisonPosition('page_data_position', $chainGroup, $pageData->component);
+        $parentTypedPageData = new PageDataWithParentTypedComponent();
+        $parentTypedPageData->page = $template;
+        $parentTypedPageData->component = $this->buildOrphanComparisonComponent('parent_typed_component');
+        $this->persistTimestamped($parentTypedPageData);
+        $this->buildOrphanComparisonPosition('parent_typed_position', $chainGroup, $parentTypedPageData->component);
+
+        $published = $this->buildOrphanComparisonPublishable('chained_published');
+        $this->buildOrphanComparisonPosition('published_position', $chainGroup, $published);
+        $this->buildOrphanComparisonDraft('chained_published_draft', $published);
+
+        $this->manager->flush();
+        foreach ($this->orphanComparisonResources as $name => $resource) {
+            $this->restContext->resources[$name] = $this->iriConverter->getIriFromResource($resource);
+        }
+        $this->orphanComparisonResources = [];
+        $this->manager->clear();
+    }
+
+    /**
      * @Given there is a routed Page whose ComponentGroup holds a component that owns a group holding a component
      */
     public function thereIsARoutedPageWhoseGroupHoldsAComponentOwningAGroup(): void
@@ -3121,9 +3180,9 @@ final class DoctrineContext implements Context
             throw new \RuntimeException(\sprintf('Expected one stored report row, found %d', \count($rows)));
         }
         $expected = [
-            'component_groups' => ['orphaned_group'],
-            'component_positions' => ['empty_position', 'orphaned_group_empty_position'],
-            'components' => ['unused_component', 'unused_published', 'owning_component'],
+            'component_groups' => ['orphaned_group', 'owned_group'],
+            'component_positions' => ['empty_position', 'orphaned_group_position', 'orphaned_group_empty_position', 'owned_position'],
+            'components' => ['unused_component', 'orphaned_group_component', 'unused_published', 'owning_component', 'owned_component'],
         ];
         foreach ($expected as $column => $names) {
             $stored = json_decode($rows[0][$column], true, 512, \JSON_THROW_ON_ERROR);

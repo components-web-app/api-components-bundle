@@ -48,6 +48,44 @@ Feature: A delete leaves no orphans behind
     And the JSON node "components" should have 0 elements
 
   @loginAdmin
+  Scenario: Deleting every orphan in bulk deletes exactly what the scan listed through orphaned parents, and the next scan finds nothing
+    Given there is an orphaned ComponentGroup with nested, shared, page data and draft descendants
+    When I send a "POST" request to "/_/orphaned_resources/delete" with body:
+      """
+      {"all": true}
+      """
+    Then the response status code should be 200
+    And the JSON node "deleted.componentGroups" should list exactly the resources "chain_group, chain_owned_group"
+    And the JSON node "deleted.componentPositions" should list exactly the resources "chain_position, chain_owned_position, cycle_position, shared_position, page_data_position, parent_typed_position, published_position"
+    And the JSON node "deleted.components" should list exactly the resources "chain_component, chain_owned_component, chained_published, chained_published_draft"
+    And the JSON node "rejected" should have 0 elements
+    And the resource "chain_owned_group" should not exist
+    And the resource "chain_owned_component" should not exist
+    And the component "chained_published_draft" should not exist in the database
+    And the resource "shared_component" should exist
+    And the resource "shared_live_position" should exist
+    And the resource "shared_owned_group" should exist
+    And the resource "shared_owned_position" should exist
+    And the resource "shared_owned_component" should exist
+    And the resource "page_data_component" should exist
+    And the resource "parent_typed_component" should exist
+    When I send a "POST" request to "/_/orphaned_resources/scan"
+    And I send a "GET" request to "/_/orphaned_resources"
+    Then the JSON node "componentGroups" should have 0 elements
+    And the JSON node "componentPositions" should have 0 elements
+    And the JSON node "components" should have 0 elements
+
+  @loginAdmin
+  Scenario: A resource orphaned only through its parent can be selected for deletion on its own
+    Given there is an orphaned ComponentGroup with nested, shared, page data and draft descendants
+    When I request the deletion of the orphaned resources "chain_owned_position, chain_owned_component"
+    Then the response status code should be 200
+    And the JSON node "rejected" should have 0 elements
+    And the JSON node "deleted.componentPositions" should list exactly the resources "chain_owned_position"
+    And the JSON node "deleted.components" should list exactly the resources "chain_owned_component"
+    And the resource "chain_owned_group" should exist
+
+  @loginAdmin
   Scenario: Deleting every orphan in bulk leaves nothing for the next scan
     Given there is a site with every kind of orphan and every kind of use
     When I send a "POST" request to "/_/orphaned_resources/delete" with body:
