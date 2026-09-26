@@ -5,16 +5,16 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Breaking
-- Upgrade step: the orphaned resource report is now stored in a new table, `_acb_orphaned_resource_report`. Generate and run a migration (`doctrine:migrations:diff`). Reports previously held in `cache.app` are not migrated; `GET /_/orphaned_resources` is 404 until the next scan ([#PR](PRLINK))
+- Upgrade step: the orphaned resource report is now stored in a new table, `_acb_orphaned_resource_report`. Generate and run a migration (`doctrine:migrations:diff`). Reports previously held in `cache.app` are not migrated; `GET /_/orphaned_resources` is 404 until the next scan ([#354](https://github.com/components-web-app/api-components-bundle/pull/354))
 - `silverback:api-components:clean-orphaned` no longer deletes anything: it is now an alias of `scan-orphaned`, which only scans. Delete orphans through the API (`DELETE` per IRI, or `POST /_/orphaned_resources/delete`) ([#353](https://github.com/components-web-app/api-components-bundle/pull/353))
 
 ### Added
-- `silverback:api-components:scan-orphaned` emails `silverback_api_components.orphaned_resources.notify.recipients` when the orphaned resources differ from the last stored report, with the counts, what is new and a link to the admin page (`notify.admin_page_path`, default `/_cwa/orphaned`, on `user.email_links.default_origin`). `--no-notify` skips it; the HTTP scan never emails ([#PR](PRLINK))
+- `silverback:api-components:scan-orphaned` emails `silverback_api_components.orphaned_resources.notify.recipients` when the orphaned resources differ from the last stored report, with the counts, what is new and a link to the admin page (`notify.admin_page_path`, default `/_cwa/orphaned`, on `user.email_links.default_origin`). `--no-notify` skips it; the HTTP scan never emails ([#354](https://github.com/components-web-app/api-components-bundle/pull/354))
 - `POST /_/orphaned_resources/delete` (admin) deletes selected orphans (`iris`) or all of them (`all: true`), re-checked against a fresh scan, and returns what was deleted and what was rejected ([#353](https://github.com/components-web-app/api-components-bundle/pull/353))
 - Fixture builder: `PageBuilder::withoutRoute()` keeps a non-template page without a route; `generate-fixtures --namespace` sets the generated class's namespace ([#347](https://github.com/components-web-app/api-components-bundle/pull/347))
 
 ### Changed
-- The orphaned resource report is stored in the database instead of `cache.app`, so it is shared between pods and survives deploys, and its `generatedAt` has microsecond precision ([#PR](PRLINK))
+- The orphaned resource report is stored in the database instead of `cache.app`, so it is shared between pods and survives deploys, and its `generatedAt` has microsecond precision ([#354](https://github.com/components-web-app/api-components-bundle/pull/354))
 - `silverback:api-components:scan-orphaned` (alias `clean-orphaned`) runs the same scan as `POST /_/orphaned_resources/scan` synchronously, stores the report `GET /_/orphaned_resources` returns, and prints the counts per kind (IRIs with `-v`) ([#353](https://github.com/components-web-app/api-components-bundle/pull/353))
 
 ### Fixed
