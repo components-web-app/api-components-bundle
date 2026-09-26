@@ -103,7 +103,11 @@ foreach ($assignments as $shard => $assignment) {
     $command = [\PHP_BINARY, ...$phpArgs, 'vendor/bin/behat', '--no-interaction', '--format=progress', '--out=std'];
     if (null !== $junitDir) {
         $command[] = '--format=junit';
-        $command[] = '--out=' . rtrim($junitDir, '/') . '/shard-' . $shard;
+        $junitShardDir = rtrim($junitDir, '/') . '/shard-' . $shard;
+        if (!is_dir($junitShardDir) && !mkdir($junitShardDir, 0777, true) && !is_dir($junitShardDir)) {
+            throw new RuntimeException("Could not create $junitShardDir");
+        }
+        $command[] = '--out=' . $junitShardDir;
     }
     $command = [...$command, ...$behatArgs, ...$assignment['files']];
     $env = getenv();
