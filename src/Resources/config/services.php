@@ -49,12 +49,17 @@ use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataCollector\CwaDataCollector;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentUsageStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DenyAccessStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\FormStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceManifestStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteChildrenStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteGenerateStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UserStateProvider;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
@@ -69,11 +74,9 @@ use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
 use Silverback\ApiComponentsBundle\EventListener\Api\CacheHeadersEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\CollectionApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentPositionEventListener;
-use Silverback\ApiComponentsBundle\EventListener\Api\ComponentUsageEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\DeletedResourceEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
-use Silverback\ApiComponentsBundle\EventListener\Api\RouteEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UnpublishedRouteExceptionListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
@@ -156,7 +159,6 @@ use Silverback\ApiComponentsBundle\Repository\Core\SiteConfigParameterRepository
 use Silverback\ApiComponentsBundle\Repository\User\UserRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\EventListener\AccessDeniedListener;
-use Silverback\ApiComponentsBundle\Security\EventListener\DenyAccessListener;
 use Silverback\ApiComponentsBundle\Security\EventListener\LogoutListener;
 use Silverback\ApiComponentsBundle\Security\JWTManager;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
@@ -376,16 +378,17 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(ComponentPropertyMetadataFactory::class, 'silverback.api_components.api_platform.property_metadata_factory.component');
 
     $services
-        ->set('silverback.api_components.event_listener.security.deny_access')
-        ->class(DenyAccessListener::class)
+        ->set('silverback.api_components.api_platform.state_provider.deny_access')
+        ->class(DenyAccessStateProvider::class)
+        ->decorate('api_platform.state_provider.read', null, -20)
         ->args(
             [
+                new Reference('silverback.api_components.api_platform.state_provider.deny_access.inner'),
                 new Reference(Security::class),
                 new Reference('silverback.doctrine.repository.route'),
             ]
-        )
-        ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::PRE_DESERIALIZE, 'method' => 'onPreDeserialize']);
-    $services->alias(DenyAccessListener::class, 'silverback.api_components.event_listener.security.deny_access');
+        );
+    $services->alias(DenyAccessStateProvider::class, 'silverback.api_components.api_platform.state_provider.deny_access');
 
     $services
         ->set(DownloadAction::class)
@@ -1036,14 +1039,25 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias('silverback.api_components.api_platform.state_provider.form', FormStateProvider::class);
 
     $services
-        ->set('silverback.event_listener.api.route_event_listener')
-        ->class(RouteEventListener::class)
+        ->set('silverback.api_components.api_platform.state_provider.route_generate')
+        ->class(RouteGenerateStateProvider::class)
+        ->decorate('api_platform.state_provider.validate', null, -10)
         ->args([
+            new Reference('silverback.api_components.api_platform.state_provider.route_generate.inner'),
+            new Reference('silverback.helper.route_generator'),
+        ]);
+    $services->alias(RouteGenerateStateProvider::class, 'silverback.api_components.api_platform.state_provider.route_generate');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_processor.route_redirect')
+        ->class(RouteRedirectStateProcessor::class)
+        ->decorate('api_platform.state_processor.locator', null, 50)
+        ->args([
+            new Reference('silverback.api_components.api_platform.state_processor.route_redirect.inner'),
             new Reference('silverback.helper.route_generator'),
             new Reference(ManagerRegistry::class),
-        ])
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_VALIDATE, 'method' => 'onPostValidate'])
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_WRITE, 'method' => 'onPostWrite']);
+        ]);
+    $services->alias(RouteRedirectStateProcessor::class, 'silverback.api_components.api_platform.state_processor.route_redirect');
 
     $services
         ->set('silverback.api_components.doctrine.orm.extension.route')
@@ -1486,7 +1500,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('silverback.repository.user'),
-                new Reference('request_stack'),
+                new Reference(Security::class),
             ]
         )
         ->autoconfigure(false)
@@ -1505,13 +1519,21 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(UserMailer::class),
-                new Reference(Security::class),
             ]
-        )
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_WRITE, 'method' => 'onPostWrite'])
-        ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::PRE_READ, 'method' => 'onPreRead'])
-        ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_READ, 'method' => 'onPostRead']);
+        );
     $services->alias(UserEventListener::class, 'silverback.api_components.event_listener.api.user');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_processor.user_notification')
+        ->class(UserNotificationStateProcessor::class)
+        ->decorate('api_platform.state_processor.locator', null, 15)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.state_processor.user_notification.inner'),
+                new Reference(UserEventListener::class),
+            ]
+        );
+    $services->alias(UserNotificationStateProcessor::class, 'silverback.api_components.api_platform.state_processor.user_notification');
 
     $services
         ->set('silverback.api_components.factory.user')
@@ -1729,14 +1751,16 @@ return static function (ContainerConfigurator $configurator) {
         );
 
     $services
-        ->set('silverback.event_listener.api.component_usage')
-        ->class(ComponentUsageEventListener::class)
+        ->set('silverback.api_components.api_platform.state_provider.component_usage')
+        ->class(ComponentUsageStateProvider::class)
+        ->decorate('api_platform.state_provider.read', null, -40)
         ->args(
             [
+                new Reference('silverback.api_components.api_platform.state_provider.component_usage.inner'),
                 new Reference('silverback.metadata_factory.component_usage'),
             ]
-        )
-        ->tag('kernel.event_listener', ['event' => RequestEvent::class, 'priority' => EventPriorities::POST_READ, 'method' => 'onPostRead']);
+        );
+    $services->alias(ComponentUsageStateProvider::class, 'silverback.api_components.api_platform.state_provider.component_usage');
 
     $services
         ->set('silverback.doctrine.repository.component_position')

@@ -200,12 +200,6 @@ parameters:
 			path: src/EventListener/Api/PublishableEventListener.php
 
 		-
-			message: '#^Parameter \#3 \$em of method Silverback\\ApiComponentsBundle\\EventListener\\Api\\RouteEventListener\:\:cascadeChildPaths\(\) expects Doctrine\\ORM\\EntityManagerInterface, Doctrine\\Persistence\\ObjectManager given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/EventListener/Api/RouteEventListener.php
-
-		-
 			message: '#^Attribute class JetBrains\\PhpStorm\\ArrayShape does not exist\.$#'
 			identifier: attribute.notFound
 			count: 1

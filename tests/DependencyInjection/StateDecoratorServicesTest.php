@@ -1,0 +1,81 @@
+<?php
+
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection;
+
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentUsageStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DenyAccessStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteGenerateStateProvider;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+use Symfony\Component\DependencyInjection\Reference;
+
+class StateDecoratorServicesTest extends TestCase
+{
+    /**
+     * @return iterable<string, array{string, class-string, string, int}>
+     */
+    public static function decorators(): iterable
+    {
+        yield 'deny access after the read and its security check' => [
+            'silverback.api_components.api_platform.state_provider.deny_access',
+            DenyAccessStateProvider::class,
+            'api_platform.state_provider.read',
+            -20,
+        ];
+        yield 'component usage outside deny access, so a denied component shows no usage' => [
+            'silverback.api_components.api_platform.state_provider.component_usage',
+            ComponentUsageStateProvider::class,
+            'api_platform.state_provider.read',
+            -40,
+        ];
+        yield 'user notification after the persist, outside uploadable and inside publishable' => [
+            'silverback.api_components.api_platform.state_processor.user_notification',
+            UserNotificationStateProcessor::class,
+            'api_platform.state_processor.locator',
+            15,
+        ];
+        yield 'route generation after validation and its security check' => [
+            'silverback.api_components.api_platform.state_provider.route_generate',
+            RouteGenerateStateProvider::class,
+            'api_platform.state_provider.validate',
+            -10,
+        ];
+        yield 'route redirects innermost, straight after the persist' => [
+            'silverback.api_components.api_platform.state_processor.route_redirect',
+            RouteRedirectStateProcessor::class,
+            'api_platform.state_processor.locator',
+            50,
+        ];
+    }
+
+    #[DataProvider('decorators')]
+    public function test_the_decorator_wraps_a_service_that_exists_whether_or_not_symfony_listeners_are_used(string $id, string $class, string $decorated, int $priority): void
+    {
+        $container = new ContainerBuilder();
+        (new PhpFileLoader($container, new FileLocator(__DIR__ . '/../../src/Resources/config')))->load('services.php');
+
+        $definition = $container->getDefinition($id);
+
+        self::assertSame($class, $definition->getClass());
+        self::assertFalse($definition->isAutoconfigured());
+        self::assertSame([$decorated, null, $priority], $definition->getDecoratedService());
+        $inner = $definition->getArgument(0);
+        self::assertInstanceOf(Reference::class, $inner);
+        self::assertSame($id . '.inner', (string) $inner);
+        self::assertSame($id, (string) $container->getAlias($class));
+    }
+}

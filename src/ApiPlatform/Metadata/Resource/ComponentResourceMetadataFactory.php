@@ -64,8 +64,8 @@ class ComponentResourceMetadataFactory implements ResourceMetadataCollectionFact
                     }
                 }
                 if ($copyOperation) {
-                    $usageOperation = $copyOperation->withUriTemplate($usagePath);
-                    $operations->add('_api_' . $usagePath . '_get_usage', $usageOperation);
+                    $usageOperationName = '_api_' . $usagePath . '_get_usage';
+                    $operations->add($usageOperationName, $copyOperation->withUriTemplate($usagePath)->withName($usageOperationName));
                 }
             }
         }

@@ -15,7 +15,6 @@ use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
-use Symfony\Bundle\SecurityBundle\Security;
 
 class UserEventListenerTest extends TestCase
 {
@@ -30,7 +29,7 @@ class UserEventListenerTest extends TestCase
         $mailer->expects(self::once())->method('sendEmailVerifyEmailAfterWrite')->with($user);
         $mailer->expects(self::never())->method('sendEmailVerifyEmail');
 
-        (new UserEventListener($mailer, $this->createStub(Security::class)))->postWrite($user, $previousUser);
+        (new UserEventListener($mailer))->postWrite($user, $previousUser);
     }
 
     public function test_an_email_change_confirmation_after_a_write_uses_the_after_write_path(): void
@@ -43,6 +42,6 @@ class UserEventListenerTest extends TestCase
         $mailer->expects(self::once())->method('sendChangeEmailConfirmationEmailAfterWrite')->with($user);
         $mailer->expects(self::never())->method('sendChangeEmailConfirmationEmail');
 
-        (new UserEventListener($mailer, $this->createStub(Security::class)))->postWrite($user, $previousUser);
+        (new UserEventListener($mailer))->postWrite($user, $previousUser);
     }
 }
