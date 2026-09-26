@@ -83,6 +83,7 @@ readonly class UserResourceMetadataCollectionFactory implements ResourceMetadata
             security: 'is_granted("IS_AUTHENTICATED_FULLY")',
             priority: 1000,
             name: '_api_me',
+            controller: $operation->getController(),
             provider: UserStateProvider::class
         );
     }

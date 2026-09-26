@@ -185,7 +185,7 @@ jobs:
           path: build/logs/infection*
 
   behat:
-    name: Behat (Symfony ${{ matrix.symfony }}) (API Platform ${{ matrix.api-platform }}) (PHP ${{ matrix.php }})
+    name: Behat (Symfony ${{ matrix.symfony }}) (API Platform ${{ matrix.api-platform }}) (PHP ${{ matrix.php }})${{ matrix.symfony-listeners == '1' && ' (use_symfony_listeners)' || '' }}
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.experimental }}
     strategy:
@@ -200,14 +200,24 @@ jobs:
           - '^5.0'
         experimental:
           - false
+        symfony-listeners:
+          - ''
         include:
           - php: '8.5'
             symfony: '7.4'
             api-platform: '^5.0'
             experimental: false
+            symfony-listeners: ''
             coverage: true
+          - php: '8.5'
+            symfony: '7.4'
+            api-platform: '^4.4'
+            experimental: false
+            symfony-listeners: '1'
       fail-fast: false
     timeout-minutes: 20
+    env:
+      API_PLATFORM_USE_SYMFONY_LISTENERS: ${{ matrix.symfony-listeners }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -274,7 +284,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: behat-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}-api-platform${{ matrix.api-platform }}
+          name: behat-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}-api-platform${{ matrix.api-platform }}-listeners${{ matrix.symfony-listeners }}
           path: |
             build/logs/behat
             tests/Functional/app/var/shard-*/behat.log

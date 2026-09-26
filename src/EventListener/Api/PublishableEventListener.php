@@ -18,14 +18,10 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
-use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\HttpKernel\Event\ViewEvent;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /**
  * @author Vincent Chalamon <vincent@les-tilleuls.coop>
@@ -44,67 +40,9 @@ final class PublishableEventListener
         private readonly PublishableStatusChecker $publishableStatusChecker,
         ManagerRegistry $registry,
         private readonly ValidatorInterface $validator,
-        private readonly UploadableFileManager $uploadableFileManager,
     ) {
         $this->publishableAttributeReader = $publishableStatusChecker->getAttributeReader();
         $this->initRegistry($registry);
-    }
-
-    public function onPreWrite(ViewEvent $event): void
-    {
-        $request = $event->getRequest();
-        $attributes = $this->getAttributes($request);
-        if (
-            empty($attributes['data'])
-            || !$this->publishableAttributeReader->isConfigured($attributes['class'])
-            || $request->isMethod(Request::METHOD_DELETE)
-            || $request->isMethod(Request::METHOD_GET)
-            || $attributes['operation'] instanceof CollectionOperationInterface
-        ) {
-            return;
-        }
-
-        $publishable = $this->checkMergeDraftIntoPublished($request, $attributes['data']);
-        $event->setControllerResult($publishable);
-    }
-
-    public function onPostRead(RequestEvent $event): void
-    {
-        $request = $event->getRequest();
-        $attributes = $this->getAttributes($request);
-        if (
-            empty($attributes['data'])
-            || !$this->publishableAttributeReader->isConfigured($attributes['class'])
-            || !$request->isMethod(Request::METHOD_GET)
-            || $attributes['operation'] instanceof CollectionOperationInterface
-        ) {
-            return;
-        }
-
-        $this->checkMergeDraftIntoPublished($request, $attributes['data'], true);
-    }
-
-    public function onPostDeserialize(RequestEvent $event): void
-    {
-        $request = $event->getRequest();
-        $attributes = $this->getAttributes($request);
-        if (
-            empty($attributes['data'])
-            || !$this->publishableAttributeReader->isConfigured($attributes['class'])
-            || !($request->isMethod(Request::METHOD_PUT) || $request->isMethod(Request::METHOD_PATCH))
-        ) {
-            return;
-        }
-
-        $configuration = $this->publishableAttributeReader->getConfiguration($attributes['class']);
-
-        // User cannot change the publication date of the original resource
-        if (
-            true === $this->publishableStatusChecker->isRequestForPublished($request)
-            && $this->getValue($request->attributes->get('previous_data'), $configuration->fieldName) !== $this->getValue($attributes['data'], $configuration->fieldName)
-        ) {
-            throw new UnprocessableEntityHttpException('You cannot change the publication date of a published resource.');
-        }
     }
 
     public function onPostRespond(ResponseEvent $event): void
@@ -131,7 +69,6 @@ final class PublishableEventListener
         $classMetadata = $this->getClassMetadata($attributes['class']);
         $draftResource = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName) ?? $data;
 
-        // Add Expires HTTP header
         /** @var \DateTime|null $publishedAt */
         $publishedAt = $classMetadata->getFieldValue($draftResource, $configuration->fieldName);
         if ($publishedAt && $publishedAt > new \DateTime()) {
@@ -148,7 +85,6 @@ final class PublishableEventListener
             return;
         }
 
-        // Force validation from querystring, and/or add validate-to-publish custom HTTP header
         try {
             $this->validator->validate($data, [PublishableValidator::PUBLISHED_KEY => true]);
             $response->headers->set(self::VALID_TO_PUBLISH_HEADER, '1');
@@ -160,92 +96,6 @@ final class PublishableEventListener
             ) {
                 throw $exception;
             }
-        }
-    }
-
-    private function getValue(object $object, string $property)
-    {
-        return $this->getClassMetadata($object)->getFieldValue($object, $property);
-    }
-
-    private function checkMergeDraftIntoPublished(Request $request, object $data, bool $flushDatabase = false): object
-    {
-        if (!$this->publishableStatusChecker->isActivePublishedAt($data)) {
-            return $data;
-        }
-
-        $configuration = $this->publishableAttributeReader->getConfiguration($data);
-        $classMetadata = $this->getClassMetadata($data);
-
-        $publishedResourceAssociation = $classMetadata->getFieldValue($data, $configuration->associationName);
-        $draftResourceAssociation = $classMetadata->getFieldValue($data, $configuration->reverseAssociationName);
-        if (
-            !$publishedResourceAssociation
-            && (!$draftResourceAssociation || !$this->publishableStatusChecker->isActivePublishedAt($draftResourceAssociation))
-        ) {
-            return $data;
-        }
-
-        // the request is for a resource with an active publish date
-        // either a draft, if so it may be a published version we need to replace with
-        // or a published resource which may have a draft that has an active publish date
-        $entityManager = $this->getEntityManager($data);
-
-        $meta = $entityManager->getClassMetadata($data::class);
-        $identifierFieldName = $meta->getSingleIdentifierFieldName();
-
-        if ($publishedResourceAssociation) {
-            // retrieving a draft that is now published
-            $draftResource = $data;
-            $publishedResource = $publishedResourceAssociation;
-
-            $publishedId = $classMetadata->getFieldValue($publishedResource, $identifierFieldName);
-            $request->attributes->set('id', $publishedId);
-            $request->attributes->set('data', $publishedResource);
-            $request->attributes->set('previous_data', clone $publishedResource);
-        } else {
-            // retrieving a published resource and draft should now replace it
-            $publishedResource = $data;
-            $draftResource = $draftResourceAssociation;
-        }
-
-        $classMetadata->setFieldValue($publishedResource, $configuration->reverseAssociationName, null);
-        $classMetadata->setFieldValue($draftResource, $configuration->associationName, null);
-
-        $this->mergeDraftIntoPublished($identifierFieldName, $draftResource, $publishedResource, $flushDatabase);
-
-        return $publishedResource;
-    }
-
-    private function mergeDraftIntoPublished(string $identifierFieldName, object $draftResource, object $publishedResource, bool $flushDatabase): void
-    {
-        $draftReflection = new \ReflectionClass($draftResource);
-        $publishedReflection = new \ReflectionClass($publishedResource);
-        $properties = $publishedReflection->getProperties();
-
-        $previousFilePaths = $this->uploadableFileManager->getStoredFilePaths($publishedResource);
-
-        foreach ($properties as $property) {
-            $name = $property->getName();
-            if ($identifierFieldName === $name) {
-                continue;
-            }
-            $draftProperty = $draftReflection->hasProperty($name) ? $draftReflection->getProperty($name) : null;
-            if ($draftProperty) {
-                $draftValue = $draftProperty->getValue($draftResource);
-                $property->setValue($publishedResource, $draftValue);
-            }
-        }
-
-        $this->uploadableFileManager->transferDeletedFields($draftResource, $publishedResource);
-
-        $this->uploadableFileManager->deleteOrphanedFiles($publishedResource, $previousFilePaths);
-
-        $entityManager = $this->getEntityManager($draftResource);
-        $entityManager->remove($draftResource);
-
-        if ($flushDatabase) {
-            $entityManager->flush();
         }
     }
 }

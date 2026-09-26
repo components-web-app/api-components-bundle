@@ -46,7 +46,26 @@ class AppKernel extends Kernel
 
     public function getCacheDir(): string
     {
-        return $this->getVarDir() . '/cache/' . $this->environment . $this->getRoutePrefixSuffix();
+        return $this->getVarDir() . '/cache/' . $this->environment . self::symfonyListenersSuffix() . $this->getRoutePrefixSuffix();
+    }
+
+    public static function useSymfonyListeners(): ?bool
+    {
+        $value = getenv('API_PLATFORM_USE_SYMFONY_LISTENERS');
+        if (false === $value || '' === $value) {
+            return null;
+        }
+
+        return filter_var($value, \FILTER_VALIDATE_BOOL);
+    }
+
+    private static function symfonyListenersSuffix(): string
+    {
+        return match (self::useSymfonyListeners()) {
+            null => '',
+            true => '_listeners',
+            false => '_controller',
+        };
     }
 
     public static function shardSuffix(): string
@@ -105,5 +124,9 @@ class AppKernel extends Kernel
 
         $container->import($confDir . '/services' . self::CONFIG_EXTS);
         $container->import($confDir . '/services_' . $this->environment . self::CONFIG_EXTS);
+
+        if (null !== $useSymfonyListeners = self::useSymfonyListeners()) {
+            $container->extension('api_platform', ['use_symfony_listeners' => $useSymfonyListeners]);
+        }
     }
 }

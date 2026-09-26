@@ -9,9 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Silverback\ApiComponentsBundle\EventListener\Api;
+namespace Silverback\ApiComponentsBundle\DataProcessor\StateProcessor;
 
 use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\State\ProcessorInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
@@ -20,69 +22,55 @@ use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\ViewEvent;
 
 /**
+ * @implements ProcessorInterface<mixed, mixed>
+ *
  * @author Daniel West <daniel@silverback.is>
  */
-class RouteEventListener
+final readonly class RouteRedirectStateProcessor implements ProcessorInterface
 {
-    private RouteGeneratorInterface $routeGenerator;
-    private ManagerRegistry $registry;
-
-    public function __construct(RouteGeneratorInterface $routeGenerator, ManagerRegistry $registry)
-    {
-        $this->routeGenerator = $routeGenerator;
-        $this->registry = $registry;
+    /**
+     * @param ProcessorInterface<mixed, mixed> $decorated
+     */
+    public function __construct(
+        private ProcessorInterface $decorated,
+        private RouteGeneratorInterface $routeGenerator,
+        private ManagerRegistry $registry,
+    ) {
     }
 
-    public function onPostValidate(ViewEvent $event): void
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
-        $request = $event->getRequest();
-        $data = $request->attributes->get('data');
-        $operationName = $request->attributes->get('_api_operation_name');
-        if (
-            empty($data)
-            || !$data instanceof Route
-            || '_api_/routes/generate{._format}_post' !== $operationName
-        ) {
-            return;
-        }
+        $result = $this->decorated->process($data, $operation, $uriVariables, $context);
 
-        $this->generateRoute($data, $request);
-    }
-
-    public function onPostWrite(ViewEvent $event): void
-    {
-        $request = $event->getRequest();
-        $data = $request->attributes->get('data');
-        /** @var HttpOperation $operation */
-        $operation = $request->attributes->get('_api_operation');
+        $previousRoute = $context['previous_data'] ?? null;
         if (
-            empty($data)
-            || !$data instanceof Route
+            !$data instanceof Route
+            || !$previousRoute instanceof Route
+            || !$operation instanceof HttpOperation
             || !\in_array($operation->getMethod(), [HttpOperation::METHOD_PUT, HttpOperation::METHOD_PATCH], true)
         ) {
-            return;
-        }
-        $entityManager = $this->registry->getManagerForClass($className = Route::class);
-        if (!$entityManager) {
-            throw new InvalidArgumentException(\sprintf('Could not find entity manager for %s', $className));
+            return $result;
         }
 
-        $previousRouteData = $request->attributes->get('previous_data');
-        $previousPath = $previousRouteData->getPath();
-        if ($previousPath !== $data->getPath()) {
-            $newRedirect = $this->routeGenerator->createRedirect($previousPath, $data);
-            $entityManager->persist($newRedirect);
-
-            if ($data->cascadeChildPaths) {
-                $this->cascadeChildPaths($data, $previousPath, $entityManager);
-            }
-
-            $entityManager->flush();
+        $previousPath = $previousRoute->getPath();
+        if ($previousPath === $data->getPath()) {
+            return $result;
         }
+
+        $entityManager = $this->registry->getManagerForClass(Route::class);
+        if (!$entityManager instanceof EntityManagerInterface) {
+            throw new InvalidArgumentException(\sprintf('Could not find entity manager for %s', Route::class));
+        }
+
+        $entityManager->persist($this->routeGenerator->createRedirect($previousPath, $data));
+        if ($data->cascadeChildPaths) {
+            $this->cascadeChildPaths($data, $previousPath, $entityManager);
+        }
+        $entityManager->flush();
+
+        return $result;
     }
 
     private function cascadeChildPaths(Route $parentRoute, string $oldParentPath, EntityManagerInterface $em): void
@@ -145,17 +133,5 @@ class RouteEventListener
             $em->getRepository(Page::class)->findBy([$field => $parent]),
             $em->getRepository(AbstractPageData::class)->findBy([$field => $parent]),
         );
-    }
-
-    private function generateRoute(Route $data, Request $request): void
-    {
-        $page = $data->getPageData() ?? $data->getPage();
-        if (!$page) {
-            throw new \LogicException('Validation should have already checked if the pageData or page values are set.');
-        }
-
-        $route = $this->routeGenerator->create($page, $data);
-
-        $request->attributes->set('data', $route);
     }
 }

@@ -12,7 +12,6 @@
 namespace Silverback\ApiComponentsBundle\Helper\User;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnexpectedValueException;
 use Silverback\ApiComponentsBundle\Repository\User\FindUserByUsernameTrait;
@@ -30,20 +29,20 @@ class EmailAddressManager
     private UserRepositoryInterface $userRepository;
     private PasswordHasherFactoryInterface $passwordHasherFactory;
     private UserDataProcessor $userDataProcessor;
-    private UserEventListener $userEventListener;
+    private UserWriteNotifier $userWriteNotifier;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         UserRepositoryInterface $userRepository,
         PasswordHasherFactoryInterface $passwordHasherFactory,
         UserDataProcessor $userDataProcessor,
-        UserEventListener $userEventListener,
+        UserWriteNotifier $userWriteNotifier,
     ) {
         $this->entityManager = $entityManager;
         $this->userRepository = $userRepository;
         $this->passwordHasherFactory = $passwordHasherFactory;
         $this->userDataProcessor = $userDataProcessor;
-        $this->userEventListener = $userEventListener;
+        $this->userWriteNotifier = $userWriteNotifier;
     }
 
     public function confirmNewEmailAddress(string $username, string $email, string $token): void
@@ -79,7 +78,7 @@ class EmailAddressManager
 
         $this->userDataProcessor->processChanges($user, $previousUser);
         $this->entityManager->flush();
-        $this->userEventListener->postWrite($user, $previousUser);
+        $this->userWriteNotifier->notify($user, $previousUser);
     }
 
     public function verifyEmailAddress(string $username, string $token): void

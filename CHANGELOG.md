@@ -4,8 +4,18 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- `api_platform.use_symfony_listeners` is no longer forced on: the bundle follows API Platform's default (off). An application that needs API Platform's listeners must enable it itself; the bundle works either way ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
+- The bundle's API behaviour runs in state provider and processor decorators instead of `EventPriorities` listeners. Removed: `DenyAccessListener`, `ComponentUsageEventListener`, `RouteEventListener`, `DeletedResourceEventListener`, `UploadableEventListener` and the listeners' request/view methods ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
+- Renamed: `EventListener\Api\UserEventListener` → `Helper\User\UserWriteNotifier` (`postWrite()` → `notify()`, id `silverback.api_components.helper.user.write_notifier`); `EventListener\Api\CollectionApiEventListener` → `Helper\Collection\CollectionPopulator` (`transform()` → `populate()`, id `silverback.api_components.helper.collection.populator`); the draft merge moved from `PublishableEventListener` to `Helper\Publishable\PublishableDraftMerger` (id `silverback.api_components.helper.publishable.draft_merger`) ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
+- Upload and download operations no longer use custom controllers; `UploadStateProvider`/`DownloadStateProvider` run them from the read chain ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
+
 ### Fixed
 - Stored files, their imagine variants and `_acb_file_info` rows are deleted whenever Doctrine removes an uploadable entity (group, page and orphan cascades, `POST /_/orphaned_resources/delete`, direct removal), only after the flush succeeds, and never while another row still references the path; a failed file delete is logged, not a 500 ([#372](https://github.com/components-web-app/api-components-bundle/pull/372))
+- `GET /me` and `GET /…/{id}/usage` work with `use_symfony_listeners: false`: `/me` keeps the controller of the `Get` it is built from and `UserStateProvider` resolves the token user itself, and the usage operation is named after its key ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
+
+### Tooling
+- `API_PLATFORM_USE_SYMFONY_LISTENERS=0|1` sets the flag in the Behat test app, with a cache directory per value, and CI runs one Behat leg with it on ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
 
 ## [2.0.0-alpha.7](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.6...2.0.0-alpha.7) - 2026-09-26
 

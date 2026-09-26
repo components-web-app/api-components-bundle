@@ -13,36 +13,46 @@ namespace Silverback\ApiComponentsBundle\DataProvider\StateProvider;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
+ * @implements ProviderInterface<AbstractUser>
+ *
  * @author Daniel West <daniel@silverback.is>
  */
 class UserStateProvider implements ProviderInterface
 {
-    private UserRepositoryInterface $userRepository;
-    private RequestStack $requestStack;
-
-    public function __construct(UserRepositoryInterface $userRepository, RequestStack $requestStack)
-    {
-        $this->userRepository = $userRepository;
-        $this->requestStack = $requestStack;
+    public function __construct(
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly Security $security,
+    ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
-        $request = $this->requestStack->getCurrentRequest();
-        if (!$request || !($id = $request->attributes->get('id'))) {
+        $user = $this->security->getUser();
+        if (!$user) {
+            throw new AccessDeniedException('Access denied.');
+        }
+
+        if (!$user instanceof AbstractUser) {
+            throw new AccessDeniedException('Access denied. User not supported.');
+        }
+
+        $username = $user->getUsername();
+        if (!$username) {
             return null;
         }
 
-        $user = $this->userRepository->loadUserByIdentifier($id);
-        if (null === $user) {
+        $storedUser = $this->userRepository->loadUserByIdentifier($username);
+        if (null === $storedUser) {
             throw new UnauthorizedHttpException('Bearer', 'User not found.');
         }
 
-        return $user;
+        return $storedUser;
     }
 }

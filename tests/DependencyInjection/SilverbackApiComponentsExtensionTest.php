@@ -114,7 +114,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame(502, $mapped[HttpCacheFlushFailedException::class]);
     }
 
-    public function test_api_platform_runs_on_symfony_listeners(): void
+    public function test_the_bundle_leaves_use_symfony_listeners_to_api_platform_and_the_application(): void
     {
         $container = new ContainerBuilder();
         $container->prependExtensionConfig('silverback_api_components', self::minimalConfig());
@@ -123,7 +123,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
 
         $enabled = array_column($container->getExtensionConfig('api_platform'), 'use_symfony_listeners');
 
-        self::assertSame([true], $enabled);
+        self::assertSame([], $enabled);
     }
 
     private function load(array $config): array

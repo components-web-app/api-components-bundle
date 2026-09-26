@@ -16,10 +16,10 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
-use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
+use Silverback\ApiComponentsBundle\Helper\User\UserWriteNotifier;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UserNormalizer;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -34,7 +34,7 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
 
     private ?TimestampedAttributeReader $timestampedAnnotationReader;
     private ?TimestampedDataPersister $timestampedDataPersister;
-    private ?UserEventListener $userEventListener;
+    private ?UserWriteNotifier $userWriteNotifier;
     private ?NormalizerInterface $normalizer;
     private DenormalizerInterface $denormalizer;
     private ?UserDataProcessor $userDataProcessor;
@@ -53,7 +53,7 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
         ManagerRegistry $registry,
         TimestampedAttributeReader $timestampedAnnotationReader,
         TimestampedDataPersister $timestampedDataPersister,
-        UserEventListener $userEventListener,
+        UserWriteNotifier $userWriteNotifier,
         NormalizerInterface $normalizer,
         UserDataProcessor $userDataProcessor,
     ): void {
@@ -63,7 +63,7 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
         $this->initRegistry($registry);
         $this->timestampedAnnotationReader = $timestampedAnnotationReader;
         $this->timestampedDataPersister = $timestampedDataPersister;
-        $this->userEventListener = $userEventListener;
+        $this->userWriteNotifier = $userWriteNotifier;
         $this->normalizer = $normalizer;
         $this->denormalizer = $normalizer;
         $this->userDataProcessor = $userDataProcessor;
@@ -102,7 +102,7 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
             }
 
             $this->userDataProcessor->processChanges($data, $oldUser);
-            $this->userEventListener->postWrite($data, $oldUser);
+            $this->userWriteNotifier->notify($data, $oldUser);
         }
 
         $entityManager->persist($data);
