@@ -51,6 +51,14 @@ class OrphanedResourceNotifierTest extends TestCase
         self::assertSame(OrphanedResourceNotificationResult::NoRecipients, $this->notifier($mailer, [])->notify($this->changed()));
     }
 
+    public function test_nothing_is_sent_when_the_recipients_are_null(): void
+    {
+        $mailer = $this->createMock(MailerInterface::class);
+        $mailer->expects(self::never())->method('send');
+
+        self::assertSame(OrphanedResourceNotificationResult::NoRecipients, $this->notifier($mailer, null)->notify($this->changed()));
+    }
+
     public function test_nothing_is_sent_when_the_recipients_are_blank(): void
     {
         $mailer = $this->createMock(MailerInterface::class);
@@ -250,7 +258,7 @@ class OrphanedResourceNotifierTest extends TestCase
     /**
      * @param list<string>|string $recipients
      */
-    private function notifier(MailerInterface $mailer, array|string $recipients = self::RECIPIENTS, ?RefererUrlResolver $resolver = null, string $adminPagePath = '/_cwa/orphaned', string $subject = 'Orphaned resources changed on {{ website_name }}'): OrphanedResourceNotifier
+    private function notifier(MailerInterface $mailer, array|string|null $recipients = self::RECIPIENTS, ?RefererUrlResolver $resolver = null, string $adminPagePath = '/_cwa/orphaned', string $subject = 'Orphaned resources changed on {{ website_name }}'): OrphanedResourceNotifier
     {
         return new OrphanedResourceNotifier($mailer, $this->factory($subject), $resolver ?? $this->resolver(), $recipients, $adminPagePath, new Logger('test', [$this->logs]));
     }

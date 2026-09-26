@@ -5,6 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Fixed
+- `scan-orphaned` (and `clean-orphaned`) no longer fails with a `TypeError` when the notification recipients resolve to null, e.g. from an empty `%env(default::MAILER_EMAIL)%`: null or empty recipients mean no email ([#366](https://github.com/components-web-app/api-components-bundle/pull/366))
 - `orphaned_resources.notify.recipients` accepts `Name <address>` as well as a bare address, in a list or a comma-separated string (quote a name containing a comma), so the template's default `MAILER_EMAIL` no longer silently stops the orphan alert ([#363](https://github.com/components-web-app/api-components-bundle/pull/363))
 
 ### Tooling
