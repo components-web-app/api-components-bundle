@@ -39,12 +39,8 @@ final class UploadableEventListener
             empty($data)
             || !$this->uploadableAttributeReader->isConfigured($class)
             || $request->isMethod(Request::METHOD_GET)
+            || $request->isMethod(Request::METHOD_DELETE)
         ) {
-            return;
-        }
-        if ($request->isMethod(Request::METHOD_DELETE)) {
-            $this->uploadableFileManager->deleteFiles($data);
-
             return;
         }
         $this->uploadableFileManager->persistFiles($data);

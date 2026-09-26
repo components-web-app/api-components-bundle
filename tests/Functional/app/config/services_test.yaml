@@ -11,6 +11,10 @@ services:
         tags:
             - { name: doctrine.middleware }
 
+    Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\RejectedDeleteMiddleware:
+        tags:
+            - { name: doctrine.middleware }
+
     Silverback\ApiComponentsBundle\Features\Bootstrap\:
         resource: '../../../../features/bootstrap/*'
 

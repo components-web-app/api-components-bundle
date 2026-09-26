@@ -17,36 +17,17 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 
 /**
- * Under a long-running runtime — FrankenPHP worker mode, RoadRunner — one kernel serves many
- * requests, so a shared service holding per-request state carries it into the next request unless
- * the framework resets it. That is not a theoretical risk here: a marker left on
- * UploadableFileManager between requests silently deleted uploaded files on publish.
- *
- * `ResetInterface` alone does nothing — a service is only reset if it carries the `kernel.reset`
- * tag. Autoconfiguration adds that tag, but this is a bundle: applications may disable
- * autoconfiguration, and several of the bundle's own definitions already opt out of it. So the tag
- * must be on the definition itself, which is what this asserts — the service definitions are read
- * straight from the config files rather than from a booted kernel, where autoconfiguration would
- * mask a missing tag.
- *
  * @author Daniel West <daniel@silverback.is>
  */
 class ServicesResetterTest extends TestCase
 {
-    /**
-     * Config file => service ids defined in it that accumulate state during a request and must be
-     * emptied between requests.
-     *
-     * Add here whenever a bundle service gains mutable per-request state — or, better, scope the
-     * state so it cannot outlive its request (UploadableFileManager keys its markers in a WeakMap by
-     * the resource they belong to, so it needs no reset at all).
-     */
     private const MUST_BE_RESETTABLE = [
         'services.php' => [
             'silverback.api_components.data_collector.data',
             'silverback.security.jwt_event_listener',
             'silverback.api_components.event_listener.console.console_output',
             'silverback.api_components.fixture.cwa_fixture_builder',
+            'silverback.api_components.doctrine.event_listener.uploadable_file_deletion',
         ],
         'services_doctrine_orm_mercure_publisher.php' => ['silverback.api_components.mercure.resource_publisher'],
         'services_doctrine_orm_http_cache_purger.php' => ['silverback.api_components.http_cache.purger'],

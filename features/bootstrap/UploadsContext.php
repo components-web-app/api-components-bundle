@@ -47,6 +47,8 @@ class UploadsContext implements Context
     private UploadableFileManager $uploadableHelper;
     private UploadableAttributeReader $uploadableAttributeReader;
     private FilesystemProvider $filesystemProvider;
+    /** @var array<string, list<array{string, string}>> */
+    private array $checkedFiles = [];
 
     public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter, UploadableFileManager $uploadableHelper, UploadableAttributeReader $uploadableAttributeReader, FilesystemProvider $filesystemProvider)
     {
@@ -62,6 +64,7 @@ class UploadsContext implements Context
      */
     public function gatherContexts(BeforeScenarioScope $scope): void
     {
+        $this->checkedFiles = [];
         $this->behatchRestContext = $scope->getEnvironment()->getContext(BehatchRestContext::class);
         $this->restContext = $scope->getEnvironment()->getContext(RestContext::class);
         $this->behatchJsonContext = $scope->getEnvironment()->getContext(BehatchJsonContext::class);
@@ -243,11 +246,6 @@ class UploadsContext implements Context
     }
 
     /**
-     * Two resources referencing one stored file cannot be produced through the API — cloning a draft
-     * copies the file. It happens in the wild when the copy could not be made (the source was missing
-     * at draft time) or when app code assigns a path directly, and it is the case a publish must not
-     * get wrong: the file the published resource ends up pointing at must survive the merge.
-     *
      * @Given the resource :resource has the same file as the resource :other
      */
     public function theResourceHasTheSameFileAsTheResource(string $resourceName, string $otherName): void
@@ -331,6 +329,7 @@ class UploadsContext implements Context
                 continue;
             }
             ++$checked;
+            $this->checkedFiles[$name][] = [$fieldConfiguration->adapter, $filePath];
             $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
             if (!$filesystem->fileExists($filePath)) {
                 throw new \RuntimeException(\sprintf('Expected file "%s" to exist in adapter "%s" but it does not.', $filePath, $fieldConfiguration->adapter));
@@ -338,6 +337,21 @@ class UploadsContext implements Context
         }
         if (0 === $checked) {
             throw new \RuntimeException(\sprintf('The resource "%s" has no stored file to check.', $name));
+        }
+    }
+
+    /**
+     * @Then the file checked for the resource :name should no longer exist in its configured filestore
+     */
+    public function theFileCheckedForTheResourceShouldNoLongerExist(string $name): void
+    {
+        if (empty($this->checkedFiles[$name])) {
+            throw new \RuntimeException(\sprintf('No stored file was checked for the resource "%s" earlier in the scenario.', $name));
+        }
+        foreach ($this->checkedFiles[$name] as [$adapter, $filePath]) {
+            if ($this->filesystemProvider->getFilesystem($adapter)->fileExists($filePath)) {
+                throw new \RuntimeException(\sprintf('Expected file "%s" to have been deleted from adapter "%s" but it still exists.', $filePath, $adapter));
+            }
         }
     }
 

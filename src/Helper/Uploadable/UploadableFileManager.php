@@ -46,14 +46,6 @@ class UploadableFileManager
     private ?FilterService $filterService;
 
     /**
-     * Storage properties the request payload explicitly cleared, keyed by the resource they were
-     * cleared on. Keyed by object because the marker belongs to a resource, not to a property name:
-     * `filename` is the default storage property for every UploadableField, so a marker held as a
-     * bare name would apply to any resource written afterwards. A WeakMap rather than a plain map so
-     * entries die with the objects — nothing accumulates on this shared service between requests
-     * under a long-running runtime (FrankenPHP worker mode, RoadRunner), where a leaked marker would
-     * silently delete the file of every later write that carries no new file, a publish being one.
-     *
      * @var \WeakMap<object, list<string>>
      */
     private \WeakMap $deletedFields;
@@ -86,11 +78,6 @@ class UploadableFileManager
         $this->deletedFields[$object] = $fields;
     }
 
-    /**
-     * Hands a resource's deleted-field markers to the resource replacing it. Publishing a draft
-     * merges it into the published resource and continues the write against that instance, so a
-     * request that clears a file and publishes in one go must carry the marker across with it.
-     */
     public function transferDeletedFields(object $from, object $to): void
     {
         foreach ($this->deletedFields[$from] ?? [] as $field) {
@@ -146,7 +133,6 @@ class UploadableFileManager
         $classMetadata = $this->getClassMetadata($object);
 
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
-            // Let the data loader which should be configured for imagine to know which adapter to use
             $this->flysystemDataLoader->setAdapter($fieldConfiguration->adapter);
 
             $filename = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
@@ -157,8 +143,6 @@ class UploadableFileManager
                 }
                 $filters = $object->getImagineFilters($fileProperty, null);
                 foreach ($filters as $filter) {
-                    // This will trigger the cached file to be store
-                    // When cached files are store we save the file info
                     $this->filterService->getUrlOfFilteredImage($filename, $filter);
                 }
             }
@@ -172,11 +156,9 @@ class UploadableFileManager
 
         $configuredProperties = $this->annotationReader->getConfiguredProperties($object, true);
         foreach ($configuredProperties as $fileProperty => $fieldConfiguration) {
-            // this is null if null is submitted as the value... also null if not submitted
             /** @var File|UploadedDataUriFile|null $file */
             $file = $propertyAccessor->getValue($object, $fileProperty);
             if (!$file) {
-                // so we need to know if it was a deleted field from the denormalizer
                 if ($this->isFieldDeleted($object, $fieldConfiguration->property)) {
                     $this->deleteFileForField($object, $classMetadata, $fieldConfiguration);
                     $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);
@@ -209,12 +191,6 @@ class UploadableFileManager
         }
     }
 
-    /**
-     * The basename to store an uploaded file under (excluding the field prefix).
-     *
-     * Data-URI uploads keep their unique UUID name assigned at denormalization. Multipart uploads
-     * use the client's original filename; fixtures use the source file's basename — both tokenised.
-     */
     private function generateStoredFilename(File $file): string
     {
         if ($file instanceof UploadedDataUriFile) {
@@ -224,12 +200,6 @@ class UploadableFileManager
         return $this->tokeniseFilename($this->resolveOriginalName($file));
     }
 
-    /**
-     * The original filename to derive the stored name from. Prefers whichever candidate carries a
-     * file extension: for real multipart uploads that's the client's original name (the on-disk file
-     * is a temp name); in some upload/test contexts the client name is absent or is the form field,
-     * and the file's own basename holds the real name + extension.
-     */
     private function resolveOriginalName(File $file): string
     {
         $clientName = $file instanceof UploadedFile ? $file->getClientOriginalName() : '';
@@ -245,11 +215,6 @@ class UploadableFileManager
         return '' !== $clientName ? $clientName : $basename;
     }
 
-    /**
-     * Produces `<sanitised-stem>-<token>.<ext>` from an original filename. The stem is slugified and
-     * length-capped (path separators / traversal stripped by pathinfo + the slug), and a random token
-     * makes every stored name unique and unguessable.
-     */
     private function tokeniseFilename(string $originalName): string
     {
         $stem = strtolower((string) preg_replace('/[^A-Za-z0-9]+/', '-', pathinfo($originalName, \PATHINFO_FILENAME)));
@@ -292,9 +257,6 @@ class UploadableFileManager
     }
 
     /**
-     * The stored path of each uploadable field, keyed by storage property. Empty for a resource that
-     * is not uploadable, so callers need no is-uploadable dance before taking a snapshot.
-     *
      * @return array<string, string|null>
      */
     public function getStoredFilePaths(object $object): array
@@ -314,14 +276,7 @@ class UploadableFileManager
     }
 
     /**
-     * Deletes the files a resource has stopped referencing, given the paths it held before a write.
-     *
-     * A path it still points at is never deleted: replacing a file must not delete the file that
-     * replaced it, and a field the write left alone must keep its file. Deleting up front instead —
-     * before the new values are in place — destroys the file with nothing yet known to have
-     * succeeded, and destroys it even when the incoming value is the very same path.
-     *
-     * @param array<string, string|null> $previousPaths from getStoredFilePaths(), taken before the write
+     * @param array<string, string|null> $previousPaths
      */
     public function deleteOrphanedFiles(object $object, array $previousPaths): void
     {
@@ -336,7 +291,7 @@ class UploadableFileManager
             if (!$previousFilepath || $previousFilepath === $classMetadata->getFieldValue($object, $fieldConfiguration->property)) {
                 continue;
             }
-            $this->removeFilepathValue($fieldConfiguration, $previousFilepath);
+            $this->deleteStoredFile($fieldConfiguration, $previousFilepath);
         }
     }
 
@@ -381,14 +336,10 @@ class UploadableFileManager
     {
         $currentFilepath = $this->getClassMetadata($object)->getFieldValue($object, $fieldConfiguration->property);
 
-        $this->removeFilepathValue($fieldConfiguration, $currentFilepath);
+        $this->deleteStoredFile($fieldConfiguration, $currentFilepath);
     }
 
-    /**
-     * Takes the path rather than reading it off the resource, so a path the resource has already
-     * stopped referencing can still be cleaned up.
-     */
-    private function removeFilepathValue(UploadableField $fieldConfiguration, string $filepath): void
+    public function deleteStoredFile(UploadableField $fieldConfiguration, string $filepath): void
     {
         $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
         $this->fileInfoCacheManager->deleteCaches([$filepath], [null]);
@@ -400,12 +351,6 @@ class UploadableFileManager
         }
     }
 
-    /**
-     * Copies a resource's stored file so a clone (a publishable draft) owns its own object. The copy
-     * is written beside the original — the field's prefix is part of the stored path, so a copy built
-     * from the basename alone would escape it — under the same tokenised naming as every other stored
-     * file, which also guarantees it cannot collide with an existing object.
-     */
     private function copyFilepath(object $object, UploadableField $fieldConfiguration): ?string
     {
         $classMetadata = $this->getClassMetadata($object);

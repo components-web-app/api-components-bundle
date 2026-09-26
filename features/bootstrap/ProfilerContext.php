@@ -30,6 +30,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\Tests\Functional\MockClientCallback;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\RejectedDeleteMiddleware;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\UnreachableDatabaseException;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\UnreachableDatabaseMiddleware;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
@@ -127,6 +128,15 @@ class ProfilerContext implements Context
     public function resetDatabaseReachability(): void
     {
         UnreachableDatabaseMiddleware::setUnreachable(false);
+        RejectedDeleteMiddleware::setRejectDeletes(false);
+    }
+
+    /**
+     * @Given the database rejects deletes
+     */
+    public function theDatabaseRejectsDeletes(): void
+    {
+        RejectedDeleteMiddleware::setRejectDeletes(true);
     }
 
     /**
