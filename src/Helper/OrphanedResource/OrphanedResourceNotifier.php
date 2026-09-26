@@ -17,6 +17,7 @@ use Silverback\ApiComponentsBundle\Exception\MailerTransportException;
 use Silverback\ApiComponentsBundle\Factory\OrphanedResource\OrphanedResourcesChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\RelativeUrlPath;
+use Silverback\ApiComponentsBundle\Utility\EmailRecipientList;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
@@ -52,7 +53,7 @@ class OrphanedResourceNotifier
         $recipients = [];
         foreach ($configuredRecipients as $recipient) {
             try {
-                $recipients[] = new Address($recipient);
+                $recipients[] = Address::create($recipient);
             } catch (RfcComplianceException|MimeInvalidArgumentException $exception) {
                 $this->logger?->error(\sprintf('The orphaned resources notification was not sent: the recipient `%s` is not a valid email address', $recipient), [
                     'exception' => $exception,
@@ -82,7 +83,7 @@ class OrphanedResourceNotifier
      */
     private function getRecipients(): array
     {
-        $recipients = \is_string($this->recipients) ? explode(',', $this->recipients) : $this->recipients;
+        $recipients = \is_string($this->recipients) ? EmailRecipientList::split($this->recipients) : $this->recipients;
 
         return array_values(array_filter(array_map('trim', $recipients), static fn (string $recipient): bool => '' !== $recipient));
     }

@@ -3204,6 +3204,14 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given the orphaned resources notification recipients are :recipients
+     */
+    public function theOrphanedResourcesNotificationRecipientsAre(string $recipients): void
+    {
+        $_SERVER[self::ORPHANED_RESOURCES_RECIPIENTS_ENV] = $_ENV[self::ORPHANED_RESOURCES_RECIPIENTS_ENV] = $recipients;
+    }
+
+    /**
      * @BeforeScenario
      *
      * @AfterScenario
