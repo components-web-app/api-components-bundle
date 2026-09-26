@@ -40,6 +40,10 @@ class OrphanedResourceReportRecord
     #[ORM\Column(type: 'json')]
     private array $components = [];
 
+    /** @var array{generatedAt: string, componentGroups: list<string>, componentPositions: list<string>, components: list<string>}|null */
+    #[ORM\Column(name: 'last_notified', type: 'json', nullable: true)]
+    private ?array $lastNotified = null;
+
     public function getId(): int
     {
         return $this->id;
@@ -51,6 +55,30 @@ class OrphanedResourceReportRecord
         $this->componentGroups = $report->componentGroups;
         $this->componentPositions = $report->componentPositions;
         $this->components = $report->components;
+    }
+
+    public function markNotified(OrphanedResourceReport $report): void
+    {
+        $this->lastNotified = [
+            'generatedAt' => $report->generatedAt->format(self::GENERATED_AT_FORMAT),
+            'componentGroups' => $report->componentGroups,
+            'componentPositions' => $report->componentPositions,
+            'components' => $report->components,
+        ];
+    }
+
+    public function toNotifiedReport(): ?OrphanedResourceReport
+    {
+        if (null === $this->lastNotified) {
+            return null;
+        }
+
+        return new OrphanedResourceReport(
+            new \DateTimeImmutable($this->lastNotified['generatedAt']),
+            $this->lastNotified['componentGroups'],
+            $this->lastNotified['componentPositions'],
+            $this->lastNotified['components'],
+        );
     }
 
     public function toReport(): OrphanedResourceReport

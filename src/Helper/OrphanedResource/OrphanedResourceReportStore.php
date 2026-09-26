@@ -22,19 +22,34 @@ class OrphanedResourceReportStore
     {
     }
 
-    public function save(OrphanedResourceReport $report): ?OrphanedResourceReport
+    public function save(OrphanedResourceReport $report): void
     {
         $manager = $this->getManager();
         $record = $manager->find(OrphanedResourceReportRecord::class, OrphanedResourceReportRecord::ID);
-        $previous = $record?->toReport();
         if (null === $record) {
             $record = new OrphanedResourceReportRecord();
             $manager->persist($record);
         }
         $record->update($report);
         $manager->flush();
+    }
 
-        return $previous;
+    public function markNotified(OrphanedResourceReport $report): void
+    {
+        $manager = $this->getManager();
+        $record = $manager->find(OrphanedResourceReportRecord::class, OrphanedResourceReportRecord::ID);
+        if (null === $record) {
+            $record = new OrphanedResourceReportRecord();
+            $record->update($report);
+            $manager->persist($record);
+        }
+        $record->markNotified($report);
+        $manager->flush();
+    }
+
+    public function fetchNotified(): ?OrphanedResourceReport
+    {
+        return $this->getManager()->find(OrphanedResourceReportRecord::class, OrphanedResourceReportRecord::ID)?->toNotifiedReport();
     }
 
     public function fetch(): ?OrphanedResourceReport

@@ -17,17 +17,26 @@ use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceRepor
 class InMemoryOrphanedResourceReportStore extends OrphanedResourceReportStore
 {
     private ?OrphanedResourceReport $report = null;
+    private ?OrphanedResourceReport $notified = null;
 
     public function __construct()
     {
     }
 
-    public function save(OrphanedResourceReport $report): ?OrphanedResourceReport
+    public function save(OrphanedResourceReport $report): void
     {
-        $previous = $this->report;
         $this->report = $report;
+    }
 
-        return $previous;
+    public function markNotified(OrphanedResourceReport $report): void
+    {
+        $this->report ??= $report;
+        $this->notified = $report;
+    }
+
+    public function fetchNotified(): ?OrphanedResourceReport
+    {
+        return $this->notified;
     }
 
     public function fetch(): ?OrphanedResourceReport
@@ -38,5 +47,6 @@ class InMemoryOrphanedResourceReportStore extends OrphanedResourceReportStore
     public function clear(): void
     {
         $this->report = null;
+        $this->notified = null;
     }
 }

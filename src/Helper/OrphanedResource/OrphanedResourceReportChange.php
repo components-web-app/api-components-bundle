@@ -19,14 +19,14 @@ final readonly class OrphanedResourceReportChange
 
     public function __construct(
         public OrphanedResourceReport $report,
-        public ?OrphanedResourceReport $previous,
+        public ?OrphanedResourceReport $baseline,
     ) {
     }
 
     public function hasChanged(): bool
     {
         foreach (self::KINDS as $kind) {
-            if (self::normalise($this->report->{$kind}) !== self::normalise($this->previousIris($kind))) {
+            if (self::normalise($this->report->{$kind}) !== self::normalise($this->baselineIris($kind))) {
                 return true;
             }
         }
@@ -41,7 +41,7 @@ final readonly class OrphanedResourceReportChange
     {
         $added = [];
         foreach (self::KINDS as $kind) {
-            $added[$kind] = array_values(array_diff($this->report->{$kind}, $this->previousIris($kind)));
+            $added[$kind] = array_values(array_diff($this->report->{$kind}, $this->baselineIris($kind)));
         }
 
         return $added;
@@ -51,7 +51,7 @@ final readonly class OrphanedResourceReportChange
     {
         $resolved = 0;
         foreach (self::KINDS as $kind) {
-            $resolved += \count(array_diff($this->previousIris($kind), $this->report->{$kind}));
+            $resolved += \count(array_diff($this->baselineIris($kind), $this->report->{$kind}));
         }
 
         return $resolved;
@@ -73,9 +73,9 @@ final readonly class OrphanedResourceReportChange
     /**
      * @return list<string>
      */
-    private function previousIris(string $kind): array
+    private function baselineIris(string $kind): array
     {
-        return null === $this->previous ? [] : $this->previous->{$kind};
+        return null === $this->baseline ? [] : $this->baseline->{$kind};
     }
 
     /**

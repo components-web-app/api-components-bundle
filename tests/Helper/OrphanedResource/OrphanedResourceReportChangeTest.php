@@ -66,7 +66,7 @@ class OrphanedResourceReportChangeTest extends TestCase
         self::assertTrue((new OrphanedResourceReportChange($this->report(componentGroups: ['/x/1']), $this->report(components: ['/x/1'])))->hasChanged());
     }
 
-    public function test_added_lists_the_iris_new_since_the_previous_report_per_kind(): void
+    public function test_added_lists_the_iris_new_since_the_baseline_per_kind(): void
     {
         $change = new OrphanedResourceReportChange(
             $this->report(['/g/1', '/g/2'], ['/p/1'], ['/c/3']),
@@ -79,7 +79,7 @@ class OrphanedResourceReportChangeTest extends TestCase
         );
     }
 
-    public function test_every_iri_is_new_when_there_is_no_previous_report(): void
+    public function test_every_iri_is_new_when_there_is_no_baseline(): void
     {
         $change = new OrphanedResourceReportChange($this->report(['/g/1'], ['/p/1'], ['/c/1', '/c/2']), null);
 
@@ -99,7 +99,7 @@ class OrphanedResourceReportChangeTest extends TestCase
         self::assertSame(4, $change->getResolvedCount());
     }
 
-    public function test_nothing_is_resolved_without_a_previous_report(): void
+    public function test_nothing_is_resolved_without_a_baseline(): void
     {
         self::assertSame(0, (new OrphanedResourceReportChange($this->report(components: ['/c/1']), null))->getResolvedCount());
     }
