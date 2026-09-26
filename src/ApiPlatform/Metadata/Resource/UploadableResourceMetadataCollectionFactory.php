@@ -20,9 +20,9 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use JetBrains\PhpStorm\Pure;
-use Silverback\ApiComponentsBundle\Action\Uploadable\DownloadAction;
-use Silverback\ApiComponentsBundle\Action\Uploadable\UploadAction;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DownloadStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UploadStateProvider;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -99,7 +99,7 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
     private static function configurePostOperation(HttpOperation $postOperation, array $openApiRequestMultipartProperties): HttpOperation
     {
         return $postOperation
-            ->withController(UploadAction::class)
+            ->withExtraProperties([...$postOperation->getExtraProperties(), UploadStateProvider::OPERATION_EXTRA_PROPERTY => true])
             ->withDeserialize(false)
             ->withStateless(null);
     }
@@ -137,7 +137,7 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
         return $getOperation
             ->withUriTemplate($downloadPath)
             ->withStateless(null)
-            ->withController(DownloadAction::class)
+            ->withExtraProperties([...$getOperation->getExtraProperties(), DownloadStateProvider::OPERATION_EXTRA_PROPERTY => true])
             ->withSerialize(false)
             ->withShortName($getOperation->getShortName())
             ->withRoutePrefix($getOperation->getRoutePrefix() ?? '');

@@ -53,11 +53,13 @@ use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositio
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\PublishableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UploadableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentUsageStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DenyAccessStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DownloadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\FormStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableDeserializeStateProvider;
@@ -66,6 +68,7 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceManifestSt
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteChildrenStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteGenerateStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UploadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UserStateProvider;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
@@ -82,7 +85,6 @@ use Silverback\ApiComponentsBundle\EventListener\Api\ComponentPositionEventListe
 use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UnpublishedRouteExceptionListener;
-use Silverback\ApiComponentsBundle\EventListener\Api\UploadableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UserEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Console\ConsoleOutputListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\MappedSuperclassDiscriminatorMapListener;
@@ -1383,6 +1385,34 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias('silverback.api_components.action.uploadable.upload', UploadAction::class)->public();
 
     $services
+        ->set('silverback.api_components.api_platform.state_provider.upload')
+        ->class(UploadStateProvider::class)
+        ->decorate('api_platform.state_provider.read', null, -50)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.state_provider.upload.inner'),
+                new Reference(UploadAction::class),
+                new Reference(UploadableFileManager::class),
+                new Reference(PublishableStatusChecker::class),
+            ]
+        );
+    $services->alias(UploadStateProvider::class, 'silverback.api_components.api_platform.state_provider.upload');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_provider.download')
+        ->class(DownloadStateProvider::class)
+        ->decorate('api_platform.state_provider.read', null, -50)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.state_provider.download.inner'),
+                new Reference(DownloadAction::class),
+                new Reference(UploadableAttributeReader::class),
+                new Reference(UploadableFileManager::class),
+            ]
+        );
+    $services->alias(DownloadStateProvider::class, 'silverback.api_components.api_platform.state_provider.download');
+
+    $services
         ->set('silverback.api_components.attribute_reader.uploadable')
         ->class(UploadableAttributeReader::class)
         ->parent(AttributeReader::class);
@@ -1401,17 +1431,17 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(UploadableContextBuilder::class, 'silverback.api_components.serializer.context_builder.uploadable');
 
     $services
-        ->set('silverback.api_components.event_listener.api.uploadable')
-        ->class(UploadableEventListener::class)
+        ->set('silverback.api_components.api_platform.state_processor.uploadable_write')
+        ->class(UploadableWriteStateProcessor::class)
+        ->decorate('api_platform.state_processor.locator', null, 20)
         ->args(
             [
+                new Reference('silverback.api_components.api_platform.state_processor.uploadable_write.inner'),
                 new Reference(UploadableAttributeReader::class),
                 new Reference(UploadableFileManager::class),
             ]
-        )
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::PRE_WRITE, 'method' => 'onPreWrite'])
-        ->tag('kernel.event_listener', ['event' => ViewEvent::class, 'priority' => EventPriorities::POST_WRITE, 'method' => 'onPostWrite']);
-    $services->alias(UploadableEventListener::class, 'silverback.api_components.event_listener.api.uploadable');
+        );
+    $services->alias(UploadableWriteStateProcessor::class, 'silverback.api_components.api_platform.state_processor.uploadable_write');
 
     $services
         ->set('silverback.api_components.helper.uploadable.file_manager')

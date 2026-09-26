@@ -17,12 +17,15 @@ use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositio
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\PublishableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UploadableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentUsageStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DenyAccessStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DownloadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableDeserializeStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableReadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteGenerateStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UploadStateProvider;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
@@ -94,6 +97,24 @@ class StateDecoratorServicesTest extends TestCase
             PublishableWriteStateProcessor::class,
             'api_platform.state_processor.locator',
             10,
+        ];
+        yield 'uploadable files around the persist, inside publishable' => [
+            'silverback.api_components.api_platform.state_processor.uploadable_write',
+            UploadableWriteStateProcessor::class,
+            'api_platform.state_processor.locator',
+            20,
+        ];
+        yield 'upload outermost on the read, so the read resource has passed every access check' => [
+            'silverback.api_components.api_platform.state_provider.upload',
+            UploadStateProvider::class,
+            'api_platform.state_provider.read',
+            -50,
+        ];
+        yield 'download outermost on the read, so the read resource has passed every access check' => [
+            'silverback.api_components.api_platform.state_provider.download',
+            DownloadStateProvider::class,
+            'api_platform.state_provider.read',
+            -50,
         ];
     }
 

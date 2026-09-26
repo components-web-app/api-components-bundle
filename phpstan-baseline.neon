@@ -200,12 +200,6 @@ parameters:
 			path: src/EventListener/Api/PublishableEventListener.php
 
 		-
-			message: '#^Attribute class JetBrains\\PhpStorm\\ArrayShape does not exist\.$#'
-			identifier: attribute.notFound
-			count: 1
-			path: src/EventListener/Api/UploadableEventListener.php
-
-		-
 			message: '#^Property Silverback\\ApiComponentsBundle\\EventListener\\Form\\EntityPersistFormListener\:\:\$normalizer \(Symfony\\Component\\Serializer\\Normalizer\\NormalizerInterface\|null\) is never assigned null so it can be removed from the property type\.$#'
 			identifier: property.unusedType
 			count: 1
