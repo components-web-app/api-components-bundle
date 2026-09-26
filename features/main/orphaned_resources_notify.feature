@@ -124,6 +124,13 @@ Feature: Emailing admins when the orphaned resource report changes
     Then the console command should have exited with 0
     And no orphaned resources notification should have been sent
 
+  Scenario: A recipient in the "Name <address>" form is emailed at that address
+    Given there is a site with every kind of orphan and every kind of use
+    And the orphaned resources notification recipients are "My Website <website@website.com>"
+    When I run the scheduled orphaned resources scan
+    Then the console command output should contain "The report has changed: a notification was sent."
+    And an orphaned resources notification should have been sent to "website@website.com"
+
   Scenario: Without a default origin the email is sent without a link and the missing link is logged
     Given there is a site with every kind of orphan and every kind of use
     When I run the scheduled orphaned resources scan

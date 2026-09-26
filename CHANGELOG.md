@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- `orphaned_resources.notify.recipients` accepts `Name <address>` as well as a bare address, in a list or a comma-separated string (quote a name containing a comma), so the template's default `MAILER_EMAIL` no longer silently stops the orphan alert ([#363](https://github.com/components-web-app/api-components-bundle/pull/363))
+
 ### Tooling
 - The Behat suite runs as concurrent shards (`bin/behat-parallel`) with coverage merged into one report, and the test app hashes passwords at bcrypt cost 4: about 9x faster locally ([#360](https://github.com/components-web-app/api-components-bundle/pull/360))
 - Infection on a pull request mutates only the lines it changes in `src/`, gated at 80; `main` still runs the full set and is the only run that sends the Stryker badge score ([#362](https://github.com/components-web-app/api-components-bundle/pull/362))

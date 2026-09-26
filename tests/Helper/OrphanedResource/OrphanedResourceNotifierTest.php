@@ -70,6 +70,40 @@ class OrphanedResourceNotifierTest extends TestCase
         self::assertSame(self::RECIPIENTS, array_map(static fn ($address) => $address->getAddress(), $mailer->messages[0]->getTo()));
     }
 
+    public function test_recipients_may_mix_bare_addresses_and_named_addresses(): void
+    {
+        $mailer = $this->recordingMailer();
+
+        $result = $this->notifier($mailer, ['admin@example.com', 'My Website <website@website.com>'])->notify($this->changed());
+
+        self::assertSame(OrphanedResourceNotificationResult::Sent, $result);
+        self::assertSame(
+            [['admin@example.com', ''], ['website@website.com', 'My Website']],
+            array_map(static fn ($address) => [$address->getAddress(), $address->getName()], $mailer->messages[0]->getTo())
+        );
+    }
+
+    public function test_a_comma_separated_string_may_mix_bare_addresses_and_named_addresses_with_a_comma_in_a_quoted_name(): void
+    {
+        $mailer = $this->recordingMailer();
+
+        $this->notifier($mailer, 'admin@example.com, My Website <website@website.com>, "Smith, Jane" <jane@example.com>')->notify($this->changed());
+
+        self::assertSame(
+            [['admin@example.com', ''], ['website@website.com', 'My Website'], ['jane@example.com', 'Smith, Jane']],
+            array_map(static fn ($address) => [$address->getAddress(), $address->getName()], $mailer->messages[0]->getTo())
+        );
+    }
+
+    public function test_a_named_recipient_with_an_invalid_address_fails_the_notification_without_sending(): void
+    {
+        $mailer = $this->createMock(MailerInterface::class);
+        $mailer->expects(self::never())->method('send');
+
+        self::assertSame(OrphanedResourceNotificationResult::Failed, $this->notifier($mailer, 'My Website <not an email>')->notify($this->changed()));
+        self::assertTrue($this->logs->hasErrorThatContains('My Website <not an email>'));
+    }
+
     public function test_nothing_is_sent_when_the_report_is_unchanged(): void
     {
         $mailer = $this->createMock(MailerInterface::class);

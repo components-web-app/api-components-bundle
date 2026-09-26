@@ -433,6 +433,41 @@ class ConfigurationTest extends TestCase
         $this->process($config);
     }
 
+    #[DataProvider('namedRecipientsProvider')]
+    public function test_orphaned_resource_notification_recipients_may_carry_a_display_name(array|string $recipients): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_resources']['notify']['recipients'] = $recipients;
+
+        self::assertSame($recipients, $this->process($config)['orphaned_resources']['notify']['recipients']);
+    }
+
+    public static function namedRecipientsProvider(): iterable
+    {
+        yield 'a bare address' => ['website@website.com'];
+        yield 'a name and address' => ['My Website <website@website.com>'];
+        yield 'a list mixing both' => [['website@website.com', 'My Website <website@website.com>']];
+        yield 'a comma-separated string mixing both' => ['admin@example.com, My Website <website@website.com>'];
+        yield 'a quoted name containing a comma' => ['"Smith, Jane" <jane@example.com>, admin@example.com'];
+    }
+
+    #[DataProvider('invalidNamedRecipientsProvider')]
+    public function test_an_invalid_named_orphaned_resource_notification_recipient_is_rejected(array|string $recipients): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_resources']['notify']['recipients'] = $recipients;
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->process($config);
+    }
+
+    public static function invalidNamedRecipientsProvider(): iterable
+    {
+        yield 'a name with an invalid address' => ['My Website <not an email>'];
+        yield 'an unquoted name containing a comma' => ['Smith, Jane <jane@example.com>'];
+        yield 'an invalid address in a list with a named one' => [['My Website <website@website.com>', 'not an email']];
+    }
+
     public function test_orphaned_resource_notification_recipients_may_be_an_unresolved_parameter_while_prepending(): void
     {
         $config = self::minimalConfig();

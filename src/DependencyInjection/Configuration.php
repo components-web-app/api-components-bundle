@@ -18,6 +18,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
+use Silverback\ApiComponentsBundle\Utility\EmailRecipientList;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -107,7 +108,7 @@ class Configuration implements ConfigurationInterface
                             ->info('Emails sent by `silverback:api-components:scan-orphaned` when its result differs from the last stored report. No recipients means no emails.')
                             ->children()
                                 ->variableNode('recipients')
-                                    ->info('Email addresses: a list, or one comma-separated string so that an environment variable can supply them.')
+                                    ->info('Email addresses, bare or `Name <address>`: a list, or one comma-separated string so that an environment variable can supply them. Quote a name containing a comma.')
                                     ->defaultValue([])
                                     ->validate()
                                         ->ifTrue(static fn (mixed $recipients): bool => !self::areEmailAddresses($recipients))
@@ -130,7 +131,7 @@ class Configuration implements ConfigurationInterface
     private static function areEmailAddresses(mixed $recipients): bool
     {
         if (\is_string($recipients)) {
-            $recipients = explode(',', $recipients);
+            $recipients = EmailRecipientList::split($recipients);
         }
         if (!\is_array($recipients)) {
             return false;
@@ -151,7 +152,7 @@ class Configuration implements ConfigurationInterface
     private static function isEmailAddress(string $value): bool
     {
         try {
-            new Address($value);
+            Address::create($value);
         } catch (RfcComplianceException|MimeInvalidArgumentException) {
             return false;
         }
