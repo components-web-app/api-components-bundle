@@ -30,6 +30,7 @@ class OrphanedFileReportStoreTest extends OrphanedResourceDatabaseTestCase
             new \DateTimeImmutable('2026-09-25T10:11:12.345678+00:00'),
             [['adapter' => 'local', 'path' => 'orphan.png']],
             [['resource' => '/dummy_uploadables/1', 'adapter' => 'local', 'path' => 'missing.png']],
+            [['adapter' => 'local', 'path' => 'logo.png']],
         ));
         $this->entityManager->clear();
 
@@ -39,6 +40,7 @@ class OrphanedFileReportStoreTest extends OrphanedResourceDatabaseTestCase
         self::assertSame('2026-09-25T10:11:12.345678+00:00', $report->generatedAt->format(OrphanedFileReportRecord::GENERATED_AT_FORMAT));
         self::assertSame([['adapter' => 'local', 'path' => 'orphan.png']], $report->orphanedFiles);
         self::assertSame([['resource' => '/dummy_uploadables/1', 'adapter' => 'local', 'path' => 'missing.png']], $report->missingFiles);
+        self::assertSame([['adapter' => 'local', 'path' => 'logo.png']], $report->unknownFiles);
     }
 
     public function test_the_report_is_one_row_in_its_own_prefixed_table(): void
@@ -46,10 +48,10 @@ class OrphanedFileReportStoreTest extends OrphanedResourceDatabaseTestCase
         $this->store()->save(new OrphanedFileReport(new \DateTimeImmutable('2026-09-25T10:11:12.000001+00:00'), [['adapter' => 'local', 'path' => 'a.png']]));
         $this->store()->save(new OrphanedFileReport(new \DateTimeImmutable('2026-09-25T10:11:13.000002+00:00'), [['adapter' => 'local', 'path' => 'b.png']]));
 
-        $rows = $this->entityManager->getConnection()->fetchAllAssociative('SELECT id, generated_at, orphaned_files, missing_files FROM _acb_orphaned_file_report');
+        $rows = $this->entityManager->getConnection()->fetchAllAssociative('SELECT id, generated_at, orphaned_files, missing_files, unknown_files FROM _acb_orphaned_file_report');
 
         self::assertSame(
-            [['id' => 1, 'generated_at' => '2026-09-25T10:11:13.000002+00:00', 'orphaned_files' => '[{"adapter":"local","path":"b.png"}]', 'missing_files' => '[]']],
+            [['id' => 1, 'generated_at' => '2026-09-25T10:11:13.000002+00:00', 'orphaned_files' => '[{"adapter":"local","path":"b.png"}]', 'missing_files' => '[]', 'unknown_files' => '[]']],
             $rows
         );
         self::assertSame(1, (new OrphanedFileReportRecord())->getId());

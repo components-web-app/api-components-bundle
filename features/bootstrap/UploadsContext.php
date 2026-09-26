@@ -23,6 +23,7 @@ use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\Assert;
 use Silverback\ApiComponentsBundle\ApiResource\OrphanedFileReport;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
+use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileReportStore;
@@ -421,6 +422,15 @@ class UploadsContext implements Context
         if ('older than the minimum age' === $age) {
             $this->ageStoredFile($path);
         }
+    }
+
+    /**
+     * @Given the stored file :path has file info
+     */
+    public function theStoredFileHasFileInfo(string $path): void
+    {
+        $this->manager->persist(new FileInfo($path, 'image/png', 1, 1, 1, null));
+        $this->manager->flush();
     }
 
     /**

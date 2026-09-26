@@ -27,9 +27,11 @@ use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDeleter;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileReportStore;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileLister;
+use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileNameMatcher;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Message\ScanOrphanedFilesMessage;
 use Silverback\ApiComponentsBundle\MessageHandler\ScanOrphanedFilesHandler;
+use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Tests\Helper\OrphanedFile\InMemoryOrphanedFileReportStore;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -49,6 +51,7 @@ class OrphanedFileServicesTest extends TestCase
     private const string DETECTOR_ID = 'silverback.api_components.orphaned_file.detector';
     private const string DELETER_ID = 'silverback.api_components.orphaned_file.deleter';
     private const string LISTER_ID = 'silverback.api_components.orphaned_file.lister';
+    private const string NAME_MATCHER_ID = 'silverback.api_components.orphaned_file.name_matcher';
     private const string HANDLER_ID = 'silverback.api_components.message_handler.scan_orphaned_files';
     private const string STORE_ID = 'silverback.api_components.orphaned_file.report_store';
     private const string COMMAND_ID = 'silverback.api_components.command.scan_orphaned_files';
@@ -76,6 +79,11 @@ class OrphanedFileServicesTest extends TestCase
         self::assertSame(FilesystemProvider::class, (string) $definition->getArgument('$filesystemProvider'));
         self::assertSame(IriConverterInterface::class, (string) $definition->getArgument('$iriConverter'));
         self::assertSame(self::LISTER_ID, (string) $definition->getArgument('$lister'));
+        self::assertSame(self::NAME_MATCHER_ID, (string) $definition->getArgument('$nameMatcher'));
+        self::assertSame(FileInfoRepository::class, (string) $definition->getArgument('$fileInfoRepository'));
+        self::assertSame(StoredFileNameMatcher::class, $container->getDefinition(self::NAME_MATCHER_ID)->getClass());
+        self::assertFalse($container->getDefinition(self::NAME_MATCHER_ID)->isAutoconfigured());
+        self::assertSame(self::NAME_MATCHER_ID, (string) $container->getAlias(StoredFileNameMatcher::class));
         $resolvers = $definition->getArgument('$cacheResolvers');
         self::assertInstanceOf(TaggedIteratorArgument::class, $resolvers);
         self::assertSame('liip_imagine.cache.resolver', $resolvers->getTag());
@@ -240,12 +248,13 @@ class OrphanedFileServicesTest extends TestCase
         $container->set(self::DETECTOR_ID, $this->detectorReturning(
             [['adapter' => 'local', 'path' => 'a.png'], ['adapter' => 's3', 'path' => 'b.png']],
             [['resource' => '/dummy_uploadables/1', 'adapter' => 'local', 'path' => 'm.png']],
+            [['adapter' => 'local', 'path' => 'logo.png']],
         ));
         $tester = new CommandTester($container->get(ScanOrphanedFilesCommand::class));
 
         self::assertSame(0, $tester->execute([]));
 
-        self::assertSame("Orphaned files: 2\nMissing files: 1\n", $tester->getDisplay());
+        self::assertSame("Orphaned files: 2\nUnknown files: 1\nMissing files: 1\n", $tester->getDisplay());
         self::assertCount(2, $container->get(OrphanedFileReportStore::class)->fetch()?->orphanedFiles ?? []);
     }
 
@@ -255,12 +264,13 @@ class OrphanedFileServicesTest extends TestCase
         $container->set(self::DETECTOR_ID, $this->detectorReturning(
             [['adapter' => 'local', 'path' => 'a.png']],
             [['resource' => '/dummy_uploadables/1', 'adapter' => 'local', 'path' => 'm.png']],
+            [['adapter' => 'local', 'path' => 'logo.png']],
         ));
         $tester = new CommandTester($container->get(ScanOrphanedFilesCommand::class));
 
         $tester->execute([], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
-        self::assertSame("Orphaned files: 1\n  local: a.png\nMissing files: 1\n  local: m.png (/dummy_uploadables/1)\n", $tester->getDisplay());
+        self::assertSame("Orphaned files: 1\n  local: a.png\nUnknown files: 1\n  local: logo.png\nMissing files: 1\n  local: m.png (/dummy_uploadables/1)\n", $tester->getDisplay());
     }
 
     public function test_the_scan_command_describes_itself(): void
@@ -276,11 +286,12 @@ class OrphanedFileServicesTest extends TestCase
     /**
      * @param list<array{adapter: string, path: string}>                   $orphanedFiles
      * @param list<array{resource: string, adapter: string, path: string}> $missingFiles
+     * @param list<array{adapter: string, path: string}>                   $unknownFiles
      */
-    private function detectorReturning(array $orphanedFiles, array $missingFiles = []): OrphanedFileDetector
+    private function detectorReturning(array $orphanedFiles, array $missingFiles = [], array $unknownFiles = []): OrphanedFileDetector
     {
         $detector = $this->createStub(OrphanedFileDetector::class);
-        $detector->method('detect')->willReturn(new OrphanedFileReport(new \DateTimeImmutable(), $orphanedFiles, $missingFiles));
+        $detector->method('detect')->willReturn(new OrphanedFileReport(new \DateTimeImmutable(), $orphanedFiles, $missingFiles, $unknownFiles));
 
         return $detector;
     }

@@ -31,7 +31,7 @@ class ScanOrphanedFilesCommand extends Command
     {
         $this
             ->setDescription('Scans the uploadable filestores for stored files no uploadable row references, and rows whose file is missing, and stores the report the admin API returns. It never deletes anything.')
-            ->setHelp('Prints the number of orphaned and missing files; add -v to list them. Orphaned files are deleted through the API: POST /_/orphaned_files/delete. Missing files are only reported.');
+            ->setHelp('Prints the number of orphaned, unknown and missing files; add -v to list them. Orphaned files are deleted through the API: POST /_/orphaned_files/delete. Unknown files (neither named by the bundle nor ever served) and missing files are only reported.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -41,6 +41,12 @@ class ScanOrphanedFilesCommand extends Command
         $output->writeln(\sprintf('Orphaned files: %d', \count($report->orphanedFiles)));
         if ($output->isVerbose()) {
             foreach ($report->orphanedFiles as $file) {
+                $output->writeln(\sprintf('  %s: %s', $file['adapter'], $file['path']));
+            }
+        }
+        $output->writeln(\sprintf('Unknown files: %d', \count($report->unknownFiles)));
+        if ($output->isVerbose()) {
+            foreach ($report->unknownFiles as $file) {
                 $output->writeln(\sprintf('  %s: %s', $file['adapter'], $file['path']));
             }
         }

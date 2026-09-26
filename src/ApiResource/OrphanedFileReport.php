@@ -41,12 +41,14 @@ final readonly class OrphanedFileReport
     /**
      * @param list<array{adapter: string, path: string}>                   $orphanedFiles
      * @param list<array{resource: string, adapter: string, path: string}> $missingFiles
+     * @param list<array{adapter: string, path: string}>                   $unknownFiles
      */
     public function __construct(
         #[Context([DateTimeNormalizer::FORMAT_KEY => OrphanedFileReportRecord::GENERATED_AT_FORMAT])]
         public \DateTimeImmutable $generatedAt,
         public array $orphanedFiles = [],
         public array $missingFiles = [],
+        public array $unknownFiles = [],
     ) {
     }
 }

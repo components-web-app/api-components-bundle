@@ -18,10 +18,13 @@ use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use League\Flysystem\UnableToRetrieveMetadata;
 use Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
+use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileLister;
+use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileNameMatcher;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver;
+use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyMultipleUploadable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableAndPublishable;
@@ -45,18 +48,19 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
 
     public function test_an_old_file_no_row_references_is_reported_on_its_filesystem(): void
     {
-        $this->write($this->local, 'orphan.png', self::OLD);
-        $this->write($this->local, 'components/orphan.png', self::OLD);
-        $this->write($this->publicUrlLocal, 'other.png', self::OLD);
+        $this->write($this->local, 'orphan-00000001.png', self::OLD);
+        $this->write($this->local, 'components/orphan-00000002.png', self::OLD);
+        $this->write($this->publicUrlLocal, 'other-00000003.png', self::OLD);
 
         $report = $this->detector()->detect();
 
         self::assertSame([
-            ['adapter' => 'local', 'path' => 'components/orphan.png'],
-            ['adapter' => 'local', 'path' => 'orphan.png'],
-            ['adapter' => 'public_url_local', 'path' => 'other.png'],
+            ['adapter' => 'local', 'path' => 'components/orphan-00000002.png'],
+            ['adapter' => 'local', 'path' => 'orphan-00000001.png'],
+            ['adapter' => 'public_url_local', 'path' => 'other-00000003.png'],
         ], $report->orphanedFiles);
         self::assertSame([], $report->missingFiles);
+        self::assertSame([], $report->unknownFiles);
         self::assertEqualsWithDelta(new \DateTimeImmutable(), $report->generatedAt, 5);
     }
 
@@ -73,11 +77,11 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
         $draft->setFilename('components/draft.png');
         $this->persist($draft);
         $this->entityManager->flush();
-        foreach (['used.png', 'preview.png', 'components/draft.png', 'orphan.png'] as $path) {
+        foreach (['used.png', 'preview.png', 'components/draft.png', 'orphan-00000001.png'] as $path) {
             $this->write($this->local, $path, self::OLD);
         }
 
-        self::assertSame([['adapter' => 'local', 'path' => 'orphan.png']], $this->detector()->detect()->orphanedFiles);
+        self::assertSame([['adapter' => 'local', 'path' => 'orphan-00000001.png']], $this->detector()->detect()->orphanedFiles);
     }
 
     public function test_a_path_a_field_on_another_filesystem_references_is_not_reported_because_two_adapters_can_share_one_storage(): void
@@ -90,6 +94,60 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
         $this->write($this->publicUrlLocal, 'shared.png', self::OLD);
 
         self::assertSame([], $this->detector()->detect()->orphanedFiles);
+    }
+
+    public function test_an_unreferenced_file_the_bundle_did_not_name_and_never_served_is_unknown_not_orphaned(): void
+    {
+        $this->write($this->local, 'logo.png', self::OLD);
+        $this->write($this->local, 'components/site-logo.png', self::OLD);
+        $this->write($this->local, 'token-0a1b2c3d.png', self::OLD);
+        $this->write($this->local, '0f1b2c3d-4e5f-4a7b-8c9d-0e1f2a3b4c5d.png', self::OLD);
+
+        $report = $this->detector()->detect();
+
+        self::assertSame([
+            ['adapter' => 'local', 'path' => '0f1b2c3d-4e5f-4a7b-8c9d-0e1f2a3b4c5d.png'],
+            ['adapter' => 'local', 'path' => 'token-0a1b2c3d.png'],
+        ], $report->orphanedFiles);
+        self::assertSame([
+            ['adapter' => 'local', 'path' => 'components/site-logo.png'],
+            ['adapter' => 'local', 'path' => 'logo.png'],
+        ], $report->unknownFiles);
+    }
+
+    public function test_an_unreferenced_file_with_file_info_is_orphaned_whatever_its_name(): void
+    {
+        $this->entityManager->persist(new FileInfo('served-before-194.png', 'image/png', 1, 1, 1, null));
+        $this->entityManager->persist(new FileInfo('/nested//variant-only.png', 'image/png', 1, 1, 1, 'thumbnail'));
+        $this->entityManager->flush();
+        $this->write($this->local, 'served-before-194.png', self::OLD);
+        $this->write($this->local, 'nested/variant-only.png', self::OLD);
+        $this->write($this->local, 'never-served.png', self::OLD);
+
+        $report = $this->detector()->detect();
+
+        self::assertSame([
+            ['adapter' => 'local', 'path' => 'nested/variant-only.png'],
+            ['adapter' => 'local', 'path' => 'served-before-194.png'],
+        ], $report->orphanedFiles);
+        self::assertSame([['adapter' => 'local', 'path' => 'never-served.png']], $report->unknownFiles);
+    }
+
+    public function test_a_referenced_file_is_never_unknown_and_unknown_files_obey_the_minimum_age_and_exclusions(): void
+    {
+        $uploadable = new DummyUploadable();
+        $uploadable->setFilename('logo.png');
+        $this->persist($uploadable);
+        $this->entityManager->flush();
+        $this->write($this->local, 'logo.png', self::OLD);
+        $this->write($this->local, 'new-logo.png', 10);
+        $this->write($this->local, 'exports/report.csv', self::OLD);
+        $this->write($this->local, 'cache/thumbnail/logo.png', self::OLD);
+
+        $report = $this->detector(excludedPaths: ['exports/'], cacheResolvers: [new FlysystemCacheResolver($this->local, '/', 'cache')])->detect();
+
+        self::assertSame([], $report->unknownFiles);
+        self::assertSame([], $report->orphanedFiles);
     }
 
     public function test_a_stored_path_is_compared_after_flysystem_normalises_it(): void
@@ -108,17 +166,17 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
 
     public function test_a_file_younger_than_the_minimum_age_is_not_reported_and_one_exactly_that_old_is(): void
     {
-        $this->write($this->local, 'new.png', 50);
-        $this->write($this->local, 'old.png', 100);
+        $this->write($this->local, 'new-00000005.png', 50);
+        $this->write($this->local, 'old-00000004.png', 100);
 
-        self::assertSame([['adapter' => 'local', 'path' => 'old.png']], $this->detector(minimumAge: 100)->detect()->orphanedFiles);
+        self::assertSame([['adapter' => 'local', 'path' => 'old-00000004.png']], $this->detector(minimumAge: 100)->detect()->orphanedFiles);
     }
 
     public function test_a_minimum_age_of_zero_reports_a_file_written_now(): void
     {
-        $this->write($this->local, 'new.png', 0);
+        $this->write($this->local, 'new-00000005.png', 0);
 
-        self::assertSame([['adapter' => 'local', 'path' => 'new.png']], $this->detector(minimumAge: 0)->detect()->orphanedFiles);
+        self::assertSame([['adapter' => 'local', 'path' => 'new-00000005.png']], $this->detector(minimumAge: 0)->detect()->orphanedFiles);
     }
 
     public function test_a_file_whose_age_cannot_be_read_is_not_reported(): void
@@ -133,17 +191,17 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
 
             public function lastModified(string $path): FileAttributes
             {
-                if ('unreadable.png' === $path) {
+                if ('unreadable-00000006.png' === $path) {
                     throw UnableToRetrieveMetadata::lastModified($path);
                 }
 
                 return parent::lastModified($path);
             }
         });
-        $this->write($this->local, 'unreadable.png', self::OLD);
-        $this->write($this->local, 'readable.png', self::OLD);
+        $this->write($this->local, 'unreadable-00000006.png', self::OLD);
+        $this->write($this->local, 'readable-00000007.png', self::OLD);
 
-        self::assertSame([['adapter' => 'local', 'path' => 'readable.png']], $this->detector()->detect()->orphanedFiles);
+        self::assertSame([['adapter' => 'local', 'path' => 'readable-00000007.png']], $this->detector()->detect()->orphanedFiles);
     }
 
     public function test_excluded_paths_and_imagine_cache_prefixes_are_excluded_on_every_scanned_filesystem(): void
@@ -152,7 +210,7 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
             $this->write($filesystem, 'exports/report.csv', self::OLD);
             $this->write($filesystem, 'media/cache/thumbnail/a.png', self::OLD);
             $this->write($filesystem, 'cache/thumbnail/a.png', self::OLD);
-            $this->write($filesystem, 'media/a.png', self::OLD);
+            $this->write($filesystem, 'media/a-00000008.png', self::OLD);
         }
         $resolvers = [
             new FlysystemCacheResolver(new Filesystem(new InMemoryFilesystemAdapter()), '/', 'media/cache'),
@@ -161,14 +219,14 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
         ];
 
         self::assertSame([
-            ['adapter' => 'local', 'path' => 'media/a.png'],
-            ['adapter' => 'public_url_local', 'path' => 'media/a.png'],
+            ['adapter' => 'local', 'path' => 'media/a-00000008.png'],
+            ['adapter' => 'public_url_local', 'path' => 'media/a-00000008.png'],
         ], $this->detector(excludedPaths: ['/exports/'], cacheResolvers: $resolvers)->detect()->orphanedFiles);
     }
 
     public function test_an_imagine_cache_with_no_prefix_leaves_nothing_the_scan_can_prove_orphaned(): void
     {
-        $this->write($this->local, 'orphan.png', self::OLD);
+        $this->write($this->local, 'orphan-00000001.png', self::OLD);
 
         $report = $this->detector(cacheResolvers: [new FlysystemCacheResolver($this->local, '/', '')])->detect();
 
@@ -250,7 +308,7 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
         $this->detector()->detect();
 
         self::assertCount($fewRows, $this->queryLogger->queries);
-        self::assertSame(\count($this->uploadableClasses()), $fewRows);
+        self::assertSame(\count($this->uploadableClasses()) + 1, $fewRows);
         foreach ($this->queryLogger->queries as $query) {
             self::assertStringStartsWith('SELECT', $query);
         }
@@ -292,6 +350,8 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
             ])),
             $this->iriConverter,
             new StoredFileLister(),
+            new StoredFileNameMatcher(),
+            new FileInfoRepository($this->registry),
             $cacheResolvers,
             $excludedPaths,
             $minimumAge,

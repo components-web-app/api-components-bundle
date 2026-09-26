@@ -20,9 +20,11 @@ use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDeleter;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileReportStore;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileLister;
+use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileNameMatcher;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Message\ScanOrphanedFilesMessage;
 use Silverback\ApiComponentsBundle\MessageHandler\ScanOrphanedFilesHandler;
+use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -48,6 +50,12 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(StoredFileLister::class, 'silverback.api_components.orphaned_file.lister');
 
     $services
+        ->set('silverback.api_components.orphaned_file.name_matcher')
+        ->class(StoredFileNameMatcher::class)
+        ->autoconfigure(false);
+    $services->alias(StoredFileNameMatcher::class, 'silverback.api_components.orphaned_file.name_matcher');
+
+    $services
         ->set('silverback.api_components.orphaned_file.detector')
         ->class(OrphanedFileDetector::class)
         ->autoconfigure(false)
@@ -57,6 +65,8 @@ return static function (ContainerConfigurator $configurator) {
             '$filesystemProvider' => new Reference(FilesystemProvider::class),
             '$iriConverter' => new Reference(IriConverterInterface::class),
             '$lister' => new Reference('silverback.api_components.orphaned_file.lister'),
+            '$nameMatcher' => new Reference('silverback.api_components.orphaned_file.name_matcher'),
+            '$fileInfoRepository' => new Reference(FileInfoRepository::class),
             '$cacheResolvers' => tagged_iterator('liip_imagine.cache.resolver'),
             '$excludedPaths' => [],
             '$minimumAge' => 3600,

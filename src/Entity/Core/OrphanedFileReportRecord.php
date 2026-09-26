@@ -36,6 +36,10 @@ class OrphanedFileReportRecord
     #[ORM\Column(name: 'missing_files', type: 'json')]
     private array $missingFiles = [];
 
+    /** @var list<array{adapter: string, path: string}> */
+    #[ORM\Column(name: 'unknown_files', type: 'json')]
+    private array $unknownFiles = [];
+
     public function getId(): int
     {
         return $this->id;
@@ -46,6 +50,7 @@ class OrphanedFileReportRecord
         $this->generatedAt = $report->generatedAt->format(self::GENERATED_AT_FORMAT);
         $this->orphanedFiles = $report->orphanedFiles;
         $this->missingFiles = $report->missingFiles;
+        $this->unknownFiles = $report->unknownFiles;
     }
 
     public function toReport(): OrphanedFileReport
@@ -54,6 +59,7 @@ class OrphanedFileReportRecord
             new \DateTimeImmutable($this->generatedAt),
             $this->orphanedFiles,
             $this->missingFiles,
+            $this->unknownFiles,
         );
     }
 }

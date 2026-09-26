@@ -42,6 +42,17 @@ class FileInfoRepository extends ServiceEntityRepository
         );
     }
 
+    /**
+     * @return list<string>
+     */
+    public function findPaths(): array
+    {
+        return array_values(array_map('strval', $this->createQueryBuilder('f')
+            ->select('DISTINCT f.path')
+            ->getQuery()
+            ->getSingleColumnResult()));
+    }
+
     public function deleteByPathsAndFilters(array $paths, ?array $filters): void
     {
         if (!\count($paths)) {

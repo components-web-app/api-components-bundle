@@ -24,6 +24,7 @@ class OrphanedFileDeleter
     public const string NOT_FOUND = 'not_found';
     public const string NOT_ORPHANED = 'not_orphaned';
     public const string DELETE_FAILED = 'delete_failed';
+    public const string UNKNOWN = 'unknown';
 
     public function __construct(
         private readonly OrphanedFileDetector $detector,
@@ -48,10 +49,15 @@ class OrphanedFileDeleter
             foreach ($report->orphanedFiles as $file) {
                 $orphansByPath[$file['path']][] = $file;
             }
+            $unknown = array_column($report->unknownFiles, 'path', 'path');
             $selected = [];
             foreach (array_unique($paths) as $path) {
                 if (isset($orphansByPath[$path])) {
                     array_push($selected, ...$orphansByPath[$path]);
+                    continue;
+                }
+                if (isset($unknown[$path])) {
+                    $rejected[] = ['path' => $path, 'reason' => self::UNKNOWN];
                     continue;
                 }
                 $rejected[] = ['path' => $path, 'reason' => $this->exists($path) ? self::NOT_ORPHANED : self::NOT_FOUND];
@@ -79,6 +85,7 @@ class OrphanedFileDeleter
             $report->generatedAt,
             array_values(array_filter($report->orphanedFiles, static fn (array $file): bool => !\in_array($file, $deleted, true))),
             $report->missingFiles,
+            $report->unknownFiles,
         ));
 
         return new OrphanedFileDeletion($deleted, $rejected);

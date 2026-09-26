@@ -25,6 +25,7 @@ use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\OrphanedFileReportRecord;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver;
+use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 
 class OrphanedFileDetector
@@ -41,6 +42,8 @@ class OrphanedFileDetector
         private readonly FilesystemProvider $filesystemProvider,
         private readonly IriConverterInterface $iriConverter,
         private readonly StoredFileLister $lister,
+        private readonly StoredFileNameMatcher $nameMatcher,
+        private readonly FileInfoRepository $fileInfoRepository,
         private readonly iterable $cacheResolvers,
         private readonly array $excludedPaths,
         private readonly int $minimumAge,
@@ -59,9 +62,15 @@ class OrphanedFileDetector
             $referenced[$this->normalize($reference['path'])] = true;
         }
 
+        $served = [];
+        foreach ($this->fileInfoRepository->findPaths() as $path) {
+            $served[$this->normalize($path)] = true;
+        }
+
         $excluded = $this->excludedPrefixes();
         $listed = [];
         $orphanedFiles = [];
+        $unknownFiles = [];
         $oldest = $generatedAt->getTimestamp() - $this->minimumAge;
         foreach ($prefixes as $adapter => $adapterPrefixes) {
             $filesystem = $this->filesystemProvider->getFilesystem($adapter);
@@ -75,7 +84,11 @@ class OrphanedFileDetector
                 if (null === $lastModified || $lastModified > $oldest) {
                     continue;
                 }
-                $orphanedFiles[] = ['adapter' => $adapter, 'path' => $path];
+                if (isset($served[$path]) || $this->nameMatcher->matches($path)) {
+                    $orphanedFiles[] = ['adapter' => $adapter, 'path' => $path];
+                    continue;
+                }
+                $unknownFiles[] = ['adapter' => $adapter, 'path' => $path];
             }
         }
 
@@ -92,10 +105,12 @@ class OrphanedFileDetector
             ];
         }
 
-        usort($orphanedFiles, static fn (array $a, array $b): int => [$a['adapter'], $a['path']] <=> [$b['adapter'], $b['path']]);
+        $byAdapterAndPath = static fn (array $a, array $b): int => [$a['adapter'], $a['path']] <=> [$b['adapter'], $b['path']];
+        usort($orphanedFiles, $byAdapterAndPath);
+        usort($unknownFiles, $byAdapterAndPath);
         usort($missingFiles, static fn (array $a, array $b): int => [$a['adapter'], $a['path'], $a['resource']] <=> [$b['adapter'], $b['path'], $b['resource']]);
 
-        return new OrphanedFileReport($generatedAt, $orphanedFiles, $missingFiles);
+        return new OrphanedFileReport($generatedAt, $orphanedFiles, $missingFiles, $unknownFiles);
     }
 
     /**
