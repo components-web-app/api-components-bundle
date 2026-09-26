@@ -83,6 +83,7 @@ use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListen
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\SqlLiteForeignKeyEnabler;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableFileDeletionListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\EntityPersistFormListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\User\ChangePasswordListener;
@@ -1385,6 +1386,22 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
     $services->alias(UploadableListener::class, 'silverback.api_components.doctrine.event_listener.uploadable');
+
+    $services
+        ->set('silverback.api_components.doctrine.event_listener.uploadable_file_deletion')
+        ->class(UploadableFileDeletionListener::class)
+        ->args(
+            [
+                new Reference(UploadableAttributeReader::class),
+                new Reference(UploadableFileManager::class),
+                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            ]
+        )
+        ->autoconfigure(false)
+        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
+        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush])
+        ->tag('kernel.reset', ['method' => 'reset']);
+    $services->alias(UploadableFileDeletionListener::class, 'silverback.api_components.doctrine.event_listener.uploadable_file_deletion');
 
     $services
         ->set('silverback.api_components.serializer.mapping_loader.uploadable')

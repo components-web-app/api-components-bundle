@@ -42,16 +42,13 @@ class FileInfoRepository extends ServiceEntityRepository
         );
     }
 
-    /**
-     * @return FileInfo[]
-     */
-    public function findByPathsAndFilters(array $paths, ?array $filters): array
+    public function deleteByPathsAndFilters(array $paths, ?array $filters): void
     {
         if (!\count($paths)) {
-            return [];
+            return;
         }
 
-        $queryBuilder = $this->createQueryBuilder('f');
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder()->delete(FileInfo::class, 'f');
         $expr = $queryBuilder->expr();
 
         $filterQueries = $this->getFilterQueries($filters, $expr, $queryBuilder);
@@ -70,7 +67,7 @@ class FileInfoRepository extends ServiceEntityRepository
                 ->orWhere($expr->andX($expr->eq('f.path', ':path_' . $pathIndex), $expr->orX(...$filterQueries)));
         }
 
-        return $queryBuilder->getQuery()->getResult();
+        $queryBuilder->getQuery()->execute();
     }
 
     private function getFilterQueries(?array $filters, Expr $expr, QueryBuilder $queryBuilder): array

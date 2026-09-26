@@ -160,6 +160,7 @@ final class PublishableContext implements Context
         $this->manager->persist($position);
         $this->manager->flush();
         $this->restContext->resources['component_position'] = $this->iriConverter->getIriFromResource($position);
+        $this->restContext->resources['component_group'] = $this->iriConverter->getIriFromResource($collection);
     }
 
     /**

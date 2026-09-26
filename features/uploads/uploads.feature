@@ -189,6 +189,62 @@ Feature: API Resources which can have files uploaded
     When I send a "DELETE" request to the resource "dummy_uploadable"
     Then the response status code should be 204
 
+  @loginUser
+  Scenario: Deleting an uploadable resource deletes its stored file
+    Given there is a DummyUploadable with the file "image.png" saved as "dummy_uploadable"
+    And the file for the resource "dummy_uploadable" should exist in its configured filestore
+    When I send a "DELETE" request to the resource "dummy_uploadable"
+    Then the response status code should be 204
+    And the file checked for the resource "dummy_uploadable" should no longer exist in its configured filestore
+
+  @loginUser
+  Scenario: A delete the database rejects leaves the stored file in place
+    Given there is a DummyUploadable with the file "image.png" saved as "dummy_uploadable"
+    And the database rejects deletes
+    When I send a "DELETE" request to the resource "dummy_uploadable"
+    Then the response status code should be 500
+    And the file for the resource "dummy_uploadable" should exist in its configured filestore
+
+  @loginAdmin
+  Scenario: Deleting the group holding an uploadable component deletes the component's stored file
+    Given there is a DummyUploadableAndPublishable
+    And there is a ComponentPosition with the resource "dummy_uploadable"
+    And the file for the resource "dummy_uploadable" should exist in its configured filestore
+    When I send a "DELETE" request to the resource "component_group"
+    Then the response status code should be 204
+    And the resource "dummy_uploadable" should not exist
+    And the file checked for the resource "dummy_uploadable" should no longer exist in its configured filestore
+
+  @loginAdmin
+  Scenario: Deleting every orphan deletes the stored file of an orphaned uploadable component
+    Given there is a DummyUploadableAndPublishable
+    And the file for the resource "dummy_uploadable" should exist in its configured filestore
+    When I send a "POST" request to "/_/orphaned_resources/delete" with body:
+      """
+      {"all": true}
+      """
+    Then the response status code should be 200
+    And the resource "dummy_uploadable" should not exist
+    And the file checked for the resource "dummy_uploadable" should no longer exist in its configured filestore
+
+  @loginAdmin
+  Scenario: Deleting a draft keeps the stored file its published version shares
+    Given there is a DummyUploadableAndPublishable with a draft
+    And the resource "dummy_uploadable_draft" has the same file as the resource "dummy_uploadable"
+    When I send a "DELETE" request to the resource "dummy_uploadable_draft"
+    Then the response status code should be 204
+    And the resource "dummy_uploadable_draft" should not exist
+    And the file for the resource "dummy_uploadable" should exist in its configured filestore
+
+  @loginAdmin
+  Scenario: Deleting a published resource keeps the stored file its draft shares
+    Given there is a DummyUploadableAndPublishable with a draft
+    And the resource "dummy_uploadable_draft" has the same file as the resource "dummy_uploadable"
+    When I send a "DELETE" request to the resource "dummy_uploadable" and the postfix "?published=true"
+    Then the response status code should be 204
+    And the resource "dummy_uploadable" should not exist
+    And the file for the resource "dummy_uploadable_draft" should exist in its configured filestore
+
   @loginAdmin
   Scenario: When I publish a draft image where a published image exists, the component positions should be present on the newly published resource
     Given there is a DummyUploadableAndPublishable with a draft
