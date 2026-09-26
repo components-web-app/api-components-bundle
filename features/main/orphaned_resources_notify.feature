@@ -124,6 +124,13 @@ Feature: Emailing admins when the orphaned resource report changes
     Then the console command should have exited with 0
     And no orphaned resources notification should have been sent
 
+  Scenario: With no recipients configured --no-notify still scans and stores the report
+    Given there is a site with every kind of orphan and every kind of use
+    And no recipients are configured for orphaned resources notifications
+    When I run the scheduled orphaned resources scan with "--no-notify"
+    Then the console command should have exited with 0
+    And the orphaned resources report should be stored in the database
+
   Scenario: A recipient in the "Name <address>" form is emailed at that address
     Given there is a site with every kind of orphan and every kind of use
     And the orphaned resources notification recipients are "My Website <website@website.com>"

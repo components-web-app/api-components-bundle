@@ -407,6 +407,14 @@ class ConfigurationTest extends TestCase
         $this->process($config);
     }
 
+    public function test_null_orphaned_resource_notification_recipients_mean_no_recipients(): void
+    {
+        $config = self::minimalConfig();
+        $config['orphaned_resources']['notify']['recipients'] = null;
+
+        self::assertSame([], $this->process($config)['orphaned_resources']['notify']['recipients']);
+    }
+
     public function test_orphaned_resource_notification_recipients_from_environment_variables_are_left_to_run_time(): void
     {
         $config = self::minimalConfig();

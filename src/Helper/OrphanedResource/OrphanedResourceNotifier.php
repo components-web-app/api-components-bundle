@@ -27,13 +27,13 @@ use Symfony\Component\Mime\Exception\RfcComplianceException;
 class OrphanedResourceNotifier
 {
     /**
-     * @param list<string>|string $recipients
+     * @param list<string>|string|null $recipients
      */
     public function __construct(
         private readonly MailerInterface $mailer,
         private readonly OrphanedResourcesChangedEmailFactory $emailFactory,
         private readonly RefererUrlResolver $urlResolver,
-        private readonly array|string $recipients = [],
+        private readonly array|string|null $recipients = [],
         private readonly string $adminPagePath = '/_cwa/orphaned',
         private readonly ?LoggerInterface $logger = null,
     ) {
@@ -83,7 +83,7 @@ class OrphanedResourceNotifier
      */
     private function getRecipients(): array
     {
-        $recipients = \is_string($this->recipients) ? EmailRecipientList::split($this->recipients) : $this->recipients;
+        $recipients = \is_string($this->recipients) ? EmailRecipientList::split($this->recipients) : $this->recipients ?? [];
 
         return array_values(array_filter(array_map('trim', $recipients), static fn (string $recipient): bool => '' !== $recipient));
     }

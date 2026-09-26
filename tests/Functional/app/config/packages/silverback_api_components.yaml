@@ -39,4 +39,4 @@ silverback_api_components:
     routable_security: "is_granted('ROLE_ADMIN')"
     orphaned_resources:
         notify:
-            recipients: '%env(ORPHANED_RESOURCES_NOTIFY_RECIPIENTS)%'
+            recipients: '%env(default::ORPHANED_RESOURCES_NOTIFY_RECIPIENTS)%'
