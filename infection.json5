@@ -9,7 +9,10 @@
         "text": "build/logs/infection.log",
         "summary": "build/logs/infection-summary.log",
         "json": "build/logs/infection.json",
-        "summaryJson": "build/logs/infection-summary.json"
+        "summaryJson": "build/logs/infection-summary.json",
+        "stryker": {
+            "badge": "main"
+        }
     },
     "mutators": {
         "@default": true
