@@ -54,6 +54,7 @@ class Configuration implements ConfigurationInterface
         $this->addUserNode($rootNode);
         $this->addHttpCacheNode($rootNode);
         $this->addOrphanedResourcesNode($rootNode);
+        $this->addOrphanedFilesNode($rootNode);
 
         return $treeBuilder;
     }
@@ -126,6 +127,29 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                                 ->scalarNode('subject')->cannotBeEmpty()->defaultValue('Orphaned resources changed on {{ website_name }}')->end()
                             ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    private function addOrphanedFilesNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('orphaned_files')
+                    ->addDefaultsIfNotSet()
+                    ->info('The orphaned files report: stored files under an uploadable field\'s filesystem and prefix that no uploadable row references.')
+                    ->children()
+                        ->integerNode('minimum_age')
+                            ->info('Seconds since a file was last modified before it can be reported. An upload is stored before its row is flushed, so a younger file may be one being uploaded now.')
+                            ->min(0)
+                            ->defaultValue(3600)
+                        ->end()
+                        ->arrayNode('excluded_paths')
+                            ->info('Path prefixes never listed or reported on any scanned filesystem, for anything else the application stores beside its uploads. Imagine cache prefixes are excluded without being listed here.')
+                            ->scalarPrototype()->end()
+                            ->defaultValue([])
                         ->end()
                     ->end()
                 ->end()

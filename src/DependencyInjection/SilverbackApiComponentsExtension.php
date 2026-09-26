@@ -41,6 +41,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
+use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
@@ -150,6 +151,10 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition = $container->findDefinition(OrphanedResourcesChangedEmailFactory::class);
         $definition->setArgument('$subject', $config['orphaned_resources']['notify']['subject']);
         $definition->setArgument('$context', ['website_name' => $config['website_name']]);
+
+        $definition = $container->findDefinition(OrphanedFileDetector::class);
+        $definition->setArgument('$minimumAge', $config['orphaned_files']['minimum_age']);
+        $definition->setArgument('$excludedPaths', $config['orphaned_files']['excluded_paths']);
 
         $this->setEmailVerificationArguments($container, $config['user']);
         $this->setUserClassArguments($container, $config['user']['class_name']);
@@ -298,6 +303,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $loader->load('services_doctrine_orm_http_cache_purger.php');
         $loader->load('services_doctrine_orm_mercure_publisher.php');
         $loader->load('services_orphaned_resources.php');
+        $loader->load('services_orphaned_files.php');
 
         if (class_exists(\Symfony\Bundle\MakerBundle\Maker\AbstractMaker::class)) {
             $loader->load('services_maker.php');

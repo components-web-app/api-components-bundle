@@ -15,14 +15,17 @@ use ApiPlatform\Metadata\Exception\ItemNotFoundException;
 use ApiPlatform\Metadata\IriConverterInterface;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behat\Gherkin\Node\PyStringNode;
 use Behatch\Context\JsonContext as BehatchJsonContext;
 use Behatch\Context\RestContext as BehatchRestContext;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\Assert;
+use Silverback\ApiComponentsBundle\ApiResource\OrphanedFileReport;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
+use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileReportStore;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableAndPublishable;
@@ -32,6 +35,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploa
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableTemporaryUrl;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
@@ -39,6 +43,8 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
  */
 class UploadsContext implements Context
 {
+    private const array UPLOAD_ADAPTERS = ['local', 'public_url_local'];
+
     private ?RestContext $restContext;
     private ?BehatchJsonContext $behatchJsonContext;
     private ?BehatchRestContext $behatchRestContext;
@@ -50,7 +56,7 @@ class UploadsContext implements Context
     /** @var array<string, list<array{string, string}>> */
     private array $checkedFiles = [];
 
-    public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter, UploadableFileManager $uploadableHelper, UploadableAttributeReader $uploadableAttributeReader, FilesystemProvider $filesystemProvider)
+    public function __construct(ManagerRegistry $doctrine, IriConverterInterface $iriConverter, UploadableFileManager $uploadableHelper, UploadableAttributeReader $uploadableAttributeReader, FilesystemProvider $filesystemProvider, private readonly KernelInterface $kernel, private readonly OrphanedFileReportStore $orphanedFileReportStore)
     {
         $this->manager = $doctrine->getManager();
         $this->iriConverter = $iriConverter;
@@ -387,6 +393,118 @@ class UploadsContext implements Context
     {
         $item = $this->getUploadableResourceByName($name);
         Assert::assertNull($item->getFilename());
+    }
+
+    /**
+     * @Given the upload filestores are empty
+     */
+    public function theUploadFilestoresAreEmpty(): void
+    {
+        foreach (self::UPLOAD_ADAPTERS as $adapter) {
+            $filesystem = $this->filesystemProvider->getFilesystem($adapter);
+            foreach ($filesystem->listContents('', false) as $item) {
+                if ($item->isDir()) {
+                    $filesystem->deleteDirectory($item->path());
+                    continue;
+                }
+                $filesystem->delete($item->path());
+            }
+        }
+    }
+
+    /**
+     * @Given /^there is a stored file "([^"]+)" (written just now|older than the minimum age)$/
+     */
+    public function thereIsAStoredFile(string $path, string $age): void
+    {
+        $this->filesystemProvider->getFilesystem('local')->write($path, $path);
+        if ('older than the minimum age' === $age) {
+            $this->ageStoredFile($path);
+        }
+    }
+
+    /**
+     * @Given the stored file of the resource :name is older than the minimum age
+     */
+    public function theStoredFileOfTheResourceIsOlderThanTheMinimumAge(string $name): void
+    {
+        $this->ageStoredFile($this->storedPathOf($name));
+    }
+
+    /**
+     * @Then /^the stored file "([^"]+)" should (not )?exist$/
+     */
+    public function theStoredFileShouldExist(string $path, string $not = ''): void
+    {
+        if ($this->filesystemProvider->getFilesystem('local')->fileExists($path) === ('' !== $not)) {
+            throw new \RuntimeException(\sprintf('The stored file "%s" should %sexist.', $path, $not));
+        }
+    }
+
+    /**
+     * @Then the JSON node :node should be equal to the stored path of the resource :name
+     */
+    public function theJsonNodeShouldBeEqualToTheStoredPathOfTheResource(string $node, string $name): void
+    {
+        $this->behatchJsonContext->theJsonNodeShouldBeEqualToTheString($node, $this->storedPathOf($name));
+    }
+
+    /**
+     * @When I request the deletion of the orphaned file stored by the resource :name
+     */
+    public function iRequestTheDeletionOfTheOrphanedFileStoredByTheResource(string $name): void
+    {
+        $this->behatchRestContext->iSendARequestToWithBody('POST', '/_/orphaned_files/delete', new PyStringNode([json_encode(['paths' => [$this->storedPathOf($name)]], \JSON_THROW_ON_ERROR)], 0));
+    }
+
+    /**
+     * @Given an orphaned files report has been stored
+     */
+    public function anOrphanedFilesReportHasBeenStored(): void
+    {
+        $this->orphanedFileReportStore->save(new OrphanedFileReport(new \DateTimeImmutable()));
+    }
+
+    /**
+     * @Then no orphaned files report should have been stored
+     */
+    public function noOrphanedFilesReportShouldHaveBeenStored(): void
+    {
+        $this->manager->clear();
+        if (null !== $this->orphanedFileReportStore->fetch()) {
+            throw new \RuntimeException('An orphaned files report was stored');
+        }
+    }
+
+    /**
+     * @Then /^the stored orphaned files report should list (\d+) orphaned files? and (\d+) missing files?$/
+     */
+    public function theStoredOrphanedFilesReportShouldList(int $orphaned, int $missing): void
+    {
+        $this->manager->clear();
+        $report = $this->orphanedFileReportStore->fetch();
+        if (null === $report || \count($report->orphanedFiles) !== $orphaned || \count($report->missingFiles) !== $missing) {
+            throw new \RuntimeException(\sprintf('The stored orphaned files report is %s', json_encode($report)));
+        }
+    }
+
+    private function storedPathOf(string $name): string
+    {
+        $filename = $this->getUploadableResourceByName($name)->getFilename();
+        if (null === $filename) {
+            throw new \RuntimeException(\sprintf('The resource "%s" has no stored file.', $name));
+        }
+
+        return $filename;
+    }
+
+    private function ageStoredFile(string $path): void
+    {
+        $absolutePath = $this->kernel->getProjectDir() . '/public/uploads' . \AppKernel::shardSuffix() . '/' . $path;
+        if (!touch($absolutePath, time() - 7200)) {
+            throw new \RuntimeException(\sprintf('Could not change the modification time of %s', $absolutePath));
+        }
+        clearstatcache(true, $absolutePath);
     }
 
     private function getUploadableResourceByName(string $name)

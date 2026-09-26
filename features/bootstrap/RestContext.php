@@ -96,6 +96,14 @@ class RestContext implements Context
     }
 
     /**
+     * @When I request the deletion of the orphaned files :paths
+     */
+    public function iRequestTheDeletionOfTheOrphanedFiles(string $paths): void
+    {
+        $this->restContext->iSendARequestToWithBody('POST', '/_/orphaned_files/delete', new PyStringNode([json_encode(['paths' => array_map('trim', explode(',', $paths))], \JSON_THROW_ON_ERROR)], 0));
+    }
+
+    /**
      * @Transform /^(now)$/
      *
      * @BeforeScenario @saveNow

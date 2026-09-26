@@ -342,6 +342,24 @@ class JsonContext implements Context
     }
 
     /**
+     * @Then the JSON node :node should list exactly the files :files
+     */
+    public function theJsonNodeShouldListExactlyTheFiles(string $node, string $files): void
+    {
+        $expected = array_map(static function (string $file): array {
+            [$adapter, $path] = explode(':', trim($file), 2);
+
+            return ['adapter' => $adapter, 'path' => $path];
+        }, explode(',', $files));
+        $actual = array_map(static fn (object $file): array => ['adapter' => $file->adapter, 'path' => $file->path], (array) $this->inspector->evaluate($this->getJson(), $node));
+        sort($expected);
+        sort($actual);
+        if ($expected !== $actual) {
+            throw new \Exception(\sprintf("The node '%s' lists %s, expected %s", $node, json_encode($actual), json_encode($expected)));
+        }
+    }
+
+    /**
      * @Then the JSON node :node should contain the element :value
      */
     public function theJsonNodeShouldContainTheElement(string $node, string $value): void
