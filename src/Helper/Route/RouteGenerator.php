@@ -86,8 +86,8 @@ class RouteGenerator implements RouteGeneratorInterface
 
         if ($existingRoute) {
             $existingRoute->setRedirect($route);
-            $route->setpageData($existingRoute->getPageData());
             $route->setPage($existingRoute->getPage());
+            $route->setpageData($existingRoute->getPageData());
         }
 
         return $route;
