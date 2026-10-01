@@ -42,6 +42,8 @@ final class UnreachableDatabaseMiddleware implements Middleware
         return new class($driver) extends AbstractDriverMiddleware {
             public function connect(array $params): Connection
             {
+                UnreachableDatabaseMiddleware::throwWhenUnreachable();
+
                 return new class(parent::connect($params)) extends AbstractConnectionMiddleware {
                     public function prepare(string $sql): Statement
                     {

@@ -120,7 +120,7 @@ A gate that fails when a host is slow gets re-run until a real failure is waved 
 
 ### API endpoints
 
-API Platform routes are prefixed by `RoutingPrefixResourceMetadataCollectionFactory` (`/_/` for bundle resources); the template imports them all under `/_api`. Security routes and `/_/health` are plain Symfony routes from `routing/all.php`.
+API Platform routes are prefixed by `RoutingPrefixResourceMetadataCollectionFactory` (`/_/` for bundle resources); the template imports them all under `/_api`. Security routes, `/_/health` and `/_/health/live` are plain Symfony routes from `routing/all.php`.
 
 | Endpoint | Purpose |
 |---|---|
@@ -136,6 +136,7 @@ API Platform routes are prefixed by `RoutingPrefixResourceMetadataCollectionFact
 | `POST /_/orphaned_resources/scan`, `GET /_/orphaned_resources`, `POST /_/orphaned_resources/delete` | Orphan report and deletion (`ROLE_ADMIN`). See **Orphaned resource report**. |
 | `POST /_/orphaned_files/scan`, `GET /_/orphaned_files`, `POST /_/orphaned_files/delete` | Orphaned, unknown and missing stored files (`ROLE_ADMIN`). See **Orphaned file report**. |
 | `GET /_/health` | Uncached readiness check, 200 or 503 (#312). |
+| `GET /_/health/live` | Uncached liveness check, always 200, no database (#374). |
 | `GET /me` | The current user. |
 | `GET /password/reset/request/{username}`, `/resend-verify-email/{username}`, `/resend-verify-new-email/{username}` | Requests whose job is an email: 400 and nothing changed when the link is refused (#326); 429 with `Retry-After` inside the flow's throttle (#331); 503 when the send fails. |
 | `GET /verify-email/{username}/{token}`, `/confirm-email/{username}/{emailAddress}/{token}` | Token links from those emails. |
@@ -215,6 +216,7 @@ Resources are fetched and cached **individually**. Never embed related data outs
 - `user:create` throws `ValidationFailedException` rather than writing an invalid or duplicate user (#254). There is no DB unique constraint on username or email.
 - Security routes: one path each. A duplicate path fails nothing and one route silently never runs; check with `debug:router`.
 - `GET /_/health` (#312) is a plain Symfony route (not an AP operation, which would add JSON-LD, cache headers and tags), `no-store`, 200 or 503 with the DBAL message logged at warning and never returned. It is imported by `routing/all.php`.
+- **Liveness is `/_/health/live`, readiness is `/_/health`** (#374). Liveness must fail only for what a restart fixes, so `LivenessAction` takes no dependencies and nothing on its request path may touch the database, a cache pool or a remote service; a database outage would otherwise restart every pod into a crash loop. `health.feature` pins it with the unreachable-database double, which fails on `connect()` as well as on queries.
 
 ### Forms
 

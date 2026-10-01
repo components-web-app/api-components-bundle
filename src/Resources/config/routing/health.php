@@ -12,10 +12,16 @@
 namespace Symfony\Component\Routing\Loader\Configurator;
 
 use Silverback\ApiComponentsBundle\Action\Health\HealthAction;
+use Silverback\ApiComponentsBundle\Action\Health\LivenessAction;
 
 return static function (RoutingConfigurator $routes): void {
     $routes
         ->add('api_components_health', '/_/health')
         ->methods(['GET'])
         ->controller(HealthAction::class);
+
+    $routes
+        ->add('api_components_health_live', '/_/health/live')
+        ->methods(['GET'])
+        ->controller(LivenessAction::class);
 };

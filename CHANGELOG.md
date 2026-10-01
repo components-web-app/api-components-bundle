@@ -11,6 +11,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - Upload and download operations no longer use custom controllers; `UploadStateProvider`/`DownloadStateProvider` run them from the read chain ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
 
 ### Added
+- `GET /_/health/live` (`api_components_health_live`): an anonymous, `private, no-store` liveness check that touches no database, cache or remote service, so it stays 200 through a database outage; use it for the liveness probe and `/_/health` for readiness ([#375](https://github.com/components-web-app/api-components-bundle/pull/375))
 - Orphaned file report (admin): `POST /_/orphaned_files/scan`, `GET /_/orphaned_files` and `silverback:api-components:scan-orphaned-files` report stored files under the uploadable fields' filesystems and prefixes that no row references (older than `orphaned_files.minimum_age`, default one hour; imagine cache and `orphaned_files.excluded_paths` excluded) as orphaned when the bundle named them or has file info for them and as unknown otherwise, and rows whose file is missing; `POST /_/orphaned_files/delete` deletes selected orphaned paths or all of them, re-checked against a fresh scan, and never an unknown file. Upgrade step: the report is stored in a new table, `_acb_orphaned_file_report`; generate and run a migration ([#373](https://github.com/components-web-app/api-components-bundle/pull/373))
 
 ### Fixed
