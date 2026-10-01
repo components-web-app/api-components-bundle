@@ -73,3 +73,54 @@ Feature: A health endpoint that is never cached and shows the API can reach its 
   Scenario: The database is reachable again in the next scenario
     When I send a "GET" request to "/_/health"
     Then the response status code should be 200
+
+  Scenario: An anonymous liveness check answers ok
+    When I send a "GET" request to "/_/health/live"
+    Then the response status code should be 200
+    And the header "Content-Type" should be equal to "application/json"
+    And the JSON should be equal to:
+    """
+    {
+      "status": "ok"
+    }
+    """
+
+  Scenario: A liveness check answers ok while the database is unreachable and readiness does not
+    Given the database is unreachable
+    When I send a "GET" request to "/_/health/live"
+    Then the response status code should be 200
+    And the JSON should be equal to:
+    """
+    {
+      "status": "ok"
+    }
+    """
+    When I send a "GET" request to "/_/health"
+    Then the response status code should be 503
+
+  Scenario: A liveness check is never stored, carries no cache tags and sets no cookie
+    When I send a "GET" request to "/_/health/live"
+    Then the response status code should be 200
+    And the header "Cache-Control" should contain "no-store"
+    And the header "Cache-Control" should not contain "public"
+    And the header "Cache-Control" should not contain "max-age"
+    And the header "xkey" should not exist
+    And the header "Surrogate-Key" should not exist
+    And the header "Cache-Tags" should not exist
+    And the header "Set-Cookie" should not exist
+
+  Scenario: A liveness check can be made with HEAD
+    When I send a "HEAD" request to "/_/health/live"
+    Then the response status code should be 200
+    And the header "Cache-Control" should contain "no-store"
+
+  Scenario Outline: A liveness check only answers GET and HEAD
+    When I send a "<method>" request to "/_/health/live"
+    Then the response status code should be 405
+
+    Examples:
+      | method |
+      | POST   |
+      | PUT    |
+      | PATCH  |
+      | DELETE |
