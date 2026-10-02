@@ -428,7 +428,6 @@ A redirect's name registers to whatever route holds its path or its name, whethe
 - **#186 — page-level `publishedAt` on `AbstractPage`. Do not start this** (Daniel, 2026-08-14). Component permission inheritance, the front-end draft/live UX and the hero-component state conflict are unresolved, and building the API side first would decide them. `liveAt` (#224) complements it but cannot express "draft page on a live URL".
 - **#325 — one unreachable invalidation URL stops purges to the others.** The loop is in API Platform's `SurrogateKeysPurger`; Daniel is taking it up with API Platform before any bundle workaround.
 - **#259 — Flex recipe.** Parked until the stable release.
-- **#222 — config guards still carrying the #214 pattern:** `user.class_name`, `refresh_token.*`, `publishable.permission`, `refresh_token.options.class`. Each fix may force configuration on existing applications (a BC break). Verify each empirically before deciding.
 - `make:page-data --properties a b` (space-separated) fails in Symfony's input binding before the maker runs; comma-separated and repeated options work.
 - Uploads: no field-level "generic file vs image" flag yet (#199 item 3).
 - Component cloning in the module (cwa-nuxt-module #157) must respect `explicitAllowOnly`.
