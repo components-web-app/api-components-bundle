@@ -20,7 +20,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Tooling
 - `API_PLATFORM_USE_SYMFONY_LISTENERS=0|1` sets the flag in the Behat test app, with a cache directory per value, and CI runs one Behat leg with it on ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
-- `simple-phpunit` runs PHPUnit 13.4 (PRNUM)
+- `simple-phpunit` runs PHPUnit 13.4 ([#378](https://github.com/components-web-app/api-components-bundle/pull/378))
 
 ## [2.0.0-alpha.7](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.6...2.0.0-alpha.7) - 2026-09-26
 
