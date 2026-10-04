@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.8](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.7...2.0.0-alpha.8) - 2026-10-04
+
 ### Breaking
 - `api_platform.use_symfony_listeners` is no longer forced on: the bundle follows API Platform's default (off). An application that needs API Platform's listeners must enable it itself; the bundle works either way ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
 - The bundle's API behaviour runs in state provider and processor decorators instead of `EventPriorities` listeners. Removed: `DenyAccessListener`, `ComponentUsageEventListener`, `RouteEventListener`, `DeletedResourceEventListener`, `UploadableEventListener` and the listeners' request/view methods ([#369](https://github.com/components-web-app/api-components-bundle/pull/369))
