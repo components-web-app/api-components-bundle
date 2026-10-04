@@ -23,11 +23,15 @@ use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Mercure\HubRegistry;
+use Symfony\Component\Mercure\Jwt\DefaultClaimsTokenFactory;
+use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\MockHub;
+use Symfony\Component\Mercure\ProtocolVersion;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
@@ -46,7 +50,7 @@ class MercureAuthorizationTest extends TestCase
             ['layout_get' => '/layouts/{id}'],
         );
 
-        self::assertSame(['http://example.com/layouts/{id}'], $authorization->getSubscribeTopics());
+        self::assertSame(['http://example.com/layouts/:id\\?'], $authorization->getSubscribeTopics());
     }
 
     public function test_the_subscribe_topic_includes_the_prefix_the_application_imports_api_platform_routes_under(): void
@@ -56,7 +60,7 @@ class MercureAuthorizationTest extends TestCase
             ['layout_get' => '/_api/_/layouts/{id}.{_format}'],
         );
 
-        self::assertSame(['http://example.com/_api/_/layouts/{id}{._format}'], $authorization->getSubscribeTopics());
+        self::assertSame(['http://example.com/_api/_/layouts/:id\\?'], $authorization->getSubscribeTopics());
     }
 
     public function test_the_draft_topic_of_a_publishable_resource_includes_the_application_route_prefix(): void
@@ -69,8 +73,8 @@ class MercureAuthorizationTest extends TestCase
 
         self::assertSame(
             [
-                'http://example.com/_api/component/dummy_publishable_components/{id}{._format}',
-                'http://example.com/_api/component/dummy_publishable_components/{id}{._format}?draft=1',
+                'http://example.com/_api/component/dummy_publishable_components/:id\\?',
+                'http://example.com/_api/component/dummy_publishable_components/:id\\?draft=1',
             ],
             $authorization->getSubscribeTopics(),
         );
@@ -83,7 +87,7 @@ class MercureAuthorizationTest extends TestCase
             ['another_route' => '/_api/_/layouts/{id}.{_format}'],
         );
 
-        self::assertSame(['http://example.com/_/layouts/{id}{._format}'], $authorization->getSubscribeTopics());
+        self::assertSame(['http://example.com/_/layouts/:id\\?'], $authorization->getSubscribeTopics());
     }
 
     public function test_the_subscribe_topic_is_built_from_the_operation_when_it_has_no_route_name(): void
@@ -93,7 +97,33 @@ class MercureAuthorizationTest extends TestCase
             ['layout_get' => '/_api/_/layouts/{id}.{_format}'],
         );
 
-        self::assertSame(['http://example.com/_/layouts/{id}{._format}'], $authorization->getSubscribeTopics());
+        self::assertSame(['http://example.com/_/layouts/:id\\?'], $authorization->getSubscribeTopics());
+    }
+
+    public function test_the_cookie_grants_the_subscribe_topics_as_url_patterns(): void
+    {
+        $authorization = $this->createAuthorization(
+            [DummyPublishableComponent::class => [new Get(uriTemplate: '/dummy_publishable_components/{id}{._format}', class: DummyPublishableComponent::class, name: 'publishable_get', routePrefix: '/component', mercure: true)]],
+            ['publishable_get' => '/component/dummy_publishable_components/{id}.{_format}'],
+            true,
+        );
+
+        $cookie = $authorization->getAuthorizationCookie();
+
+        self::assertSame('__Secure-mercure_access_token', $cookie->getName());
+        self::assertTrue($cookie->isSecure());
+        $payload = json_decode(base64_decode(strtr(explode('.', (string) $cookie->getValue())[1], '-_', '+/')), true);
+        self::assertSame(
+            [[
+                'type' => 'https://mercure.rocks/authorization-detail',
+                'actions' => ['subscribe'],
+                'topics' => [
+                    ['match' => 'http://example.com/component/dummy_publishable_components/:id\\?', 'match_type' => 'urlpattern'],
+                    ['match' => 'http://example.com/component/dummy_publishable_components/:id\\?draft=1', 'match_type' => 'urlpattern'],
+                ],
+            ]],
+            $payload['authorization_details'],
+        );
     }
 
     /**
@@ -121,7 +151,13 @@ class MercureAuthorizationTest extends TestCase
         $publishableStatusChecker = $this->createStub(PublishableStatusChecker::class);
         $publishableStatusChecker->method('isGranted')->willReturn($draftsGranted);
 
-        $hub = new MockHub('https://example.com/.well-known/mercure', new StaticTokenProvider('jwt'), static fn (): string => 'id');
+        $factory = new DefaultClaimsTokenFactory(
+            new LcobucciFactory('ab0a54cf2375ab2368d97166b94e108cab0a54cf2375ab2368d97166b94e108c', protocolVersion: ProtocolVersion::V1),
+            ['iss' => 'https://example.com', 'sub' => 'api', 'client_id' => 'api', 'aud' => 'https://example.com/.well-known/mercure'],
+        );
+        $hub = new MockHub('https://example.com/.well-known/mercure', new StaticTokenProvider('jwt'), static fn (): string => 'id', $factory, protocolVersion: ProtocolVersion::V1);
+        $requestStack = new RequestStack();
+        $requestStack->push(Request::create('https://example.com/login'));
 
         return new MercureAuthorization(
             $resourceNames,
@@ -129,7 +165,7 @@ class MercureAuthorizationTest extends TestCase
             $publishableStatusChecker,
             new RequestContext(host: 'example.com'),
             new Authorization(new HubRegistry($hub)),
-            new RequestStack(),
+            $requestStack,
             $this->createStub(AuthorizationCheckerInterface::class),
             $router,
         );

@@ -114,22 +114,9 @@ class JsonContext implements Context
 
     private function getMercureCookieDraftTopics(): array
     {
-        $responseHeaders = $this->jsonContext->getSession()->getResponseHeaders();
-        $setCookieHeaders = $responseHeaders['set-cookie'];
-        foreach ($setCookieHeaders as $setCookieHeader) {
-            $cookie = Cookie::fromString($setCookieHeader);
-            $realName = $cookie->getName();
-            if ('mercureAuthorization' === $realName) {
-                $token = $this->jwsProvider->load($cookie->getValue());
-                $payload = $token->getPayload();
-
-                return array_filter($payload['mercure']['subscribe'], static function ($topic) {
-                    return str_ends_with($topic, '?draft=1');
-                });
-            }
-        }
-
-        return [];
+        return array_filter($this->getMercureCookieSubscribeTopics(), static function ($topic) {
+            return str_ends_with($topic, '?draft=1');
+        });
     }
 
     /**
@@ -150,20 +137,21 @@ class JsonContext implements Context
 
     private function getMercureCookieSubscribeTopics(): array
     {
-        $responseHeaders = $this->jsonContext->getSession()->getResponseHeaders();
-        $setCookieHeaders = $responseHeaders['set-cookie'];
-        foreach ($setCookieHeaders as $setCookieHeader) {
-            $cookie = Cookie::fromString($setCookieHeader);
-            $realName = $cookie->getName();
-            if ('mercureAuthorization' === $realName) {
-                $token = $this->jwsProvider->load($cookie->getValue());
-                $payload = $token->getPayload();
-
-                return $payload['mercure']['subscribe'] ?? [];
+        $payload = $this->jwsProvider->load($this->getCookieByName('__Secure-mercure_access_token')->getValue())->getPayload();
+        $topics = [];
+        foreach ($payload['authorization_details'] ?? [] as $detail) {
+            if (!\in_array('subscribe', $detail['actions'], true)) {
+                continue;
+            }
+            foreach ($detail['topics'] as $topic) {
+                if ('urlpattern' !== ($topic['match_type'] ?? null)) {
+                    throw new \RuntimeException(\sprintf('The mercure cookie grants "%s" as an exact topic instead of a URL pattern.', $topic['match']));
+                }
+                $topics[] = $topic['match'];
             }
         }
 
-        return [];
+        return $topics;
     }
 
     /**

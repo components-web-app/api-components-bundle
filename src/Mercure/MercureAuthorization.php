@@ -30,6 +30,8 @@ class MercureAuthorization
 {
     private const string SYMFONY_FORMAT_SUFFIX = '.{_format}';
     private const string URI_TEMPLATE_FORMAT_SUFFIX = '{._format}';
+    private const string EMPTY_QUERY = '\\?';
+    private const string DRAFT_QUERY = '\\?draft=1';
 
     public function __construct(
         private readonly ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory,
@@ -49,7 +51,7 @@ class MercureAuthorization
     public function getAuthorizationCookie(): Cookie
     {
         $subscribeTopics = $this->getSubscribeTopics();
-        $cookie = $this->mercureAuthorization->createCookie($this->requestStack->getCurrentRequest(), $subscribeTopics, null, [], $this->hubName);
+        $cookie = $this->mercureAuthorization->createCookie($this->requestStack->getCurrentRequest(), ['urlpattern' => $subscribeTopics], null, [], $this->hubName);
 
         return $cookie
             ->withSameSite($this->cookieSameSite)
@@ -87,31 +89,30 @@ class MercureAuthorization
         $refl = new \ReflectionClass($operation->getClass());
         $isPublishable = \count($refl->getAttributes(Publishable::class));
 
-        $uriTemplate = $this->buildAbsoluteUriTemplate() . $this->getOperationUriTemplate($operation);
-        $subscribeIris = [$uriTemplate];
+        $urlPattern = $this->buildAbsoluteUrl() . $this->getOperationUrlPattern($operation);
+        $subscribeIris = [$urlPattern . self::EMPTY_QUERY];
 
         if (!$isPublishable) {
             return $subscribeIris;
         }
         if ($this->publishableStatusChecker->isGranted($operation->getClass())) {
-            $subscribeIris[] = $uriTemplate . '?draft=1';
+            $subscribeIris[] = $urlPattern . self::DRAFT_QUERY;
         }
 
         return $subscribeIris;
     }
 
-    private function getOperationUriTemplate(HttpOperation $operation): string
+    private function getOperationUrlPattern(HttpOperation $operation): string
     {
-        $path = $this->router->getRouteCollection()->get((string) $operation->getName())?->getPath();
-        if (null === $path) {
-            return $operation->getRoutePrefix() . $operation->getUriTemplate();
+        $path = $this->router->getRouteCollection()->get((string) $operation->getName())?->getPath() ?? $operation->getRoutePrefix() . $operation->getUriTemplate();
+
+        foreach ([self::SYMFONY_FORMAT_SUFFIX, self::URI_TEMPLATE_FORMAT_SUFFIX] as $formatSuffix) {
+            if (str_ends_with($path, $formatSuffix)) {
+                $path = substr($path, 0, -\strlen($formatSuffix));
+            }
         }
 
-        if (str_ends_with($path, self::SYMFONY_FORMAT_SUFFIX)) {
-            return substr($path, 0, -\strlen(self::SYMFONY_FORMAT_SUFFIX)) . self::URI_TEMPLATE_FORMAT_SUFFIX;
-        }
-
-        return $path;
+        return preg_replace('/\{(\w+)\}/', ':$1', $path);
     }
 
     private function isOperationAccessible(HttpOperation $operation): bool
@@ -160,7 +161,7 @@ class MercureAuthorization
         return $operation;
     }
 
-    private function buildAbsoluteUriTemplate(): string
+    private function buildAbsoluteUrl(): string
     {
         $scheme = $this->requestContext->getScheme();
         $host = $this->requestContext->getHost();

@@ -200,9 +200,13 @@ Resources are fetched and cached **individually**. Never embed related data outs
 
 ### Mercure
 
-- `symfony/mercure` ^0.7.1 || ^0.8 and the bundle are runtime requirements (#270). `PublishableAwareHub` mirrors `Debug\TraceableHub`: implements `RemoteHubInterface` and forwards every method including 0.8's `getProtocolVersion()`/`getCookieName()`.
+- `symfony/mercure` ^0.8 and `symfony/mercure-bundle` ^0.5 are runtime requirements (#270), and **the bundle speaks only the Mercure 1.0 protocol** (#377): the hub needs `protocol_version: '1.0'` and `jwt.claims` `iss`/`sub`/`client_id`. A 0.x hub fails loudly when the cookie is built (the legacy factory rejects `urlpattern` grants). `PublishableAwareHub` mirrors `Debug\TraceableHub`: implements `RemoteHubInterface` and forwards every method including 0.8's `getProtocolVersion()`/`getCookieName()`.
 - **A failed publish after commit is logged, not a 500** (#283). Per update, catch only Mercure's `RuntimeException` and HttpClient's `ExceptionInterface`. An invalid JWT (`InvalidArgumentException`) is configuration and still throws.
-- Subscribe topic templates come from the operation's registered route path (so they include the import prefix), with a trailing `.{_format}` converted back to `{._format}` (#304).
+- Subscribe grants are URL Patterns (`match_type: urlpattern`) built from the operation's registered route path (so they include the import prefix), with the format suffix dropped and `{name}` turned into `:name` (#304, #377).
+- **A URL Pattern with no query part matches any query string**, so `…/:id` would grant every `?draft=1` topic. Every grant ends in `\?` (no query) or `\?draft=1`; never emit one without. Checked against a real 1.0 hub.
+- **One invalid pattern makes the hub reject the whole token** (401), and the Go implementation rejects a group name starting with `_` (`:_format`). Never emit a format group.
+- The token's `aud` defaults to the hub's `public_url`, and the bundle publishes through the internal `url`, so the hub must pin `resource_identifier` to the public URL or every publish is 401.
+- The cookie is `__Secure-mercure_access_token`. symfony/mercure throws when building it for a plain-HTTP `public_url`; a plain-HTTP setup sets a prefix-less `cookie_name` on the hub.
 
 ### Security and users
 

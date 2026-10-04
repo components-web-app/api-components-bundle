@@ -14,7 +14,6 @@ namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub;
 use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\Mercure\Exception\RuntimeException;
 use Symfony\Component\Mercure\HubInterface;
-use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
@@ -28,11 +27,8 @@ class HubStub implements HubInterface
 {
     private static bool $unreachable = false;
 
-    private LcobucciFactory $factory;
-
-    public function __construct(LcobucciFactory $factory)
+    public function __construct(private readonly TokenFactoryInterface $factory)
     {
-        $this->factory = $factory;
     }
 
     public static function setUnreachable(bool $unreachable): void
@@ -80,11 +76,11 @@ class HubStub implements HubInterface
 
     public function getProtocolVersion(): ProtocolVersion
     {
-        return ProtocolVersion::Legacy;
+        return ProtocolVersion::V1;
     }
 
     public function getCookieName(): string
     {
-        return 'mercureAuthorization';
+        return '__Secure-mercure_access_token';
     }
 }
