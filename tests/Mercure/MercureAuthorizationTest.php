@@ -112,7 +112,7 @@ class MercureAuthorizationTest extends TestCase
 
         self::assertSame('__Secure-mercure_access_token', $cookie->getName());
         self::assertTrue($cookie->isSecure());
-        $payload = json_decode(base64_decode(strtr(explode('.', (string) $cookie->getValue())[1], '-_', '+/')), true);
+        $payload = json_decode(base64_decode(strtr(explode('.', (string) $cookie->getValue())[1], '-_', '+/'), true), true);
         self::assertSame(
             [[
                 'type' => 'https://mercure.rocks/authorization-detail',
