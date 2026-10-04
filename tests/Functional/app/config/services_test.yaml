@@ -43,7 +43,7 @@ services:
     mercure.hub.default:
         class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub
         arguments:
-            $factory: '@mercure.hub.default.jwt.factory'
+            $factory: '@mercure.hub.default.jwt.factory.default_claims'
             
 #    ->set('messenger.transport.in_memory.factory', InMemoryTransportFactory::class)
 #    ->tag('messenger.transport_factory')

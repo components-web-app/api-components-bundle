@@ -29,7 +29,7 @@ class JWTEventListenerTest extends TestCase
     private function buildListener(?CwaCollectorData $collectorData = null): JWTEventListener
     {
         $mercure = $this->createStub(MercureAuthorization::class);
-        $mercure->method('getAuthorizationCookie')->willReturn(new Cookie('mercureAuthorization', 'value'));
+        $mercure->method('getAuthorizationCookie')->willReturn(new Cookie('__Secure-mercure_access_token', 'value'));
 
         return new JWTEventListener(
             $this->createStub(RoleHierarchy::class),
@@ -140,7 +140,7 @@ class JWTEventListenerTest extends TestCase
             $responseEvent->getResponse()->headers->getCookies(),
         );
 
-        self::assertContains('mercureAuthorization', $cookieNames, 'Mercure authorization cookie must be set on the response when token is present');
+        self::assertContains('__Secure-mercure_access_token', $cookieNames, 'Mercure authorization cookie must be set on the response when token is present');
     }
 
     public function test_token_consumed_on_first_response_not_reused(): void
