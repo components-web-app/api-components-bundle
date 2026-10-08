@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.9](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.8...2.0.0-alpha.9) - 2026-10-08
+
 ### Added
 - `isReachableWithoutRoute` on pages and page data (admin-only, default `false`): a page with no route that is flagged is readable as though a live route reached it, so an application can serve it from its own routes (e.g. the module's fetch by IRI) with `routable_security` set. Its components, manifest and ancestors follow, as for a routed page, and its nearest routed ancestor must still be readable. A page with a route ignores the flag. Upgrade step: new `is_reachable_without_route` column on the page and page data tables; generate and run a migration ([#382](https://github.com/components-web-app/api-components-bundle/pull/382))
 
