@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Entity\Core;
 
+use ApiPlatform\Metadata\ApiProperty;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
@@ -51,6 +52,10 @@ abstract class AbstractPage implements RoutableInterface
     #[ORM\JoinColumn(name: 'parent_page_data_id', onDelete: 'SET NULL', nullable: true)]
     #[Groups(['Route:manifest:read'])]
     protected ?AbstractPageData $parentPageData = null;
+
+    #[ORM\Column(name: 'is_reachable_without_route', options: ['default' => false])]
+    #[ApiProperty(security: "is_granted('ROLE_ADMIN')", securityPostDenormalize: "is_granted('ROLE_ADMIN')")]
+    public bool $isReachableWithoutRoute = false;
 
     #[ORM\Column(nullable: true)]
     protected ?string $title = 'Unnamed Page';
