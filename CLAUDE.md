@@ -33,7 +33,7 @@ An abstaining voter has not "stayed out of it": under `AffirmativeStrategy`, all
 3. Write or adjust the test, watch it fail, then write the code to make it pass
 4. Keep CLAUDE.md current throughout, but record **rules and traps**, not the story of the change
 5. Add a line to `CHANGELOG.md` under **Unreleased** in the same PR (see below)
-6. After committing, log user-facing changes in the **Pending Documentation Review** table in `/Users/danielwest/Documents/GitHub/_CWA/docs/CLAUDE.md`
+6. For a user-facing change, raise an issue on `components-web-app/docs` describing what to document, linking the bundle PR or issue
 
 ### Changelog and releases
 `CHANGELOG.md` is maintained continuously and is the source of every release's notes.
@@ -168,6 +168,7 @@ A Route reaches its own page **and every ancestor** through `parentPage`/`parent
 
 - `ComponentVoter::voteByRoute` abstains (public) for a component in **no** page and denies for a component in pages none of which are reachable, falling through to `routable_security` so admins still see it. Denying both broke 86 scenarios with unplaced components.
 - Reachability is not denormalised. A column cannot express `route_security`, and an edge table was built and rejected (maintained state, rebuild command, upgrade step). A routeless page is absent from `GET /_/pages`.
+- **`AbstractPage::$isReachableWithoutRoute` (#381) applies only to a page with no route**, and stands in for a live route at that node of the same walk, so a flagged page reaches its ancestors and its components, page data template and manifest follow with no voter change. A page with a route ignores it: its route decides (`liveAt`, draft included, and `route_security`). A flagged routeless page is still held back unless its **nearest routed ancestor** passes `RouteVoter`, exactly as for a routed child. Admin-only on read and write (`ApiProperty` security, like `Route.liveAt`); a flagged page stays out of `GET /_/pages`. The flag on a template does not reach its page data. `reachable_without_route.feature` is the authority.
 
 ### Manifest — `GET /_/resource_manifest/{id}`
 

@@ -153,6 +153,92 @@ class RouteReachabilityResolverTest extends TestCase
         self::assertTrue($this->resolver()->isReachable($page));
     }
 
+    public function test_a_routeless_page_marked_reachable_without_a_route_with_no_parent_is_reachable(): void
+    {
+        $page = $this->createPage(reachableWithoutRoute: true);
+        $this->expectNoRouteCheck();
+        $this->expectNoChildLookup();
+
+        self::assertTrue($this->resolver()->isReachable($page));
+    }
+
+    public function test_the_flag_is_ignored_for_a_page_whose_own_route_is_denied(): void
+    {
+        $page = $this->createPage($this->createRoute(null), reachableWithoutRoute: true);
+        $this->denyAllRoutes();
+        $this->expectChildren([], []);
+
+        self::assertFalse($this->resolver()->isReachable($page));
+    }
+
+    public function test_a_page_marked_reachable_without_a_route_is_reachable_when_its_nearest_routed_ancestor_is_granted(): void
+    {
+        $parentRoute = $this->createRoute();
+        $grandParent = $this->createPage($this->createRoute());
+        $parent = $this->createPage($parentRoute);
+        $parent->setParentPage($grandParent);
+        $page = $this->createPage(reachableWithoutRoute: true);
+        $page->setParentPage($parent);
+
+        $security = $this->createMock(Security::class);
+        $security->expects(self::once())->method('isGranted')->with(RouteVoter::READ_ROUTE, self::identicalTo($parentRoute))->willReturn(true);
+        $this->security = $security;
+        $this->expectNoChildLookup();
+
+        self::assertTrue($this->resolver()->isReachable($page));
+    }
+
+    public function test_a_page_marked_reachable_without_a_route_is_not_reachable_when_its_nearest_routed_ancestor_is_denied(): void
+    {
+        $parent = $this->createPage($this->createRoute());
+        $page = $this->createPage(reachableWithoutRoute: true);
+        $page->setParentPage($parent);
+        $this->denyAllRoutes();
+        $this->expectChildren([], []);
+
+        self::assertFalse($this->resolver()->isReachable($page));
+    }
+
+    public function test_a_page_marked_reachable_without_a_route_finds_a_routed_ancestor_above_a_routeless_parent_page_data(): void
+    {
+        $grandParentRoute = $this->createRoute();
+        $grandParent = $this->createPage($grandParentRoute);
+        $parent = $this->createPageData();
+        $parent->setParentPage($grandParent);
+        $page = $this->createPage(reachableWithoutRoute: true);
+        $page->setParentPageData($parent);
+
+        $security = $this->createMock(Security::class);
+        $security->expects(self::once())->method('isGranted')->with(RouteVoter::READ_ROUTE, self::identicalTo($grandParentRoute))->willReturn(false);
+        $this->security = $security;
+        $this->expectChildren([], []);
+
+        self::assertFalse($this->resolver()->isReachable($page));
+    }
+
+    public function test_a_page_marked_reachable_without_a_route_whose_routeless_ancestors_loop_back_is_reachable(): void
+    {
+        $page = $this->createPage(reachableWithoutRoute: true);
+        $parent = $this->createPage();
+        $page->setParentPage($parent);
+        $parent->setParentPage($page);
+        $this->expectNoRouteCheck();
+        $this->expectNoChildLookup();
+
+        self::assertTrue($this->resolver()->isReachable($page));
+    }
+
+    public function test_a_routeless_page_is_reachable_when_a_child_page_is_marked_reachable_without_a_route(): void
+    {
+        $parent = $this->createPage();
+        $child = $this->createPage(reachableWithoutRoute: true);
+        $child->setParentPage($parent);
+        $this->expectNoRouteCheck();
+        $this->expectChildren([$child], []);
+
+        self::assertTrue($this->resolver()->isReachable($parent));
+    }
+
     private function resolver(): RouteReachabilityResolver
     {
         if (null === $this->resolver) {
@@ -220,15 +306,16 @@ class RouteReachabilityResolverTest extends TestCase
         $pageDataRepository->expects(self::never())->method('findBy');
     }
 
-    private function createRoute(): Route
+    private function createRoute(?\DateTimeImmutable $liveAt = new \DateTimeImmutable('-1 day')): Route
     {
-        return new Route();
+        return (new Route())->setLiveAt($liveAt);
     }
 
-    private function createPage(?Route $route = null): Page
+    private function createPage(?Route $route = null, bool $reachableWithoutRoute = false): Page
     {
         $page = new Page();
         $page->isTemplate = false;
+        $page->isReachableWithoutRoute = $reachableWithoutRoute;
         $page->setRoute($route);
 
         return $this->withId($page);

@@ -35,6 +35,7 @@ use Silverback\ApiComponentsBundle\ApiResource\OrphanedResourceReport;
 use Silverback\ApiComponentsBundle\Command\ScanOrphanedCommand;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
@@ -967,6 +968,48 @@ final class DoctrineContext implements Context
         $this->manager->flush();
 
         $this->restContext->resources['orphan_page'] = $this->iriConverter->getIriFromResource($page);
+        $this->restContext->resources['orphan_manifest'] = '/_/resource_manifest/' . $page->getId();
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given there is a routeless Page with a component nested within the route :parentPath
+     */
+    public function thereIsARoutelessPageNestedWithinTheRoute(string $parentPath): void
+    {
+        $parentPage = $this->buildChildPage('routed parent page');
+        $parentRoute = $this->buildRouteForPage($parentPage, $parentPath);
+
+        $page = new Page();
+        $page->isTemplate = false;
+        $page->reference = 'routeless nested page';
+        $page->setParentPage($parentPage);
+        $page->addComponentGroup($this->buildReachabilityComponentGroup('routeless nested group'));
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $this->manager->flush();
+
+        $this->restContext->resources['parent_page'] = $this->iriConverter->getIriFromResource($parentPage);
+        $this->restContext->resources['parent_route'] = $this->iriConverter->getIriFromResource($parentRoute);
+        $this->restContext->resources['nested_page'] = $this->iriConverter->getIriFromResource($page);
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given the resource :name is reachable without a route
+     */
+    public function theResourceIsReachableWithoutARoute(string $name): void
+    {
+        $page = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+        if (!$page instanceof AbstractPage) {
+            throw new \RuntimeException(\sprintf('The resource "%s" is not a page or page data.', $name));
+        }
+        if (!property_exists($page, 'isReachableWithoutRoute')) {
+            throw new \RuntimeException(\sprintf('%s has no isReachableWithoutRoute property.', $page::class));
+        }
+        $page->isReachableWithoutRoute = true;
+        $this->manager->flush();
         $this->manager->clear();
     }
 

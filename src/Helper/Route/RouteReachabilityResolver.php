@@ -15,6 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -68,12 +69,47 @@ final class RouteReachabilityResolver
                 return true;
             }
 
+            if (null === $route && $current->isReachableWithoutRoute && $this->isAncestorRouteGranted($current)) {
+                return true;
+            }
+
             foreach ($this->findDirectChildren($current) as $child) {
                 $queue[] = $child;
             }
         }
 
         return false;
+    }
+
+    private function isAncestorRouteGranted(AbstractPage $page): bool
+    {
+        $ancestorRoute = $this->findNearestAncestorRoute($page);
+
+        return null === $ancestorRoute || $this->security->isGranted(RouteVoter::READ_ROUTE, $ancestorRoute);
+    }
+
+    private function findNearestAncestorRoute(AbstractPage $page): ?Route
+    {
+        $visitedIds = [];
+        $current = $page;
+
+        while (null !== $current) {
+            $id = $current->getId()?->toString();
+            if (null !== $id) {
+                if (isset($visitedIds[$id])) {
+                    return null;
+                }
+                $visitedIds[$id] = true;
+            }
+
+            if (null !== ($route = $current->getRoute())) {
+                return $route;
+            }
+
+            $current = $current->getParentPage() ?? $current->getParentPageData();
+        }
+
+        return null;
     }
 
     /**
