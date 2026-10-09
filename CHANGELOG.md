@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.10](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.9...2.0.0-alpha.10) - 2026-10-10
+
 ### Changed
 - `symfony/mercure` ^0.9 and `symfony/mercure-bundle` ^0.6 are allowed alongside ^0.8 and ^0.5 ([#385](https://github.com/components-web-app/api-components-bundle/pull/385))
 
