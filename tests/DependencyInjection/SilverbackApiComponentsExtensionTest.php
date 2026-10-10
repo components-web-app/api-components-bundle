@@ -180,7 +180,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
                 new Reference('liip_imagine.cache.manager'),
                 new Reference(PhpMemoryLimit::class),
                 '%liip_imagine.driver_service%',
-                '512M',
+                '320M',
                 new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ],
             $generator->getArguments()

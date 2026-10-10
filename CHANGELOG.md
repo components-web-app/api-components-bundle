@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Changed
+- `silverback_api_components.imagine.memory_limit` defaults to `320M` instead of `512M`. With GD, sources over about 23 MP now get no imagine filters (the original is served and a warning logged); set it higher, or use the vips driver, to filter larger images ([#400](https://github.com/components-web-app/api-components-bundle/pull/400))
+
 ## [2.0.0-alpha.11](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.10...2.0.0-alpha.11) - 2026-10-10
 
 ### Breaking

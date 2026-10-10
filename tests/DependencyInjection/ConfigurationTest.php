@@ -398,9 +398,9 @@ class ConfigurationTest extends TestCase
         $this->process($config);
     }
 
-    public function test_imagine_filters_are_generated_under_512m_by_default(): void
+    public function test_imagine_filters_are_generated_under_320m_by_default(): void
     {
-        self::assertSame(['memory_limit' => '512M'], $this->process(self::minimalConfig())['imagine']);
+        self::assertSame(['memory_limit' => '320M'], $this->process(self::minimalConfig())['imagine']);
     }
 
     /**
