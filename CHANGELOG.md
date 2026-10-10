@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.11](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.10...2.0.0-alpha.11) - 2026-10-10
+
 ### Fixed
 - Reading uploadables no longer saves `NULL` filenames: the uploadable normalizer stopped nulling the file fields on the entity, and caching file info (for a file seen for the first time, or an imagine filter generated on read) inserts only its own row instead of flushing every pending change. A page whose request generated a filter or cached file info lost the images of the components serialised before it ([#393](https://github.com/components-web-app/api-components-bundle/pull/393))
 
