@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.13](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.12...2.0.0-alpha.13) - 2026-10-10
+
 ### Breaking
 - Imagine variants of a filter set with a `format` are stored with that format's extension (`cache/<filter>/photo-1a2b3c4d.webp`, not `.png`), so they are served with the right `Content-Type`. Existing variants for those filters are generated again under the new name; clear them with `bin/console liip:imagine:cache:remove --filter=<filter>` for each such filter, as nothing else removes the old files ([#404](https://github.com/components-web-app/api-components-bundle/pull/404))
 - `ImagineRemoveEvent::$paths` is always an array (empty for every path), and `FileInfoCacheManager::deleteCaches()` with `null` filters deletes only variant rows, keeping the original's row, as the cache resolver only removes variants ([#406](https://github.com/components-web-app/api-components-bundle/pull/406))
