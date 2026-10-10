@@ -9,7 +9,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - `ImagineRemoveEvent::$paths` is always an array (empty for every path), and `FileInfoCacheManager::deleteCaches()` with `null` filters deletes only variant rows, keeping the original's row, as the cache resolver only removes variants ([#406](https://github.com/components-web-app/api-components-bundle/pull/406))
 
 ### Added
-- `"publishedAt": "now"` on a publishable POST, PUT or PATCH publishes by the server's clock, so a browser whose clock is ahead of the server no longer leaves "Publish now" as a draft scheduled a moment ahead. Only the exact string `now` is resolved; a caller who may not publish still cannot set it, and it is a 422 on `?published=true` like any publication date change (PR_LINK)
+- `"publishedAt": "now"` on a publishable POST, PUT or PATCH publishes by the server's clock, so a browser whose clock is ahead of the server no longer leaves "Publish now" as a draft scheduled a moment ahead. Only the exact string `now` is resolved; a caller who may not publish still cannot set it, and it is a 422 on `?published=true` like any publication date change ([#408](https://github.com/components-web-app/api-components-bundle/pull/408))
 
 ### Fixed
 - `liip:imagine:cache:remove --filter=<filter>` and `liip:imagine:cache:remove` no longer fail with a `TypeError` after deleting the files: the file info rows of those filters are deleted for every path, and the originals' rows kept ([#405](https://github.com/components-web-app/api-components-bundle/issues/405), [#406](https://github.com/components-web-app/api-components-bundle/pull/406))
