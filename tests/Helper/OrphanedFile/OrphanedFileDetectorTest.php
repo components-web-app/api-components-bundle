@@ -15,12 +15,15 @@ use League\Flysystem\Config;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\Filesystem;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
+use League\Flysystem\UnableToReadFile;
 use League\Flysystem\UnableToRetrieveMetadata;
 use Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface;
+use Psr\Log\AbstractLogger;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
+use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileConstraintChecker;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileLister;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileNameMatcher;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver;
@@ -29,12 +32,16 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyMulti
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableAndPublishable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadablePublicUrl;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithConstraints;
 use Silverback\ApiComponentsBundle\Tests\Helper\OrphanedResource\OrphanedResourceDatabaseTestCase;
 use Symfony\Component\DependencyInjection\ServiceLocator;
+use Symfony\Component\Validator\Validation;
 
 class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
 {
     private const int OLD = 7200;
+    private const string ASSETS = __DIR__ . '/../../../features/assets/files/';
+    private const string TOO_MANY_PIXELS = 'The image has too many pixels (357500 pixels). Maximum amount expected is 300000 pixels.';
 
     private Filesystem $local;
     private Filesystem $publicUrlLocal;
@@ -274,6 +281,140 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
         );
     }
 
+    public function test_a_referenced_file_that_breaks_its_fields_current_constraints_is_reported_with_every_violation_and_left_in_place(): void
+    {
+        $tooBig = $this->constrained('photo-0a1b2c3d.png', (string) file_get_contents(self::ASSETS . 'image.png'));
+        $wrongType = $this->constrained('notes-0a1b2c3d.txt', 'not an image');
+        $this->constrained('logo-0a1b2c3d.svg', (string) file_get_contents(self::ASSETS . 'image.svg'));
+        $unconstrained = new DummyUploadable();
+        $unconstrained->setFilename('big-0a1b2c3d.png');
+        $this->persist($unconstrained);
+        $this->entityManager->flush();
+        $this->write($this->local, 'big-0a1b2c3d.png', self::OLD, (string) file_get_contents(self::ASSETS . 'image.png'));
+
+        $report = $this->detector()->detect();
+
+        self::assertSame([
+            [
+                'resource' => $this->iri($wrongType),
+                'field' => 'file',
+                'adapter' => 'local',
+                'path' => 'notes-0a1b2c3d.txt',
+                'violations' => [
+                    'The mime type of the file is invalid ("text/plain"). Allowed mime types are "image/png", "image/svg+xml".',
+                    'This file is not a valid image.',
+                ],
+            ],
+            [
+                'resource' => $this->iri($tooBig),
+                'field' => 'file',
+                'adapter' => 'local',
+                'path' => 'photo-0a1b2c3d.png',
+                'violations' => [self::TOO_MANY_PIXELS],
+            ],
+        ], $report->invalidFiles);
+        self::assertSame([], $report->orphanedFiles);
+        self::assertTrue($this->local->fileExists('photo-0a1b2c3d.png'));
+    }
+
+    public function test_cached_file_info_is_trusted_over_the_object(): void
+    {
+        $this->local = new Filesystem(new class extends InMemoryFilesystemAdapter {
+            public function readStream(string $path)
+            {
+                throw UnableToReadFile::fromLocation($path, 'the object must not be read');
+            }
+        });
+        $this->constrained('cached-small.png', (string) file_get_contents(self::ASSETS . 'image.png'));
+        $cachedLarge = $this->constrained('cached-large.png', 'tiny');
+        $this->entityManager->persist(new FileInfo('cached-small.png', 'image/png', 3467, 10, 10, null));
+        $this->entityManager->persist(new FileInfo('cached-small.png', 'image/png', 100, 500, 715, 'thumbnail'));
+        $this->entityManager->persist(new FileInfo('cached-large.png', 'image/png', 3467, 500, 715, null));
+        $this->entityManager->flush();
+
+        $report = $this->detector()->detect();
+
+        self::assertSame([[
+            'resource' => $this->iri($cachedLarge),
+            'field' => 'file',
+            'adapter' => 'local',
+            'path' => 'cached-large.png',
+            'violations' => [self::TOO_MANY_PIXELS],
+        ]], $report->invalidFiles);
+    }
+
+    public function test_a_missing_file_is_reported_only_as_missing_and_never_checked_against_its_constraints(): void
+    {
+        $missing = new DummyUploadableWithConstraints();
+        $missing->setFilename('gone.png');
+        $this->persist($missing);
+        $this->entityManager->flush();
+
+        $report = $this->detector()->detect();
+
+        self::assertSame([['resource' => $this->iri($missing), 'adapter' => 'local', 'path' => 'gone.png']], $report->missingFiles);
+        self::assertSame([], $report->invalidFiles);
+    }
+
+    public function test_a_file_that_cannot_be_read_for_its_check_is_logged_and_left_out_and_the_others_are_still_checked(): void
+    {
+        $this->local = new Filesystem(new class extends InMemoryFilesystemAdapter {
+            public function readStream(string $path)
+            {
+                if ('unreadable.png' === $path) {
+                    throw UnableToReadFile::fromLocation($path, 'the filestore refused');
+                }
+
+                return parent::readStream($path);
+            }
+        });
+        $this->constrained('unreadable.png', (string) file_get_contents(self::ASSETS . 'image.png'));
+        $readable = $this->constrained('readable.png', (string) file_get_contents(self::ASSETS . 'image.png'));
+        $logger = new class extends AbstractLogger {
+            /** @var list<array{string, string, array<string, mixed>}> */
+            public array $records = [];
+
+            public function log($level, \Stringable|string $message, array $context = []): void
+            {
+                $this->records[] = [(string) $level, (string) $message, $context];
+            }
+        };
+
+        $report = $this->detector(logger: $logger)->detect();
+
+        self::assertSame(['readable.png'], array_column($report->invalidFiles, 'path'));
+        self::assertSame($this->iri($readable), $report->invalidFiles[0]['resource']);
+        self::assertCount(1, $logger->records);
+        [$level, , $context] = $logger->records[0];
+        self::assertSame('warning', $level);
+        self::assertSame('local', $context['adapter']);
+        self::assertSame('unreadable.png', $context['path']);
+        self::assertInstanceOf(UnableToReadFile::class, $context['exception']);
+        self::assertSame(['readable.png'], array_column($this->detector()->detect()->invalidFiles, 'path'));
+    }
+
+    public function test_file_info_is_queried_once_and_only_when_a_referenced_field_has_constraints(): void
+    {
+        $uploadable = new DummyUploadable();
+        $uploadable->setFilename('plain.png');
+        $this->persist($uploadable);
+        $this->entityManager->flush();
+        $this->write($this->local, 'plain.png', self::OLD);
+        $this->queryLogger->queries = [];
+
+        $this->detector()->detect();
+
+        self::assertCount(\count($this->uploadableClasses()) + 1, $this->queryLogger->queries);
+
+        $this->constrained('a.png', 'tiny');
+        $this->constrained('b.png', 'tiny');
+        $this->queryLogger->queries = [];
+
+        $this->detector()->detect();
+
+        self::assertCount(\count($this->uploadableClasses()) + 2, $this->queryLogger->queries);
+    }
+
     public function test_the_scanned_adapters_are_those_uploadable_fields_use(): void
     {
         $adapters = $this->detector()->scannedAdapters();
@@ -330,16 +471,27 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
         return $classes;
     }
 
-    private function write(Filesystem $filesystem, string $path, int $age): void
+    private function write(Filesystem $filesystem, string $path, int $age, ?string $contents = null): void
     {
-        $filesystem->write($path, $path, [Config::OPTION_VISIBILITY => 'public', 'timestamp' => time() - $age]);
+        $filesystem->write($path, $contents ?? $path, [Config::OPTION_VISIBILITY => 'public', 'timestamp' => time() - $age]);
+    }
+
+    private function constrained(string $path, string $contents): DummyUploadableWithConstraints
+    {
+        $uploadable = new DummyUploadableWithConstraints();
+        $uploadable->setFilename($path);
+        $this->persist($uploadable);
+        $this->entityManager->flush();
+        $this->write($this->local, $path, self::OLD, $contents);
+
+        return $uploadable;
     }
 
     /**
      * @param list<string>     $excludedPaths
      * @param iterable<object> $cacheResolvers
      */
-    private function detector(int $minimumAge = 3600, array $excludedPaths = [], iterable $cacheResolvers = []): OrphanedFileDetector
+    private function detector(int $minimumAge = 3600, array $excludedPaths = [], iterable $cacheResolvers = [], ?AbstractLogger $logger = null): OrphanedFileDetector
     {
         return new OrphanedFileDetector(
             $this->registry,
@@ -355,6 +507,8 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
             $cacheResolvers,
             $excludedPaths,
             $minimumAge,
+            new StoredFileConstraintChecker(Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator()),
+            $logger,
         );
     }
 }

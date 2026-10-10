@@ -53,6 +53,29 @@ class FileInfoRepository extends ServiceEntityRepository
             ->getSingleColumnResult()));
     }
 
+    /**
+     * @return array<string, array{mimeType: string, fileSize: int, width: ?int, height: ?int}>
+     */
+    public function findOriginalsByPath(): array
+    {
+        $originals = [];
+        $rows = $this->createQueryBuilder('f')
+            ->select('f.path', 'f.mimeType', 'f.fileSize', 'f.width', 'f.height')
+            ->where('f.filter IS NULL')
+            ->getQuery()
+            ->getArrayResult();
+        foreach ($rows as $row) {
+            $originals[(string) $row['path']] = [
+                'mimeType' => (string) $row['mimeType'],
+                'fileSize' => (int) $row['fileSize'],
+                'width' => null === $row['width'] ? null : (int) $row['width'],
+                'height' => null === $row['height'] ? null : (int) $row['height'],
+            ];
+        }
+
+        return $originals;
+    }
+
     public function deleteByPathsAndFilters(array $paths, ?array $filters): void
     {
         if (!\count($paths)) {

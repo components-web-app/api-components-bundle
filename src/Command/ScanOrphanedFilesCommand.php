@@ -30,8 +30,8 @@ class ScanOrphanedFilesCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setDescription('Scans the uploadable filestores for stored files no uploadable row references, and rows whose file is missing, and stores the report the admin API returns. It never deletes anything.')
-            ->setHelp('Prints the number of orphaned, unknown and missing files; add -v to list them. Orphaned files are deleted through the API: POST /_/orphaned_files/delete. Unknown files (neither named by the bundle nor ever served) and missing files are only reported.');
+            ->setDescription('Scans the uploadable filestores for stored files no uploadable row references, rows whose file is missing and referenced files that break their field\'s current validation constraints, and stores the report the admin API returns. It never modifies or deletes anything.')
+            ->setHelp('Prints the number of orphaned, unknown, missing and invalid files; add -v to list them. Orphaned files are deleted through the API: POST /_/orphaned_files/delete. Unknown files (neither named by the bundle nor ever served), missing files and invalid files are only reported; replace an invalid file through its resource.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -54,6 +54,15 @@ class ScanOrphanedFilesCommand extends Command
         if ($output->isVerbose()) {
             foreach ($report->missingFiles as $file) {
                 $output->writeln(\sprintf('  %s: %s (%s)', $file['adapter'], $file['path'], $file['resource']));
+            }
+        }
+        $output->writeln(\sprintf('Invalid files: %d', \count($report->invalidFiles)));
+        if ($output->isVerbose()) {
+            foreach ($report->invalidFiles as $file) {
+                $output->writeln(\sprintf('  %s: %s (%s %s)', $file['adapter'], $file['path'], $file['resource'], $file['field']));
+                foreach ($file['violations'] as $violation) {
+                    $output->writeln(\sprintf('    %s', $violation));
+                }
             }
         }
 

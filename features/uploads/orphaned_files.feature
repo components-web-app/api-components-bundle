@@ -212,4 +212,57 @@ Feature: Reporting and deleting orphaned files
     And the console command output should contain "Unknown files: 0"
     And the console command output should contain "Missing files: 1"
     And the stored file "orphan-0a1b2c3d.png" should exist
-    And the stored orphaned files report should list 2 orphaned files and 1 missing file
+    And the stored orphaned files report should list 2 orphaned files, 1 missing file and 0 invalid files
+
+  @loginAdmin
+  Scenario: A referenced file that breaks its field's current constraints is reported as invalid with every violation, and nothing deletes it
+    Given there is a DummyUploadableWithConstraints with the file "image.png" saved as "too_many_pixels"
+    And there is a DummyUploadableWithConstraints with the file "test_file.txt" saved as "wrong_type"
+    And there is a DummyUploadableWithConstraints with the file "image.svg" saved as "exempt_svg"
+    And there is a DummyUploadable with the file "image.png" saved as "unconstrained"
+    When I send a "POST" request to "/_/orphaned_files/scan"
+    And I send a "GET" request to "/_/orphaned_files"
+    Then the response status code should be 200
+    And the JSON node "orphanedFiles" should have 0 elements
+    And the JSON node "missingFiles" should have 0 elements
+    And the JSON node "invalidFiles" should have 2 elements
+    And the JSON node "invalidFiles[0].resource" should be equal to the IRI of the resource "too_many_pixels"
+    And the JSON node "invalidFiles[0].field" should be equal to "file"
+    And the JSON node "invalidFiles[0].adapter" should be equal to "local"
+    And the JSON node "invalidFiles[0].path" should be equal to the stored path of the resource "too_many_pixels"
+    And the JSON node "invalidFiles[0].violations" should have 1 element
+    And the JSON node "invalidFiles[0].violations[0]" should be equal to "The image has too many pixels (357500 pixels). Maximum amount expected is 300000 pixels."
+    And the JSON node "invalidFiles[1].resource" should be equal to the IRI of the resource "wrong_type"
+    And the JSON node "invalidFiles[1].violations" should have 2 elements
+    And the JSON node "invalidFiles[1].violations[0]" should contain "The mime type of the file is invalid"
+    And the JSON node "invalidFiles[1].violations[1]" should be equal to "This file is not a valid image."
+    Given I add "Accept" header equal to "application/ld+json"
+    And I add "Content-Type" header equal to "application/ld+json"
+    When I send a "POST" request to "/_/orphaned_files/delete" with body:
+      """
+      {"all": true}
+      """
+    Then the response status code should be 200
+    And the JSON node "deleted" should have 0 elements
+    And the file for the resource "too_many_pixels" should still be stored
+    And the file for the resource "wrong_type" should still be stored
+    When I send a "GET" request to "/_/orphaned_files"
+    Then the JSON node "invalidFiles" should have 2 elements
+
+  @loginAdmin
+  Scenario: The file info cached when the file was served is trusted over reading the stored object
+    Given there is a DummyUploadableWithConstraints with the file "image.png" saved as "cached"
+    And the stored file of the resource "cached" has file info of 100 by 100 pixels
+    When I send a "POST" request to "/_/orphaned_files/scan"
+    And I send a "GET" request to "/_/orphaned_files"
+    Then the response status code should be 200
+    And the JSON node "invalidFiles" should have 0 elements
+
+  Scenario: The scan command counts invalid files and lists each with its violations with -v, and modifies nothing
+    Given there is a DummyUploadableWithConstraints with the file "image.png" saved as "too_many_pixels"
+    When I run the console command "silverback:api-components:scan-orphaned-files" verbosely
+    Then the console command should have exited with 0
+    And the console command output should contain "Invalid files: 1"
+    And the console command output should contain "    The image has too many pixels (357500 pixels). Maximum amount expected is 300000 pixels."
+    And the file for the resource "too_many_pixels" should still be stored
+    And the stored orphaned files report should list 0 orphaned files, 0 missing files and 1 invalid file

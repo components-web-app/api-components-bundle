@@ -26,6 +26,7 @@ use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDeleter;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileReportStore;
+use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileConstraintChecker;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileLister;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileNameMatcher;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
@@ -52,6 +53,7 @@ class OrphanedFileServicesTest extends TestCase
     private const string DELETER_ID = 'silverback.api_components.orphaned_file.deleter';
     private const string LISTER_ID = 'silverback.api_components.orphaned_file.lister';
     private const string NAME_MATCHER_ID = 'silverback.api_components.orphaned_file.name_matcher';
+    private const string CONSTRAINT_CHECKER_ID = 'silverback.api_components.orphaned_file.constraint_checker';
     private const string HANDLER_ID = 'silverback.api_components.message_handler.scan_orphaned_files';
     private const string STORE_ID = 'silverback.api_components.orphaned_file.report_store';
     private const string COMMAND_ID = 'silverback.api_components.command.scan_orphaned_files';
@@ -89,10 +91,28 @@ class OrphanedFileServicesTest extends TestCase
         self::assertSame('liip_imagine.cache.resolver', $resolvers->getTag());
         self::assertSame([], $definition->getArgument('$excludedPaths'));
         self::assertSame(3600, $definition->getArgument('$minimumAge'));
+        self::assertSame(self::CONSTRAINT_CHECKER_ID, (string) $definition->getArgument('$constraintChecker'));
+        $logger = $definition->getArgument('$logger');
+        self::assertInstanceOf(Reference::class, $logger);
+        self::assertSame('logger', (string) $logger);
+        self::assertSame(ContainerInterface::NULL_ON_INVALID_REFERENCE, $logger->getInvalidBehavior());
         self::assertSame(self::DETECTOR_ID, (string) $container->getAlias(OrphanedFileDetector::class));
         self::assertSame(StoredFileLister::class, $container->getDefinition(self::LISTER_ID)->getClass());
         self::assertFalse($container->getDefinition(self::LISTER_ID)->isAutoconfigured());
         self::assertSame(self::LISTER_ID, (string) $container->getAlias(StoredFileLister::class));
+    }
+
+    public function test_the_constraint_checker_reads_the_application_validator_metadata_and_its_composite_validators(): void
+    {
+        $container = $this->loadContainer(false);
+        $definition = $container->getDefinition(self::CONSTRAINT_CHECKER_ID);
+
+        self::assertSame(StoredFileConstraintChecker::class, $definition->getClass());
+        self::assertFalse($definition->isAutoconfigured());
+        self::assertSame(['validator', 'validator.validator_factory'], array_map('strval', $definition->getArguments()));
+        self::assertSame(ContainerInterface::EXCEPTION_ON_INVALID_REFERENCE, $definition->getArgument(0)->getInvalidBehavior());
+        self::assertSame(ContainerInterface::NULL_ON_INVALID_REFERENCE, $definition->getArgument(1)->getInvalidBehavior());
+        self::assertSame(self::CONSTRAINT_CHECKER_ID, (string) $container->getAlias(StoredFileConstraintChecker::class));
     }
 
     public function test_the_deleter_deletes_through_the_uploadable_file_manager_and_logs_optionally(): void
@@ -254,7 +274,7 @@ class OrphanedFileServicesTest extends TestCase
 
         self::assertSame(0, $tester->execute([]));
 
-        self::assertSame("Orphaned files: 2\nUnknown files: 1\nMissing files: 1\n", $tester->getDisplay());
+        self::assertSame("Orphaned files: 2\nUnknown files: 1\nMissing files: 1\nInvalid files: 0\n", $tester->getDisplay());
         self::assertCount(2, $container->get(OrphanedFileReportStore::class)->fetch()?->orphanedFiles ?? []);
     }
 
@@ -265,12 +285,13 @@ class OrphanedFileServicesTest extends TestCase
             [['adapter' => 'local', 'path' => 'a.png']],
             [['resource' => '/dummy_uploadables/1', 'adapter' => 'local', 'path' => 'm.png']],
             [['adapter' => 'local', 'path' => 'logo.png']],
+            [['resource' => '/dummy_uploadables/2', 'field' => 'file', 'adapter' => 'local', 'path' => 'big.png', 'violations' => ['Too many pixels.', 'Wrong type.']]],
         ));
         $tester = new CommandTester($container->get(ScanOrphanedFilesCommand::class));
 
         $tester->execute([], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
-        self::assertSame("Orphaned files: 1\n  local: a.png\nUnknown files: 1\n  local: logo.png\nMissing files: 1\n  local: m.png (/dummy_uploadables/1)\n", $tester->getDisplay());
+        self::assertSame("Orphaned files: 1\n  local: a.png\nUnknown files: 1\n  local: logo.png\nMissing files: 1\n  local: m.png (/dummy_uploadables/1)\nInvalid files: 1\n  local: big.png (/dummy_uploadables/2 file)\n    Too many pixels.\n    Wrong type.\n", $tester->getDisplay());
     }
 
     public function test_the_scan_command_describes_itself(): void
@@ -280,18 +301,19 @@ class OrphanedFileServicesTest extends TestCase
         $command = $container->get(ScanOrphanedFilesCommand::class);
 
         self::assertSame('silverback:api-components:scan-orphaned-files', $command->getName());
-        self::assertStringContainsString('never deletes', $command->getDescription());
+        self::assertStringContainsString('never modifies or deletes', $command->getDescription());
     }
 
     /**
-     * @param list<array{adapter: string, path: string}>                   $orphanedFiles
-     * @param list<array{resource: string, adapter: string, path: string}> $missingFiles
-     * @param list<array{adapter: string, path: string}>                   $unknownFiles
+     * @param list<array{adapter: string, path: string}>                                                            $orphanedFiles
+     * @param list<array{resource: string, adapter: string, path: string}>                                          $missingFiles
+     * @param list<array{adapter: string, path: string}>                                                            $unknownFiles
+     * @param list<array{resource: string, field: string, adapter: string, path: string, violations: list<string>}> $invalidFiles
      */
-    private function detectorReturning(array $orphanedFiles, array $missingFiles = [], array $unknownFiles = []): OrphanedFileDetector
+    private function detectorReturning(array $orphanedFiles, array $missingFiles = [], array $unknownFiles = [], array $invalidFiles = []): OrphanedFileDetector
     {
         $detector = $this->createStub(OrphanedFileDetector::class);
-        $detector->method('detect')->willReturn(new OrphanedFileReport(new \DateTimeImmutable(), $orphanedFiles, $missingFiles, $unknownFiles));
+        $detector->method('detect')->willReturn(new OrphanedFileReport(new \DateTimeImmutable(), $orphanedFiles, $missingFiles, $unknownFiles, $invalidFiles));
 
         return $detector;
     }

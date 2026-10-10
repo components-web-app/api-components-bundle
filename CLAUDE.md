@@ -134,7 +134,7 @@ API Platform routes are prefixed by `RoutingPrefixResourceMetadataCollectionFact
 | `POST /_/rendered_html/purge` | Purge `cwa-html` only (`ROLE_ADMIN`, 204; 502 on failure) (#243, #311). |
 | `POST /_/http_cache/purge` | Flush the whole HTTP cache (`ROLE_ADMIN`, 204; 501 when unsupported, 502 on failure) (#290). |
 | `POST /_/orphaned_resources/scan`, `GET /_/orphaned_resources`, `POST /_/orphaned_resources/delete` | Orphan report and deletion (`ROLE_ADMIN`). See **Orphaned resource report**. |
-| `POST /_/orphaned_files/scan`, `GET /_/orphaned_files`, `POST /_/orphaned_files/delete` | Orphaned, unknown and missing stored files (`ROLE_ADMIN`). See **Orphaned file report**. |
+| `POST /_/orphaned_files/scan`, `GET /_/orphaned_files`, `POST /_/orphaned_files/delete` | Orphaned, unknown, missing and invalid stored files (`ROLE_ADMIN`). See **Orphaned file report**. |
 | `GET /_/health` | Uncached readiness check, 200 or 503 (#312). |
 | `GET /_/health/live` | Uncached liveness check, always 200, no database (#374). |
 | `GET /me` | The current user. |
@@ -305,6 +305,14 @@ The stored-file counterpart of the orphaned resource report, with the same shape
 - **The imagine cache is cleaned only with its source, never scanned on its own.** A variant is keyed by its source path in liip's resolver store, which the bundle does not own the layout of in general; variants whose source was deleted before this report existed are left behind.
 - **The stored report after a delete is the delete's own fresh scan minus what was deleted**, not a second listing, because a listing is the expensive part.
 - **The report lives in `_acb_orphaned_file_report`** (`OrphanedFileReportRecord`, fixed id 1, updated in place), never `cache.app`. Upgrade step: generate and run a migration. `generatedAt` uses the resource report's microsecond format.
+
+**Invalid files (#388)** are the fourth list of the same report, from the same scan: `invalidFiles` is `{resource, field, adapter, path, violations}` per present referenced file that breaks its field's **current** constraints. Like a missing file it is only reported; nothing modifies or deletes it, and a missing file is never checked.
+
+- **The constraints are the `Default` group's on the `UploadableField` property** (`file`, not the stored `filename`), read from the application's validator metadata by `StoredFileConstraintChecker`, and validated against a `StoredFile` by a private validator whose `StoredFileConstraintValidatorFactory` sends `File` and `Image` to `StoredFileConstraintValidator`, any `Composite` (`When`, `Sequentially`, …) to the application's `validator.validator_factory`, and **skips every other constraint**: they would validate an uploaded file the scan does not have.
+- **`StoredFileConstraintValidator` must give the messages and codes Symfony's `FileValidator`/`ImageValidator` give the same file on disk.** `StoredFileConstraintValidatorTest` runs each option against both; extend its matrix when you support an option. Checked: empty, `maxSize`, `mimeTypes`, and every `Image` dimension, pixel, ratio and orientation option (SVG skips width, height and pixels, as Symfony does). Not checked: `extensions`, filename length or charset, `detectCorrupted` (it decodes the image).
+- **A `When` expression sees `value` as the `StoredFile`** (`getMimeType()`, `getSize()`, `getFilename()`, `getPath()`) and `this` as null. An expression calling anything else throws and fails the scan, as configuration errors do.
+- **File info first, the object only when there is no row.** The original's `_acb_imagine_cached_file_metadata` row (filter null) supplies mime, size and dimensions, loaded with one query and only when some referenced field has constraints. With no row, `StoredFile` asks Flysystem for mime and size, and for dimensions copies the stream to a `tmpfile()` and calls `getimagesize()` on it (an SVG's `width`/`height` attributes, as `MediaObjectFactory` reads them), lazily, so only an `Image` option with dimensions reads the object. **Never decode the image (GD) to check it.** A `FilesystemException` while checking is logged at warning and that file left out.
+- The deleter's fresh scan checks constraints too, and its stored report keeps `invalidFiles` as scanned.
 
 ### Filters (#289, #237)
 

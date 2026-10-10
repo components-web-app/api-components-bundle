@@ -34,6 +34,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploa
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableRequiredOnPublish;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableRequiredOnPublishCustomGroup;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableTemporaryUrl;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithConstraints;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -246,11 +247,11 @@ class UploadsContext implements Context
     }
 
     /**
-     * @Given there is a DummyUploadable with the file :file saved as :name
+     * @Given /^there is a (DummyUploadable|DummyUploadableWithConstraints) with the file "([^"]+)" saved as "([^"]+)"$/
      */
-    public function thereIsADummyUploadableWithTheFileSavedAs(string $file, string $name): void
+    public function thereIsADummyUploadableWithTheFileSavedAs(string $class, string $file, string $name): void
     {
-        $object = new DummyUploadable();
+        $object = 'DummyUploadable' === $class ? new DummyUploadable() : new DummyUploadableWithConstraints();
         $object->file = new File(__DIR__ . '/../assets/files/' . $file);
         $this->uploadableHelper->persistFiles($object);
         $this->manager->persist($object);
@@ -462,11 +463,31 @@ class UploadsContext implements Context
     }
 
     /**
+     * @Given the stored file of the resource :name has file info of :width by :height pixels
+     */
+    public function theStoredFileOfTheResourceHasFileInfo(string $name, int $width, int $height): void
+    {
+        $this->manager->persist(new FileInfo($this->storedPathOf($name), 'image/png', 1, $width, $height, null));
+        $this->manager->flush();
+    }
+
+    /**
      * @Given the stored file of the resource :name is older than the minimum age
      */
     public function theStoredFileOfTheResourceIsOlderThanTheMinimumAge(string $name): void
     {
         $this->ageStoredFile($this->storedPathOf($name));
+    }
+
+    /**
+     * @Then the file for the resource :name should still be stored
+     */
+    public function theFileForTheResourceShouldStillBeStored(string $name): void
+    {
+        $path = $this->storedPathOf($name);
+        if (!$this->filesystemProvider->getFilesystem('local')->fileExists($path)) {
+            throw new \RuntimeException(\sprintf('The stored file "%s" of the resource "%s" should exist.', $path, $name));
+        }
     }
 
     /**
@@ -515,13 +536,13 @@ class UploadsContext implements Context
     }
 
     /**
-     * @Then /^the stored orphaned files report should list (\d+) orphaned files? and (\d+) missing files?$/
+     * @Then /^the stored orphaned files report should list (\d+) orphaned files?, (\d+) missing files? and (\d+) invalid files?$/
      */
-    public function theStoredOrphanedFilesReportShouldList(int $orphaned, int $missing): void
+    public function theStoredOrphanedFilesReportShouldList(int $orphaned, int $missing, int $invalid): void
     {
         $this->manager->clear();
         $report = $this->orphanedFileReportStore->fetch();
-        if (null === $report || \count($report->orphanedFiles) !== $orphaned || \count($report->missingFiles) !== $missing) {
+        if (null === $report || \count($report->orphanedFiles) !== $orphaned || \count($report->missingFiles) !== $missing || \count($report->invalidFiles) !== $invalid) {
             throw new \RuntimeException(\sprintf('The stored orphaned files report is %s', json_encode($report)));
         }
     }
