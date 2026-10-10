@@ -15,6 +15,9 @@ use League\Flysystem\Filesystem;
 use League\Flysystem\Visibility;
 use Liip\ImagineBundle\Binary\BinaryInterface;
 use Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface;
+use Liip\ImagineBundle\Imagine\Filter\FilterConfiguration;
+use Silverback\ApiComponentsBundle\Utility\StoredFileExtension;
+use Symfony\Component\Mime\MimeTypes;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -27,7 +30,7 @@ class FlysystemCacheResolver implements ResolverInterface
     private string $cacheRoot;
     private string $visibility;
 
-    public function __construct(Filesystem $filesystem, string $rootUrl, $cachePrefix = 'media/cache', $visibility = Visibility::PUBLIC)
+    public function __construct(Filesystem $filesystem, string $rootUrl, $cachePrefix = 'media/cache', $visibility = Visibility::PUBLIC, private readonly ?FilterConfiguration $filterConfiguration = null)
     {
         $this->filesystem = $filesystem;
         $this->webRoot = rtrim($rootUrl, '/');
@@ -88,7 +91,21 @@ class FlysystemCacheResolver implements ResolverInterface
     protected function getFileUrl($path, $filter): string
     {
         $path = str_replace('://', '---', $path);
+        $mimeType = $this->getOutputMimeType($filter);
+        if (null !== $mimeType) {
+            $path = StoredFileExtension::replaceInPath($path, $mimeType);
+        }
 
         return $this->cachePrefix . '/' . $filter . '/' . ltrim($path, '/');
+    }
+
+    private function getOutputMimeType(string $filter): ?string
+    {
+        $format = $this->filterConfiguration?->all()[$filter]['format'] ?? null;
+        if (!\is_string($format) || '' === $format) {
+            return null;
+        }
+
+        return MimeTypes::getDefault()->getMimeTypes($format)[0] ?? null;
     }
 }

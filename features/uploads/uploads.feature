@@ -359,6 +359,17 @@ Feature: API Resources which can have files uploaded
 
 
   @loginUser
+  Scenario: An imagine filter with an output format stores its variant with that format's extension
+    Given there is a DummyUploadableWithImagineFilters
+    When I send a "GET" request to the resource "dummy_uploadable"
+    Then the response status code should be 200
+    And the JSON node "_metadata.mediaObjects.file[3].imagineFilter" should be equal to the string "webp_thumbnail"
+    And the JSON node "_metadata.mediaObjects.file[3].mimeType" should be equal to the string "image/webp"
+    And the JSON node "_metadata.mediaObjects.file[3].contentUrl" should match "#/media/cache/webp_thumbnail/image-[0-9a-f]{8}\.webp$#"
+    And the file at the URL in the JSON node "_metadata.mediaObjects.file[3].contentUrl" should be stored in the "in_memory" filesystem as "image/webp"
+    And the JSON node "_metadata.mediaObjects.file[1].contentUrl" should match "#/media/cache/thumbnail/image-[0-9a-f]{8}\.png$#"
+
+  @loginUser
   Scenario: Uploading a non-image to an imagine-filtered field does not attempt image processing
     Given I add "Content-Type" header equal to "multipart/form-data"
     When I send a "POST" request to "/dummy_multiple_uploadables/upload" with parameters:

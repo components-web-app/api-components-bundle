@@ -18,6 +18,8 @@ use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\PyStringNode;
 use Behatch\Context\JsonContext as BehatchJsonContext;
 use Behatch\Context\RestContext as BehatchRestContext;
+use Behatch\Json\Json;
+use Behatch\Json\JsonInspector;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\Assert;
@@ -308,6 +310,23 @@ class UploadsContext implements Context
     {
         $endpoint = 'http://example.com' . $this->restContext->resources[$resource] . '/download/file';
         $this->behatchJsonContext->theJsonNodeShouldBeEqualToTheString($node, $endpoint);
+    }
+
+    /**
+     * @Then the file at the URL in the JSON node :node should be stored in the :adapter filesystem as :mimeType
+     */
+    public function theFileAtTheUrlInTheJsonNodeShouldBeStoredAs(string $node, string $adapter, string $mimeType): void
+    {
+        $json = new Json($this->behatchJsonContext->getSession()->getPage()->getContent());
+        $path = ltrim((string) parse_url((string) (new JsonInspector('javascript'))->evaluate($json, $node), \PHP_URL_PATH), '/');
+        $filesystem = $this->behatchJsonContext->getSession()->getDriver()->getClient()->getContainer()->get(FilesystemProvider::class)->getFilesystem($adapter);
+        if (!$filesystem->fileExists($path)) {
+            throw new \RuntimeException(\sprintf('Expected "%s" to be stored in the "%s" filesystem.', $path, $adapter));
+        }
+        $actual = (new \finfo(\FILEINFO_MIME_TYPE))->buffer($filesystem->read($path));
+        if ($actual !== $mimeType) {
+            throw new \RuntimeException(\sprintf('Expected "%s" to contain "%s", but it contains "%s".', $path, $mimeType, $actual));
+        }
     }
 
     /**

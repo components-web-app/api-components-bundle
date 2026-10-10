@@ -19,3 +19,10 @@ liip_imagine:
                 thumbnail:
                     size: [80, 80]
                     mode: outbound
+        webp_thumbnail:
+            format: webp
+            quality: 80
+            filters:
+                thumbnail:
+                    size: [100, 100]
+                    mode: inset

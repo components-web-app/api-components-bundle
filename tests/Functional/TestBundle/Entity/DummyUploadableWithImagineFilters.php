@@ -36,6 +36,6 @@ class DummyUploadableWithImagineFilters implements ImagineFiltersInterface
 
     public function getImagineFilters(string $property, ?Request $request): array
     {
-        return ['thumbnail', 'square_thumbnail'];
+        return ['thumbnail', 'square_thumbnail', 'webp_thumbnail'];
     }
 }
