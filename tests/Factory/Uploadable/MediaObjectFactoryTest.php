@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use League\Flysystem\Filesystem;
+use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
@@ -28,6 +29,8 @@ use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
+use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
+use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\UrlHelper;
@@ -101,7 +104,7 @@ class MediaObjectFactoryTest extends TestCase
             $this->createStub(FilesystemFactory::class),
             $urlHelper ?? new UrlHelper(new RequestStack()),
             $urlGenerators,
-            $filterService,
+            $filterService ? $this->storedFilterGenerator($filterService) : null,
         );
     }
 
@@ -350,5 +353,13 @@ class MediaObjectFactoryTest extends TestCase
         $mediaObject = $collection->get('file')[0];
         $this->assertSame(2048, $mediaObject->fileSize);
         $this->assertSame('application/pdf', $mediaObject->mimeType);
+    }
+
+    private function storedFilterGenerator(FilterService $filterService): ImagineFilterGenerator
+    {
+        $cacheManager = $this->createStub(CacheManager::class);
+        $cacheManager->method('isStored')->willReturn(true);
+
+        return new ImagineFilterGenerator($filterService, $cacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', null);
     }
 }

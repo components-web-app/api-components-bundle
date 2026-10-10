@@ -398,6 +398,52 @@ class ConfigurationTest extends TestCase
         $this->process($config);
     }
 
+    public function test_imagine_filters_are_generated_under_512m_by_default(): void
+    {
+        self::assertSame(['memory_limit' => '512M'], $this->process(self::minimalConfig())['imagine']);
+    }
+
+    /**
+     * @return iterable<string, array{?string}>
+     */
+    public static function validImagineMemoryLimits(): iterable
+    {
+        yield 'gigabytes' => ['1G'];
+        yield 'megabytes' => ['384M'];
+        yield 'bytes' => ['402653184'];
+        yield 'disabled' => [null];
+    }
+
+    #[DataProvider('validImagineMemoryLimits')]
+    public function test_the_imagine_memory_limit_can_be_configured(?string $limit): void
+    {
+        $config = self::minimalConfig();
+        $config['imagine']['memory_limit'] = $limit;
+
+        self::assertSame($limit, $this->process($config)['imagine']['memory_limit']);
+    }
+
+    /**
+     * @return iterable<string, array{mixed}>
+     */
+    public static function invalidImagineMemoryLimits(): iterable
+    {
+        yield 'not a size' => ['lots'];
+        yield 'unlimited' => ['-1'];
+        yield 'zero' => ['0'];
+        yield 'an integer' => [536870912];
+    }
+
+    #[DataProvider('invalidImagineMemoryLimits')]
+    public function test_an_invalid_imagine_memory_limit_is_rejected(mixed $limit): void
+    {
+        $config = self::minimalConfig();
+        $config['imagine']['memory_limit'] = $limit;
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->process($config);
+    }
+
     public function test_orphaned_resource_notifications_have_no_recipients_by_default(): void
     {
         self::assertSame(

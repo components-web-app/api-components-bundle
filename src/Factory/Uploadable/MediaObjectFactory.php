@@ -18,7 +18,6 @@ use League\Flysystem\UnableToGeneratePublicUrl;
 use League\Flysystem\UnableToReadFile;
 use League\Flysystem\UnableToRetrieveMetadata;
 use Liip\ImagineBundle\Exception\Binary\Loader\NotLoadableException;
-use Liip\ImagineBundle\Service\FilterService;
 use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
@@ -29,6 +28,7 @@ use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
+use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
 use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\DependencyInjection\ServiceLocator;
@@ -52,7 +52,7 @@ class MediaObjectFactory
         private readonly FilesystemFactory $filesystemFactory,
         private readonly UrlHelper $urlHelper,
         private readonly ServiceLocator $urlGenerators,
-        private readonly ?FilterService $filterService = null,
+        private readonly ?ImagineFilterGenerator $imagineFilterGenerator = null,
         private readonly ?LoggerInterface $logger = null,
     ) {
         $this->initRegistry($managerRegistry);
@@ -94,7 +94,7 @@ class MediaObjectFactory
             }
 
             if ($this->isImagineProcessable($initialMediaObject->mimeType)) {
-                array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration, $fileProperty));
+                array_push($propertyMediaObjects, ...$this->getMediaObjectsForImagineFilters($object, $path, $fieldConfiguration, $fileProperty, $initialMediaObject));
             }
 
             $collection->set($fileProperty, $propertyMediaObjects);
@@ -124,10 +124,10 @@ class MediaObjectFactory
     /**
      * @return MediaObject[]
      */
-    private function getMediaObjectsForImagineFilters(object $object, string $path, UploadableField $uploadableField, string $fileProperty): array
+    private function getMediaObjectsForImagineFilters(object $object, string $path, UploadableField $uploadableField, string $fileProperty, MediaObject $original): array
     {
         $mediaObjects = [];
-        if (!$this->filterService) {
+        if (!$this->imagineFilterGenerator) {
             return $mediaObjects;
         }
 
@@ -141,13 +141,16 @@ class MediaObjectFactory
 
         foreach ($filters as $filter) {
             try {
-                $resolvedPath = $this->filterService->getUrlOfFilteredImage($path, $filter);
+                $resolvedPath = $this->imagineFilterGenerator->filteredImageUrl($path, $filter, $original->width, $original->height);
             } catch (NotLoadableException $exception) {
                 $this->logger?->warning(\sprintf('Skipped the imagine filter "%s" because its source image "%s" could not be loaded.', $filter, $path), [
                     'filter' => $filter,
                     'path' => $path,
                     'exception' => $exception,
                 ]);
+                continue;
+            }
+            if (null === $resolvedPath) {
                 continue;
             }
             $mediaObjects[] = $this->createFromImagine($this->urlHelper->getAbsoluteUrl($resolvedPath), $path, $filter);

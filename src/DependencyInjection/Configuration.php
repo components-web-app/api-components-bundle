@@ -18,6 +18,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
+use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Silverback\ApiComponentsBundle\Utility\EmailRecipientList;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -55,6 +56,7 @@ class Configuration implements ConfigurationInterface
         $this->addHttpCacheNode($rootNode);
         $this->addOrphanedResourcesNode($rootNode);
         $this->addOrphanedFilesNode($rootNode);
+        $this->addImagineNode($rootNode);
 
         return $treeBuilder;
     }
@@ -150,6 +152,26 @@ class Configuration implements ConfigurationInterface
                             ->info('Path prefixes never listed or reported on any scanned filesystem, for anything else the application stores beside its uploads. Imagine cache prefixes are excluded without being listed here.')
                             ->scalarPrototype()->end()
                             ->defaultValue([])
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    private function addImagineNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('imagine')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('memory_limit')
+                            ->info('The PHP memory limit an imagine filter is generated under, raised only for the generation and restored after it, in PHP shorthand (e.g. "512M"). A filter whose estimated cost does not fit under it is skipped and logged. A higher memory_limit is kept; null generates under the current limit.')
+                            ->defaultValue('512M')
+                            ->validate()
+                                ->ifTrue(static fn (mixed $value): bool => null !== $value && (!\is_string($value) || null === PhpMemoryLimit::parse($value)))
+                                ->thenInvalid('The imagine memory_limit must be a positive size in PHP shorthand such as "512M", or null; got %s.')
+                            ->end()
                         ->end()
                     ->end()
                 ->end()

@@ -17,6 +17,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use League\Flysystem\Filesystem;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use Liip\ImagineBundle\Exception\Binary\Loader\NotLoadableException;
+use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -29,6 +30,8 @@ use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
+use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
+use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\UrlHelper;
@@ -134,8 +137,16 @@ class MediaObjectFactoryImagineTest extends TestCase
             $this->createStub(FilesystemFactory::class),
             new UrlHelper(new RequestStack()),
             new ServiceLocator(['api' => static fn () => $apiGenerator]),
-            $filterService,
+            $filterService ? $this->storedFilterGenerator($filterService) : null,
             $logger,
         );
+    }
+
+    private function storedFilterGenerator(FilterService $filterService): ImagineFilterGenerator
+    {
+        $cacheManager = $this->createStub(CacheManager::class);
+        $cacheManager->method('isStored')->willReturn(true);
+
+        return new ImagineFilterGenerator($filterService, $cacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', null);
     }
 }

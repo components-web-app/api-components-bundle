@@ -49,6 +49,8 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
+use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
+use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
@@ -61,6 +63,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\RouteNormalizer;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
@@ -165,12 +168,23 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$imagineBundleEnabled', $imagineEnabled);
 
         if ($imagineEnabled) {
+            $container->register('silverback.api_components.imagine.filter_generator', ImagineFilterGenerator::class)
+                ->setArguments([
+                    new Reference('liip_imagine.service.filter'),
+                    new Reference('liip_imagine.cache.manager'),
+                    new Reference(PhpMemoryLimit::class),
+                    '%liip_imagine.driver_service%',
+                    $config['imagine']['memory_limit'],
+                    new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                ]);
+            $container->setAlias(ImagineFilterGenerator::class, 'silverback.api_components.imagine.filter_generator');
+
             $definition = $container->findDefinition(UploadableFileManager::class);
-            $definition->setArgument('$filterService', new Reference('liip_imagine.service.filter'));
+            $definition->setArgument('$imagineFilterGenerator', new Reference(ImagineFilterGenerator::class));
             $definition->setArgument('$imagineCacheManager', new Reference('liip_imagine.cache.manager'));
 
             $definition = $container->findDefinition(MediaObjectFactory::class);
-            $definition->setArgument('$filterService', new Reference('liip_imagine.service.filter'));
+            $definition->setArgument('$imagineFilterGenerator', new Reference(ImagineFilterGenerator::class));
         }
 
         $definition = $container->findDefinition(RouteExtension::class);

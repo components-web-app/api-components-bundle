@@ -32,6 +32,7 @@ use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
 use Silverback\ApiComponentsBundle\Factory\OrphanedResource\OrphanedResourcesChangedEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
@@ -41,8 +42,11 @@ use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
+use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
+use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
@@ -51,7 +55,9 @@ use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpFoundation\Cookie;
 
 /**
@@ -127,12 +133,12 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame([], $enabled);
     }
 
-    private function load(array $config): array
+    private function load(array $config, bool $imagineEnabled = false): array
     {
         $container = new ContainerBuilder();
         $container->setParameter('kernel.project_dir', sys_get_temp_dir());
         $container->setParameter('kernel.debug', false);
-        $container->setParameter('api_components.imagine_enabled', false);
+        $container->setParameter('api_components.imagine_enabled', $imagineEnabled);
 
         $errors = [];
         set_error_handler(static function (int $errno, string $message) use (&$errors): bool {
@@ -160,6 +166,47 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertInstanceOf(Definition::class, $definition);
 
         return $definition->getArgument($argument);
+    }
+
+    public function test_with_imagine_enabled_both_filter_callers_generate_through_the_memory_guard(): void
+    {
+        [$container] = $this->load(self::minimalConfig(), true);
+
+        $generator = $container->findDefinition(ImagineFilterGenerator::class);
+        self::assertSame(ImagineFilterGenerator::class, $generator->getClass());
+        self::assertEquals(
+            [
+                new Reference('liip_imagine.service.filter'),
+                new Reference('liip_imagine.cache.manager'),
+                new Reference(PhpMemoryLimit::class),
+                '%liip_imagine.driver_service%',
+                '512M',
+                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            ],
+            $generator->getArguments()
+        );
+        self::assertEquals(new Reference(ImagineFilterGenerator::class), $this->argument($container, MediaObjectFactory::class, '$imagineFilterGenerator'));
+        self::assertEquals(new Reference(ImagineFilterGenerator::class), $this->argument($container, UploadableFileManager::class, '$imagineFilterGenerator'));
+        self::assertEquals(new Reference('liip_imagine.cache.manager'), $this->argument($container, UploadableFileManager::class, '$imagineCacheManager'));
+    }
+
+    public function test_the_configured_imagine_memory_limit_reaches_the_filter_generator(): void
+    {
+        $config = self::minimalConfig();
+        $config['imagine']['memory_limit'] = null;
+
+        [$container] = $this->load($config, true);
+
+        self::assertNull($container->findDefinition(ImagineFilterGenerator::class)->getArgument(4));
+    }
+
+    public function test_without_imagine_no_filter_generator_is_registered(): void
+    {
+        [$container] = $this->load(self::minimalConfig());
+
+        self::assertFalse($container->has(ImagineFilterGenerator::class));
+        self::assertArrayNotHasKey('$imagineFilterGenerator', $container->findDefinition(MediaObjectFactory::class)->getArguments());
+        self::assertArrayNotHasKey('$imagineFilterGenerator', $container->findDefinition(UploadableFileManager::class)->getArguments());
     }
 
     public function test_loading_the_minimal_config_raises_no_php_errors(): void
