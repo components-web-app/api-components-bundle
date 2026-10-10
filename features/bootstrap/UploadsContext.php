@@ -107,11 +107,12 @@ class UploadsContext implements Context
 
     /**
      * @Given there is a DummyUploadableWithImagineFilters saved as :name
+     * @Given there is a DummyUploadableWithImagineFilters with the file :file saved as :name
      */
-    public function thereIsADummyUploadableWithImagineFiltersSavedAs(string $name): void
+    public function thereIsADummyUploadableWithImagineFiltersSavedAs(string $name, string $file = 'image.png'): void
     {
         $object = new DummyUploadableWithImagineFilters();
-        $object->file = new File(__DIR__ . '/../assets/files/image.png');
+        $object->file = new File(__DIR__ . '/../assets/files/' . $file);
         $this->uploadableHelper->persistFiles($object);
         $this->manager->persist($object);
         $this->manager->flush();

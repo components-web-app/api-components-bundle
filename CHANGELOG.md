@@ -4,7 +4,14 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- `MediaObjectFactory` and `UploadableFileManager` take an `ImagineFilterGenerator` (`$imagineFilterGenerator`) instead of liip's `FilterService`; an application that constructs or decorates them must pass the generator ([#396](https://github.com/components-web-app/api-components-bundle/pull/396))
+
+### Added
+- `silverback_api_components.imagine.memory_limit` (default `512M`, `null` to disable): imagine filters are generated with `memory_limit` raised to it and restored afterwards, so an application can run its workers with a lower global `memory_limit` ([#396](https://github.com/components-web-app/api-components-bundle/pull/396))
+
 ### Fixed
+- An imagine filter whose source is too large to generate within the memory budget is skipped and logged instead of exhausting PHP's memory, on read and on upload; the response still carries the original. The estimate uses the measured cost of the configured driver (GD, Imagick, vips) ([#396](https://github.com/components-web-app/api-components-bundle/pull/396))
 - Reading uploadables no longer saves `NULL` filenames: the uploadable normalizer stopped nulling the file fields on the entity, and caching file info (for a file seen for the first time, or an imagine filter generated on read) inserts only its own row instead of flushing every pending change. A page whose request generated a filter or cached file info lost the images of the components serialised before it ([#393](https://github.com/components-web-app/api-components-bundle/pull/393))
 
 ## [2.0.0-alpha.10](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.9...2.0.0-alpha.10) - 2026-10-10

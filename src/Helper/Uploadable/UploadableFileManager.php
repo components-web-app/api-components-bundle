@@ -13,13 +13,13 @@ namespace Silverback\ApiComponentsBundle\Helper\Uploadable;
 
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
-use Liip\ImagineBundle\Service\FilterService;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Imagine\CacheManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
+use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\File\File;
@@ -43,7 +43,7 @@ class UploadableFileManager
     private FlysystemDataLoader $flysystemDataLoader;
     private FileInfoCacheManager $fileInfoCacheManager;
     private ?CacheManager $imagineCacheManager;
-    private ?FilterService $filterService;
+    private ?ImagineFilterGenerator $imagineFilterGenerator;
 
     /**
      * @var \WeakMap<object, list<string>>
@@ -57,7 +57,7 @@ class UploadableFileManager
         FlysystemDataLoader $flysystemDataLoader,
         FileInfoCacheManager $fileInfoCacheManager,
         ?CacheManager $imagineCacheManager,
-        ?FilterService $filterService = null,
+        ?ImagineFilterGenerator $imagineFilterGenerator = null,
     ) {
         $this->initRegistry($registry);
         $this->annotationReader = $annotationReader;
@@ -65,7 +65,7 @@ class UploadableFileManager
         $this->flysystemDataLoader = $flysystemDataLoader;
         $this->fileInfoCacheManager = $fileInfoCacheManager;
         $this->imagineCacheManager = $imagineCacheManager;
-        $this->filterService = $filterService;
+        $this->imagineFilterGenerator = $imagineFilterGenerator;
         $this->deletedFields = new \WeakMap();
     }
 
@@ -136,14 +136,16 @@ class UploadableFileManager
             $this->flysystemDataLoader->setAdapter($fieldConfiguration->adapter);
 
             $filename = $classMetadata->getFieldValue($object, $fieldConfiguration->property);
-            if ($filename && $object instanceof ImagineFiltersInterface && $this->filterService) {
-                $mimeType = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter)->mimeType($filename);
+            if ($filename && $object instanceof ImagineFiltersInterface && $this->imagineFilterGenerator) {
+                $filesystem = $this->filesystemProvider->getFilesystem($fieldConfiguration->adapter);
+                $mimeType = $filesystem->mimeType($filename);
                 if (!str_contains($mimeType, 'image/') || 'image/svg+xml' === $mimeType) {
                     continue;
                 }
+                $dimensions = @getimagesizefromstring($filesystem->read($filename));
                 $filters = $object->getImagineFilters($fileProperty, null);
                 foreach ($filters as $filter) {
-                    $this->filterService->getUrlOfFilteredImage($filename, $filter);
+                    $this->imagineFilterGenerator->filteredImageUrl($filename, $filter, $dimensions ? $dimensions[0] : null, $dimensions ? $dimensions[1] : null);
                 }
             }
         }

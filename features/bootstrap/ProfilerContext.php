@@ -54,6 +54,7 @@ use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientExcep
  */
 class ProfilerContext implements Context
 {
+    private ?string $originalMemoryLimit = null;
     private const PURGE_HEADER_NAMES = ['xkey', 'surrogate-key'];
     private const EMAIL_LINK_DEFAULT_ORIGIN_ENV = 'EMAIL_LINK_DEFAULT_ORIGIN';
 
@@ -317,6 +318,42 @@ class ProfilerContext implements Context
         }
 
         throw new ExpectationException(\sprintf('No missing source image was logged for the imagine filter "%s".', $filter), $this->minkContext->getSession()->getDriver());
+    }
+
+    /**
+     * @Given the PHP memory limit is just above the current usage
+     */
+    public function thePhpMemoryLimitIsJustAboveTheCurrentUsage(): void
+    {
+        $this->originalMemoryLimit ??= (string) \ini_get('memory_limit');
+        ini_set('memory_limit', (string) (memory_get_usage(true) + 67108864));
+    }
+
+    /**
+     * @AfterScenario
+     */
+    public function restoreMemoryLimit(): void
+    {
+        if (null !== $this->originalMemoryLimit) {
+            ini_set('memory_limit', $this->originalMemoryLimit);
+            $this->originalMemoryLimit = null;
+        }
+    }
+
+    /**
+     * @Then an oversized source image for the imagine filter :filter should have been logged
+     */
+    public function anOversizedSourceImageForTheImagineFilterShouldHaveBeenLogged(string $filter): void
+    {
+        /** @var TestHandler $handler */
+        $handler = $this->driverContainer->get('app.monolog.test_handler');
+        foreach ($handler->getRecords() as $record) {
+            if (Level::Warning === $record->level && $filter === ($record->context['filter'] ?? null) && isset($record->context['estimated_bytes'])) {
+                return;
+            }
+        }
+
+        throw new ExpectationException(\sprintf('No oversized source image was logged for the imagine filter "%s".', $filter), $this->minkContext->getSession()->getDriver());
     }
 
     /**

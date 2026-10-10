@@ -506,3 +506,29 @@ Feature: API Resources which can have files uploaded
     And the JSON node "member[1]._metadata.mediaObjects.file[1].imagineFilter" should be equal to the string "thumbnail"
     And the resource "first_upload" should have an uploaded file
     And the resource "second_upload" should have an uploaded file
+
+  @loginUser
+  Scenario: An imagine filter too large to generate under the memory ceiling is skipped on read and the original is still returned
+    Given there is a DummyUploadableWithImagineFilters with the file "oversized.png" saved as "first_upload"
+    And the PHP memory limit is just above the current usage
+    When I send a "GET" request to the resource "first_upload"
+    Then the response status code should be 200
+    And the JSON node "_metadata.mediaObjects.file[0].imagineFilter" should not exist
+    And the JSON node "_metadata.mediaObjects.file[0].width" should be equal to the number "7000"
+    And the JSON node "_metadata.mediaObjects.file[1]" should not exist
+    And an oversized source image for the imagine filter "thumbnail" should have been logged
+    And an oversized source image for the imagine filter "square_thumbnail" should have been logged
+
+  @loginUser
+  Scenario: Uploading an image too large to filter under the memory ceiling stores it and skips its imagine filters
+    Given I add "Content-Type" header equal to "multipart/form-data"
+    And the PHP memory limit is just above the current usage
+    When I send a "POST" request to "/dummy_uploadable_with_imagine_filters/upload" with parameters:
+      | key  | value          |
+      | file | @oversized.png |
+    Then the response status code should be 201
+    And the response resource should be saved as "first_upload"
+    And the JSON node "_metadata.mediaObjects.file[0].width" should be equal to the number "7000"
+    And the JSON node "_metadata.mediaObjects.file[1]" should not exist
+    And the resource "first_upload" should have an uploaded file
+    And an oversized source image for the imagine filter "thumbnail" should have been logged

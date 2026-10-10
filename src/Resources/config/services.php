@@ -150,6 +150,7 @@ use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Helper\User\UserWriteNotifier;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
+use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Mercure\PublishableAwareHub;
 use Silverback\ApiComponentsBundle\Metadata\Factory\CachedPageDataMetadataFactory;
@@ -483,6 +484,9 @@ return static function (ContainerConfigurator $configurator) {
             ]
         );
     $services->alias(FileInfoCacheManager::class, 'silverback.api_components.helper.uploadable.file_info_cache_manager');
+
+    $services->set('silverback.api_components.imagine.php_memory_limit')->class(PhpMemoryLimit::class);
+    $services->alias(PhpMemoryLimit::class, 'silverback.api_components.imagine.php_memory_limit');
 
     $services
         ->set('silverback.api_components.repository.file_info')
