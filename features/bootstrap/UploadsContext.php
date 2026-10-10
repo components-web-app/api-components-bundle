@@ -106,6 +106,29 @@ class UploadsContext implements Context
     }
 
     /**
+     * @Given there is a DummyUploadableWithImagineFilters saved as :name
+     */
+    public function thereIsADummyUploadableWithImagineFiltersSavedAs(string $name): void
+    {
+        $object = new DummyUploadableWithImagineFilters();
+        $object->file = new File(__DIR__ . '/../assets/files/image.png');
+        $this->uploadableHelper->persistFiles($object);
+        $this->manager->persist($object);
+        $this->manager->flush();
+        $this->restContext->resources[$name] = $this->iriConverter->getIriFromResource($object);
+    }
+
+    /**
+     * @Given the stored file of the resource :name has cached file info
+     */
+    public function theStoredFileOfTheResourceHasCachedFileInfo(string $name): void
+    {
+        $resource = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+        $this->manager->persist(new FileInfo($resource->getFilename(), 'image/png', 1, 1, 1, null));
+        $this->manager->flush();
+    }
+
+    /**
      * @Given /^there is a( draft)? DummyUploadableAndPublishable( with a draft)??$/
      */
     public function thereIsADummyUploadableAndPublishable(bool $isDraft = false, bool $associatedDraft = false): DummyUploadableAndPublishable
@@ -291,7 +314,9 @@ class UploadsContext implements Context
     public function theResourceShouldHaveAnUploadedFile(string $name): void
     {
         $item = $this->getUploadableResourceByName($name);
-        Assert::assertNotNull($item->getFilename());
+        if (null === $item->getFilename()) {
+            throw new \RuntimeException(\sprintf('The resource "%s" has no filename.', $name));
+        }
     }
 
     /**
@@ -393,7 +418,9 @@ class UploadsContext implements Context
     public function theResourceShouldNotHaveAnUploadedFile(string $name): void
     {
         $item = $this->getUploadableResourceByName($name);
-        Assert::assertNull($item->getFilename());
+        if (null !== $item->getFilename()) {
+            throw new \RuntimeException(\sprintf('The resource "%s" still has the filename "%s".', $name, $item->getFilename()));
+        }
     }
 
     /**

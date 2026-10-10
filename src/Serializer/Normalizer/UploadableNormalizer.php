@@ -11,15 +11,13 @@
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
-use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Model\Uploadable\DataUriFile;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
-use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -37,8 +35,6 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 final class UploadableNormalizer implements DenormalizerInterface, DenormalizerAwareInterface, NormalizerInterface, NormalizerAwareInterface
 {
-    use ClassMetadataTrait;
-
     use DenormalizerAwareTrait;
     use NormalizerAwareTrait;
 
@@ -48,13 +44,11 @@ final class UploadableNormalizer implements DenormalizerInterface, DenormalizerA
 
     public function __construct(
         private MediaObjectFactory $mediaObjectFactory,
-        private UploadableAttributeReader $annotationReader,
+        private UploadableAttributeReaderInterface $annotationReader,
         private UploadableFileManager $uploadableFileManager,
-        ManagerRegistry $registry,
         private ResourceMetadataProvider $resourceMetadataProvider,
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-        $this->initRegistry($registry);
     }
 
     /**
@@ -164,15 +158,16 @@ final class UploadableNormalizer implements DenormalizerInterface, DenormalizerA
             $resourceMetadata->setMediaObjects($mediaObjects);
         }
 
-        $fieldConfigurations = $this->annotationReader->getConfiguredProperties($object, true);
-        $classMetadata = $this->getClassMetadata($object);
-        $propertyAccessor = PropertyAccess::createPropertyAccessor();
-        foreach ($fieldConfigurations as $fileField => $fieldConfiguration) {
-            $propertyAccessor->setValue($object, $fileField, null);
-            $classMetadata->setFieldValue($object, $fieldConfiguration->property, null);
+        $normalized = $this->normalizer->normalize($object, $format, $context);
+        if (!\is_array($normalized) && !$normalized instanceof \ArrayObject) {
+            return $normalized;
         }
 
-        return $this->normalizer->normalize($object, $format, $context);
+        foreach ($this->annotationReader->getConfiguredProperties($object, true) as $fileField => $fieldConfiguration) {
+            unset($normalized[$fileField], $normalized[$fieldConfiguration->property]);
+        }
+
+        return $normalized;
     }
 
     public function getSupportedTypes(?string $format): array
