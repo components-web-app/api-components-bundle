@@ -44,6 +44,7 @@ use Silverback\ApiComponentsBundle\AttributeReader\ExplicitAllowOnlyAttributeRea
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
+use Silverback\ApiComponentsBundle\Command\DeduplicateFileInfoCommand;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\GenerateFixturesCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
@@ -144,6 +145,7 @@ use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteReachabilityResolver;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoDeduplicator;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
@@ -484,6 +486,20 @@ return static function (ContainerConfigurator $configurator) {
             ]
         );
     $services->alias(FileInfoCacheManager::class, 'silverback.api_components.helper.uploadable.file_info_cache_manager');
+
+    $services
+        ->set('silverback.api_components.helper.uploadable.file_info_deduplicator')
+        ->class(FileInfoDeduplicator::class)
+        ->args([new Reference(EntityManagerInterface::class)]);
+    $services->alias(FileInfoDeduplicator::class, 'silverback.api_components.helper.uploadable.file_info_deduplicator');
+
+    $services
+        ->set('silverback.api_components.command.deduplicate_file_info')
+        ->class(DeduplicateFileInfoCommand::class)
+        ->autoconfigure(false)
+        ->args([new Reference(FileInfoDeduplicator::class)])
+        ->tag('console.command', ['command' => 'silverback:api-components:deduplicate-file-info']);
+    $services->alias(DeduplicateFileInfoCommand::class, 'silverback.api_components.command.deduplicate_file_info');
 
     $services->set('silverback.api_components.imagine.php_memory_limit')->class(PhpMemoryLimit::class);
     $services->alias(PhpMemoryLimit::class, 'silverback.api_components.imagine.php_memory_limit');
