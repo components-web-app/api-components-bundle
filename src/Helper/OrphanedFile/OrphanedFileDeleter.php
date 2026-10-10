@@ -86,6 +86,7 @@ class OrphanedFileDeleter
             array_values(array_filter($report->orphanedFiles, static fn (array $file): bool => !\in_array($file, $deleted, true))),
             $report->missingFiles,
             $report->unknownFiles,
+            $report->invalidFiles,
         ));
 
         return new OrphanedFileDeletion($deleted, $rejected);

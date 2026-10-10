@@ -19,6 +19,7 @@ use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDeleter;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileReportStore;
+use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileConstraintChecker;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileLister;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileNameMatcher;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
@@ -56,6 +57,16 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(StoredFileNameMatcher::class, 'silverback.api_components.orphaned_file.name_matcher');
 
     $services
+        ->set('silverback.api_components.orphaned_file.constraint_checker')
+        ->class(StoredFileConstraintChecker::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference('validator'),
+            new Reference('validator.validator_factory', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ]);
+    $services->alias(StoredFileConstraintChecker::class, 'silverback.api_components.orphaned_file.constraint_checker');
+
+    $services
         ->set('silverback.api_components.orphaned_file.detector')
         ->class(OrphanedFileDetector::class)
         ->autoconfigure(false)
@@ -70,6 +81,8 @@ return static function (ContainerConfigurator $configurator) {
             '$cacheResolvers' => tagged_iterator('liip_imagine.cache.resolver'),
             '$excludedPaths' => [],
             '$minimumAge' => 3600,
+            '$constraintChecker' => new Reference('silverback.api_components.orphaned_file.constraint_checker'),
+            '$logger' => new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ]);
     $services->alias(OrphanedFileDetector::class, 'silverback.api_components.orphaned_file.detector');
 

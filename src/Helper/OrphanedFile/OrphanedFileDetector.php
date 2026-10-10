@@ -19,6 +19,7 @@ use League\Flysystem\FileAttributes;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\WhitespacePathNormalizer;
+use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\ApiResource\OrphanedFileReport;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
@@ -47,6 +48,8 @@ class OrphanedFileDetector
         private readonly iterable $cacheResolvers,
         private readonly array $excludedPaths,
         private readonly int $minimumAge,
+        private readonly StoredFileConstraintChecker $constraintChecker,
+        private readonly ?LoggerInterface $logger = null,
     ) {
         $this->initRegistry($registry);
     }
@@ -93,24 +96,78 @@ class OrphanedFileDetector
         }
 
         $missingFiles = [];
+        $present = [];
         foreach ($references as $reference) {
             $adapter = $reference['adapter'];
             if (isset($listed[$adapter][$this->normalize($reference['path'])]) || $this->filesystemProvider->getFilesystem($adapter)->fileExists($reference['path'])) {
+                $present[] = $reference;
                 continue;
             }
             $missingFiles[] = [
-                'resource' => $this->iriConverter->getIriFromResource($entityManager->getReference($reference['class'], $reference['id'])),
+                'resource' => $this->resourceIri($entityManager, $reference),
                 'adapter' => $adapter,
                 'path' => $reference['path'],
             ];
         }
+        $invalidFiles = $this->invalidFiles($entityManager, $present);
 
         $byAdapterAndPath = static fn (array $a, array $b): int => [$a['adapter'], $a['path']] <=> [$b['adapter'], $b['path']];
         usort($orphanedFiles, $byAdapterAndPath);
         usort($unknownFiles, $byAdapterAndPath);
         usort($missingFiles, static fn (array $a, array $b): int => [$a['adapter'], $a['path'], $a['resource']] <=> [$b['adapter'], $b['path'], $b['resource']]);
+        usort($invalidFiles, static fn (array $a, array $b): int => [$a['adapter'], $a['path'], $a['resource'], $a['field']] <=> [$b['adapter'], $b['path'], $b['resource'], $b['field']]);
 
-        return new OrphanedFileReport($generatedAt, $orphanedFiles, $missingFiles, $unknownFiles);
+        return new OrphanedFileReport($generatedAt, $orphanedFiles, $missingFiles, $unknownFiles, $invalidFiles);
+    }
+
+    /**
+     * @param list<array{class: class-string, id: mixed, field: string, adapter: string, path: string}> $references
+     *
+     * @return list<array{resource: string, field: string, adapter: string, path: string, violations: list<string>}>
+     */
+    private function invalidFiles(EntityManagerInterface $entityManager, array $references): array
+    {
+        $constraints = [];
+        $fileInfo = null;
+        $invalidFiles = [];
+        foreach ($references as $reference) {
+            $fieldConstraints = $constraints[$reference['class']][$reference['field']] ??= $this->constraintChecker->constraints($reference['class'], $reference['field']);
+            if (!$fieldConstraints) {
+                continue;
+            }
+            $fileInfo ??= $this->fileInfoRepository->findOriginalsByPath();
+            $file = new StoredFile($this->filesystemProvider->getFilesystem($reference['adapter']), $reference['path'], $fileInfo[$reference['path']] ?? null);
+            try {
+                $violations = $this->constraintChecker->violations($file, $fieldConstraints);
+            } catch (FilesystemException $exception) {
+                $this->logger?->warning('A stored file could not be read to check it against its field\'s constraints.', [
+                    'adapter' => $reference['adapter'],
+                    'path' => $reference['path'],
+                    'exception' => $exception,
+                ]);
+                continue;
+            }
+            if (!$violations) {
+                continue;
+            }
+            $invalidFiles[] = [
+                'resource' => $this->resourceIri($entityManager, $reference),
+                'field' => $reference['field'],
+                'adapter' => $reference['adapter'],
+                'path' => $reference['path'],
+                'violations' => $violations,
+            ];
+        }
+
+        return $invalidFiles;
+    }
+
+    /**
+     * @param array{class: class-string, id: mixed} $reference
+     */
+    private function resourceIri(EntityManagerInterface $entityManager, array $reference): string
+    {
+        return (string) $this->iriConverter->getIriFromResource($entityManager->getReference($reference['class'], $reference['id']));
     }
 
     /**
@@ -129,7 +186,7 @@ class OrphanedFileDetector
     }
 
     /**
-     * @return array{array<string, list<string>>, list<array{class: class-string, id: mixed, adapter: string, path: string}>}
+     * @return array{array<string, list<string>>, list<array{class: class-string, id: mixed, field: string, adapter: string, path: string}>}
      */
     private function readReferences(EntityManagerInterface $entityManager): array
     {
@@ -141,9 +198,10 @@ class OrphanedFileDetector
                 ->select(\sprintf('e.%s AS id', $metadata->getSingleIdentifierFieldName()))
                 ->from($class, 'e');
             $hasPath = $queryBuilder->expr()->orX();
-            foreach ($fields as $index => $field) {
+            $index = 0;
+            foreach ($fields as $field) {
                 $prefixes[$field->adapter][] = $field->prefix ?? '';
-                $queryBuilder->addSelect(\sprintf('e.%s AS path%d', $field->property, $index));
+                $queryBuilder->addSelect(\sprintf('e.%s AS path%d', $field->property, $index++));
                 $hasPath->add($queryBuilder->expr()->isNotNull('e.' . $field->property));
             }
             $queryBuilder->where($hasPath);
@@ -151,10 +209,11 @@ class OrphanedFileDetector
                 $queryBuilder->andWhere(\sprintf('e NOT INSTANCE OF (%s)', implode(', ', $metadata->subClasses)));
             }
             foreach ($queryBuilder->getQuery()->getResult() as $row) {
-                foreach ($fields as $index => $field) {
-                    $path = $row['path' . $index];
+                $index = 0;
+                foreach ($fields as $fileProperty => $field) {
+                    $path = $row['path' . $index++];
                     if (\is_string($path) && '' !== $path) {
-                        $references[] = ['class' => $class, 'id' => $row['id'], 'adapter' => $field->adapter, 'path' => $path];
+                        $references[] = ['class' => $class, 'id' => $row['id'], 'field' => $fileProperty, 'adapter' => $field->adapter, 'path' => $path];
                     }
                 }
             }
@@ -164,7 +223,7 @@ class OrphanedFileDetector
     }
 
     /**
-     * @return iterable<array{ClassMetadata<object>, list<UploadableField>}>
+     * @return iterable<array{ClassMetadata<object>, array<string, UploadableField>}>
      */
     private function uploadableFields(EntityManagerInterface $entityManager): iterable
     {
@@ -172,7 +231,7 @@ class OrphanedFileDetector
             if ($metadata->isMappedSuperclass || $metadata->getReflectionClass()->isAbstract() || !$this->uploadableAttributeReader->isConfigured($metadata->getName())) {
                 continue;
             }
-            yield [$metadata, array_values(iterator_to_array($this->uploadableAttributeReader->getConfiguredProperties($metadata->getName())))];
+            yield [$metadata, iterator_to_array($this->uploadableAttributeReader->getConfiguredProperties($metadata->getName()))];
         }
     }
 

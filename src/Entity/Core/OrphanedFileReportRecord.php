@@ -40,6 +40,10 @@ class OrphanedFileReportRecord
     #[ORM\Column(name: 'unknown_files', type: 'json')]
     private array $unknownFiles = [];
 
+    /** @var list<array{resource: string, field: string, adapter: string, path: string, violations: list<string>}> */
+    #[ORM\Column(name: 'invalid_files', type: 'json')]
+    private array $invalidFiles = [];
+
     public function getId(): int
     {
         return $this->id;
@@ -51,6 +55,7 @@ class OrphanedFileReportRecord
         $this->orphanedFiles = $report->orphanedFiles;
         $this->missingFiles = $report->missingFiles;
         $this->unknownFiles = $report->unknownFiles;
+        $this->invalidFiles = $report->invalidFiles;
     }
 
     public function toReport(): OrphanedFileReport
@@ -60,6 +65,7 @@ class OrphanedFileReportRecord
             $this->orphanedFiles,
             $this->missingFiles,
             $this->unknownFiles,
+            $this->invalidFiles,
         );
     }
 }

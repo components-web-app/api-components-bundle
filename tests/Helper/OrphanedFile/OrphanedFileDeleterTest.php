@@ -23,6 +23,7 @@ use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDeleter;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileReportStore;
+use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileConstraintChecker;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileLister;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileNameMatcher;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
@@ -30,8 +31,10 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadable;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithConstraints;
 use Silverback\ApiComponentsBundle\Tests\Helper\OrphanedResource\OrphanedResourceDatabaseTestCase;
 use Symfony\Component\DependencyInjection\ServiceLocator;
+use Symfony\Component\Validator\Validation;
 
 class OrphanedFileDeleterTest extends OrphanedResourceDatabaseTestCase
 {
@@ -228,6 +231,24 @@ class OrphanedFileDeleterTest extends OrphanedResourceDatabaseTestCase
         self::assertSame('missing.png', $report->missingFiles[0]['path']);
     }
 
+    public function test_the_stored_report_keeps_the_fresh_scans_invalid_files_because_a_delete_never_touches_a_referenced_file(): void
+    {
+        $this->old($this->local, 'a-0000000a.png');
+        $this->old($this->local, 'notes.txt');
+        $invalid = new DummyUploadableWithConstraints();
+        $invalid->setFilename('notes.txt');
+        $this->persist($invalid);
+        $this->entityManager->flush();
+
+        $this->deleter()->delete(null);
+        $this->entityManager->clear();
+
+        $invalidFiles = $this->store->fetch()?->invalidFiles ?? [];
+        self::assertCount(1, $invalidFiles);
+        self::assertSame('notes.txt', $invalidFiles[0]['path']);
+        self::assertTrue($this->local->fileExists('notes.txt'));
+    }
+
     public function test_nothing_selected_still_stores_the_fresh_scan(): void
     {
         $this->old($this->local, 'a-0000000a.png');
@@ -267,7 +288,7 @@ class OrphanedFileDeleterTest extends OrphanedResourceDatabaseTestCase
             null,
             null
         );
-        $detector = new OrphanedFileDetector($this->registry, $reader, $filesystemProvider, $this->iriConverter, new StoredFileLister(), new StoredFileNameMatcher(), new FileInfoRepository($this->registry), [], [], 3600);
+        $detector = new OrphanedFileDetector($this->registry, $reader, $filesystemProvider, $this->iriConverter, new StoredFileLister(), new StoredFileNameMatcher(), new FileInfoRepository($this->registry), [], [], 3600, new StoredFileConstraintChecker(Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator()));
 
         return new OrphanedFileDeleter($detector, $fileManager, $filesystemProvider, $this->store, $withLogger ? $this->logger : null);
     }

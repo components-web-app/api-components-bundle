@@ -39,9 +39,10 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 final readonly class OrphanedFileReport
 {
     /**
-     * @param list<array{adapter: string, path: string}>                   $orphanedFiles
-     * @param list<array{resource: string, adapter: string, path: string}> $missingFiles
-     * @param list<array{adapter: string, path: string}>                   $unknownFiles
+     * @param list<array{adapter: string, path: string}>                                                            $orphanedFiles
+     * @param list<array{resource: string, adapter: string, path: string}>                                          $missingFiles
+     * @param list<array{adapter: string, path: string}>                                                            $unknownFiles
+     * @param list<array{resource: string, field: string, adapter: string, path: string, violations: list<string>}> $invalidFiles
      */
     public function __construct(
         #[Context([DateTimeNormalizer::FORMAT_KEY => OrphanedFileReportRecord::GENERATED_AT_FORMAT])]
@@ -49,6 +50,7 @@ final readonly class OrphanedFileReport
         public array $orphanedFiles = [],
         public array $missingFiles = [],
         public array $unknownFiles = [],
+        public array $invalidFiles = [],
     ) {
     }
 }
