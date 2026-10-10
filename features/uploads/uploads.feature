@@ -370,6 +370,26 @@ Feature: API Resources which can have files uploaded
     And the JSON node "_metadata.mediaObjects.file[1].contentUrl" should match "#/media/cache/thumbnail/image-[0-9a-f]{8}\.png$#"
 
   @loginUser
+  Scenario: Removing an imagine filter's cache from the console removes its file info rows for every path and keeps the rest
+    Given there is a DummyUploadableWithImagineFilters
+    And I send a "GET" request to the resource "dummy_uploadable"
+    And there should be 1 file info rows for the imagine filter "thumbnail"
+    When I run the command "liip:imagine:cache:remove --filter=thumbnail"
+    Then there should be 0 file info rows for the imagine filter "thumbnail"
+    And there should be 1 file info rows for the imagine filter "square_thumbnail"
+    And there should be 1 file info rows for original files
+
+  @loginUser
+  Scenario: Removing every imagine cache from the console removes every variant's file info row and keeps the originals'
+    Given there is a DummyUploadableWithImagineFilters
+    And I send a "GET" request to the resource "dummy_uploadable"
+    When I run the command "liip:imagine:cache:remove"
+    Then there should be 0 file info rows for the imagine filter "thumbnail"
+    And there should be 0 file info rows for the imagine filter "square_thumbnail"
+    And there should be 0 file info rows for the imagine filter "webp_thumbnail"
+    And there should be 1 file info rows for original files
+
+  @loginUser
   Scenario: Uploading a non-image to an imagine-filtered field does not attempt image processing
     Given I add "Content-Type" header equal to "multipart/form-data"
     When I send a "POST" request to "/dummy_multiple_uploadables/upload" with parameters:

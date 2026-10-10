@@ -40,7 +40,10 @@ final class CacheManager extends ImagineCacheManager
     public function remove($paths = null, $filters = null): void
     {
         parent::remove($paths, $filters);
-        $event = new ImagineRemoveEvent($paths, $filters);
+        $event = new ImagineRemoveEvent(
+            array_filter((array) $paths),
+            null === $filters ? null : array_filter((array) $filters),
+        );
         $this->dispatch($event, ImagineRemoveEvent::class);
     }
 

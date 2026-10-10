@@ -18,12 +18,11 @@ use Symfony\Contracts\EventDispatcher\Event;
  */
 class ImagineRemoveEvent extends Event
 {
-    public ?array $paths;
-    public ?array $filters;
-
-    public function __construct(?array $paths, ?array $filters)
+    /**
+     * @param array<string>      $paths
+     * @param array<string>|null $filters
+     */
+    public function __construct(public array $paths, public ?array $filters)
     {
-        $this->paths = $paths;
-        $this->filters = $filters;
     }
 }

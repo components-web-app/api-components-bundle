@@ -56,11 +56,11 @@ class FileInfoCacheManagerTest extends TestCase
         self::assertSame(['a.png:square', 'a.png:thumbnail', 'b.png:', 'b.png:thumbnail', 'c.png:'], $this->remainingRows());
     }
 
-    public function test_deleting_caches_with_no_filters_removes_every_filter_of_each_path(): void
+    public function test_deleting_caches_with_no_filters_removes_every_variant_of_each_path_and_keeps_the_originals(): void
     {
         $this->manager->deleteCaches(['a.png', 'b.png'], null);
 
-        self::assertSame(['c.png:'], $this->remainingRows());
+        self::assertSame(['a.png:', 'b.png:', 'c.png:'], $this->remainingRows());
     }
 
     public function test_deleting_caches_for_named_filters_removes_only_those(): void
@@ -70,11 +70,11 @@ class FileInfoCacheManagerTest extends TestCase
         self::assertSame(['a.png:square', 'c.png:'], $this->remainingRows());
     }
 
-    public function test_deleting_caches_for_no_paths_removes_nothing(): void
+    public function test_deleting_caches_for_no_paths_removes_those_filters_for_every_path(): void
     {
-        $this->manager->deleteCaches([], null);
+        $this->manager->deleteCaches([], ['thumbnail']);
 
-        self::assertCount(6, $this->remainingRows());
+        self::assertSame(['a.png:', 'a.png:square', 'b.png:', 'c.png:'], $this->remainingRows());
     }
 
     public function test_saving_a_cache_writes_its_row_without_flushing_other_pending_changes(): void

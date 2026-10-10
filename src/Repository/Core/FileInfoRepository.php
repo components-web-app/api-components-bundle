@@ -12,8 +12,6 @@
 namespace Silverback\ApiComponentsBundle\Repository\Core;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\Query\Expr;
-use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 
@@ -78,46 +76,20 @@ class FileInfoRepository extends ServiceEntityRepository
 
     public function deleteByPathsAndFilters(array $paths, ?array $filters): void
     {
-        if (!\count($paths)) {
+        if ([] === $filters) {
             return;
         }
 
         $queryBuilder = $this->getEntityManager()->createQueryBuilder()->delete(FileInfo::class, 'f');
-        $expr = $queryBuilder->expr();
-
-        $filterQueries = $this->getFilterQueries($filters, $expr, $queryBuilder);
-        $filterQueryCount = (bool) \count($filterQueries);
-
-        foreach ($paths as $pathIndex => $path) {
-            $queryBuilder->setParameter(':path_' . $pathIndex, $path);
-
-            if (!$filterQueryCount) {
-                $queryBuilder
-                    ->orWhere($expr->eq('f.path', ':path_' . $pathIndex));
-                continue;
-            }
-
-            $queryBuilder
-                ->orWhere($expr->andX($expr->eq('f.path', ':path_' . $pathIndex), $expr->orX(...$filterQueries)));
+        if ([] !== $paths) {
+            $queryBuilder->andWhere('f.path IN (:paths)')->setParameter('paths', $paths);
+        }
+        if (null === $filters) {
+            $queryBuilder->andWhere("f.storedFilter <> ''");
+        } else {
+            $queryBuilder->andWhere('f.storedFilter IN (:filters)')->setParameter('filters', array_map(static fn (?string $filter): string => $filter ?? '', $filters));
         }
 
         $queryBuilder->getQuery()->execute();
-    }
-
-    private function getFilterQueries(?array $filters, Expr $expr, QueryBuilder $queryBuilder): array
-    {
-        $filterQueries = [];
-        if (null !== $filters) {
-            foreach ($filters as $filterIndex => $filter) {
-                if (!$filter) {
-                    $filterQueries[] = $expr->eq('f.storedFilter', "''");
-                    continue;
-                }
-                $filterQueries[] = $expr->eq('f.storedFilter', ':filter_' . $filterIndex);
-                $queryBuilder->setParameter(':filter_' . $filterIndex, $filter);
-            }
-        }
-
-        return $filterQueries;
     }
 }
