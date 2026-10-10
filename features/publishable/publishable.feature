@@ -288,6 +288,74 @@ Feature: Access to unpublished/draft resources should be configurable
     And the JSON node "publishedAt" should be equal to "2991-11-11T23:59:59+00:00"
     And the response should be the resource "publishable_draft"
 
+  @loginAdmin
+  Scenario: Publishing a draft with publishedAt "now" publishes it by the server's clock
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
+    When I send a "PATCH" request to the resource "publishable_draft" with body:
+    """
+    {
+        "publishedAt": "now",
+        "reference": "updated"
+    }
+    """
+    Then the response status code should be 200
+    And the response should be the resource "publishable_published"
+    And the JSON node "reference" should be equal to "updated"
+    And the JSON node "_metadata.publishable.published" should be equal to true
+    And the JSON node "publishedAt" should be now
+    And the resource "publishable_draft" should not exist
+
+  @loginAdmin
+  Scenario: Publishing a draft that was never published with publishedAt "now" publishes it
+    Given there is a publishable resource set to publish at "2999-12-31T23:59:59+00:00"
+    When I send a "PATCH" request to the resource "publishable_draft" with body:
+    """
+    {
+        "publishedAt": "now"
+    }
+    """
+    Then the response status code should be 200
+    And the JSON node "_metadata.publishable.published" should be equal to true
+    And the JSON node "publishedAt" should be now
+
+  @loginAdmin
+  Scenario: Creating a resource with publishedAt "now" publishes it
+    When I send a "POST" request to "/component/dummy_publishable_components" with body:
+    """
+    {
+        "reference": "test",
+        "publishedAt": "now"
+    }
+    """
+    Then the response status code should be 201
+    And the JSON node "_metadata.publishable.published" should be equal to true
+    And the JSON node "publishedAt" should be now
+
+  @loginAdmin
+  Scenario: The publication date of a published resource cannot be changed to "now"
+    Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
+    When I send a "PATCH" request to the resource "publishable_published" and the postfix "?published=true" with body:
+    """
+    {
+        "publishedAt": "now"
+    }
+    """
+    Then the response status code should be 422
+
+  @loginUser
+  Scenario: A user who cannot publish cannot change the publication date with "now"
+    Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"
+    When I send a "PATCH" request to the resource "publishable_published" with body:
+    """
+    {
+        "publishedAt": "now",
+        "reference": "updated"
+    }
+    """
+    Then the response status code should be 200
+    And the JSON node "reference" should be equal to "updated"
+    And the JSON node "publishedAt" should be equal to "1970-12-31T23:59:59+00:00"
+
   @loginUser
   Scenario: As a user with no draft access, when I update a published resource, it should update and return the published resource.
     Given there is a publishable resource set to publish at "1970-12-31T23:59:59+00:00"

@@ -48,9 +48,9 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 final class PublishableNormalizer implements NormalizerInterface, NormalizerAwareInterface, DenormalizerInterface, DenormalizerAwareInterface
 {
     use DenormalizerAwareTrait;
-    use DenormalizerAwareTrait;
     use NormalizerAwareTrait;
 
+    public const string PUBLISH_NOW = 'now';
     private const ALREADY_CALLED = 'PUBLISHABLE_NORMALIZER_ALREADY_CALLED';
     private const ASSOCIATION = 'PUBLISHABLE_ASSOCIATION';
 
@@ -145,6 +145,9 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
         $configuration = $this->publishableStatusChecker->getAttributeReader()->getConfiguration($type);
 
         $data = $this->unsetRestrictedData($type, $data, $configuration);
+        if (self::PUBLISH_NOW === ($data[$configuration->fieldName] ?? null)) {
+            $data[$configuration->fieldName] = (new \DateTimeImmutable())->format(\DateTimeInterface::RFC3339_EXTENDED);
+        }
 
         $request = $this->requestStack->getMainRequest();
         if ($request && true === $this->publishableStatusChecker->isRequestForPublished($request)) {

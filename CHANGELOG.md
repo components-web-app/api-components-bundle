@@ -8,6 +8,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - Imagine variants of a filter set with a `format` are stored with that format's extension (`cache/<filter>/photo-1a2b3c4d.webp`, not `.png`), so they are served with the right `Content-Type`. Existing variants for those filters are generated again under the new name; clear them with `bin/console liip:imagine:cache:remove --filter=<filter>` for each such filter, as nothing else removes the old files ([#404](https://github.com/components-web-app/api-components-bundle/pull/404))
 - `ImagineRemoveEvent::$paths` is always an array (empty for every path), and `FileInfoCacheManager::deleteCaches()` with `null` filters deletes only variant rows, keeping the original's row, as the cache resolver only removes variants ([#406](https://github.com/components-web-app/api-components-bundle/pull/406))
 
+### Added
+- `"publishedAt": "now"` on a publishable POST, PUT or PATCH publishes by the server's clock, so a browser whose clock is ahead of the server no longer leaves "Publish now" as a draft scheduled a moment ahead. Only the exact string `now` is resolved; a caller who may not publish still cannot set it, and it is a 422 on `?published=true` like any publication date change (PR_LINK)
+
 ### Fixed
 - `liip:imagine:cache:remove --filter=<filter>` and `liip:imagine:cache:remove` no longer fail with a `TypeError` after deleting the files: the file info rows of those filters are deleted for every path, and the originals' rows kept ([#405](https://github.com/components-web-app/api-components-bundle/issues/405), [#406](https://github.com/components-web-app/api-components-bundle/pull/406))
 - `CacheManager::remove()` accepts a single path or filter as a string, as liip's signature allows, instead of throwing a `TypeError` ([#403](https://github.com/components-web-app/api-components-bundle/issues/403), [#406](https://github.com/components-web-app/api-components-bundle/pull/406))
