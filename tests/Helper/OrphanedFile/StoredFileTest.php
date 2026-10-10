@@ -89,10 +89,13 @@ class StoredFileTest extends TestCase
         }
     }
 
-    public function test_an_svg_read_from_the_filesystem_has_its_dimensions_when_the_cache_has_no_row(): void
+    public function test_an_svg_with_nul_bytes_read_from_the_filesystem_has_its_dimensions_when_the_cache_has_no_row(): void
     {
-        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
-        $filesystem->write('nul.svg', "<svg xmlns=\"http://www.w3.org/2000/svg\"\0 width=\"12\" height=\"34\"></svg>");
+        $inner = new Filesystem(new InMemoryFilesystemAdapter());
+        $inner->write('nul.svg', "<svg xmlns=\"http://www.w3.org/2000/svg\"\0 width=\"12\" height=\"34\"></svg>");
+        $filesystem = $this->createStub(FilesystemOperator::class);
+        $filesystem->method('mimeType')->willReturn(StoredFile::SVG_MIME_TYPE);
+        $filesystem->method('readStream')->willReturnCallback($inner->readStream(...));
 
         self::assertSame([12, 34], (new StoredFile($filesystem, 'nul.svg'))->getDimensions());
     }
