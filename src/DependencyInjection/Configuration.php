@@ -167,7 +167,7 @@ class Configuration implements ConfigurationInterface
                     ->children()
                         ->scalarNode('memory_limit')
                             ->info('The PHP memory limit an imagine filter is generated under, raised only for the generation and restored after it, in PHP shorthand (e.g. "512M"). A filter whose estimated cost does not fit under it is skipped and logged. A higher memory_limit is kept; null generates under the current limit.')
-                            ->defaultValue('512M')
+                            ->defaultValue('320M')
                             ->validate()
                                 ->ifTrue(static fn (mixed $value): bool => null !== $value && (!\is_string($value) || null === PhpMemoryLimit::parse($value)))
                                 ->thenInvalid('The imagine memory_limit must be a positive size in PHP shorthand such as "512M", or null; got %s.')
