@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.12](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.11...2.0.0-alpha.12) - 2026-10-10
+
 ### Breaking
 - Upgrade step: the imagine file info table (`_acb_imagine_cached_file_metadata`) gets its `unique_cache_item` index on `(path, filter)` and a `NOT NULL DEFAULT ''` `filter` column. Run `silverback:api-components:deduplicate-file-info` first (gives originals an empty filter and removes duplicate rows; safe to run again), then generate and run a migration ([#399](https://github.com/components-web-app/api-components-bundle/pull/399))
 
