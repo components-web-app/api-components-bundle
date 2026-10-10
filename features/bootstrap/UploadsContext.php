@@ -491,6 +491,19 @@ class UploadsContext implements Context
     }
 
     /**
+     * @Then there should be :count file info rows for the imagine filter :filter
+     * @Then there should be :count file info rows for original files
+     */
+    public function thereShouldBeFileInfoRows(int $count, string $filter = ''): void
+    {
+        $this->manager->clear();
+        $found = \count($this->manager->getRepository(FileInfo::class)->findBy(['storedFilter' => $filter]));
+        if ($count !== $found) {
+            throw new \RuntimeException(\sprintf('Expected %d file info rows with the filter "%s", found %d.', $count, $filter, $found));
+        }
+    }
+
+    /**
      * @Given the stored file of the resource :name is older than the minimum age
      */
     public function theStoredFileOfTheResourceIsOlderThanTheMinimumAge(string $name): void

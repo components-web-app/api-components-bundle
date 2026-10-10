@@ -119,4 +119,71 @@ class FileInfoRepositoryTest extends OrphanedResourceDatabaseTestCase
         self::assertNull($repository->findOneByPathAndFilter('served.png', null));
         self::assertNotNull($repository->findOneByPathAndFilter('served.png', 'thumbnail'));
     }
+
+    public function test_deleting_filters_with_no_paths_removes_those_filters_rows_for_every_path(): void
+    {
+        $repository = $this->repositoryWithRows();
+
+        $repository->deleteByPathsAndFilters([], ['thumbnail']);
+
+        self::assertSame(['a.png|', 'a.png|square', 'b.png|', 'b.png|square'], $this->rows());
+    }
+
+    public function test_deleting_with_no_paths_and_no_filters_removes_every_variant_row_and_keeps_the_originals(): void
+    {
+        $repository = $this->repositoryWithRows();
+
+        $repository->deleteByPathsAndFilters([], null);
+
+        self::assertSame(['a.png|', 'b.png|'], $this->rows());
+    }
+
+    public function test_deleting_a_path_with_no_filters_removes_its_variant_rows_and_keeps_its_original(): void
+    {
+        $repository = $this->repositoryWithRows();
+
+        $repository->deleteByPathsAndFilters(['a.png'], null);
+
+        self::assertSame(['a.png|', 'b.png|', 'b.png|square', 'b.png|thumbnail'], $this->rows());
+    }
+
+    public function test_deleting_a_path_and_a_filter_removes_only_that_row(): void
+    {
+        $repository = $this->repositoryWithRows();
+
+        $repository->deleteByPathsAndFilters(['a.png'], ['thumbnail']);
+
+        self::assertSame(['a.png|', 'a.png|square', 'b.png|', 'b.png|square', 'b.png|thumbnail'], $this->rows());
+    }
+
+    public function test_deleting_an_empty_list_of_filters_removes_nothing(): void
+    {
+        $repository = $this->repositoryWithRows();
+
+        $repository->deleteByPathsAndFilters([], []);
+        $repository->deleteByPathsAndFilters(['a.png'], []);
+
+        self::assertCount(6, $this->rows());
+    }
+
+    private function repositoryWithRows(): FileInfoRepository
+    {
+        foreach (['a.png', 'b.png'] as $path) {
+            foreach ([null, 'thumbnail', 'square'] as $filter) {
+                $this->entityManager->persist(new FileInfo($path, 'image/png', 1, 1, 1, $filter));
+            }
+        }
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        return new FileInfoRepository($this->registry);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function rows(): array
+    {
+        return $this->entityManager->getConnection()->fetchFirstColumn(\sprintf("SELECT path || '|' || filter FROM %s ORDER BY path, filter", $this->entityManager->getClassMetadata(FileInfo::class)->getTableName()));
+    }
 }

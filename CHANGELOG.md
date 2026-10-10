@@ -5,9 +5,12 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Breaking
-- Imagine variants of a filter set with a `format` are stored with that format's extension (`cache/<filter>/photo-1a2b3c4d.webp`, not `.png`), so they are served with the right `Content-Type`. Existing variants for those filters are generated again under the new name; delete the filter's old directory under the cache prefix, as nothing else removes those files ([#404](https://github.com/components-web-app/api-components-bundle/pull/404))
+- Imagine variants of a filter set with a `format` are stored with that format's extension (`cache/<filter>/photo-1a2b3c4d.webp`, not `.png`), so they are served with the right `Content-Type`. Existing variants for those filters are generated again under the new name; clear them with `bin/console liip:imagine:cache:remove --filter=<filter>` for each such filter, as nothing else removes the old files ([#404](https://github.com/components-web-app/api-components-bundle/pull/404))
+- `ImagineRemoveEvent::$paths` is always an array (empty for every path), and `FileInfoCacheManager::deleteCaches()` with `null` filters deletes only variant rows, keeping the original's row, as the cache resolver only removes variants ([#406](https://github.com/components-web-app/api-components-bundle/pull/406))
 
 ### Fixed
+- `liip:imagine:cache:remove --filter=<filter>` and `liip:imagine:cache:remove` no longer fail with a `TypeError` after deleting the files: the file info rows of those filters are deleted for every path, and the originals' rows kept ([#405](https://github.com/components-web-app/api-components-bundle/issues/405), [#406](https://github.com/components-web-app/api-components-bundle/pull/406))
+- `CacheManager::remove()` accepts a single path or filter as a string, as liip's signature allows, instead of throwing a `TypeError` ([#403](https://github.com/components-web-app/api-components-bundle/issues/403), [#406](https://github.com/components-web-app/api-components-bundle/pull/406))
 - An upload is stored with the extension of its content: a PNG uploaded as `holiday.jpg` is stored as `.png`, and one with no extension gets `.png`. A valid extension (`.jpeg`) is kept, and plain text or an unrecognised type keeps the client's extension ([#404](https://github.com/components-web-app/api-components-bundle/pull/404))
 - An imagine variant with no file info row (rows lost, or a bucket shared with another database) reports its real type, size and dimensions instead of `-1` and an empty type: the stored variant is read through `FlysystemCacheResolver` and its row saved ([#404](https://github.com/components-web-app/api-components-bundle/pull/404))
 
