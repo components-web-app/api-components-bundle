@@ -22,6 +22,7 @@ use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
+use Silverback\ApiComponentsBundle\Utility\StoredFileExtension;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
@@ -199,7 +200,7 @@ class UploadableFileManager
             return $file->getClientOriginalName();
         }
 
-        return $this->tokeniseFilename($this->resolveOriginalName($file));
+        return $this->tokeniseFilename($this->resolveOriginalName($file), $file->getMimeType());
     }
 
     private function resolveOriginalName(File $file): string
@@ -217,7 +218,7 @@ class UploadableFileManager
         return '' !== $clientName ? $clientName : $basename;
     }
 
-    private function tokeniseFilename(string $originalName): string
+    private function tokeniseFilename(string $originalName, ?string $mimeType = null): string
     {
         $stem = strtolower((string) preg_replace('/[^A-Za-z0-9]+/', '-', pathinfo($originalName, \PATHINFO_FILENAME)));
         $stem = trim($stem, '-');
@@ -228,8 +229,8 @@ class UploadableFileManager
 
         $name = $stem . '-' . bin2hex(random_bytes(4));
 
-        $extension = strtolower((string) preg_replace('/[^A-Za-z0-9]+/', '', pathinfo($originalName, \PATHINFO_EXTENSION)));
-        if ('' !== $extension) {
+        $extension = StoredFileExtension::forMimeType(pathinfo($originalName, \PATHINFO_EXTENSION), $mimeType);
+        if (null !== $extension) {
             $name .= '.' . $extension;
         }
 

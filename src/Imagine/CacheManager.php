@@ -30,6 +30,13 @@ final class CacheManager extends ImagineCacheManager
         $this->dispatch($event, ImagineStoreEvent::class);
     }
 
+    public function readStored(string $path, string $filter): ?string
+    {
+        $resolver = $this->getResolver($filter, '');
+
+        return $resolver instanceof FlysystemCacheResolver ? $resolver->read($path, $filter) : null;
+    }
+
     public function remove($paths = null, $filters = null): void
     {
         parent::remove($paths, $filters);

@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Named stub so the attribute reader has a real class to read UploadableField configuration from.
@@ -290,6 +291,75 @@ class UploadableFileManagerTest extends TestCase
 
         self::assertFalse($filesystem->fileExists('image-aaa.png'));
         self::assertNull($published->filename);
+    }
+
+    public function test_an_upload_is_stored_with_the_extension_of_its_content_not_its_client_name(): void
+    {
+        self::assertMatchesRegularExpression('#^holiday-[0-9a-f]{8}\.png$#', $this->storeUpload('image.png', 'holiday.jpg'));
+    }
+
+    public function test_an_upload_with_no_client_extension_is_stored_with_the_extension_of_its_content(): void
+    {
+        self::assertMatchesRegularExpression('#^scan-[0-9a-f]{8}\.png$#', $this->storeUpload('image.png', 'scan'));
+    }
+
+    public function test_an_upload_whose_client_name_has_no_extension_is_named_after_a_file_that_has_one(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $object = new _LeakTestUploadable();
+        $object->file = new UploadedFile(__DIR__ . '/../../../features/assets/files/image.png', 'file', null, null, true);
+
+        $this->createFileManager($filesystem)->persistFiles($object);
+
+        self::assertMatchesRegularExpression('#^image-[0-9a-f]{8}\.png$#', (string) $object->filename);
+    }
+
+    public function test_an_upload_keeps_a_client_extension_that_is_valid_for_its_content(): void
+    {
+        self::assertMatchesRegularExpression('#^report-[0-9a-f]{8}\.docx$#', $this->storeUpload('test_file.docx', 'report.docx'));
+        self::assertMatchesRegularExpression('#^vector-[0-9a-f]{8}\.svgz$#', $this->storeUpload('image.svg', 'vector.svgz'));
+    }
+
+    public function test_an_upload_whose_content_is_only_known_to_be_plain_text_keeps_its_client_extension(): void
+    {
+        self::assertMatchesRegularExpression('#^notes-[0-9a-f]{8}\.md$#', $this->storeUpload('test_file.txt', 'notes.md'));
+        self::assertMatchesRegularExpression('#^notes-[0-9a-f]{8}\.txt$#', $this->storeUpload('test_file.txt', 'notes'));
+    }
+
+    public function test_a_file_given_without_a_client_name_is_stored_with_the_extension_of_its_content(): void
+    {
+        $source = sys_get_temp_dir() . '/acb-' . bin2hex(random_bytes(4)) . '.jpg';
+        copy(__DIR__ . '/../../../features/assets/files/image.png', $source);
+        try {
+            $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+            $object = new _LeakTestUploadable();
+            $object->file = new File($source);
+
+            $this->createFileManager($filesystem)->persistFiles($object);
+
+            self::assertMatchesRegularExpression('#^acb-[0-9a-f]{8}-[0-9a-f]{8}\.png$#', (string) $object->filename);
+        } finally {
+            unlink($source);
+        }
+    }
+
+    private function storeUpload(string $asset, string $clientName): string
+    {
+        $temporaryUpload = tempnam(sys_get_temp_dir(), 'php');
+        copy(__DIR__ . '/../../../features/assets/files/' . $asset, $temporaryUpload);
+        try {
+            $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+            $object = new _LeakTestUploadable();
+            $object->file = new UploadedFile($temporaryUpload, $clientName, null, null, true);
+
+            $this->createFileManager($filesystem)->persistFiles($object);
+
+            self::assertTrue($filesystem->fileExists((string) $object->filename));
+
+            return (string) $object->filename;
+        } finally {
+            unlink($temporaryUpload);
+        }
     }
 
     private function createFileManager(Filesystem $filesystem): UploadableFileManager

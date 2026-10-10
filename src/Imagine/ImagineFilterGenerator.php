@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Imagine;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
 use Psr\Log\LoggerInterface;
+use Silverback\ApiComponentsBundle\Imagine\CacheManager as SilverbackCacheManager;
 
 final class ImagineFilterGenerator
 {
@@ -42,6 +43,11 @@ final class ImagineFilterGenerator
     public function estimateBytes(int $width, int $height): int
     {
         return intdiv($width * $height * $this->megabytesPerMegapixel * 1048576, 1000000);
+    }
+
+    public function readStoredFilteredImage(string $path, string $filter): ?string
+    {
+        return $this->cacheManager instanceof SilverbackCacheManager ? $this->cacheManager->readStored($path, $filter) : null;
     }
 
     public function filteredImageUrl(string $path, string $filter, ?int $width, ?int $height): ?string
