@@ -22,6 +22,7 @@ use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\ORM\PersistentCollection;
 use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Exception\HttpCachePurgeFailedException;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientExceptionInterface;
 
@@ -153,6 +154,24 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
     public function purgeRenderedHtml(): void
     {
         $this->send([self::RENDERED_HTML_TAG]);
+    }
+
+    public function canPurgeTags(): bool
+    {
+        return null !== $this->httpCachePurger;
+    }
+
+    /**
+     * @param list<string> $tags
+     */
+    public function purgeTags(array $tags): void
+    {
+        $this->send($tags);
+    }
+
+    public function getRouteTag(string $path): string
+    {
+        return $this->iriConverter->getIriFromResource((new Route())->setPath($path), UrlGeneratorInterface::ABS_PATH, null, ['uri_variables' => ['id' => 'id']]);
     }
 
     private function send(array $iris): void

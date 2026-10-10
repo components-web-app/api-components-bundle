@@ -616,6 +616,22 @@ class ProfilerContext implements Context
     }
 
     /**
+     * @Then the cache tags :tags should be the only cache tags purged
+     */
+    public function theCacheTagsShouldBeTheOnlyCacheTagsPurged(string $tags): void
+    {
+        $expected = preg_split('/\s+/', trim($tags), -1, \PREG_SPLIT_NO_EMPTY);
+        $purged = $this->collectPurgedTags();
+        $actual = array_values(array_unique($purged));
+        sort($expected);
+        sort($actual);
+        if ($expected === $actual) {
+            return;
+        }
+        throw new ExpectationException(\sprintf('The cache tags `%s` should have been the only tags purged. Tags that were purged were `%s`', implode('`, `', $expected), implode('`, `', $purged)), $this->minkContext->getSession()->getDriver());
+    }
+
+    /**
      * @Then the manifest cache tag for the resource :resource_name should be purged
      */
     public function theManifestCacheTagForTheResourceShouldBePurged(string $resourceName)
