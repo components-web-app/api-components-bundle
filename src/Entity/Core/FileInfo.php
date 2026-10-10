@@ -20,10 +20,8 @@ use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
  * @author Daniel West <daniel@silverback.is>
  */
 #[ORM\Entity]
-#[ORM\Table(
-    name: 'imagine_cached_file_metadata',
-    uniqueConstraints: [new ORM\UniqueConstraint(name: 'unique_cache_item', columns: ['path', 'filter'])]
-)]
+#[ORM\Table(name: 'imagine_cached_file_metadata')]
+#[ORM\UniqueConstraint(name: 'unique_cache_item', columns: ['path', 'filter'])]
 class FileInfo
 {
     use IdTrait;
@@ -43,8 +41,15 @@ class FileInfo
     #[ORM\Column(type: 'integer', nullable: true)]
     public ?int $height;
 
-    #[ORM\Column(nullable: true)]
-    public ?string $filter;
+    #[ORM\Column(name: 'filter', options: ['default' => ''])]
+    private string $storedFilter = '';
+
+    public ?string $filter {
+        get => '' === $this->storedFilter ? null : $this->storedFilter;
+        set(?string $value) {
+            $this->storedFilter = $value ?? '';
+        }
+    }
 
     public function __construct(string $path, string $mimeType, int $fileSize, ?int $width, ?int $height, ?string $filter = null)
     {

@@ -4,8 +4,14 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- Upgrade step: the imagine file info table (`_acb_imagine_cached_file_metadata`) gets its `unique_cache_item` index on `(path, filter)` and a `NOT NULL DEFAULT ''` `filter` column. Run `silverback:api-components:deduplicate-file-info` first (gives originals an empty filter and removes duplicate rows; safe to run again), then generate and run a migration ([#399](https://github.com/components-web-app/api-components-bundle/pull/399))
+
 ### Changed
 - `silverback_api_components.imagine.memory_limit` defaults to `320M` instead of `512M`. With GD, sources over about 23 MP now get no imagine filters (the original is served and a warning logged); set it higher, or use the vips driver, to filter larger images ([#400](https://github.com/components-web-app/api-components-bundle/pull/400))
+
+### Fixed
+- The file info table's unique index on path and filter now exists: it was declared where Doctrine ignores it, and originals are stored with an empty filter so the index covers them on every database. Caching file info a concurrent request already saved keeps that row ([#399](https://github.com/components-web-app/api-components-bundle/pull/399))
 
 ## [2.0.0-alpha.11](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.10...2.0.0-alpha.11) - 2026-10-10
 

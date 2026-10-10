@@ -114,6 +114,18 @@ class FileInfoCacheManagerTest extends TestCase
         return $this->entityManager->getClassMetadata(FileInfo::class)->getTableName();
     }
 
+    public function test_a_row_inserted_by_a_concurrent_request_after_the_check_is_kept(): void
+    {
+        $repository = $this->createStub(FileInfoRepository::class);
+        $repository->method('findOneByPathAndFilter')->willReturn(null);
+        $racingManager = new FileInfoCacheManager($this->entityManager, $repository);
+
+        $racingManager->saveCache(new FileInfo('a.png', 'image/gif', 99, 9, 9, null));
+
+        self::assertCount(6, $this->remainingRows());
+        self::assertSame(['image/png'], $this->entityManager->getConnection()->fetchFirstColumn(\sprintf("SELECT mime_type FROM %s WHERE path = 'a.png' AND filter = ''", $this->tableName())));
+    }
+
     /**
      * @return list<string>
      */

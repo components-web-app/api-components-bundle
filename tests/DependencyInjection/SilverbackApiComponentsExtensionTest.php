@@ -16,6 +16,7 @@ use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
+use Silverback\ApiComponentsBundle\Command\DeduplicateFileInfoCommand;
 use Silverback\ApiComponentsBundle\DependencyInjection\SilverbackApiComponentsExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
@@ -42,6 +43,7 @@ use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoDeduplicator;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
@@ -198,6 +200,16 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         [$container] = $this->load($config, true);
 
         self::assertNull($container->findDefinition(ImagineFilterGenerator::class)->getArgument(4));
+    }
+
+    public function test_the_file_info_deduplication_command_is_registered_with_its_helper(): void
+    {
+        [$container] = $this->load(self::minimalConfig());
+
+        $command = $container->findDefinition(DeduplicateFileInfoCommand::class);
+        self::assertSame([['command' => 'silverback:api-components:deduplicate-file-info']], $command->getTag('console.command'));
+        self::assertEquals([new Reference(FileInfoDeduplicator::class)], $command->getArguments());
+        self::assertSame(FileInfoDeduplicator::class, $container->findDefinition(FileInfoDeduplicator::class)->getClass());
     }
 
     public function test_without_imagine_no_filter_generator_is_registered(): void

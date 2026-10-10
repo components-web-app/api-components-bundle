@@ -37,7 +37,7 @@ class FileInfoRepository extends ServiceEntityRepository
         return $this->findOneBy(
             [
                 'path' => $path,
-                'filter' => $filter,
+                'storedFilter' => $filter ?? '',
             ]
         );
     }
@@ -61,7 +61,7 @@ class FileInfoRepository extends ServiceEntityRepository
         $originals = [];
         $rows = $this->createQueryBuilder('f')
             ->select('f.path', 'f.mimeType', 'f.fileSize', 'f.width', 'f.height')
-            ->where('f.filter IS NULL')
+            ->where("f.storedFilter = ''")
             ->getQuery()
             ->getArrayResult();
         foreach ($rows as $row) {
@@ -110,10 +110,10 @@ class FileInfoRepository extends ServiceEntityRepository
         if (null !== $filters) {
             foreach ($filters as $filterIndex => $filter) {
                 if (!$filter) {
-                    $filterQueries[] = $expr->isNull('f.filter');
+                    $filterQueries[] = $expr->eq('f.storedFilter', "''");
                     continue;
                 }
-                $filterQueries[] = $expr->eq('f.filter', ':filter_' . $filterIndex);
+                $filterQueries[] = $expr->eq('f.storedFilter', ':filter_' . $filterIndex);
                 $queryBuilder->setParameter(':filter_' . $filterIndex, $filter);
             }
         }

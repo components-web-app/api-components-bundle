@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Helper\Uploadable;
 
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
@@ -42,7 +43,10 @@ class FileInfoCacheManager
             $types[$column] = $classMetadata->getTypeOfField($fieldName);
         }
 
-        $this->entityManager->getConnection()->insert($classMetadata->getTableName(), $data, $types);
+        try {
+            $this->entityManager->getConnection()->insert($classMetadata->getTableName(), $data, $types);
+        } catch (UniqueConstraintViolationException) {
+        }
     }
 
     public function deleteCaches(array $paths, ?array $filters): void
