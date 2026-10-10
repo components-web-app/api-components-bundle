@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Helper\Uploadable;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 
@@ -28,8 +29,20 @@ class FileInfoCacheManager
 
     public function saveCache(FileInfo $fileInfo): void
     {
-        $this->entityManager->persist($fileInfo);
-        $this->entityManager->flush();
+        if ($this->resolveCache($fileInfo->path, $fileInfo->filter)) {
+            return;
+        }
+
+        $classMetadata = $this->entityManager->getClassMetadata(FileInfo::class);
+        $data = [];
+        $types = [];
+        foreach ($classMetadata->getFieldNames() as $fieldName) {
+            $column = $classMetadata->getColumnName($fieldName);
+            $data[$column] = $classMetadata->isIdentifier($fieldName) ? Uuid::uuid4() : $classMetadata->getFieldValue($fileInfo, $fieldName);
+            $types[$column] = $classMetadata->getTypeOfField($fieldName);
+        }
+
+        $this->entityManager->getConnection()->insert($classMetadata->getTableName(), $data, $types);
     }
 
     public function deleteCaches(array $paths, ?array $filters): void

@@ -77,6 +77,43 @@ class FileInfoCacheManagerTest extends TestCase
         self::assertCount(6, $this->remainingRows());
     }
 
+    public function test_saving_a_cache_writes_its_row_without_flushing_other_pending_changes(): void
+    {
+        $pending = $this->entityManager->getRepository(FileInfo::class)->findOneBy(['path' => 'c.png']);
+        $pending->mimeType = 'image/jpeg';
+        $this->entityManager->persist(new FileInfo('e.png', 'image/png', 1, 1, 1, null));
+
+        $this->manager->saveCache(new FileInfo('d.png', 'image/webp', 2048, 640, 480, 'thumbnail'));
+
+        self::assertSame(['a.png:', 'a.png:square', 'a.png:thumbnail', 'b.png:', 'b.png:thumbnail', 'c.png:', 'd.png:thumbnail'], $this->remainingRows());
+        self::assertSame(['image/png'], $this->entityManager->getConnection()->fetchFirstColumn(\sprintf("SELECT mime_type FROM %s WHERE path = 'c.png'", $this->tableName())));
+    }
+
+    public function test_a_saved_cache_resolves_with_every_value_it_was_saved_with(): void
+    {
+        $this->manager->saveCache(new FileInfo('d.png', 'image/webp', 2048, 640, 480, 'thumbnail'));
+        $this->entityManager->clear();
+
+        $resolved = $this->manager->resolveCache('d.png', 'thumbnail');
+
+        self::assertNotNull($resolved);
+        self::assertNotNull($resolved->getId());
+        self::assertSame(['image/webp', 2048, 640, 480, 'thumbnail'], [$resolved->mimeType, $resolved->fileSize, $resolved->width, $resolved->height, $resolved->filter]);
+    }
+
+    public function test_saving_a_cache_that_already_exists_keeps_the_existing_row(): void
+    {
+        $this->manager->saveCache(new FileInfo('a.png', 'image/gif', 99, 9, 9, 'thumbnail'));
+
+        self::assertCount(6, $this->remainingRows());
+        self::assertSame(['image/png'], $this->entityManager->getConnection()->fetchFirstColumn(\sprintf("SELECT mime_type FROM %s WHERE path = 'a.png' AND filter = 'thumbnail'", $this->tableName())));
+    }
+
+    private function tableName(): string
+    {
+        return $this->entityManager->getClassMetadata(FileInfo::class)->getTableName();
+    }
+
     /**
      * @return list<string>
      */

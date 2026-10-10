@@ -481,3 +481,28 @@ Feature: API Resources which can have files uploaded
     And the JSON node "_metadata.mediaObjects.file[1]" should not exist
     And a missing source image for the imagine filter "thumbnail" should have been logged
     And a missing source image for the imagine filter "square_thumbnail" should have been logged
+
+  @loginUser
+  Scenario: Serialising uploadables whose file info is not cached yet keeps the filenames of the uploadables serialised before them
+    Given there is a DummyUploadable with the file "image.png" saved as "first_upload"
+    And there is a DummyUploadable with the file "image.png" saved as "second_upload"
+    When I send a "GET" request to "/dummy_uploadables"
+    Then the response status code should be 200
+    And the JSON node "member[0]._metadata.mediaObjects.file[0].mimeType" should be equal to the string "image/png"
+    And the JSON node "member[1]._metadata.mediaObjects.file[0].mimeType" should be equal to the string "image/png"
+    And the JSON node "member[0].filename" should not exist
+    And the JSON node "member[1].filename" should not exist
+    And the resource "first_upload" should have an uploaded file
+    And the resource "second_upload" should have an uploaded file
+
+  @loginUser
+  Scenario: Generating imagine filters while serialising keeps the filenames of the uploadables serialised before them
+    Given there is a DummyUploadableWithImagineFilters saved as "first_upload"
+    And there is a DummyUploadableWithImagineFilters saved as "second_upload"
+    And the stored file of the resource "first_upload" has cached file info
+    And the stored file of the resource "second_upload" has cached file info
+    When I send a "GET" request to "/dummy_uploadable_with_imagine_filters"
+    Then the response status code should be 200
+    And the JSON node "member[1]._metadata.mediaObjects.file[1].imagineFilter" should be equal to the string "thumbnail"
+    And the resource "first_upload" should have an uploaded file
+    And the resource "second_upload" should have an uploaded file

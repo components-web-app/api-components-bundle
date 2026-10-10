@@ -240,7 +240,6 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(MediaObjectFactory::class),
                 new Reference(UploadableAttributeReader::class),
                 new Reference(UploadableFileManager::class),
-                new Reference(ManagerRegistry::class),
                 new Reference(ResourceMetadataProvider::class),
             ]
         )
