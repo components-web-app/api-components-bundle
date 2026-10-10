@@ -95,6 +95,7 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('console.command')
         ->args([
             new Reference('silverback.api_components.http_cache.flusher'),
+            new Reference('silverback.api_components.http_cache.purger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ]);
     $services->alias(PurgeHttpCacheCommand::class, 'silverback.api_components.command.purge_http_cache');
 

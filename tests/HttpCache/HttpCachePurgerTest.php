@@ -16,13 +16,16 @@ use ApiPlatform\HttpCache\SouinPurger;
 use ApiPlatform\HttpCache\VarnishXKeyPurger;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
+use Silverback\ApiComponentsBundle\ApiPlatform\Api\IriConverter;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\Exception\HttpCachePurgeFailedException;
 use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
@@ -366,6 +369,78 @@ class HttpCachePurgerTest extends TestCase
 
         $this->expectException(\LogicException::class);
         $purger->purgeRenderedHtml();
+    }
+
+    public function test_purging_tags_sends_exactly_those_tags_in_one_purge(): void
+    {
+        $purger = $this->createPurger([SiteConfigParameter::class]);
+
+        $purger->purgeTags(['/_api/_/routes//about-us', 'cwa-html']);
+
+        self::assertSame([['/_api/_/routes//about-us', 'cwa-html']], $this->purged);
+    }
+
+    public function test_purging_tags_does_not_send_tags_already_collected_in_the_request(): void
+    {
+        $purger = $this->createPurger([SiteConfigParameter::class]);
+
+        $purger->add($this->siteConfigParameter('siteName'));
+        $purger->purgeTags(['/a-tag']);
+        $purger->propagate();
+
+        self::assertSame(['/a-tag'], $this->purged[0]);
+        self::assertSame(['/_/siteconfigparameter', '/_/siteconfigparameter/siteName', HttpCachePurger::RENDERED_HTML_TAG], $this->purged[1]);
+    }
+
+    public function test_purging_tags_is_recorded_on_the_collector(): void
+    {
+        $collectorData = new CwaCollectorData();
+        $purger = $this->createPurger([], $collectorData);
+
+        $purger->purgeTags(['/a-tag', '/another-tag']);
+
+        self::assertSame(['/a-tag', '/another-tag'], $collectorData->getCachePurgedIris());
+    }
+
+    public function test_purging_tags_fails_loudly_when_the_cache_cannot_be_reached(): void
+    {
+        $failure = new TransportException('Could not resolve host: souin');
+        $purger = $this->createPurgerWith($this->failingPurger($failure));
+
+        try {
+            $purger->purgeTags(['/a-tag']);
+            self::fail('A failed purge of selected tags must throw.');
+        } catch (HttpCachePurgeFailedException $exception) {
+            self::assertStringContainsString('/a-tag', $exception->getMessage());
+            self::assertSame($failure, $exception->getPrevious());
+        }
+        self::assertSame([], $this->logger->records);
+    }
+
+    public function test_tags_can_be_purged_only_when_an_http_cache_purger_is_configured(): void
+    {
+        self::assertTrue($this->createPurger([])->canPurgeTags());
+        self::assertFalse((new HttpCachePurger($this->createStub(IriConverterInterface::class), $this->createStub(ResourceClassResolverInterface::class), null))->canPurgeTags());
+    }
+
+    public function test_the_route_tag_for_a_path_is_the_iri_the_bundle_iri_converter_gives_a_route_at_that_path(): void
+    {
+        $decorated = $this->createStub(IriConverterInterface::class);
+        $decorated
+            ->method('getIriFromResource')
+            ->willReturnCallback(static function (object|string $resource, int $referenceType = 0, ?Operation $operation = null, array $context = []): string {
+                if (!$resource instanceof Route || !isset($context['uri_variables']['id'])) {
+                    throw new \ApiPlatform\Metadata\Exception\InvalidArgumentException('Unable to generate an IRI for the item');
+                }
+
+                return '/_api/_/routes/' . $context['uri_variables']['id'];
+            });
+        $iriConverter = new IriConverter($decorated, $this->createStub(ResourceMetadataCollectionFactoryInterface::class));
+        $purger = new HttpCachePurger($iriConverter, $this->createStub(ResourceClassResolverInterface::class), null);
+
+        self::assertSame('/_api/_/routes//about-us', $purger->getRouteTag('/about-us'));
+        self::assertSame('/_api/_/routes//about-us/team', $purger->getRouteTag('/about-us/team'));
+        self::assertSame('/_api/_/routes//', $purger->getRouteTag('/'));
     }
 
     private function invalidationClient(MockResponse $response): ScopingHttpClient

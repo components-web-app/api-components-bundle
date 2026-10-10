@@ -13,12 +13,16 @@ namespace Silverback\ApiComponentsBundle\Features\Bootstrap;
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Hook\Scope\BeforeScenarioScope;
+use Behat\Gherkin\Node\TableNode;
 use Behat\Mink\Session;
 use Behat\MinkExtension\Context\MinkContext;
 use FriendsOfBehat\SymfonyExtension\Driver\SymfonyDriver;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\BrowserKit\AbstractBrowser;
+use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpClient\DataCollector\HttpClientDataCollector;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -31,6 +35,8 @@ final class RoutePrefixContext implements Context
     private static array $kernels = [];
 
     private ?KernelInterface $kernel = null;
+    private ?int $commandStatusCode = null;
+    private string $commandOutput = '';
     private ?AbstractBrowser $mainClient = null;
     private MinkContext $minkContext;
     private ProfilerContext $profilerContext;
@@ -85,17 +91,7 @@ final class RoutePrefixContext implements Context
      */
     public function aRouteIsWrittenOutsideAnHttpRequest(string $path): void
     {
-        if (!$this->kernel) {
-            throw new \RuntimeException('Import the API routes under a prefix before writing outside an HTTP request.');
-        }
-
-        $this->kernel->shutdown();
-        $this->kernel->boot();
-        $container = $this->kernel->getContainer()->get('test.service_container');
-
-        if (null !== $container->get('request_stack')->getMainRequest()) {
-            throw new \RuntimeException('A request is on the request stack, so this write would not be outside an HTTP request.');
-        }
+        $container = $this->rebootOutsideAnHttpRequest();
 
         $route = new Route();
         $route->setPath($path)->setName($path);
@@ -105,6 +101,67 @@ final class RoutePrefixContext implements Context
         $manager->flush();
         $manager->clear();
 
+        $this->collectOutOfRequestHttpClientTraces($container);
+    }
+
+    /**
+     * @When I run the HTTP cache purge command with:
+     */
+    public function iRunTheHttpCachePurgeCommandWith(TableNode $table): void
+    {
+        $container = $this->rebootOutsideAnHttpRequest();
+
+        $input = [];
+        foreach ($table->getHash() as ['option' => $option, 'value' => $value]) {
+            $input[$option][] = $value;
+        }
+
+        $tester = new CommandTester((new Application($this->kernel))->find('silverback:api-components:purge-http-cache'));
+        $this->commandStatusCode = $tester->execute($input);
+        $this->commandOutput = $tester->getDisplay();
+
+        $this->collectOutOfRequestHttpClientTraces($container);
+    }
+
+    /**
+     * @Then the HTTP cache purge command should have exited with :code
+     */
+    public function theHttpCachePurgeCommandShouldHaveExitedWith(int $code): void
+    {
+        if ($code !== $this->commandStatusCode) {
+            throw new \RuntimeException(\sprintf('The command exited with %s. Output: %s', var_export($this->commandStatusCode, true), $this->commandOutput));
+        }
+    }
+
+    /**
+     * @Then the HTTP cache purge command output should contain :text
+     */
+    public function theHttpCachePurgeCommandOutputShouldContain(string $text): void
+    {
+        if (!str_contains($this->commandOutput, $text)) {
+            throw new \RuntimeException(\sprintf('The command output does not contain "%s". Output: %s', $text, $this->commandOutput));
+        }
+    }
+
+    private function rebootOutsideAnHttpRequest(): ContainerInterface
+    {
+        if (!$this->kernel) {
+            throw new \RuntimeException('Import the API routes under a prefix before acting outside an HTTP request.');
+        }
+
+        $this->kernel->shutdown();
+        $this->kernel->boot();
+        $container = $this->kernel->getContainer()->get('test.service_container');
+
+        if (null !== $container->get('request_stack')->getMainRequest()) {
+            throw new \RuntimeException('A request is on the request stack, so this would not be outside an HTTP request.');
+        }
+
+        return $container;
+    }
+
+    private function collectOutOfRequestHttpClientTraces(ContainerInterface $container): void
+    {
         /** @var HttpClientDataCollector $collector */
         $collector = $container->get('data_collector.http_client');
         $collector->lateCollect();
