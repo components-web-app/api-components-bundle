@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.11](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.10...2.0.0-alpha.11) - 2026-10-10
+
 ### Breaking
 - `MediaObjectFactory` and `UploadableFileManager` take an `ImagineFilterGenerator` (`$imagineFilterGenerator`) instead of liip's `FilterService`; an application that constructs or decorates them must pass the generator ([#397](https://github.com/components-web-app/api-components-bundle/pull/397))
 
