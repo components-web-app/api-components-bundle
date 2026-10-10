@@ -127,7 +127,8 @@ class MediaObjectFactory
     private function getMediaObjectsForImagineFilters(object $object, string $path, UploadableField $uploadableField, string $fileProperty, MediaObject $original): array
     {
         $mediaObjects = [];
-        if (!$this->imagineFilterGenerator) {
+        $imagineFilterGenerator = $this->imagineFilterGenerator;
+        if (!$imagineFilterGenerator) {
             return $mediaObjects;
         }
 
@@ -141,7 +142,7 @@ class MediaObjectFactory
 
         foreach ($filters as $filter) {
             try {
-                $resolvedPath = $this->imagineFilterGenerator->filteredImageUrl($path, $filter, $original->width, $original->height);
+                $resolvedPath = $imagineFilterGenerator->filteredImageUrl($path, $filter, $original->width, $original->height);
             } catch (NotLoadableException $exception) {
                 $this->logger?->warning(\sprintf('Skipped the imagine filter "%s" because its source image "%s" could not be loaded.', $filter, $path), [
                     'filter' => $filter,
@@ -153,7 +154,7 @@ class MediaObjectFactory
             if (null === $resolvedPath) {
                 continue;
             }
-            $mediaObjects[] = $this->createFromImagine($this->urlHelper->getAbsoluteUrl($resolvedPath), $path, $filter);
+            $mediaObjects[] = $this->createFromImagine($imagineFilterGenerator, $this->urlHelper->getAbsoluteUrl($resolvedPath), $path, $filter);
         }
 
         return $mediaObjects;
@@ -208,13 +209,13 @@ class MediaObjectFactory
         return $mediaObject;
     }
 
-    private function createFromImagine(string $contentUrl, string $path, string $imagineFilter): MediaObject
+    private function createFromImagine(ImagineFilterGenerator $imagineFilterGenerator, string $contentUrl, string $path, string $imagineFilter): MediaObject
     {
         $mediaObject = new MediaObject();
         $mediaObject->contentUrl = $contentUrl;
         $mediaObject->imagineFilter = $imagineFilter;
 
-        $fileInfo = $this->fileInfoCacheManager->resolveCache($path, $imagineFilter);
+        $fileInfo = $this->fileInfoCacheManager->resolveCache($path, $imagineFilter) ?? $this->readStoredFilteredImageInfo($imagineFilterGenerator, $path, $imagineFilter);
         if ($fileInfo) {
             return $this->populateMediaObjectFromCache($mediaObject, $fileInfo);
         }
@@ -223,6 +224,24 @@ class MediaObjectFactory
         $mediaObject->mimeType = '';
 
         return $mediaObject;
+    }
+
+    private function readStoredFilteredImageInfo(ImagineFilterGenerator $imagineFilterGenerator, string $path, string $imagineFilter): ?FileInfo
+    {
+        try {
+            $content = $imagineFilterGenerator->readStoredFilteredImage($path, $imagineFilter);
+        } catch (UnableToReadFile) {
+            return null;
+        }
+        $size = null === $content ? false : getimagesizefromstring($content);
+        if (false === $size) {
+            return null;
+        }
+
+        $fileInfo = new FileInfo($path, $size['mime'], \strlen($content), $size[0], $size[1], $imagineFilter);
+        $this->fileInfoCacheManager->saveCache($fileInfo);
+
+        return $fileInfo;
     }
 
     private function populateMediaObjectFromCache(MediaObject $mediaObject, FileInfo $fileInfo): MediaObject

@@ -9,6 +9,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Fixed
 - An upload is stored with the extension of its content: a PNG uploaded as `holiday.jpg` is stored as `.png`, and one with no extension gets `.png`. A valid extension (`.jpeg`) is kept, and plain text or an unrecognised type keeps the client's extension ([#402](https://github.com/components-web-app/api-components-bundle/issues/402))
+- An imagine variant with no file info row (rows lost, or a bucket shared with another database) reports its real type, size and dimensions instead of `-1` and an empty type: the stored variant is read through `FlysystemCacheResolver` and its row saved ([#402](https://github.com/components-web-app/api-components-bundle/issues/402))
 
 ## [2.0.0-alpha.12](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.11...2.0.0-alpha.12) - 2026-10-10
 

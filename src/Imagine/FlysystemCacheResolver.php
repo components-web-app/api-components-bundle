@@ -54,6 +54,16 @@ class FlysystemCacheResolver implements ResolverInterface
         return \sprintf('%s/%s', rtrim($this->webRoot, '/'), ltrim($this->getFileUrl($path, $filter), '/'));
     }
 
+    public function read(string $path, string $filter): ?string
+    {
+        $filePath = $this->getFilePath($path, $filter);
+        if (!$this->filesystem->fileExists($filePath)) {
+            return null;
+        }
+
+        return $this->filesystem->read($filePath);
+    }
+
     public function store(BinaryInterface $binary, $path, $filter): void
     {
         $this->filesystem->write($this->getFilePath($path, $filter), $binary->getContent(), ['visibility' => $this->visibility, 'mimetype' => $binary->getMimeType()]);
