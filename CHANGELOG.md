@@ -5,7 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Breaking
-- Uploads and imagine variants on Google Cloud Storage and S3 are written with a `Cache-Control`: `public, max-age=31536000, immutable` for originals and `public, max-age=2592000` for variants, configured by `silverback_api_components.uploadable.cache_control.original`/`.imagine` (`null` for none) and per field by `#[UploadableField(cacheControl:, imagineCacheControl:)]` (`false` for none). Files stored earlier keep theirs until updated in the bucket. `UploadableFileManager` takes an `UploadableCacheControl` ([#414](https://github.com/components-web-app/api-components-bundle/issues/414))
+- Uploads and imagine variants on Google Cloud Storage and S3 are written with a `Cache-Control`: `public, max-age=31536000, immutable` for originals and `public, max-age=2592000` for variants, configured by `silverback_api_components.uploadable.cache_control.original`/`.imagine` (`null` for none) and per field by `#[UploadableField(cacheControl:, imagineCacheControl:)]` (`false` for none). Files stored earlier keep theirs until updated in the bucket. `UploadableFileManager` takes an `UploadableCacheControl` ([#414](https://github.com/components-web-app/api-components-bundle/issues/414), [#415](https://github.com/components-web-app/api-components-bundle/pull/415))
 
 ## [2.0.0-alpha.14](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.13...2.0.0-alpha.14) - 2026-10-11
 
