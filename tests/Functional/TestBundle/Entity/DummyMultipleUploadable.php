@@ -43,6 +43,6 @@ class DummyMultipleUploadable
     #[Silverback\UploadableField(adapter: 'local')]
     public ?File $file = null;
 
-    #[Silverback\UploadableField(adapter: 'local', property: 'previewFilename', imagineFilters: ['thumbnail'])]
+    #[Silverback\UploadableField(adapter: 'local', property: 'previewFilename', imagineFilters: ['thumbnail'], imagineCacheControl: 'public, max-age=60')]
     public ?File $preview = null;
 }

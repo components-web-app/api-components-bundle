@@ -38,3 +38,10 @@ Feature: Generating missing imagine variants ahead of requests
     And the console command output should contain "Generated: 1"
     And there should be 1 file info rows for the imagine filter "thumbnail"
     And there should be 0 file info rows for the imagine filter "square_thumbnail"
+
+  Scenario: An imagine filter that is not configured is refused and nothing is generated
+    Given there is a DummyUploadableWithImagineFilters
+    When I run the console command "silverback:api-components:imagine:generate --filter=thumbnial"
+    Then the console command should have exited with 2
+    And the console command output should contain "is not a configured imagine filter."
+    And there should be 0 file info rows for the imagine filter "thumbnail"

@@ -48,9 +48,9 @@ use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
-use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\ImagineVariantGenerator;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
@@ -198,6 +198,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
                     new Reference(FilesystemProvider::class),
                     new Reference(FlysystemDataLoader::class),
                     new Reference(FileInfoCacheManager::class),
+                    new Reference(UploadableCacheControl::class),
                     new Reference(ImagineFilterGenerator::class),
                     50,
                     new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
@@ -206,7 +207,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
             $container->register('silverback.api_components.command.imagine_generate', ImagineGenerateCommand::class)
                 ->setAutoconfigured(false)
-                ->setArguments([new Reference(ImagineVariantGenerator::class)])
+                ->setArguments([new Reference(ImagineVariantGenerator::class), new Reference('liip_imagine.filter.configuration')])
                 ->addTag('console.command', ['command' => ImagineGenerateCommand::NAME]);
             $container->setAlias(ImagineGenerateCommand::class, 'silverback.api_components.command.imagine_generate');
 

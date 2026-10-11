@@ -18,9 +18,11 @@ use Liip\ImagineBundle\Service\FilterService;
 use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\ImagineVariantGenerator;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
 use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
@@ -40,6 +42,9 @@ trait ImagineVariantGeneratorTestTrait
     /** @var array<string, \Exception> */
     private array $storedCheckFailures = [];
     private string $originalMemoryLimit;
+    private UploadableCacheControl $cacheControl;
+    /** @var array<string, ?string> */
+    private array $cacheControlAtGeneration = [];
 
     private function setUpImagine(): void
     {
@@ -57,6 +62,7 @@ trait ImagineVariantGeneratorTestTrait
     {
         $filesystemProvider = new FilesystemProvider(new ServiceLocator(['local' => fn () => $this->local]));
         $this->dataLoader = new FlysystemDataLoader($filesystemProvider);
+        $this->cacheControl = new UploadableCacheControl(new FilesystemFactory(new ServiceLocator([])), null, 'public, max-age=2592000');
 
         $cacheManager = $this->createStub(CacheManager::class);
         $cacheManager->method('isStored')->willReturnCallback(function (string $path, string $filter): bool {
@@ -69,6 +75,7 @@ trait ImagineVariantGeneratorTestTrait
         $filterService = $this->createStub(FilterService::class);
         $filterService->method('getUrlOfFilteredImage')->willReturnCallback(function (string $path, string $filter): string {
             $this->generated[] = [$filter, $path, (new \ReflectionProperty(FlysystemDataLoader::class, 'adapter'))->getValue($this->dataLoader)];
+            $this->cacheControlAtGeneration[$filter . ':' . $path] = $this->cacheControl->forVariantOf($path);
             if (isset($this->failures[$filter])) {
                 throw $this->failures[$filter];
             }
@@ -83,6 +90,7 @@ trait ImagineVariantGeneratorTestTrait
             $filesystemProvider,
             $this->dataLoader,
             new FileInfoCacheManager($this->entityManager, new FileInfoRepository($this->registry)),
+            $this->cacheControl,
             new ImagineFilterGenerator($filterService, $cacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', '512M', $logger),
             $batchSize,
             $logger,

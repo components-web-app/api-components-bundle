@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Command;
 
+use Liip\ImagineBundle\Imagine\Filter\FilterConfiguration;
 use Silverback\ApiComponentsBundle\Command\ImagineGenerateCommand;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyMultipleUploadable;
@@ -172,9 +173,44 @@ class ImagineGenerateCommandTest extends OrphanedResourceDatabaseTestCase
         self::assertStringContainsString(\sprintf('"%s" is not an uploadable class.', Page::class), $tester->getDisplay());
     }
 
+    public function test_an_unknown_filter_is_refused_and_nothing_runs(): void
+    {
+        $this->persistImage('photo-1a2b3c4d.png');
+        $tester = new CommandTester($this->command());
+
+        $status = $tester->execute(['--filter' => ['thumbnail', 'thumbnial']]);
+
+        self::assertSame(Command::INVALID, $status);
+        self::assertSame([], $this->generated);
+        self::assertSame("\"thumbnial\" is not a configured imagine filter.\n", $tester->getDisplay());
+    }
+
+    public function test_an_unknown_filter_is_refused_in_a_dry_run_too(): void
+    {
+        $tester = new CommandTester($this->command());
+
+        self::assertSame(Command::INVALID, $tester->execute(['--filter' => ['missing'], '--dry-run' => true]));
+        self::assertStringContainsString('"missing" is not a configured imagine filter.', $tester->getDisplay());
+    }
+
+    public function test_a_configured_filter_no_field_uses_is_accepted_and_generates_nothing(): void
+    {
+        $this->persistImage('photo-1a2b3c4d.png');
+        $tester = new CommandTester($this->command());
+
+        self::assertSame(Command::SUCCESS, $tester->execute(['--filter' => ['large']]));
+        self::assertSame([], $this->generated);
+        self::assertStringContainsString("Generated: 0\n", $tester->getDisplay());
+    }
+
     private function command(): ImagineGenerateCommand
     {
-        return new ImagineGenerateCommand($this->imagineVariantGenerator());
+        return new ImagineGenerateCommand($this->imagineVariantGenerator(), new FilterConfiguration([
+            'thumbnail' => [],
+            'square_thumbnail' => [],
+            'webp_thumbnail' => [],
+            'large' => [],
+        ]));
     }
 
     private function persistImage(string $path, int $width = 10, int $height = 10): void

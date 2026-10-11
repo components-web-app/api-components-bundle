@@ -48,8 +48,8 @@ use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoDeduplicator;
-use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\ImagineVariantGenerator;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
@@ -228,7 +228,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame(ImagineGenerateCommand::class, $command->getClass());
         self::assertFalse($command->isAutoconfigured());
         self::assertSame([['command' => ImagineGenerateCommand::NAME]], $command->getTag('console.command'));
-        self::assertEquals([new Reference(ImagineVariantGenerator::class)], $command->getArguments());
+        self::assertEquals([new Reference(ImagineVariantGenerator::class), new Reference('liip_imagine.filter.configuration')], $command->getArguments());
         self::assertSame('silverback.api_components.command.imagine_generate', (string) $container->getAlias(ImagineGenerateCommand::class));
 
         $generator = $container->findDefinition(ImagineVariantGenerator::class);
@@ -241,6 +241,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
                 new Reference(FilesystemProvider::class),
                 new Reference(FlysystemDataLoader::class),
                 new Reference(FileInfoCacheManager::class),
+                new Reference(UploadableCacheControl::class),
                 new Reference(ImagineFilterGenerator::class),
                 50,
                 new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),

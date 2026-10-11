@@ -69,6 +69,23 @@ class ImagineVariantGeneratorTest extends OrphanedResourceDatabaseTestCase
         ], $this->generated);
     }
 
+    public function test_each_variant_is_generated_with_the_cache_control_of_its_source_field(): void
+    {
+        $this->persistWithImagineFilters('photo-1a2b3c4d.png');
+        $multiple = new DummyMultipleUploadable();
+        $multiple->previewFilename = 'preview-1a2b3c4d.png';
+        $this->persist($multiple);
+        $this->entityManager->flush();
+        $this->writeImage('preview-1a2b3c4d.png');
+
+        iterator_to_array($this->imagineVariantGenerator()->generate(filters: ['thumbnail']), false);
+
+        self::assertSame([
+            'thumbnail:photo-1a2b3c4d.png' => 'public, max-age=2592000',
+            'thumbnail:preview-1a2b3c4d.png' => 'public, max-age=60',
+        ], $this->sortedByKey($this->cacheControlAtGeneration));
+    }
+
     public function test_a_second_run_generates_nothing_and_reports_every_variant_as_stored(): void
     {
         $this->persistWithImagineFilters('photo-1a2b3c4d.png');
@@ -371,6 +388,18 @@ class ImagineVariantGeneratorTest extends OrphanedResourceDatabaseTestCase
         usort($rows, static fn (array $a, array $b): int => [$a[0], $a[2], $a[3]] <=> [$b[0], $b[2], $b[3]]);
 
         return $rows;
+    }
+
+    /**
+     * @param array<string, ?string> $values
+     *
+     * @return array<string, ?string>
+     */
+    private function sortedByKey(array $values): array
+    {
+        ksort($values);
+
+        return $values;
     }
 
     private function logger(): AbstractLogger

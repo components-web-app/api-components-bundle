@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Command;
 
+use Liip\ImagineBundle\Imagine\Filter\FilterConfiguration;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\ImagineVariantGenerator;
 use Silverback\ApiComponentsBundle\Model\Uploadable\ImagineVariantStatus;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -24,8 +25,10 @@ final class ImagineGenerateCommand extends Command
 {
     public const string NAME = 'silverback:api-components:imagine:generate';
 
-    public function __construct(private readonly ImagineVariantGenerator $generator)
-    {
+    public function __construct(
+        private readonly ImagineVariantGenerator $generator,
+        private readonly FilterConfiguration $filterConfiguration,
+    ) {
         parent::__construct();
     }
 
@@ -51,9 +54,19 @@ final class ImagineGenerateCommand extends Command
             }
         }
 
+        $filters = $input->getOption('filter');
+        $configuredFilters = $this->filterConfiguration->all();
+        foreach ($filters as $filter) {
+            if (!\array_key_exists($filter, $configuredFilters)) {
+                $output->writeln(\sprintf('<error>"%s" is not a configured imagine filter.</error>', $filter));
+
+                return Command::INVALID;
+            }
+        }
+
         $dryRun = $input->getOption('dry-run');
         $counts = array_fill_keys(array_map(static fn (ImagineVariantStatus $status): string => $status->name, ImagineVariantStatus::cases()), 0);
-        foreach ($this->generator->generate($classes, $input->getOption('filter'), $dryRun) as $variant) {
+        foreach ($this->generator->generate($classes, $filters, $dryRun) as $variant) {
             ++$counts[$variant->status->name];
             if ($output->isVerbose()) {
                 $output->writeln(\sprintf('  %s: %s %s', $this->label($variant->status), $variant->filter, $variant->path));

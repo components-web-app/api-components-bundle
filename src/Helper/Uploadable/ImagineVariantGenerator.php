@@ -39,6 +39,7 @@ final class ImagineVariantGenerator
         private readonly FilesystemProvider $filesystemProvider,
         private readonly FlysystemDataLoader $flysystemDataLoader,
         private readonly FileInfoCacheManager $fileInfoCacheManager,
+        private readonly UploadableCacheControl $cacheControl,
         private readonly ImagineFilterGenerator $imagineFilterGenerator,
         private readonly int $batchSize,
         private readonly ?LoggerInterface $logger = null,
@@ -193,6 +194,7 @@ final class ImagineVariantGenerator
             return;
         }
         $this->flysystemDataLoader->setAdapter($field->adapter);
+        $this->cacheControl->registerVariantSource($path, $field);
         foreach ($pending as $filter) {
             yield $variant($filter, match ($this->imagineFilterGenerator->filter($path, $filter, $width, $height)->outcome) {
                 ImagineFilterOutcome::Resolved => ImagineVariantStatus::Generated,
