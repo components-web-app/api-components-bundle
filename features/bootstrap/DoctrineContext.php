@@ -74,6 +74,8 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestRepeated
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Input\StringInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -3107,9 +3109,11 @@ final class DoctrineContext implements Context
     public function iRunTheConsoleCommand(string $name, string $verbosely = ''): void
     {
         $application = new Application($this->kernel);
-        $tester = new CommandTester($application->find($name));
-        $this->commandStatusCode = $tester->execute([], ['verbosity' => '' === $verbosely ? OutputInterface::VERBOSITY_NORMAL : OutputInterface::VERBOSITY_VERBOSE]);
-        $this->commandOutput = $tester->getDisplay();
+        $input = new StringInput($name);
+        $input->setInteractive(false);
+        $output = new BufferedOutput('' === $verbosely ? OutputInterface::VERBOSITY_NORMAL : OutputInterface::VERBOSITY_VERBOSE);
+        $this->commandStatusCode = $application->find(explode(' ', $name, 2)[0])->run($input, $output);
+        $this->commandOutput = $output->fetch();
         $this->manager->clear();
     }
 

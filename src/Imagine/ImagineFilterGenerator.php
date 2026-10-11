@@ -51,7 +51,17 @@ final class ImagineFilterGenerator
         return $this->cacheManager instanceof SilverbackCacheManager ? $this->cacheManager->readStored($path, $filter) : null;
     }
 
+    public function isStored(string $path, string $filter): bool
+    {
+        return $this->cacheManager->isStored($path, $filter);
+    }
+
     public function filteredImageUrl(string $path, string $filter, ?int $width, ?int $height): ?string
+    {
+        return $this->filter($path, $filter, $width, $height)->url;
+    }
+
+    public function filter(string $path, string $filter, ?int $width, ?int $height): ImagineFilterResult
     {
         try {
             return $this->generate($path, $filter, $width, $height);
@@ -69,14 +79,14 @@ final class ImagineFilterGenerator
             ]);
         }
 
-        return null;
+        return new ImagineFilterResult(ImagineFilterOutcome::Failed);
     }
 
-    private function generate(string $path, string $filter, ?int $width, ?int $height): ?string
+    private function generate(string $path, string $filter, ?int $width, ?int $height): ImagineFilterResult
     {
         $currentLimit = $this->memoryLimit->limit();
         if (null === $currentLimit || $this->cacheManager->isStored($path, $filter)) {
-            return $this->filterService->getUrlOfFilteredImage($path, $filter);
+            return $this->resolved($path, $filter);
         }
 
         $budget = max($currentLimit, $this->ceiling ?? $currentLimit);
@@ -92,13 +102,13 @@ final class ImagineFilterGenerator
                     'memory_limit' => $budget,
                 ]);
 
-                return null;
+                return new ImagineFilterResult(ImagineFilterOutcome::Skipped);
             }
         }
 
         $previous = $this->memoryLimit->raiseTo($budget);
         try {
-            return $this->filterService->getUrlOfFilteredImage($path, $filter);
+            return $this->resolved($path, $filter);
         } finally {
             if (null !== $previous && !$this->memoryLimit->restore($previous)) {
                 $this->logger?->warning(\sprintf('The memory limit raised to generate the imagine filter "%s" could not be restored to %s.', $filter, $previous), [
@@ -109,5 +119,10 @@ final class ImagineFilterGenerator
                 ]);
             }
         }
+    }
+
+    private function resolved(string $path, string $filter): ImagineFilterResult
+    {
+        return new ImagineFilterResult(ImagineFilterOutcome::Resolved, $this->filterService->getUrlOfFilteredImage($path, $filter));
     }
 }

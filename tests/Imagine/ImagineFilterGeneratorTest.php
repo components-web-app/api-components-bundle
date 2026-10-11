@@ -18,6 +18,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
+use Silverback\ApiComponentsBundle\Imagine\ImagineFilterOutcome;
 use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 
 class ImagineFilterGeneratorTest extends TestCase
@@ -250,6 +251,69 @@ class ImagineFilterGeneratorTest extends TestCase
         $this->buildGenerator($filterService, logger: $logger)->filteredImageUrl(self::PATH, 'thumbnail', 100, 100);
 
         self::assertSame('536870912', \ini_get('memory_limit'));
+    }
+
+    public function test_a_filter_that_is_generated_or_resolved_is_reported_as_resolved_with_its_url(): void
+    {
+        $filterService = $this->createStub(FilterService::class);
+        $filterService->method('getUrlOfFilteredImage')->willReturn('/media/cache/thumbnail/' . self::PATH);
+
+        $result = $this->buildGenerator($filterService)->filter(self::PATH, 'thumbnail', 4000, 3000);
+
+        self::assertSame(ImagineFilterOutcome::Resolved, $result->outcome);
+        self::assertSame('/media/cache/thumbnail/' . self::PATH, $result->url);
+    }
+
+    public function test_a_filter_over_the_memory_budget_is_reported_as_skipped(): void
+    {
+        $filterService = $this->createMock(FilterService::class);
+        $filterService->expects(self::never())->method('getUrlOfFilteredImage');
+
+        $result = $this->buildGenerator($filterService)->filter(self::PATH, 'thumbnail', 8202, 5468);
+
+        self::assertSame(ImagineFilterOutcome::Skipped, $result->outcome);
+        self::assertNull($result->url);
+    }
+
+    public function test_a_filter_whose_generation_fails_is_reported_as_failed(): void
+    {
+        $filterService = $this->createStub(FilterService::class);
+        $filterService->method('getUrlOfFilteredImage')->willThrowException(new \RuntimeException('generation failed'));
+
+        $result = $this->buildGenerator($filterService)->filter(self::PATH, 'thumbnail', 4000, 3000);
+
+        self::assertSame(ImagineFilterOutcome::Failed, $result->outcome);
+        self::assertNull($result->url);
+    }
+
+    public function test_a_filter_whose_source_image_cannot_be_loaded_is_reported_as_failed(): void
+    {
+        $filterService = $this->createStub(FilterService::class);
+        $filterService->method('getUrlOfFilteredImage')->willThrowException(new NotLoadableException('Source image not found.'));
+
+        $result = $this->buildGenerator($filterService)->filter(self::PATH, 'thumbnail', 4000, 3000);
+
+        self::assertSame(ImagineFilterOutcome::Failed, $result->outcome);
+        self::assertNull($result->url);
+    }
+
+    /**
+     * @return iterable<string, array{bool}>
+     */
+    public static function storedStates(): iterable
+    {
+        yield 'stored' => [true];
+        yield 'not stored' => [false];
+    }
+
+    #[DataProvider('storedStates')]
+    public function test_whether_a_filter_is_stored_is_the_cache_manager_answer_for_that_path_and_filter(bool $stored): void
+    {
+        $cacheManager = $this->createMock(CacheManager::class);
+        $cacheManager->expects(self::once())->method('isStored')->with(self::PATH, 'thumbnail')->willReturn($stored);
+        $generator = new ImagineFilterGenerator($this->createStub(FilterService::class), $cacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', '512M');
+
+        self::assertSame($stored, $generator->isStored(self::PATH, 'thumbnail'));
     }
 
     /**
