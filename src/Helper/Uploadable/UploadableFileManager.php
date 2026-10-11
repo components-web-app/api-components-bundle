@@ -43,6 +43,7 @@ class UploadableFileManager
     private FilesystemProvider $filesystemProvider;
     private FlysystemDataLoader $flysystemDataLoader;
     private FileInfoCacheManager $fileInfoCacheManager;
+    private UploadableCacheControl $cacheControl;
     private ?CacheManager $imagineCacheManager;
     private ?ImagineFilterGenerator $imagineFilterGenerator;
 
@@ -57,6 +58,7 @@ class UploadableFileManager
         FilesystemProvider $filesystemProvider,
         FlysystemDataLoader $flysystemDataLoader,
         FileInfoCacheManager $fileInfoCacheManager,
+        UploadableCacheControl $cacheControl,
         ?CacheManager $imagineCacheManager,
         ?ImagineFilterGenerator $imagineFilterGenerator = null,
     ) {
@@ -65,6 +67,7 @@ class UploadableFileManager
         $this->filesystemProvider = $filesystemProvider;
         $this->flysystemDataLoader = $flysystemDataLoader;
         $this->fileInfoCacheManager = $fileInfoCacheManager;
+        $this->cacheControl = $cacheControl;
         $this->imagineCacheManager = $imagineCacheManager;
         $this->imagineFilterGenerator = $imagineFilterGenerator;
         $this->deletedFields = new \WeakMap();
@@ -145,6 +148,7 @@ class UploadableFileManager
                 }
                 $dimensions = @getimagesizefromstring($filesystem->read($filename));
                 $filters = $object->getImagineFilters($fileProperty, null);
+                $this->cacheControl->registerVariantSource($filename, $fieldConfiguration);
                 foreach ($filters as $filter) {
                     $this->imagineFilterGenerator->filteredImageUrl($filename, $filter, $dimensions ? $dimensions[0] : null, $dimensions ? $dimensions[1] : null);
                 }
@@ -182,12 +186,16 @@ class UploadableFileManager
             $filesystem->writeStream(
                 $path,
                 $stream,
-                [
-                    'mimetype' => $file->getMimeType(),
-                    'metadata' => [
-                        'contentType' => $file->getMimeType(),
+                $this->cacheControl->writeConfig(
+                    $filesystem,
+                    [
+                        'mimetype' => $file->getMimeType(),
+                        'metadata' => [
+                            'contentType' => $file->getMimeType(),
+                        ],
                     ],
-                ]
+                    $this->cacheControl->forOriginal($fieldConfiguration),
+                )
             );
             $classMetadata->setFieldValue($object, $fieldConfiguration->property, $path);
             $propertyAccessor->setValue($object, $fileProperty, null);

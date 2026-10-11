@@ -45,6 +45,7 @@ use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
@@ -155,6 +156,10 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$subject', $config['orphaned_resources']['notify']['subject']);
         $definition->setArgument('$context', ['website_name' => $config['website_name']]);
 
+        $definition = $container->findDefinition(UploadableCacheControl::class);
+        $definition->setArgument('$original', $config['uploadable']['cache_control']['original']);
+        $definition->setArgument('$imagine', $config['uploadable']['cache_control']['imagine']);
+
         $definition = $container->findDefinition(OrphanedFileDetector::class);
         $definition->setArgument('$minimumAge', $config['orphaned_files']['minimum_age']);
         $definition->setArgument('$excludedPaths', $config['orphaned_files']['excluded_paths']);
@@ -185,6 +190,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
             $definition = $container->findDefinition(MediaObjectFactory::class);
             $definition->setArgument('$imagineFilterGenerator', new Reference(ImagineFilterGenerator::class));
+            $definition->setArgument('$cacheControl', new Reference(UploadableCacheControl::class));
         }
 
         $definition = $container->findDefinition(RouteExtension::class);

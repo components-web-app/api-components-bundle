@@ -44,6 +44,7 @@ use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotif
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoDeduplicator;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
@@ -190,6 +191,27 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertEquals(new Reference(ImagineFilterGenerator::class), $this->argument($container, MediaObjectFactory::class, '$imagineFilterGenerator'));
         self::assertEquals(new Reference(ImagineFilterGenerator::class), $this->argument($container, UploadableFileManager::class, '$imagineFilterGenerator'));
         self::assertEquals(new Reference('liip_imagine.cache.manager'), $this->argument($container, UploadableFileManager::class, '$imagineCacheManager'));
+    }
+
+    public function test_the_upload_cache_control_reaches_its_service_and_every_writer(): void
+    {
+        $config = self::minimalConfig();
+        $config['uploadable']['cache_control'] = ['original' => 'public, max-age=60', 'imagine' => null];
+
+        [$container] = $this->load($config, true);
+
+        self::assertSame('public, max-age=60', $this->argument($container, UploadableCacheControl::class, '$original'));
+        self::assertNull($this->argument($container, UploadableCacheControl::class, '$imagine'));
+        self::assertEquals(new Reference(UploadableCacheControl::class), $this->argument($container, UploadableFileManager::class, 5));
+        self::assertEquals(new Reference(UploadableCacheControl::class), $this->argument($container, MediaObjectFactory::class, '$cacheControl'));
+    }
+
+    public function test_the_default_upload_cache_control_reaches_its_service(): void
+    {
+        [$container] = $this->load(self::minimalConfig());
+
+        self::assertSame('public, max-age=31536000, immutable', $this->argument($container, UploadableCacheControl::class, '$original'));
+        self::assertSame('public, max-age=2592000', $this->argument($container, UploadableCacheControl::class, '$imagine'));
     }
 
     public function test_the_configured_imagine_memory_limit_reaches_the_filter_generator(): void

@@ -444,6 +444,43 @@ class ConfigurationTest extends TestCase
         $this->process($config);
     }
 
+    public function test_uploads_are_cached_for_a_year_and_their_variants_for_thirty_days_by_default(): void
+    {
+        self::assertSame(
+            ['cache_control' => ['original' => 'public, max-age=31536000, immutable', 'imagine' => 'public, max-age=2592000']],
+            $this->process(self::minimalConfig())['uploadable']
+        );
+    }
+
+    public function test_the_upload_cache_control_can_be_configured_or_set_to_nothing(): void
+    {
+        $config = self::minimalConfig();
+        $config['uploadable']['cache_control'] = ['original' => null, 'imagine' => 'public, max-age=600'];
+
+        self::assertSame(['original' => null, 'imagine' => 'public, max-age=600'], $this->process($config)['uploadable']['cache_control']);
+    }
+
+    /**
+     * @return iterable<string, array{string, mixed}>
+     */
+    public static function invalidCacheControls(): iterable
+    {
+        yield 'empty original' => ['original', ''];
+        yield 'blank imagine' => ['imagine', ' '];
+        yield 'integer' => ['original', 3600];
+        yield 'boolean' => ['imagine', false];
+    }
+
+    #[DataProvider('invalidCacheControls')]
+    public function test_a_cache_control_that_is_not_a_header_value_is_rejected(string $key, mixed $value): void
+    {
+        $config = self::minimalConfig();
+        $config['uploadable']['cache_control'][$key] = $value;
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->process($config);
+    }
+
     public function test_orphaned_resource_notifications_have_no_recipients_by_default(): void
     {
         self::assertSame(

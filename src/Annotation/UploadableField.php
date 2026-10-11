@@ -17,9 +17,6 @@ namespace Silverback\ApiComponentsBundle\Annotation;
 #[\Attribute(\Attribute::TARGET_PROPERTY)]
 final class UploadableField
 {
-    // Nice to have - feature to configure the IRI in the output media objects for this field
-    // public string $iri = 'http://schema.org/MediaObject';
-
     public function __construct(
         public string $adapter,
         public string $urlGenerator = 'api',
@@ -28,6 +25,8 @@ final class UploadableField
         public ?array $imagineFilters = [],
         public bool $requiredOnPublish = false,
         public ?string $requiredOnPublishMessage = null,
+        public string|false|null $cacheControl = null,
+        public string|false|null $imagineCacheControl = null,
     ) {
     }
 }

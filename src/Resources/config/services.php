@@ -146,6 +146,7 @@ use Silverback\ApiComponentsBundle\Helper\Route\RouteReachabilityResolver;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoDeduplicator;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
@@ -296,7 +297,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference(Security::class),
                 new Reference('silverback.repository.user'),
-                '', // injected in dependency injection
+                '',
             ]
         )
         ->tag('form.type');
@@ -699,7 +700,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference(Security::class),
                 new Reference('silverback.repository.user'),
-                '', // injected in dependency injection
+                '',
             ]
         )
         ->tag('form.type');
@@ -760,7 +761,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference('request_stack'),
                 new Reference('silverback.repository.user'),
-                '', // injected in dependency injection
+                '',
             ]
         )
         ->tag('form.type');
@@ -875,7 +876,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(ManagerRegistry::class),
                 new Reference(PublishableAttributeReader::class),
                 new Reference(AuthorizationCheckerInterface::class),
-                '', // injected with dependency injection
+                '',
             ]
         );
     $services->alias(PublishableStatusChecker::class, 'silverback.api_components.helper.publishable.status_checker');
@@ -929,7 +930,6 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('mercure.hub');
     $services->alias(PublishableAwareHub::class, 'silverback.api_components.mercure.publishable_aware_hub');
 
-    // High priority for item because of queryBuilder reset
     $services
         ->set('silverback.api_components.doctrine.orm.extension.publishable')
         ->class(PublishableExtension::class)
@@ -970,8 +970,8 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference('silverback.security.jwt_manager.inner'),
                 new Reference('event_dispatcher'),
-                '', // injected in dependency injection
-                '', // injected in dependency injection
+                '',
+                '',
             ]
         )
         ->autoconfigure(false);
@@ -983,7 +983,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('security.role_hierarchy'),
-                '', // injected in dependency injection
+                '',
                 new Reference(MercureAuthorization::class),
                 new Reference(CwaCollectorData::class),
             ]
@@ -999,7 +999,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set('silverback.security.jwt_clear_token_listener')
         ->class(JWTClearTokenListener::class)
         ->args([
-            '', // injected in dependency injection
+            '',
             new Reference(MercureAuthorization::class),
             new Reference(CwaCollectorData::class),
         ])
@@ -1013,8 +1013,8 @@ return static function (ContainerConfigurator $configurator) {
         ->class(LogoutListener::class)
         ->args(
             [
-                '', // injected in dependency injection
-                '', // injected in dependency injection
+                '',
+                '',
                 new Reference(MercureAuthorization::class),
             ]
         )
@@ -1069,7 +1069,7 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('console.command')
         ->args(
             [
-                '', // injected in dependency injection
+                '',
                 new Reference('silverback.repository.user'),
             ]
         );
@@ -1166,10 +1166,10 @@ return static function (ContainerConfigurator $configurator) {
         ->class(RouteExtension::class)
         ->args(
             [
-                '', // added in dependency injection
+                '',
                 new Reference('api_platform.security.resource_access_checker'),
                 new Reference(RouteAncestorGateResolver::class),
-                '', // added in dependency injection
+                '',
             ]
         )
         ->tag('api_platform.doctrine.orm.query_extension.collection');
@@ -1214,9 +1214,6 @@ return static function (ContainerConfigurator $configurator) {
         ]);
     $services->alias(RouteGeneratorInterface::class, 'silverback.helper.route_generator');
 
-    // Having trouble setting the repository with a service ID.
-    // Doctrine reporting that the repository class is not tagged
-    // and if I use service ID that it does not exist...
     $services
         ->set(RouteRepository::class)
         ->args(
@@ -1241,10 +1238,10 @@ return static function (ContainerConfigurator $configurator) {
         ->set('silverback.api_components.security.voter.route')
         ->class(RouteVoter::class)
         ->args([
-            '', // added in dependency injection
+            '',
             new Reference('api_platform.security.resource_access_checker'),
             new Reference(RouteLiveResolver::class),
-            '', // added in dependency injection
+            '',
         ])
         ->tag('security.voter');
     $services->alias(RouteVoter::class, 'silverback.api_components.security.voter.route');
@@ -1253,7 +1250,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set('silverback.api_components.security.voter.site_config_parameter')
         ->class(SiteConfigParameterVoter::class)
         ->args([
-            '', // added in dependency injection
+            '',
             new Reference(AuthorizationCheckerInterface::class),
         ])
         ->tag('security.voter');
@@ -1264,7 +1261,7 @@ return static function (ContainerConfigurator $configurator) {
         ->class(RoutableExtension::class)
         ->args(
             [
-                '', // added in dependency injection
+                '',
                 new Reference('api_platform.security.resource_access_checker'),
                 new Reference(RouteAncestorGateResolver::class),
             ]
@@ -1276,7 +1273,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set('silverback.api_components.security.voter.routable')
         ->class(RoutableVoter::class)
         ->args([
-            '', // added in dependency injection
+            '',
             new Reference('api_platform.security.resource_access_checker'),
             new Reference('silverback.doctrine.repository.page_data'),
             new Reference(RouteReachabilityResolver::class),
@@ -1340,7 +1337,7 @@ return static function (ContainerConfigurator $configurator) {
         ->class(TablePrefixExtension::class)
         ->args(
             [
-                '', // injected in dependency injection
+                '',
             ]
         )
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata']);
@@ -1514,11 +1511,23 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(FilesystemProvider::class),
                 new Reference(FlysystemDataLoader::class),
                 new Reference(FileInfoCacheManager::class),
-                null, // set in dependency injection if imagine exists
-                null, // Set in dependency injection if imagine cache manager exists
+                new Reference(UploadableCacheControl::class),
+                null,
+                null,
             ]
         );
     $services->alias(UploadableFileManager::class, 'silverback.api_components.helper.uploadable.file_manager');
+
+    $services
+        ->set('silverback.api_components.helper.uploadable.cache_control')
+        ->class(UploadableCacheControl::class)
+        ->args([
+            new Reference(FilesystemFactory::class),
+            null,
+            null,
+        ])
+        ->tag('kernel.reset', ['method' => 'reset']);
+    $services->alias(UploadableCacheControl::class, 'silverback.api_components.helper.uploadable.cache_control');
 
     $services
         ->set('silverback.api_components.doctrine.event_listener.uploadable')
@@ -1571,19 +1580,12 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false);
     $services->alias(UploadableResourceMetadataCollectionFactory::class, 'silverback.api_components.api_platform.metadata.resource.uploadable_factory');
 
-    //    COMPILER PASS REQUIRED AS WELL
-    //    $services
-    //        ->set(UploadableLoader::class)
-    //        ->args([
-    //            new Reference(UploadableAnnotationReader::class),
-    //        ]);
-
     $services
         ->set('silverback.api_components.security.user_checker')
         ->class(UserChecker::class)
         ->args(
             [
-                '', // injected in dependency injection
+                '',
             ]
         );
     $services->alias(UserChecker::class, 'silverback.api_components.security.user_checker');
@@ -1675,7 +1677,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('silverback.repository.user'),
                 new Reference('silverback.helper.timestamped_data_persister'),
                 new Reference(UserPasswordHasherInterface::class),
-                '', // injected in dependency injection
+                '',
             ]
         );
     $services->alias(UserFactory::class, 'silverback.api_components.factory.user');
@@ -1704,7 +1706,7 @@ return static function (ContainerConfigurator $configurator) {
                     'doctrine.orm.entity_manager' => new Reference('doctrine.orm.entity_manager'),
                     'logger' => new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
                 ]),
-                '', // injected in dependency injection
+                '',
             ]
         );
     $services->alias(UserMailer::class, 'silverback.api_components.helper.user.mailer');
@@ -1756,7 +1758,7 @@ return static function (ContainerConfigurator $configurator) {
         ->class(UserRegisterType::class)
         ->args(
             [
-                '', // injected in dependency injection
+                '',
             ]
         )
         ->tag('form.type');
@@ -1768,9 +1770,9 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference(ManagerRegistry::class),
-                '', // injected in dependency injection
-                '', // injected in dependency injection
-                '', // injected in dependency injection
+                '',
+                '',
+                '',
             ]
         )
         ->tag('doctrine.repository_service');

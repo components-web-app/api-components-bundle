@@ -19,6 +19,7 @@ use Psr\Log\AbstractLogger;
 use Silverback\ApiComponentsBundle\ApiResource\OrphanedFileReport;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDeleter;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
@@ -27,6 +28,7 @@ use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileConstraintCheck
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileLister;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileNameMatcher;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
@@ -285,6 +287,7 @@ class OrphanedFileDeleterTest extends OrphanedResourceDatabaseTestCase
             $filesystemProvider,
             $this->createStub(FlysystemDataLoader::class),
             new FileInfoCacheManager($this->entityManager, new FileInfoRepository($this->registry)),
+            new UploadableCacheControl(new FilesystemFactory(new ServiceLocator([])), null, null),
             null,
             null
         );

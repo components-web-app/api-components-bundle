@@ -25,6 +25,7 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
 use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
@@ -51,6 +52,7 @@ class MediaObjectFactory
         private readonly UrlHelper $urlHelper,
         private readonly ServiceLocator $urlGenerators,
         private readonly ?ImagineFilterGenerator $imagineFilterGenerator = null,
+        private readonly ?UploadableCacheControl $cacheControl = null,
     ) {
         $this->initRegistry($managerRegistry);
     }
@@ -137,6 +139,7 @@ class MediaObjectFactory
             array_push($filters, ...$object->getImagineFilters($fileProperty, $request));
         }
 
+        $this->cacheControl?->registerVariantSource($path, $uploadableField);
         foreach ($filters as $filter) {
             $resolvedPath = $imagineFilterGenerator->filteredImageUrl($path, $filter, $original->width, $original->height);
             if (null === $resolvedPath) {
