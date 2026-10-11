@@ -241,16 +241,15 @@ class MediaObjectFactoryImagineTest extends TestCase
             $this->createStub(FilesystemFactory::class),
             new UrlHelper(new RequestStack()),
             new ServiceLocator(['api' => static fn () => $apiGenerator]),
-            $filterGenerator ?? $this->storedFilterGenerator($filterService),
-            $logger,
+            $filterGenerator ?? $this->storedFilterGenerator($filterService, $logger),
         );
     }
 
-    private function storedFilterGenerator(FilterService $filterService): ImagineFilterGenerator
+    private function storedFilterGenerator(FilterService $filterService, ?LoggerInterface $logger): ImagineFilterGenerator
     {
         $cacheManager = $this->createStub(CacheManager::class);
         $cacheManager->method('isStored')->willReturn(true);
 
-        return new ImagineFilterGenerator($filterService, $cacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', null);
+        return new ImagineFilterGenerator($filterService, $cacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', null, $logger);
     }
 }

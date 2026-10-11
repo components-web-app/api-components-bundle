@@ -93,6 +93,39 @@ class FlysystemCacheResolverTest extends TestCase
         self::assertSame('https://cdn.example.com/media/cache/runtime/photo-1a2b3c4d.png', $resolver->resolve('photo-1a2b3c4d.png', 'runtime'));
     }
 
+    public function test_a_variant_of_an_avif_or_heic_source_is_stored_with_the_webp_extension(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $resolver = $this->createResolver($filesystem);
+
+        $resolver->store(new Binary('webp bytes', 'image/webp', 'webp'), 'photo-1a2b3c4d.avif', 'thumbnail');
+
+        self::assertTrue($filesystem->fileExists('media/cache/thumbnail/photo-1a2b3c4d.webp'));
+        self::assertTrue($resolver->isStored('photo-1a2b3c4d.avif', 'thumbnail'));
+        self::assertSame('https://cdn.example.com/media/cache/thumbnail/photo-1a2b3c4d.webp', $resolver->resolve('photo-1a2b3c4d.avif', 'thumbnail'));
+        self::assertSame('https://cdn.example.com/media/cache/thumbnail/photo-1a2b3c4d.webp', $resolver->resolve('photo-1a2b3c4d.heic', 'thumbnail'));
+        self::assertSame('https://cdn.example.com/media/cache/thumbnail/photo-1a2b3c4d.webp', $resolver->resolve('photo-1a2b3c4d.HEIF', 'thumbnail'));
+
+        $resolver->remove(['photo-1a2b3c4d.avif'], ['thumbnail']);
+
+        self::assertFalse($filesystem->fileExists('media/cache/thumbnail/photo-1a2b3c4d.webp'));
+    }
+
+    public function test_a_configured_format_wins_over_webp_for_an_avif_source(): void
+    {
+        $resolver = $this->createResolver(new Filesystem(new InMemoryFilesystemAdapter()));
+
+        self::assertSame('https://cdn.example.com/media/cache/jpeg_thumbnail/photo-1a2b3c4d.jpg', $resolver->resolve('photo-1a2b3c4d.avif', 'jpeg_thumbnail'));
+    }
+
+    public function test_an_avif_source_gets_the_webp_extension_without_a_filter_configuration(): void
+    {
+        $resolver = new FlysystemCacheResolver(new Filesystem(new InMemoryFilesystemAdapter()), 'https://cdn.example.com');
+
+        self::assertSame('https://cdn.example.com/media/cache/thumbnail/photo-1a2b3c4d.webp', $resolver->resolve('photo-1a2b3c4d.avif', 'thumbnail'));
+        self::assertSame('https://cdn.example.com/media/cache/thumbnail/photo-1a2b3c4d.png', $resolver->resolve('photo-1a2b3c4d.png', 'thumbnail'));
+    }
+
     private function createResolver(Filesystem $filesystem): FlysystemCacheResolver
     {
         return new FlysystemCacheResolver($filesystem, 'https://cdn.example.com', 'media/cache', filterConfiguration: new FilterConfiguration([

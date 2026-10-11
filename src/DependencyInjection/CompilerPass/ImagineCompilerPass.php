@@ -11,7 +11,9 @@
 
 namespace Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass;
 
+use Liip\ImagineBundle\Imagine\Filter\FilterManager as LiipFilterManager;
 use Silverback\ApiComponentsBundle\Imagine\CacheManager;
+use Silverback\ApiComponentsBundle\Imagine\FilterManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -26,6 +28,11 @@ class ImagineCompilerPass implements CompilerPassInterface
     {
         $definition = $container->getDefinition('liip_imagine.cache.manager');
         $definition->setClass(CacheManager::class);
+
+        $filterManager = $container->getDefinition('liip_imagine.filter.manager');
+        if (LiipFilterManager::class === $container->getParameterBag()->resolveValue($filterManager->getClass())) {
+            $filterManager->setClass(FilterManager::class);
+        }
 
         foreach (array_keys($container->findTaggedServiceIds('liip_imagine.cache.resolver')) as $id) {
             $resolver = $container->getDefinition($id);

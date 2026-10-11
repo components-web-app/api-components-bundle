@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Imagine;
 
+use Liip\ImagineBundle\Exception\Binary\Loader\NotLoadableException;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -72,17 +73,66 @@ class ImagineFilterGeneratorTest extends TestCase
         self::assertSame('256M', \ini_get('memory_limit'));
     }
 
-    public function test_the_limit_is_restored_when_generation_throws(): void
+    public function test_a_filter_whose_generation_fails_is_skipped_and_logged_and_the_limit_restored(): void
     {
         $filterService = $this->createStub(FilterService::class);
-        $failure = new \RuntimeException('generation failed');
+        $failure = new \RuntimeException('heifsave: Unsupported compression');
         $filterService->method('getUrlOfFilteredImage')->willThrowException($failure);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::never())->method('warning');
+        $logger->expects(self::once())->method('error')->with(
+            self::stringContains('thumbnail'),
+            self::callback(static fn (array $context): bool => 'thumbnail' === $context['filter'] && self::PATH === $context['path'] && $failure === $context['exception'])
+        );
+
+        self::assertNull($this->buildGenerator($filterService, logger: $logger)->filteredImageUrl(self::PATH, 'thumbnail', 4000, 3000));
+        self::assertSame('256M', \ini_get('memory_limit'));
+    }
+
+    public function test_a_stored_filter_that_fails_to_resolve_is_skipped(): void
+    {
+        $filterService = $this->createStub(FilterService::class);
+        $filterService->method('getUrlOfFilteredImage')->willThrowException(new \RuntimeException('resolve failed'));
+
+        self::assertNull($this->buildGenerator($filterService, stored: true)->filteredImageUrl(self::PATH, 'thumbnail', 4000, 3000));
+    }
+
+    public function test_a_filter_whose_source_image_cannot_be_loaded_is_skipped_with_a_warning(): void
+    {
+        $filterService = $this->createStub(FilterService::class);
+        $missing = new NotLoadableException('Source image not found.');
+        $filterService->method('getUrlOfFilteredImage')->willThrowException($missing);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::never())->method('error');
+        $logger->expects(self::once())->method('warning')->with(
+            self::stringContains('could not be loaded'),
+            self::callback(static fn (array $context): bool => 'thumbnail' === $context['filter'] && self::PATH === $context['path'] && $missing === $context['exception'])
+        );
+
+        self::assertNull($this->buildGenerator($filterService, logger: $logger)->filteredImageUrl(self::PATH, 'thumbnail', 4000, 3000));
+    }
+
+    public function test_a_failed_filter_needs_no_logger(): void
+    {
+        $filterService = $this->createStub(FilterService::class);
+        $filterService->method('getUrlOfFilteredImage')->willThrowException(new \RuntimeException('generation failed'));
+
+        self::assertNull($this->buildGenerator($filterService)->filteredImageUrl(self::PATH, 'thumbnail', 4000, 3000));
+    }
+
+    public function test_a_php_error_during_generation_is_not_swallowed_and_the_limit_is_restored(): void
+    {
+        $filterService = $this->createStub(FilterService::class);
+        $error = new \Error('bug');
+        $filterService->method('getUrlOfFilteredImage')->willThrowException($error);
 
         try {
             $this->buildGenerator($filterService)->filteredImageUrl(self::PATH, 'thumbnail', 4000, 3000);
-            self::fail('The generation failure was swallowed.');
-        } catch (\RuntimeException $exception) {
-            self::assertSame($failure, $exception);
+            self::fail('The error was swallowed.');
+        } catch (\Error $exception) {
+            self::assertSame($error, $exception);
         }
 
         self::assertSame('256M', \ini_get('memory_limit'));

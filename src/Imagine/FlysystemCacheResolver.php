@@ -101,7 +101,7 @@ class FlysystemCacheResolver implements ResolverInterface
     protected function getFileUrl($path, $filter): string
     {
         $path = str_replace('://', '---', $path);
-        $mimeType = $this->getOutputMimeType($filter);
+        $mimeType = $this->getOutputMimeType($path, $filter);
         if (null !== $mimeType) {
             $path = StoredFileExtension::replaceInPath($path, $mimeType);
         }
@@ -109,13 +109,16 @@ class FlysystemCacheResolver implements ResolverInterface
         return $this->cachePrefix . '/' . $filter . '/' . ltrim($path, '/');
     }
 
-    private function getOutputMimeType(string $filter): ?string
+    private function getOutputMimeType(string $path, string $filter): ?string
     {
-        $format = $this->filterConfiguration?->all()[$filter]['format'] ?? null;
-        if (!\is_string($format) || '' === $format) {
+        $mimeTypes = MimeTypes::getDefault();
+        $extension = pathinfo($path, \PATHINFO_EXTENSION);
+        $sourceMimeType = '' === $extension ? null : ($mimeTypes->getMimeTypes($extension)[0] ?? null);
+        $format = ImagineOutputFormat::forFilter($this->filterConfiguration?->all()[$filter] ?? [], $sourceMimeType);
+        if (null === $format) {
             return null;
         }
 
-        return MimeTypes::getDefault()->getMimeTypes($format)[0] ?? null;
+        return $mimeTypes->getMimeTypes($format)[0] ?? null;
     }
 }

@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Imagine;
 
+use Liip\ImagineBundle\Exception\Binary\Loader\NotLoadableException;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
 use Psr\Log\LoggerInterface;
@@ -51,6 +52,27 @@ final class ImagineFilterGenerator
     }
 
     public function filteredImageUrl(string $path, string $filter, ?int $width, ?int $height): ?string
+    {
+        try {
+            return $this->generate($path, $filter, $width, $height);
+        } catch (NotLoadableException $exception) {
+            $this->logger?->warning(\sprintf('Skipped the imagine filter "%s" because its source image "%s" could not be loaded.', $filter, $path), [
+                'filter' => $filter,
+                'path' => $path,
+                'exception' => $exception,
+            ]);
+        } catch (\Exception $exception) {
+            $this->logger?->error(\sprintf('Skipped the imagine filter "%s" for "%s" because generating it failed: %s', $filter, $path, $exception->getMessage()), [
+                'filter' => $filter,
+                'path' => $path,
+                'exception' => $exception,
+            ]);
+        }
+
+        return null;
+    }
+
+    private function generate(string $path, string $filter, ?int $width, ?int $height): ?string
     {
         $currentLimit = $this->memoryLimit->limit();
         if (null === $currentLimit || $this->cacheManager->isStored($path, $filter)) {
