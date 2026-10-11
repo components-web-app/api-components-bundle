@@ -27,13 +27,16 @@ use Silverback\ApiComponentsBundle\EventListener\Doctrine\MappedSuperclassDiscri
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 trait PublishableDatabaseTrait
@@ -73,6 +76,7 @@ trait PublishableDatabaseTrait
             $this->createStub(FilesystemProvider::class),
             $this->createStub(FlysystemDataLoader::class),
             $this->createStub(FileInfoCacheManager::class),
+            new UploadableCacheControl(new FilesystemFactory(new ServiceLocator([])), null, null),
             null,
         );
         $this->publishableDraftMerger = new PublishableDraftMerger($this->publishableStatusChecker, $registry, $fileManager);

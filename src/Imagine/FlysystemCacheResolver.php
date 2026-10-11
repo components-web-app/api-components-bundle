@@ -16,6 +16,7 @@ use League\Flysystem\Visibility;
 use Liip\ImagineBundle\Binary\BinaryInterface;
 use Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface;
 use Liip\ImagineBundle\Imagine\Filter\FilterConfiguration;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Utility\StoredFileExtension;
 use Symfony\Component\Mime\MimeTypes;
 
@@ -30,7 +31,7 @@ class FlysystemCacheResolver implements ResolverInterface
     private string $cacheRoot;
     private string $visibility;
 
-    public function __construct(Filesystem $filesystem, string $rootUrl, $cachePrefix = 'media/cache', $visibility = Visibility::PUBLIC, private readonly ?FilterConfiguration $filterConfiguration = null)
+    public function __construct(Filesystem $filesystem, string $rootUrl, $cachePrefix = 'media/cache', $visibility = Visibility::PUBLIC, private readonly ?FilterConfiguration $filterConfiguration = null, private readonly ?UploadableCacheControl $cacheControl = null)
     {
         $this->filesystem = $filesystem;
         $this->webRoot = rtrim($rootUrl, '/');
@@ -66,7 +67,11 @@ class FlysystemCacheResolver implements ResolverInterface
 
     public function store(BinaryInterface $binary, $path, $filter): void
     {
-        $this->filesystem->write($this->getFilePath($path, $filter), $binary->getContent(), ['visibility' => $this->visibility, 'mimetype' => $binary->getMimeType()]);
+        $config = ['visibility' => $this->visibility, 'mimetype' => $binary->getMimeType()];
+        if (null !== $this->cacheControl) {
+            $config = $this->cacheControl->writeConfig($this->filesystem, $config, $this->cacheControl->forVariantOf($path));
+        }
+        $this->filesystem->write($this->getFilePath($path, $filter), $binary->getContent(), $config);
     }
 
     public function remove(array $paths, array $filters): void

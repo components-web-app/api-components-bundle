@@ -16,9 +16,11 @@ use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileNameMatcher;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Model\Uploadable\DataUriFile;
@@ -140,6 +142,7 @@ class StoredFileNameMatcherTest extends OrphanedResourceDatabaseTestCase
             new FilesystemProvider(new ServiceLocator(['local' => fn () => $this->filesystem])),
             $this->createStub(FlysystemDataLoader::class),
             $this->createStub(FileInfoCacheManager::class),
+            new UploadableCacheControl(new FilesystemFactory(new ServiceLocator([])), null, null),
             null,
             null
         );

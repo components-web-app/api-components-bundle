@@ -37,14 +37,17 @@ use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableFileDeletionListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableListener;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\RejectedDeleteException;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\RejectedDeleteMiddleware;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadable;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 
 class UploadableFileDeletionListenerTest extends TestCase
 {
@@ -105,6 +108,7 @@ class UploadableFileDeletionListenerTest extends TestCase
             $filesystemProvider,
             $this->createStub(FlysystemDataLoader::class),
             new FileInfoCacheManager($this->entityManager, new FileInfoRepository($registry)),
+            new UploadableCacheControl(new FilesystemFactory(new ServiceLocator([])), null, null),
             null,
             null
         );

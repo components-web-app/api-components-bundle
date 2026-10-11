@@ -31,6 +31,7 @@ use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Imagine\CacheManager as SilverbackCacheManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
@@ -173,6 +174,22 @@ class MediaObjectFactoryImagineTest extends TestCase
         self::assertSame('', $mediaObjects[1]->mimeType);
     }
 
+    public function test_variants_generated_on_read_use_the_fields_imagine_cache_control(): void
+    {
+        $cacheControl = new UploadableCacheControl(new FilesystemFactory(new ServiceLocator([])), null, 'public, max-age=2592000');
+        $generated = [];
+        $filterService = $this->createStub(FilterService::class);
+        $filterService->method('getUrlOfFilteredImage')->willReturnCallback(static function (string $path, string $filter) use ($cacheControl, &$generated): string {
+            $generated[$filter] = $cacheControl->forVariantOf($path);
+
+            return '/media/cache/' . $filter . '/' . $path;
+        });
+
+        $this->buildFactory($filterService, null, field: new UploadableField(adapter: 'test_adapter', imagineFilters: ['thumbnail', 'square'], imagineCacheControl: 'public, max-age=600'), cacheControl: $cacheControl)->createMediaObjects(new \stdClass());
+
+        self::assertSame(['thumbnail' => 'public, max-age=600', 'square' => 'public, max-age=600'], $generated);
+    }
+
     private function urlFilterService(): FilterService
     {
         $filterService = $this->createStub(FilterService::class);
@@ -203,9 +220,9 @@ class MediaObjectFactoryImagineTest extends TestCase
         return (string) ob_get_clean();
     }
 
-    private function buildFactory(FilterService $filterService, ?LoggerInterface $logger, ?FileInfoCacheManager $fileInfoCacheManager = null, ?FlysystemDataLoader $dataLoader = null, ?ImagineFilterGenerator $filterGenerator = null): MediaObjectFactory
+    private function buildFactory(FilterService $filterService, ?LoggerInterface $logger, ?FileInfoCacheManager $fileInfoCacheManager = null, ?FlysystemDataLoader $dataLoader = null, ?ImagineFilterGenerator $filterGenerator = null, ?UploadableField $field = null, ?UploadableCacheControl $cacheControl = null): MediaObjectFactory
     {
-        $fieldConfig = new UploadableField(adapter: 'test_adapter', imagineFilters: ['thumbnail', 'square']);
+        $fieldConfig = $field ?? new UploadableField(adapter: 'test_adapter', imagineFilters: ['thumbnail', 'square']);
         $fieldConfig->property = 'filename';
 
         $annotationReader = $this->createStub(UploadableAttributeReaderInterface::class);
@@ -242,6 +259,7 @@ class MediaObjectFactoryImagineTest extends TestCase
             new UrlHelper(new RequestStack()),
             new ServiceLocator(['api' => static fn () => $apiGenerator]),
             $filterGenerator ?? $this->storedFilterGenerator($filterService, $logger),
+            $cacheControl,
         );
     }
 

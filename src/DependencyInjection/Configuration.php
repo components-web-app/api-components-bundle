@@ -21,6 +21,8 @@ use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Silverback\ApiComponentsBundle\Utility\EmailRecipientList;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\NodeDefinition;
+use Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -57,6 +59,7 @@ class Configuration implements ConfigurationInterface
         $this->addOrphanedResourcesNode($rootNode);
         $this->addOrphanedFilesNode($rootNode);
         $this->addImagineNode($rootNode);
+        $this->addUploadableNode($rootNode);
 
         return $treeBuilder;
     }
@@ -175,6 +178,37 @@ class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+            ->end();
+    }
+
+    private function addUploadableNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('uploadable')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('cache_control')
+                            ->addDefaultsIfNotSet()
+                            ->info('The Cache-Control written on stored files, on Google Cloud Storage and S3 adapters only. A field overrides either value with `cacheControl:` or `imagineCacheControl:` on its #[UploadableField], and `false` there writes none. null writes none.')
+                            ->children()
+                                ->append($this->cacheControlNode('original', 'public, max-age=31536000, immutable', 'For an uploaded file. A stored name is never reused, so it can be immutable.'))
+                                ->append($this->cacheControlNode('imagine', 'public, max-age=2592000', 'For an imagine variant, which is rewritten at the same path when its filter is regenerated.'))
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    private function cacheControlNode(string $name, string $default, string $info): NodeDefinition
+    {
+        return (new ScalarNodeDefinition($name))
+            ->info($info)
+            ->defaultValue($default)
+            ->validate()
+                ->ifTrue(static fn (mixed $value): bool => null !== $value && (!\is_string($value) || '' === trim($value)))
+                ->thenInvalid('A Cache-Control must be a header value such as "public, max-age=3600", or null for none; got %s.')
             ->end();
     }
 

@@ -15,22 +15,32 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use League\Flysystem\Filesystem;
+use League\Flysystem\GoogleCloudStorage\GoogleCloudStorageAdapter;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
+use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use Liip\ImagineBundle\Service\FilterService;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
+use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
+use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
+use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
+use Silverback\ApiComponentsBundle\Model\Uploadable\DataUriFile;
+use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
+use Silverback\ApiComponentsBundle\Tests\Flysystem\RecordingFilesystemAdapter;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\Request;
 
-/**
- * Named stub so the attribute reader has a real class to read UploadableField configuration from.
- * Both fields use the default storage property name, `filename`, as every UploadableField does
- * unless `property:` is set — which is what makes a marker keyed on the name alone ambiguous.
- */
+require_once __DIR__ . '/../../Flysystem/cloud_adapter_stubs.php';
+
 #[Silverback\Uploadable]
 class _LeakTestUploadable
 {
@@ -40,9 +50,6 @@ class _LeakTestUploadable
     public ?string $filename = null;
 }
 
-/**
- * Named stub for the clone path: a field with a `prefix:` so the copy has a directory to preserve.
- */
 #[Silverback\Uploadable]
 class _PrefixedTestUploadable
 {
@@ -52,12 +59,41 @@ class _PrefixedTestUploadable
     public ?string $filename = null;
 }
 
-/**
- * Named stub for the not-uploadable path — no `#[Uploadable]` attribute.
- */
 class _NotUploadableStub
 {
     public ?string $filename = null;
+}
+
+#[Silverback\Uploadable]
+class _CacheControlOverrideUploadable
+{
+    #[Silverback\UploadableField(adapter: 'local', cacheControl: 'private, max-age=60')]
+    public ?File $file = null;
+
+    public ?string $filename = null;
+}
+
+#[Silverback\Uploadable]
+class _NoCacheControlUploadable
+{
+    #[Silverback\UploadableField(adapter: 'local', cacheControl: false)]
+    public ?File $file = null;
+
+    public ?string $filename = null;
+}
+
+#[Silverback\Uploadable]
+class _ImagineCacheControlUploadable implements ImagineFiltersInterface
+{
+    #[Silverback\UploadableField(adapter: 'local', imagineCacheControl: 'public, max-age=600')]
+    public ?File $file = null;
+
+    public ?string $filename = null;
+
+    public function getImagineFilters(string $property, ?Request $request): array
+    {
+        return ['thumbnail', 'square'];
+    }
 }
 
 /**
@@ -65,10 +101,9 @@ class _NotUploadableStub
  */
 class UploadableFileManagerTest extends TestCase
 {
-    /**
-     * Publishing a draft replaces the published resource's stored path with the draft's. The file it
-     * has stopped referencing is then orphaned and should go.
-     */
+    private const string ORIGINAL = 'public, max-age=31536000, immutable';
+    private const string IMAGINE = 'public, max-age=2592000';
+
     public function test_orphaned_file_deletion_removes_a_path_the_resource_no_longer_references(): void
     {
         $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
@@ -90,11 +125,6 @@ class UploadableFileManagerTest extends TestCase
         self::assertTrue($filesystem->fileExists('components/new-bbbbbbbb.png'));
     }
 
-    /**
-     * The case the old delete-then-copy order got wrong: when the draft carries the same stored path
-     * as the published resource, deleting "the published resource's file" destroys the very file the
-     * resource still points at.
-     */
     public function test_orphaned_file_deletion_keeps_a_path_the_resource_still_references(): void
     {
         $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
@@ -112,9 +142,6 @@ class UploadableFileManagerTest extends TestCase
         self::assertSame('components/kept-aaaaaaaa.png', $resource->filename);
     }
 
-    /**
-     * Publishing a draft that genuinely has no file still removes the published resource's file.
-     */
     public function test_orphaned_file_deletion_removes_the_previous_file_when_the_field_is_now_empty(): void
     {
         $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
@@ -133,9 +160,6 @@ class UploadableFileManagerTest extends TestCase
         self::assertFalse($filesystem->fileExists('components/old-aaaaaaaa.png'));
     }
 
-    /**
-     * Callers should not have to ask whether a resource is uploadable before using either method.
-     */
     public function test_orphaned_file_deletion_is_a_no_op_for_a_resource_that_is_not_uploadable(): void
     {
         $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
@@ -150,11 +174,6 @@ class UploadableFileManagerTest extends TestCase
         self::assertTrue($filesystem->fileExists('components/old-aaaaaaaa.png'));
     }
 
-    /**
-     * Creating a draft of a publishable uploadable clones the stored file so the two resources own
-     * their files independently. The copy belongs beside the original — the field's prefix is part of
-     * the stored path — and carries a unique token like every other stored name.
-     */
     public function test_cloning_an_uploadable_copies_the_file_alongside_the_original_with_a_tokenised_name(): void
     {
         $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
@@ -174,11 +193,6 @@ class UploadableFileManagerTest extends TestCase
         self::assertTrue($filesystem->fileExists($published->filename), 'The clone must not disturb the original.');
     }
 
-    /**
-     * A stored file missing from the filestore is a recoverable storage problem. Nulling the clone's
-     * path would discard the only record of what the file was, and publishing that draft would then
-     * copy the null onto the published resource — turning a missing object into permanent loss.
-     */
     public function test_cloning_an_uploadable_whose_stored_file_is_missing_keeps_the_original_path(): void
     {
         $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
@@ -194,14 +208,6 @@ class UploadableFileManagerTest extends TestCase
         self::assertSame('documents/gone-aaaaaaaa.pdf', $draft->filename);
     }
 
-    /**
-     * A "delete this file" marker belongs to the resource being written, not to the storage property
-     * name. It used to be recorded on this shared service as the bare string 'filename' — the default
-     * storage property of every UploadableField — and never cleared, so any later write carrying no
-     * new file inherited it. Under a long-running runtime (FrankenPHP worker mode) that outlived the
-     * request too: one admin file deletion poisoned every subsequent publish served by that worker,
-     * silently deleting an unrelated resource's file and nulling its path.
-     */
     public function test_a_deleted_field_marked_on_one_object_does_not_delete_another_objects_file(): void
     {
         $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
@@ -231,9 +237,6 @@ class UploadableFileManagerTest extends TestCase
         self::assertSame('image-bbb.png', $unrelatedResource->filename);
     }
 
-    /**
-     * The counterpart: scoping the marker must not stop it working for the resource it was set on.
-     */
     public function test_a_deleted_field_still_removes_the_file_for_the_object_it_was_marked_on(): void
     {
         $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
@@ -251,9 +254,6 @@ class UploadableFileManagerTest extends TestCase
         self::assertNull($resource->filename);
     }
 
-    /**
-     * Without any marker, a write that carries no new file leaves the stored file alone.
-     */
     public function test_a_write_with_no_new_file_and_no_marker_leaves_the_stored_file_alone(): void
     {
         $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
@@ -270,10 +270,6 @@ class UploadableFileManagerTest extends TestCase
         self::assertSame('image-aaa.png', $resource->filename);
     }
 
-    /**
-     * Publishing a draft merges it into the published resource and the write continues against that
-     * instance, so a request that clears a file and publishes in one go must still clear the file.
-     */
     public function test_a_deleted_field_marker_follows_a_draft_when_it_is_merged_into_its_published_resource(): void
     {
         $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
@@ -343,6 +339,96 @@ class UploadableFileManagerTest extends TestCase
         }
     }
 
+    public function test_an_upload_to_google_cloud_storage_carries_the_cache_control_beside_its_content_type(): void
+    {
+        [$filesystem, $adapter, $factory] = $this->googleCloudStorage();
+        $object = new _LeakTestUploadable();
+        $object->file = $this->upload('image.png', 'photo.png');
+
+        $this->createFileManager($filesystem, $factory)->persistFiles($object);
+
+        $config = $adapter->writes[$object->filename];
+        self::assertSame('image/png', $config->get('mimetype'));
+        self::assertSame(['contentType' => 'image/png', 'cacheControl' => self::ORIGINAL], $config->get('metadata'));
+    }
+
+    public function test_a_data_uri_upload_carries_the_cache_control(): void
+    {
+        [$filesystem, $adapter, $factory] = $this->googleCloudStorage();
+        $object = new _LeakTestUploadable();
+        $dataUri = new DataUriFile('data:image/png;base64,' . base64_encode((string) file_get_contents(__DIR__ . '/../../../features/assets/files/image.png')));
+        $object->file = new UploadedDataUriFile($dataUri, '6a3f5e2c-1b4d-4e8f-9a0b-1c2d3e4f5a6b.png');
+
+        $this->createFileManager($filesystem, $factory)->persistFiles($object);
+
+        self::assertSame('6a3f5e2c-1b4d-4e8f-9a0b-1c2d3e4f5a6b.png', $object->filename);
+        self::assertSame(['contentType' => 'image/png', 'cacheControl' => self::ORIGINAL], $adapter->writes[$object->filename]->get('metadata'));
+    }
+
+    public function test_an_upload_carries_its_fields_cache_control_override(): void
+    {
+        [$filesystem, $adapter, $factory] = $this->googleCloudStorage();
+        $object = new _CacheControlOverrideUploadable();
+        $object->file = $this->upload('image.png', 'photo.png');
+
+        $this->createFileManager($filesystem, $factory)->persistFiles($object);
+
+        self::assertSame(['contentType' => 'image/png', 'cacheControl' => 'private, max-age=60'], $adapter->writes[$object->filename]->get('metadata'));
+    }
+
+    public function test_an_upload_for_a_field_that_sets_no_cache_control_carries_none(): void
+    {
+        [$filesystem, $adapter, $factory] = $this->googleCloudStorage();
+        $object = new _NoCacheControlUploadable();
+        $object->file = $this->upload('image.png', 'photo.png');
+
+        $this->createFileManager($filesystem, $factory)->persistFiles($object);
+
+        self::assertSame(['contentType' => 'image/png'], $adapter->writes[$object->filename]->get('metadata'));
+    }
+
+    public function test_variants_generated_after_an_upload_use_the_fields_imagine_cache_control(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $filesystem->write('photo-1a2b3c4d.png', (string) file_get_contents(__DIR__ . '/../../../features/assets/files/image.png'));
+        $object = new _ImagineCacheControlUploadable();
+        $object->filename = 'photo-1a2b3c4d.png';
+
+        $cacheControl = new UploadableCacheControl(new FilesystemFactory(new ServiceLocator([])), self::ORIGINAL, self::IMAGINE);
+        $generated = [];
+        $filterService = $this->createStub(FilterService::class);
+        $filterService->method('getUrlOfFilteredImage')->willReturnCallback(static function (string $path, string $filter) use ($cacheControl, &$generated): string {
+            $generated[$filter] = $cacheControl->forVariantOf($path);
+
+            return '/media/cache/' . $filter . '/' . $path;
+        });
+        $liipCacheManager = $this->createStub(CacheManager::class);
+        $liipCacheManager->method('isStored')->willReturn(true);
+
+        $this->createFileManager($filesystem, null, $cacheControl, new ImagineFilterGenerator($filterService, $liipCacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', null))->storeFilesMetadata($object);
+
+        self::assertSame(['thumbnail' => 'public, max-age=600', 'square' => 'public, max-age=600'], $generated);
+    }
+
+    /**
+     * @return array{Filesystem, RecordingFilesystemAdapter, FilesystemFactory}
+     */
+    private function googleCloudStorage(): array
+    {
+        $adapter = new GoogleCloudStorageAdapter();
+        $factory = new FilesystemFactory(new ServiceLocator(['local' => static fn () => $adapter]));
+
+        return [$factory->create('local'), $adapter, $factory];
+    }
+
+    private function upload(string $asset, string $clientName): UploadedFile
+    {
+        $temporaryUpload = tempnam(sys_get_temp_dir(), 'php');
+        copy(__DIR__ . '/../../../features/assets/files/' . $asset, $temporaryUpload);
+
+        return new UploadedFile($temporaryUpload, $clientName, null, null, true);
+    }
+
     private function storeUpload(string $asset, string $clientName): string
     {
         $temporaryUpload = tempnam(sys_get_temp_dir(), 'php');
@@ -362,7 +448,7 @@ class UploadableFileManagerTest extends TestCase
         }
     }
 
-    private function createFileManager(Filesystem $filesystem): UploadableFileManager
+    private function createFileManager(Filesystem $filesystem, ?FilesystemFactory $factory = null, ?UploadableCacheControl $cacheControl = null, ?ImagineFilterGenerator $filterGenerator = null): UploadableFileManager
     {
         $classMetadata = $this->createStub(ClassMetadata::class);
         $classMetadata
@@ -389,8 +475,9 @@ class UploadableFileManagerTest extends TestCase
             $filesystemProvider,
             $this->createStub(FlysystemDataLoader::class),
             $this->createStub(FileInfoCacheManager::class),
+            $cacheControl ?? new UploadableCacheControl($factory ?? new FilesystemFactory(new ServiceLocator([])), self::ORIGINAL, self::IMAGINE),
             null,
-            null
+            $filterGenerator,
         );
     }
 }

@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Flysystem;
 
 use League\Flysystem\Filesystem;
+use League\Flysystem\FilesystemAdapter;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
@@ -20,8 +21,14 @@ use Symfony\Component\DependencyInjection\ServiceLocator;
  */
 class FilesystemFactory
 {
+    /**
+     * @var \WeakMap<Filesystem, FilesystemAdapter>
+     */
+    private \WeakMap $filesystemAdapters;
+
     public function __construct(private readonly ServiceLocator $adapters)
     {
+        $this->filesystemAdapters = new \WeakMap();
     }
 
     /**
@@ -29,7 +36,16 @@ class FilesystemFactory
      */
     public function create(string $name, array $config = []): Filesystem
     {
-        return new Filesystem($this->getAdapter($name), $config);
+        $adapter = $this->getAdapter($name);
+        $filesystem = new Filesystem($adapter, $config);
+        $this->filesystemAdapters[$filesystem] = $adapter;
+
+        return $filesystem;
+    }
+
+    public function getAdapterOf(Filesystem $filesystem): ?FilesystemAdapter
+    {
+        return $this->filesystemAdapters[$filesystem] ?? null;
     }
 
     public function getAdapter(string $name)
