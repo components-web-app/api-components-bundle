@@ -11,12 +11,14 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection;
 
+use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\DeduplicateFileInfoCommand;
+use Silverback\ApiComponentsBundle\Command\ImagineGenerateCommand;
 use Silverback\ApiComponentsBundle\DependencyInjection\SilverbackApiComponentsExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
@@ -39,15 +41,19 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoDeduplicator;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\ImagineVariantGenerator;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
+use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
 use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
@@ -214,6 +220,36 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame('public, max-age=2592000', $this->argument($container, UploadableCacheControl::class, '$imagine'));
     }
 
+    public function test_with_imagine_enabled_the_generate_command_is_registered_with_its_helper(): void
+    {
+        [$container] = $this->load(self::minimalConfig(), true);
+
+        $command = $container->findDefinition(ImagineGenerateCommand::class);
+        self::assertSame(ImagineGenerateCommand::class, $command->getClass());
+        self::assertFalse($command->isAutoconfigured());
+        self::assertSame([['command' => ImagineGenerateCommand::NAME]], $command->getTag('console.command'));
+        self::assertEquals([new Reference(ImagineVariantGenerator::class)], $command->getArguments());
+        self::assertSame('silverback.api_components.command.imagine_generate', (string) $container->getAlias(ImagineGenerateCommand::class));
+
+        $generator = $container->findDefinition(ImagineVariantGenerator::class);
+        self::assertSame(ImagineVariantGenerator::class, $generator->getClass());
+        self::assertFalse($generator->isAutoconfigured());
+        self::assertEquals(
+            [
+                new Reference(ManagerRegistry::class),
+                new Reference(UploadableAttributeReader::class),
+                new Reference(FilesystemProvider::class),
+                new Reference(FlysystemDataLoader::class),
+                new Reference(FileInfoCacheManager::class),
+                new Reference(ImagineFilterGenerator::class),
+                50,
+                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            ],
+            $generator->getArguments()
+        );
+        self::assertSame('silverback.api_components.helper.uploadable.imagine_variant_generator', (string) $container->getAlias(ImagineVariantGenerator::class));
+    }
+
     public function test_the_configured_imagine_memory_limit_reaches_the_filter_generator(): void
     {
         $config = self::minimalConfig();
@@ -239,6 +275,8 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         [$container] = $this->load(self::minimalConfig());
 
         self::assertFalse($container->has(ImagineFilterGenerator::class));
+        self::assertFalse($container->has(ImagineVariantGenerator::class));
+        self::assertFalse($container->has(ImagineGenerateCommand::class));
         self::assertArrayNotHasKey('$imagineFilterGenerator', $container->findDefinition(MediaObjectFactory::class)->getArguments());
         self::assertArrayNotHasKey('$imagineFilterGenerator', $container->findDefinition(UploadableFileManager::class)->getArguments());
     }

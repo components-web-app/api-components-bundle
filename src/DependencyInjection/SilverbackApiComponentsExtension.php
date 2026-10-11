@@ -11,9 +11,11 @@
 
 namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Doctrine\UuidType;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
+use Silverback\ApiComponentsBundle\Command\ImagineGenerateCommand;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
@@ -36,6 +38,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Fixture\AbstractCwaScaffold;
+use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
 use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
@@ -46,10 +49,13 @@ use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotif
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\ImagineVariantGenerator;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
+use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
 use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
@@ -183,6 +189,26 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
                     new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 ]);
             $container->setAlias(ImagineFilterGenerator::class, 'silverback.api_components.imagine.filter_generator');
+
+            $container->register('silverback.api_components.helper.uploadable.imagine_variant_generator', ImagineVariantGenerator::class)
+                ->setAutoconfigured(false)
+                ->setArguments([
+                    new Reference(ManagerRegistry::class),
+                    new Reference(UploadableAttributeReader::class),
+                    new Reference(FilesystemProvider::class),
+                    new Reference(FlysystemDataLoader::class),
+                    new Reference(FileInfoCacheManager::class),
+                    new Reference(ImagineFilterGenerator::class),
+                    50,
+                    new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                ]);
+            $container->setAlias(ImagineVariantGenerator::class, 'silverback.api_components.helper.uploadable.imagine_variant_generator');
+
+            $container->register('silverback.api_components.command.imagine_generate', ImagineGenerateCommand::class)
+                ->setAutoconfigured(false)
+                ->setArguments([new Reference(ImagineVariantGenerator::class)])
+                ->addTag('console.command', ['command' => ImagineGenerateCommand::NAME]);
+            $container->setAlias(ImagineGenerateCommand::class, 'silverback.api_components.command.imagine_generate');
 
             $definition = $container->findDefinition(UploadableFileManager::class);
             $definition->setArgument('$imagineFilterGenerator', new Reference(ImagineFilterGenerator::class));
