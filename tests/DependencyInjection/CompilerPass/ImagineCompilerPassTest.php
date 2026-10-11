@@ -12,9 +12,11 @@
 namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection\CompilerPass;
 
 use Liip\ImagineBundle\Imagine\Cache\Resolver\WebPathResolver;
+use Liip\ImagineBundle\Imagine\Filter\FilterManager as LiipFilterManager;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ImagineCompilerPass;
 use Silverback\ApiComponentsBundle\Imagine\CacheManager;
+use Silverback\ApiComponentsBundle\Imagine\FilterManager;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -29,6 +31,27 @@ class ImagineCompilerPassTest extends TestCase
         (new ImagineCompilerPass())->process($container);
 
         self::assertSame(CacheManager::class, $container->getDefinition('liip_imagine.cache.manager')->getClass());
+    }
+
+    public function test_liips_filter_manager_is_replaced_with_the_bundles(): void
+    {
+        $container = $this->createContainer();
+        $container->setParameter('liip_imagine.filter.manager.class', LiipFilterManager::class);
+        $container->getDefinition('liip_imagine.filter.manager')->setClass('%liip_imagine.filter.manager.class%');
+
+        (new ImagineCompilerPass())->process($container);
+
+        self::assertSame(FilterManager::class, $container->getDefinition('liip_imagine.filter.manager')->getClass());
+    }
+
+    public function test_a_filter_manager_class_the_application_set_is_kept(): void
+    {
+        $container = $this->createContainer();
+        $container->getDefinition('liip_imagine.filter.manager')->setClass('App\\Imagine\\FilterManager');
+
+        (new ImagineCompilerPass())->process($container);
+
+        self::assertSame('App\\Imagine\\FilterManager', $container->getDefinition('liip_imagine.filter.manager')->getClass());
     }
 
     public function test_a_flysystem_cache_resolver_is_given_the_filter_configuration(): void
@@ -77,6 +100,7 @@ class ImagineCompilerPassTest extends TestCase
     {
         $container = new ContainerBuilder();
         $container->setDefinition('liip_imagine.cache.manager', new Definition());
+        $container->setDefinition('liip_imagine.filter.manager', new Definition(LiipFilterManager::class));
 
         return $container;
     }
