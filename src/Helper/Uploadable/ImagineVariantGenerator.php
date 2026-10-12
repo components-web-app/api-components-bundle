@@ -63,27 +63,31 @@ final class ImagineVariantGenerator
     /**
      * @param list<class-string> $classes
      * @param list<string>       $filters
+     * @param ?\Closure(): bool  $proceed
      *
      * @return \Generator<int, ImagineVariant>
      */
-    public function generate(array $classes = [], array $filters = [], bool $dryRun = false): \Generator
+    public function generate(array $classes = [], array $filters = [], bool $dryRun = false, ?\Closure $proceed = null): \Generator
     {
         $entityManager = $this->getEntityManager(FileInfo::class);
         foreach ($this->uploadableMetadata($entityManager) as $metadata) {
             if ($classes && !array_filter($classes, static fn (string $class): bool => is_a($metadata->getName(), $class, true))) {
                 continue;
             }
-            yield from $this->generateForClass($entityManager, $metadata, $filters, $dryRun);
+            if (yield from $this->generateForClass($entityManager, $metadata, $filters, $dryRun, $proceed)) {
+                return;
+            }
         }
     }
 
     /**
      * @param ClassMetadata<object> $metadata
      * @param list<string>          $filters
+     * @param ?\Closure(): bool     $proceed
      *
-     * @return \Generator<int, ImagineVariant>
+     * @return \Generator<int, ImagineVariant, mixed, bool>
      */
-    private function generateForClass(EntityManagerInterface $entityManager, ClassMetadata $metadata, array $filters, bool $dryRun): \Generator
+    private function generateForClass(EntityManagerInterface $entityManager, ClassMetadata $metadata, array $filters, bool $dryRun, ?\Closure $proceed): \Generator
     {
         $fields = iterator_to_array($this->uploadableAttributeReader->getConfiguredProperties($metadata->getName()));
         $queryBuilder = $entityManager->createQueryBuilder()
@@ -105,25 +109,32 @@ final class ImagineVariantGenerator
             $objects = $queryBuilder->setFirstResult($offset)->getQuery()->getResult();
             foreach ($objects as $object) {
                 foreach ($fields as $fileProperty => $field) {
-                    yield from $this->generateForField($metadata, $object, $fileProperty, $field, $filters, $dryRun);
+                    if (yield from $this->generateForField($metadata, $object, $fileProperty, $field, $filters, $dryRun, $proceed)) {
+                        $entityManager->clear();
+
+                        return true;
+                    }
                 }
             }
             $entityManager->clear();
             $offset += $this->batchSize;
         } while (\count($objects) === $this->batchSize);
+
+        return false;
     }
 
     /**
      * @param ClassMetadata<object> $metadata
      * @param list<string>          $onlyFilters
+     * @param ?\Closure(): bool     $proceed
      *
-     * @return \Generator<int, ImagineVariant>
+     * @return \Generator<int, ImagineVariant, mixed, bool>
      */
-    private function generateForField(ClassMetadata $metadata, object $object, string $fileProperty, UploadableField $field, array $onlyFilters, bool $dryRun): \Generator
+    private function generateForField(ClassMetadata $metadata, object $object, string $fileProperty, UploadableField $field, array $onlyFilters, bool $dryRun, ?\Closure $proceed): \Generator
     {
         $path = $metadata->getFieldValue($object, $field->property);
         if (!\is_string($path) || '' === $path) {
-            return;
+            return false;
         }
         $filters = $field->imagineFilters ?? [];
         if ($object instanceof ImagineFiltersInterface) {
@@ -134,7 +145,7 @@ final class ImagineVariantGenerator
             $filters = array_intersect($filters, $onlyFilters);
         }
         if (!$filters) {
-            return;
+            return false;
         }
 
         $variant = static fn (string $filter, ImagineVariantStatus $status): ImagineVariant => new ImagineVariant($metadata->getName(), $fileProperty, $path, $filter, $status);
@@ -146,17 +157,17 @@ final class ImagineVariantGenerator
         } catch (FilesystemException $exception) {
             yield from $this->unreadableOriginal($variant, $path, $filters, $exception);
 
-            return;
+            return false;
         }
         if (null === $mimeType) {
             foreach ($filters as $filter) {
                 yield $variant($filter, ImagineVariantStatus::OriginalMissing);
             }
 
-            return;
+            return false;
         }
         if (!str_starts_with($mimeType, 'image/') || 'image/svg+xml' === $mimeType) {
-            return;
+            return false;
         }
 
         $pending = [];
@@ -183,7 +194,7 @@ final class ImagineVariantGenerator
             $pending[] = $filter;
         }
         if (!$pending) {
-            return;
+            return false;
         }
 
         try {
@@ -191,17 +202,22 @@ final class ImagineVariantGenerator
         } catch (FilesystemException $exception) {
             yield from $this->unreadableOriginal($variant, $path, $pending, $exception);
 
-            return;
+            return false;
         }
         $this->flysystemDataLoader->setAdapter($field->adapter);
         $this->cacheControl->registerVariantSource($path, $field);
         foreach ($pending as $filter) {
+            if ($proceed && !$proceed()) {
+                return true;
+            }
             yield $variant($filter, match ($this->imagineFilterGenerator->filter($path, $filter, $width, $height)->outcome) {
                 ImagineFilterOutcome::Resolved => ImagineVariantStatus::Generated,
                 ImagineFilterOutcome::Skipped => ImagineVariantStatus::Skipped,
                 ImagineFilterOutcome::Failed => ImagineVariantStatus::Failed,
             });
         }
+
+        return false;
     }
 
     /**
