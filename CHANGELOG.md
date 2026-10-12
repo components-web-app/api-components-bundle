@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.17](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.16...2.0.0-alpha.17) - 2026-10-12
+
 ### Fixed
 - Storing an imagine variant again replaces its file info, so `_metadata.mediaObjects` reports the variant actually stored after a filter's format, quality or size changes. Variant rows written before this fix stay stale: delete them with `DELETE FROM _acb_imagine_cached_file_metadata WHERE filter <> '';`, then purge the HTTP cache, and each row is read again from its stored variant on the next render ([#421](https://github.com/components-web-app/api-components-bundle/issues/421), [#422](https://github.com/components-web-app/api-components-bundle/pull/422))
 
