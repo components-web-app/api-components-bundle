@@ -370,6 +370,18 @@ Feature: API Resources which can have files uploaded
     And the JSON node "_metadata.mediaObjects.file[1].contentUrl" should match "#/media/cache/thumbnail/image-[0-9a-f]{8}\.png$#"
 
   @loginUser
+  Scenario: A variant stored again replaces the file info recorded for its filter
+    Given there is a DummyUploadableWithImagineFilters saved as "dummy_uploadable"
+    And the imagine filter "webp_thumbnail" of the resource "dummy_uploadable" has file info of "image/png" at 4690000 bytes and 350 by 500 pixels
+    When I send a "GET" request to the resource "dummy_uploadable"
+    Then the response status code should be 200
+    And the JSON node "_metadata.mediaObjects.file[3].imagineFilter" should be equal to the string "webp_thumbnail"
+    And the JSON node "_metadata.mediaObjects.file[3].mimeType" should be equal to the string "image/webp"
+    And the JSON node "_metadata.mediaObjects.file[3].width" should be equal to the number "70"
+    And the JSON node "_metadata.mediaObjects.file[3].height" should be equal to the number "100"
+    And there should be 1 file info rows for the imagine filter "webp_thumbnail"
+
+  @loginUser
   Scenario: Removing an imagine filter's cache from the console removes its file info rows for every path and keeps the rest
     Given there is a DummyUploadableWithImagineFilters
     And I send a "GET" request to the resource "dummy_uploadable"
