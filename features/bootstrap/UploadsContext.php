@@ -491,6 +491,15 @@ class UploadsContext implements Context
     }
 
     /**
+     * @Given the imagine filter :filter of the resource :name has file info of :mimeType at :fileSize bytes and :width by :height pixels
+     */
+    public function theImagineFilterOfTheResourceHasFileInfo(string $filter, string $name, string $mimeType, int $fileSize, int $width, int $height): void
+    {
+        $this->manager->persist(new FileInfo($this->storedPathOf($name), $mimeType, $fileSize, $width, $height, $filter));
+        $this->manager->flush();
+    }
+
+    /**
      * @Then there should be :count file info rows for the imagine filter :filter
      * @Then there should be :count file info rows for original files
      */
