@@ -22,6 +22,17 @@ Feature: Generating missing imagine variants ahead of requests
     And the console command output should contain "Already stored: 3"
     And there should be 1 file info rows for the imagine filter "thumbnail"
 
+  Scenario: A run stopped by its limit exits 3 and the next run finishes the variants still missing
+    Given there is a DummyUploadableWithImagineFilters
+    When I run the console command "silverback:api-components:imagine:generate --limit=1"
+    Then the console command should have exited with 3
+    And the console command output should contain "Generated: 1"
+    And the console command output should contain "Stopped after 1 variant (--limit); variants are still missing, so run the command again."
+    When I run the console command "silverback:api-components:imagine:generate"
+    Then the console command should have exited with 0
+    And the console command output should contain "Generated: 2"
+    And the console command output should contain "Already stored: 1"
+
   Scenario: A dry run counts the missing variants and generates nothing
     Given there is a DummyUploadableWithImagineFilters
     When I run the console command "silverback:api-components:imagine:generate --dry-run"

@@ -45,6 +45,7 @@ trait ImagineVariantGeneratorTestTrait
     private UploadableCacheControl $cacheControl;
     /** @var array<string, ?string> */
     private array $cacheControlAtGeneration = [];
+    private ?\Closure $afterGenerate = null;
 
     private function setUpImagine(): void
     {
@@ -80,6 +81,9 @@ trait ImagineVariantGeneratorTestTrait
                 throw $this->failures[$filter];
             }
             $this->stored[$filter . ':' . $path] = true;
+            if ($this->afterGenerate) {
+                ($this->afterGenerate)();
+            }
 
             return '/media/cache/' . $filter . '/' . $path;
         });
