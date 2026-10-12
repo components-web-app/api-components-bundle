@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.16](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.15...2.0.0-alpha.16) - 2026-10-12
+
 ### Added
 - `imagine:generate --limit=N` and `--max-memory=768M` stop a run cleanly with exit 3, meaning variants are still missing: run it again in a fresh process until it exits 0. `--max-memory` checks the process's resident memory (`VmRSS`), which counts libvips's native allocations that `memory_limit` cannot see, and every run generates at least one variant. The libvips operation cache is switched off for the run ([#418](https://github.com/components-web-app/api-components-bundle/issues/418), [#419](https://github.com/components-web-app/api-components-bundle/pull/419))
 
