@@ -2548,6 +2548,38 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Then the user :username should have the email address :emailAddress, the role :role, the password :password, be enabled and have a verified email address
+     */
+    public function theUserShouldHaveKeptTheirFields(string $username, string $emailAddress, string $role, string $password): void
+    {
+        $this->manager->clear();
+        /** @var AbstractUser|null $user */
+        $user = $this->manager->getRepository(User::class)->findOneBy(['username' => $username]);
+        if (!$user) {
+            throw new \RuntimeException(\sprintf('The user `%s` does not exist', $username));
+        }
+        $problems = [];
+        if ($user->getEmailAddress() !== $emailAddress) {
+            $problems[] = \sprintf('email address is `%s`', $user->getEmailAddress());
+        }
+        if ($user->getRoles() !== [$role]) {
+            $problems[] = \sprintf('roles are `%s`', implode(', ', $user->getRoles()));
+        }
+        if (!$user->getPassword() || !$this->passwordHasher->isPasswordValid($user, $password)) {
+            $problems[] = \sprintf('password hash is `%s`', $user->getPassword());
+        }
+        if (!$user->isEnabled()) {
+            $problems[] = 'the user is disabled';
+        }
+        if (!$user->isEmailAddressVerified()) {
+            $problems[] = 'the email address is unverified';
+        }
+        if ($problems) {
+            throw new \RuntimeException(\sprintf('The user `%s` lost fields: %s', $username, implode('; ', $problems)));
+        }
+    }
+
+    /**
      * @Then the new email address should be :emailAddress for username :username
      */
     public function theEmailAddressShouldBe(string $emailAddress, string $username): void

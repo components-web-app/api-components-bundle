@@ -47,6 +47,7 @@ use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\DeduplicateFileInfoCommand;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\GenerateFixturesCommand;
+use Silverback\ApiComponentsBundle\Command\PrefixPageUiComponentsCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
@@ -135,6 +136,7 @@ use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSor
 use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResourceHelper;
+use Silverback\ApiComponentsBundle\Helper\Page\PageUiComponentPrefixer;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
@@ -501,6 +503,20 @@ return static function (ContainerConfigurator $configurator) {
         ->args([new Reference(FileInfoDeduplicator::class)])
         ->tag('console.command', ['command' => 'silverback:api-components:deduplicate-file-info']);
     $services->alias(DeduplicateFileInfoCommand::class, 'silverback.api_components.command.deduplicate_file_info');
+
+    $services
+        ->set('silverback.api_components.helper.page.ui_component_prefixer')
+        ->class(PageUiComponentPrefixer::class)
+        ->args([new Reference(EntityManagerInterface::class)]);
+    $services->alias(PageUiComponentPrefixer::class, 'silverback.api_components.helper.page.ui_component_prefixer');
+
+    $services
+        ->set('silverback.api_components.command.prefix_page_ui_components')
+        ->class(PrefixPageUiComponentsCommand::class)
+        ->autoconfigure(false)
+        ->args([new Reference(PageUiComponentPrefixer::class)])
+        ->tag('console.command', ['command' => 'silverback:api-components:prefix-page-ui-components']);
+    $services->alias(PrefixPageUiComponentsCommand::class, 'silverback.api_components.command.prefix_page_ui_components');
 
     $services->set('silverback.api_components.imagine.php_memory_limit')->class(PhpMemoryLimit::class);
     $services->alias(PhpMemoryLimit::class, 'silverback.api_components.imagine.php_memory_limit');

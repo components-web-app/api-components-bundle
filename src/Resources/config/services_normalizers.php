@@ -35,6 +35,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\DataUriNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\LayoutManifestNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PageDataNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\PageUiComponentNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ResourceManifestNormalizer;
@@ -216,6 +217,13 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->tag('serializer.normalizer', ['priority' => -499]);
     $services->alias(RouteNormalizer::class, 'silverback.api_components.serializer.normalizer.route');
+
+    $services
+        ->set('silverback.api_components.serializer.normalizer.page_ui_component')
+        ->class(PageUiComponentNormalizer::class)
+        ->autoconfigure(false)
+        ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(PageUiComponentNormalizer::class, 'silverback.api_components.serializer.normalizer.page_ui_component');
 
     $services
         ->set('silverback.api_components.serializer.normalizer.timestamped')

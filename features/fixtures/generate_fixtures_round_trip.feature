@@ -27,6 +27,14 @@ Feature: A site generated as fixtures reloads as the same site
     When the site is generated as fixtures and reloaded
     Then the component "Tabs" should own a group "panels" holding the component "Panel"
 
+  Scenario: A group owned by a component on a nested page keeps its components
+    Given the site has a component "Tabs" whose own group "panels" holds a component "Panel" on the page "child" at the route "/parent/child" under the page "parent"
+    When the site is generated as fixtures
+    Then the generated fixtures should contain "->nested("
+    When the database is purged and the generated fixtures are loaded
+    Then the component "Tabs" should own a group "panels" holding the component "Panel"
+    And the page "child" should have the parent page "parent"
+
   Scenario: A group shared by a layout and a page through a location reference stays one group
     Given the site has a group "nav" shared by the layout "main" and the page "home" through the location reference "site"
     When the site is generated as fixtures and reloaded
@@ -76,3 +84,10 @@ Feature: A site generated as fixtures reloads as the same site
     Then the page "parent" should have no route
     And the route "/parent/child" should belong to the page "child"
     And there should be 1 Route resources
+
+  Scenario: A page's uiComponent comes back as the full CwaPage component name
+    Given the site has a page "legacy" with the uiComponent "PrimaryPageTemplate" at the route "/legacy"
+    And the site has a page "seeded" with the uiComponent "CwaPagePrimaryPageTemplate" at the route "/seeded"
+    When the site is generated as fixtures and reloaded
+    Then the page "legacy" should have the uiComponent "CwaPagePrimaryPageTemplate"
+    And the page "seeded" should have the uiComponent "CwaPagePrimaryPageTemplate"

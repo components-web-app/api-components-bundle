@@ -15,6 +15,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Operation\PathSegmentNameGeneratorInterface;
 use ApiPlatform\Metadata\Operations;
+use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use PHPUnit\Framework\TestCase;
@@ -51,6 +52,34 @@ class StateOperationMetadataTest extends TestCase
 
         self::assertSame('_api_me', $operation->getName());
         self::assertSame('main_controller', $operation->getController());
+    }
+
+    public function test_a_user_put_merges_into_the_stored_user_instead_of_replacing_it(): void
+    {
+        $get = new Get(uriTemplate: '/items/{id}', uriVariables: ['id'], shortName: 'User', class: User::class, name: 'item_get', extraProperties: ['kept' => 1]);
+        $put = new Put(uriTemplate: '/items/{id}', uriVariables: ['id'], shortName: 'User', class: User::class, name: 'item_put', extraProperties: ['kept' => 1, 'standard_put' => true]);
+        $decorated = $this->createStub(ResourceMetadataCollectionFactoryInterface::class);
+        $decorated->method('create')->willReturn(new ResourceMetadataCollection(User::class, [
+            (new ApiResource(shortName: 'User', class: User::class))->withOperations(new Operations(['item_get' => $get, 'item_put' => $put])),
+        ]));
+        $factory = new UserResourceMetadataCollectionFactory($decorated);
+
+        $metadata = $factory->create(User::class);
+
+        self::assertSame(['kept' => 1, 'standard_put' => false], $metadata->getOperation('item_put')->getExtraProperties());
+        self::assertSame(['kept' => 1], $metadata->getOperation('item_get')->getExtraProperties());
+    }
+
+    public function test_a_put_on_a_resource_that_is_not_a_user_is_left_alone(): void
+    {
+        $put = new Put(uriTemplate: '/items/{id}', uriVariables: ['id'], shortName: 'DummyComponent', class: DummyComponent::class, name: 'item_put', extraProperties: ['standard_put' => true]);
+        $decorated = $this->createStub(ResourceMetadataCollectionFactoryInterface::class);
+        $decorated->method('create')->willReturn(new ResourceMetadataCollection(DummyComponent::class, [
+            (new ApiResource(shortName: 'DummyComponent', class: DummyComponent::class))->withOperations(new Operations(['item_put' => $put])),
+        ]));
+        $factory = new UserResourceMetadataCollectionFactory($decorated);
+
+        self::assertSame(['standard_put' => true], $factory->create(DummyComponent::class)->getOperation('item_put')->getExtraProperties());
     }
 
     public function test_the_upload_and_download_operations_are_marked_for_their_providers_and_keep_the_main_controller(): void
