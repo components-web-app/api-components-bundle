@@ -159,6 +159,26 @@ final class FixtureContext implements Context
     }
 
     /**
+     * @Given the site has a component :owner whose own group :group holds a component :child on the page :page at the route :path under the page :parent
+     */
+    public function theSiteHasAComponentWithAnOwnGroupOnAChildPage(string $owner, string $group, string $child, string $page, string $path, string $parent): void
+    {
+        $tabs = new DummyComponent();
+        $tabs->uiComponent = $owner;
+        $panel = new DummyComponent();
+        $panel->uiComponent = $child;
+        $cwa = $this->builder();
+        $cwa->layout('main', 'Primary');
+        $parentPage = $cwa->page($parent, 'Primary', layout: 'main', route: '/' . $parent, routeName: $parent)->getPage();
+        $childBuilder = $cwa->page($page, 'Primary', layout: 'main', route: $path, routeName: $page);
+        $childBuilder->group('main')->add($tabs);
+        $cwa->component($tabs)->group($group)->add($panel);
+        $cwa->afterRoutes(static function () use ($childBuilder, $parentPage): void {
+            $childBuilder->getPage()->setParentPage($parentPage);
+        });
+    }
+
+    /**
      * @Given the site has a group :group shared by the layout :layout and the page :page through the location reference :locationReference
      */
     public function theSiteHasASharedGroup(string $group, string $layout, string $page, string $locationReference): void
@@ -321,6 +341,16 @@ final class FixtureContext implements Context
         exec(\sprintf('%s -l %s 2>&1', escapeshellarg(\PHP_BINARY), escapeshellarg($this->generatedFile)), $lintOutput, $status);
         if (0 !== $status) {
             throw new \RuntimeException(\sprintf("The generated fixtures are not valid PHP:\n%s\n\n%s", implode("\n", $lintOutput), file_get_contents($this->generatedFile)));
+        }
+    }
+
+    /**
+     * @Then the generated fixtures should contain :text
+     */
+    public function theGeneratedFixturesShouldContain(string $text): void
+    {
+        if (!str_contains((string) file_get_contents($this->generatedFile), $text)) {
+            throw new \RuntimeException(\sprintf("The generated fixtures do not contain \"%s\":\n%s", $text, file_get_contents($this->generatedFile)));
         }
     }
 
@@ -824,6 +854,17 @@ final class FixtureContext implements Context
         $actual = $this->findPage($page)->layout?->reference;
         if ($layout !== $actual) {
             throw new \RuntimeException(\sprintf('The page "%s" uses the layout %s.', $page, var_export($actual, true)));
+        }
+    }
+
+    /**
+     * @Then the page :page should have the parent page :parent
+     */
+    public function thePageShouldHaveTheParentPage(string $page, string $parent): void
+    {
+        $parentReference = $this->findPage($page)->getParentPage()?->reference;
+        if ($parent !== $parentReference) {
+            throw new \RuntimeException(\sprintf('The page "%s" has the parent page "%s", expected "%s".', $page, $parentReference ?? 'none', $parent));
         }
     }
 

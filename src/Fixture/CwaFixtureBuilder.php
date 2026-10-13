@@ -388,6 +388,10 @@ class CwaFixtureBuilder implements ResetInterface
             $hasNew = true;
         }
 
+        if ($this->processComponentBuilders()) {
+            $hasNew = true;
+        }
+
         if ($hasNew) {
             $this->manager->flush();
         }
@@ -422,6 +426,27 @@ class CwaFixtureBuilder implements ResetInterface
             $this->processPageData($spec);
         }
 
+        $this->processComponentBuilders();
+
+        foreach ($this->pendingPersists as $oid => $entity) {
+            unset($this->pendingPersists[$oid]);
+            $this->persist($entity);
+        }
+
+        $hadNew = \count($this->persistedEntities) > $entityCountBefore
+            || \count($this->componentGroupMap) + \count($this->namedComponentGroups) > $groupCountBefore
+            || $this->hasPendingLinks;
+        $this->hasPendingLinks = false;
+
+        if ($hadNew) {
+            $this->manager->flush();
+        }
+    }
+
+    private function processComponentBuilders(): bool
+    {
+        $groupCountBefore = \count($this->componentGroupMap);
+
         foreach ($this->componentBuilders as $componentBuilder) {
             $component = $componentBuilder->getComponent();
             if ($this->reachesSkipped($component)) {
@@ -439,19 +464,7 @@ class CwaFixtureBuilder implements ResetInterface
             }
         }
 
-        foreach ($this->pendingPersists as $oid => $entity) {
-            unset($this->pendingPersists[$oid]);
-            $this->persist($entity);
-        }
-
-        $hadNew = \count($this->persistedEntities) > $entityCountBefore
-            || \count($this->componentGroupMap) + \count($this->namedComponentGroups) > $groupCountBefore
-            || $this->hasPendingLinks;
-        $this->hasPendingLinks = false;
-
-        if ($hadNew) {
-            $this->manager->flush();
-        }
+        return \count($this->componentGroupMap) > $groupCountBefore;
     }
 
     private function processPage(string $ref, array $spec): void

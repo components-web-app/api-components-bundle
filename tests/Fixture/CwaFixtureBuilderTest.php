@@ -745,6 +745,53 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame(3, $flushCount);
     }
 
+    public function test_a_component_group_declared_in_a_nested_closure_is_created_with_its_positions(): void
+    {
+        $persisted = [];
+        $container = new class extends AbstractComponent {};
+        $content = new class extends AbstractComponent {};
+
+        $builder = $this->makeBuilder($this->collectingEm($persisted), $this->autoRouteGenerator());
+        $builder->layout('main', 'Primary');
+        $builder->page('parent', 'Template', layout: 'main', route: '/parent', routeName: 'parent')
+            ->nested(static function (CwaFixtureBuilder $nested) use ($container, $content): void {
+                $nested->page('child', 'Template', layout: 'main', route: '/parent/child', routeName: 'child')
+                    ->group('main')
+                    ->add($container);
+                $nested->component($container)->group('main')->add($content);
+            });
+        $builder->flush();
+
+        $groups = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentGroup));
+        $positions = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition));
+        $this->assertCount(2, $groups);
+        $this->assertCount(1, $container->getComponentGroups());
+        $containerGroup = $container->getComponentGroups()->first();
+        $this->assertContains($containerGroup, $groups);
+        $this->assertSame([$container, $content], array_map(static fn (ComponentPosition $p) => $p->component, $positions));
+        $this->assertSame($containerGroup, $positions[1]->componentGroup);
+    }
+
+    public function test_evaluate_nested_flushes_when_a_nested_closure_adds_only_a_component_group(): void
+    {
+        $flushCount = 0;
+        $persisted = [];
+        $container = new class extends AbstractComponent {};
+        $content = new class extends AbstractComponent {};
+
+        $builder = $this->makeBuilder($this->collectingEm($persisted, $flushCount), $this->autoRouteGenerator());
+        $builder->layout('main', 'Primary');
+        $builder->page('parent', 'Template', layout: 'main', route: '/parent', routeName: 'parent')
+            ->nested(static function (CwaFixtureBuilder $nested) use ($container, $content): void {
+                $nested->component($container)->group('main')->add($content);
+            });
+        $builder->flush();
+
+        $this->assertSame(4, $flushCount);
+        $this->assertContains($container, $persisted);
+        $this->assertCount(1, array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition));
+    }
+
     public function test_phase_four_does_not_flush_when_no_positions(): void
     {
         $flushCount = 0;
