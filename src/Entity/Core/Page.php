@@ -57,6 +57,7 @@ class Page extends AbstractPage
 
     #[ORM\Column(unique: true, nullable: true)]
     #[Assert\NotBlank(message: 'Please enter a reference.')]
+    #[Assert\Length(max: 255)]
     public ?string $reference = null;
 
     #[ORM\Column(name: 'is_template')]

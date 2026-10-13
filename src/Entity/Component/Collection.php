@@ -28,6 +28,7 @@ class Collection extends AbstractComponent
     #[ORM\Column(name: 'resource_class', nullable: true)]
     #[Assert\NotNull(message: 'The resource iri for a collection component is required')]
     #[AcbAssert\ResourceIri]
+    #[Assert\Length(max: 255)]
     private ?string $resourceIri;
 
     #[ORM\Column(nullable: true, type: 'integer')]

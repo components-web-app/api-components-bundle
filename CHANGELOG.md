@@ -5,6 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Fixed
+- A value longer than its `VARCHAR(255)` column (a page's `title` or `metaDescription`, any `reference`, `uiComponent`, route `path`/`name`, component position `pageDataProperty`/`pageDataClass`, site config `key`, form `formType`, collection `resourceIri`, user `username`/`emailAddress`/`newEmailAddress`) is a 422 with a field violation instead of a 500 from MySQL or PostgreSQL ([#430](https://github.com/components-web-app/api-components-bundle/pull/430))
 - A `PUT` to a user resource updates only the fields it sends. API Platform's default `standard_put` (on 4.x and 5.x) built a new user from the body, so a `PUT` returned 200 after blanking the password hash and resetting roles, `enabled` and email verification, or failed with 422/500 when it sent no email address. The bundle sets `standard_put: false` on every `Put` of an `AbstractUser` resource ([#429](https://github.com/components-web-app/api-components-bundle/pull/429))
 - `CwaFixtureBuilder` creates the groups of components declared inside a `nested()` closure, with their positions, so a scaffold generated from a site with nested pages no longer reloads those pages emptied below their first component ([#428](https://github.com/components-web-app/api-components-bundle/pull/428))
 

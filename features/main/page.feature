@@ -263,3 +263,27 @@ Feature: Page resources
     Then the response status code should be 200
     And the JSON node "resource_iris" should have 2 elements
     And the manifest depth 1 root IRI should be the IRI of the resource "page"
+
+  @loginAdmin
+  Scenario Outline: A page field longer than its column is a validation error, not a database error
+    Given there is a Layout
+    When I send a "POST" request to "/_/pages" with data:
+      | layout           | isTemplate | reference   | uiComponent   | title   | metaDescription   |
+      | resource[layout] | false      | <reference> | <uiComponent> | <title> | <metaDescription> |
+    Then the response status code should be 422
+    And the JSON node "violations" should have 1 element
+    And the JSON node "violations[0].propertyPath" should be equal to "<property>"
+    Examples:
+      | property        | reference       | uiComponent     | title           | metaDescription |
+      | reference       | characters(256) | PageComponent   | Title           | Description     |
+      | uiComponent     | page            | characters(256) | Title           | Description     |
+      | title           | page            | PageComponent   | characters(256) | Description     |
+      | metaDescription | page            | PageComponent   | Title           | characters(256) |
+
+  @loginAdmin
+  Scenario: A page field at its column length is accepted
+    Given there is a Layout
+    When I send a "POST" request to "/_/pages" with data:
+      | layout           | isTemplate | reference       | uiComponent     | title           | metaDescription |
+      | resource[layout] | false      | characters(255) | characters(255) | characters(255) | characters(255) |
+    Then the response status code should be 201

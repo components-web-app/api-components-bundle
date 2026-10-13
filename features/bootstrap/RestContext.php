@@ -243,6 +243,10 @@ class RestContext implements Context
                         $value = $this->castBase64FileToString($matches[1]);
                     }
 
+                    if (preg_match('/^characters\((\d+)\)$/', $value, $matches)) {
+                        $value = str_repeat('a', (int) $matches[1]);
+                    }
+
                     if (preg_match('/^base64string\((.*)\)$/', $value, $matches)) {
                         $value = $this->castBase64FileToSimpleString($matches[1]);
                     }
