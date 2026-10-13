@@ -1158,6 +1158,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('silverback.api_components.api_platform.state_processor.route_redirect.inner'),
             new Reference('silverback.helper.route_generator'),
             new Reference(ManagerRegistry::class),
+            new Reference(ValidatorInterface::class),
         ]);
     $services->alias(RouteRedirectStateProcessor::class, 'silverback.api_components.api_platform.state_processor.route_redirect');
 
@@ -1211,6 +1212,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ManagerRegistry::class),
             new Reference('silverback.helper.timestamped_data_persister'),
             new Reference('silverback.doctrine.repository.route'),
+            new Reference(ValidatorInterface::class),
         ]);
     $services->alias(RouteGeneratorInterface::class, 'silverback.helper.route_generator');
 

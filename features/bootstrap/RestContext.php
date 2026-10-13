@@ -147,6 +147,14 @@ class RestContext implements Context
     }
 
     /**
+     * @Transform /\A(.*)characters\((\d+)\)(.*)\z/
+     */
+    public function castCharacters(string $prefix, string $length, string $suffix): string
+    {
+        return $prefix . str_repeat('a', (int) $length) . $suffix;
+    }
+
+    /**
      * @Transform /^json_decode\((.*)\)$/
      */
     public function castFromJson(string $value)

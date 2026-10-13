@@ -4,7 +4,11 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- `RouteGenerator` takes a `ValidatorInterface` ([#432](https://github.com/components-web-app/api-components-bundle/issues/432))
+
 ### Fixed
+- `POST /_/routes/generate` is a 422 with a `path` violation, and creates nothing, when the parent's path and the title slug together are longer than 255 characters; `RouteGenerator::create()` throws the same `ValidationException` for fixtures. `PATCH /_/routes/{id}` with `cascadeChildPaths` checks every descendant's new path before writing anything, so a rename that would push one over 255 characters is a 422 naming that descendant instead of a 500 after the route and part of the tree were already moved. A cascade to a path under the route's own path no longer recurses without end when an unrouted child page loops back to it ([#432](https://github.com/components-web-app/api-components-bundle/issues/432))
 - A value longer than its `VARCHAR(255)` column (a page's `title` or `metaDescription`, any `reference`, `uiComponent`, route `path`/`name`, component position `pageDataProperty`/`pageDataClass`, site config `key`, form `formType`, collection `resourceIri`, user `username`/`emailAddress`/`newEmailAddress`) is a 422 with a field violation instead of a 500 from MySQL or PostgreSQL ([#430](https://github.com/components-web-app/api-components-bundle/pull/430))
 
 ## [2.0.0-alpha.17](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.16...2.0.0-alpha.17) - 2026-10-12

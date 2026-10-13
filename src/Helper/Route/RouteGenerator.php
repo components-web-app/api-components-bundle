@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Helper\Route;
 
+use ApiPlatform\Validator\Exception\ValidationException;
 use Cocur\Slugify\SlugifyInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -20,6 +21,7 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -30,17 +32,20 @@ class RouteGenerator implements RouteGeneratorInterface
     private ManagerRegistry $registry;
     private TimestampedDataPersister $timestampedDataPersister;
     private RouteRepository $routeRepository;
+    private ValidatorInterface $validator;
 
     public function __construct(
         SlugifyInterface $slugify,
         ManagerRegistry $registry,
         TimestampedDataPersister $timestampedDataPersister,
         RouteRepository $routeRepository,
+        ValidatorInterface $validator,
     ) {
         $this->slugify = $slugify;
         $this->registry = $registry;
         $this->timestampedDataPersister = $timestampedDataPersister;
         $this->routeRepository = $routeRepository;
+        $this->validator = $validator;
     }
 
     public function createRedirect(string $fromPath, Route $targetRoute): Route
@@ -82,6 +87,13 @@ class RouteGenerator implements RouteGeneratorInterface
         $route
             ->setName($name)
             ->setPath($path);
+
+        $violations = $this->validator->validateProperty($route, 'path');
+        $violations->addAll($this->validator->validateProperty($route, 'name'));
+        if (\count($violations) > 0) {
+            throw new ValidationException($violations);
+        }
+
         $object->setRoute($route);
 
         if ($existingRoute) {

@@ -127,6 +127,28 @@ Feature: Route resources
     And the JSON node "path" should be equal to the string "/conference/unnamed-page"
 
   @loginUser
+  Scenario: A route is not generated when the parent path and the title slug together are longer than the path column
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/characters(242)"
+    When I send a "POST" request to "/_/routes/generate" with data:
+      | pageData            |
+      | resource[page_data] |
+    Then the response status code should be 422
+    And the JSON node "violations" should have 1 element
+    And the JSON node "violations[0].propertyPath" should be equal to "path"
+    And there should be 2 Route resources
+    And the Route "/conference/programme" should not redirect
+
+  @loginUser
+  Scenario: A route is generated when the parent path and the title slug together fill the path column
+    Given there is a PageData resource with the route path "/conference/programme" nested within the route "/characters(241)"
+    When I send a "POST" request to "/_/routes/generate" with data:
+      | pageData            |
+      | resource[page_data] |
+    Then the response status code should be 201
+    And the JSON node "path" should be equal to the string "/characters(241)/unnamed-page"
+    And the Route "/conference/programme" should redirect to "/characters(241)/unnamed-page"
+
+  @loginUser
   Scenario: A route can still be created explicitly for a nested page whose parent page has no route
     Given there is a routeless parent PageData with a component and an unrouted child Page
     When I send a "POST" request to "/_/routes" with data:
@@ -221,6 +243,31 @@ Feature: Route resources
     And the Route "/conference/2027/programme" should redirect to "/new-conference/2027/programme"
 
   @loginAdmin
+  Scenario: PATCH with cascadeChildPaths is refused and changes nothing when a descendant path would become longer than the path column
+    Given there is a PageData resource with the route path "/conference/2027/characters(233)" nested within the route "/conference/2027" which is nested within the route "/conference"
+    When I send a "PATCH" request to the resource "grandparent_route" with data:
+      | path                 | cascadeChildPaths |
+      | /new-conference-site | true              |
+    Then the response status code should be 422
+    And the JSON node "violations" should have 1 element
+    And the JSON node "violations[0].propertyPath" should be equal to "path"
+    And the JSON node "violations[0].message" should contain "/conference/2027/characters(233)"
+    And there should be 3 Route resources
+    And the Route "/conference" should not redirect
+    And the Route "/conference/2027" should not redirect
+    And the Route "/conference/2027/characters(233)" should not redirect
+
+  @loginAdmin
+  Scenario: PATCH with cascadeChildPaths succeeds when a descendant path fills the path column
+    Given there is a PageData resource with the route path "/conference/2027/characters(233)" nested within the route "/conference/2027" which is nested within the route "/conference"
+    When I send a "PATCH" request to the resource "grandparent_route" with data:
+      | path             | cascadeChildPaths |
+      | /new-conference1 | true              |
+    Then the response status code should be 200
+    And the Route "/conference/2027" should redirect to "/new-conference1/2027"
+    And the Route "/conference/2027/characters(233)" should redirect to "/new-conference1/2027/characters(233)"
+
+  @loginAdmin
   Scenario: GET a route's children terminates when an unrouted child page loops back to it
     Given there is a Page with the route "/cycle" and an unrouted Page which are each other's parent
     When I send a "GET" request to the resource "cycle_route" and the postfix "/children"
@@ -235,6 +282,16 @@ Feature: Route resources
       | /new-cycle | true              |
     Then the response status code should be 200
     And the Route "/cycle" should redirect to "/new-cycle"
+
+  @loginAdmin
+  Scenario: PATCH with cascadeChildPaths to a path under its own path terminates when an unrouted child page loops back to it
+    Given there is a Page with the route "/cycle" and an unrouted Page which are each other's parent
+    When I send a "PATCH" request to the resource "cycle_route" with data:
+      | path         | cascadeChildPaths |
+      | /cycle/inner | true              |
+    Then the response status code should be 200
+    And the JSON node "path" should be equal to the string "/cycle/inner"
+    And the Route "/cycle" should redirect to "/cycle/inner"
 
   Scenario: Anonymous users cannot access route children
     Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
