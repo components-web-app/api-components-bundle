@@ -5,7 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Fixed
-- `CwaFixtureBuilder` saves what a `nested()` closure declares when nothing else in the load is new: a component, or an existing group linked to a component, was persisted but never flushed, so an `--append` load could drop it while its summary reported it created ([#436](https://github.com/components-web-app/api-components-bundle/issues/436))
+- `CwaFixtureBuilder` saves what a `nested()` closure declares when nothing else in the load is new: a component, or an existing group linked to a component, was persisted but never flushed, so an `--append` load could drop it while its summary reported it created ([#437](https://github.com/components-web-app/api-components-bundle/pull/437))
 
 ## [2.0.0-alpha.18](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.17...2.0.0-alpha.18) - 2026-10-13
 
