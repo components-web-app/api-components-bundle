@@ -8,7 +8,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - `silverback:api-components:warm-http-cache` requests, through the HTTP cache, the API responses server-side rendering fetches for each public route (the route, its `resource_manifest` and every resource the manifest lists, or only the route lookup for a redirect), anonymously and with the module's `Accept`, `preload` and `path` headers and an `Accept-Encoding` of `gzip`, so the cache stores them under the keys SSR asks for. Run it before a new pod takes traffic. Options: `--base-url` (default `http://localhost`), `--path`, `--limit` (shortest paths first), `--concurrency` (default 2), `--max-time`, `--timeout` and `--accept-encoding`. It always exits 0 once it has started, and prints requests, hits, misses, failures and the slowest requests ([#443](https://github.com/components-web-app/api-components-bundle/pull/443))
 
 ### Fixed
-- The `resource_manifest` of a redirecting route no longer lists its `redirectPath` (a front-end path) among its IRIs, so the module no longer requests it from the API and gets a 404 each time the redirect is rendered. `GET /_/routes/{path}` still returns `redirectPath` ([#444](https://github.com/components-web-app/api-components-bundle/issues/444))
+- The `resource_manifest` of a redirecting route no longer lists its `redirectPath` (a front-end path) among its IRIs, so the module no longer requests it from the API and gets a 404 each time the redirect is rendered. `GET /_/routes/{path}` still returns `redirectPath` ([#445](https://github.com/components-web-app/api-components-bundle/pull/445))
 
 ## [2.0.0-alpha.19](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.18...2.0.0-alpha.19) - 2026-10-13
 
