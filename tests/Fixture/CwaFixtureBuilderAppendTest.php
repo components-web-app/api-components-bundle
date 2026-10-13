@@ -643,6 +643,22 @@ class CwaFixtureBuilderAppendTest extends TestCase
         self::assertSame(['about-2'], array_map(static fn (Route $r) => $r->getName(), $redirects));
     }
 
+    public function test_a_redirect_from_a_path_filling_the_column_whose_derived_name_is_taken_gets_a_shortened_name_that_fits(): void
+    {
+        $derived = str_repeat('a', 254);
+        $this->existing(Route::class, ['name' => $derived], $this->route('/elsewhere', $derived));
+        $this->existing(Route::class, ['name' => str_repeat('a', 253) . '-1'], $this->route('/elsewhere-1', str_repeat('a', 253) . '-1'));
+        $cwa = $this->builder();
+
+        $cwa->layout('main', 'Primary');
+        $cwa->page('new', 'Primary', layout: 'main', route: '/new', routeName: 'new');
+        $cwa->redirect('/' . $derived, to: 'new');
+        $cwa->flush();
+
+        $redirects = array_values(array_filter($this->persistedOf(Route::class), static fn (Route $r) => null !== $r->getRedirect()));
+        self::assertSame([str_repeat('a', 253) . '-2'], array_map(static fn (Route $r) => $r->getName(), $redirects));
+    }
+
     public function test_a_redirect_whose_given_name_belongs_to_an_existing_route_is_skipped(): void
     {
         $existing = $this->existing(Route::class, ['name' => 'old'], $this->route('/older', 'old'));

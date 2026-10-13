@@ -5,6 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Fixed
+- Renaming a route whose path is 254 or 255 characters and whose name is taken (it is still named after its old path, as routes created with `name` = `path` are) no longer fails with a 500 from MySQL or PostgreSQL after the rename was written: the redirect's name is shortened to fit its `-N` suffix in 255 characters, and its path stays the old path. `CwaFixtureBuilder::redirect()` shortens a suffixed derived name the same way ([#438](https://github.com/components-web-app/api-components-bundle/pull/438))
 - `CwaFixtureBuilder` saves what a `nested()` closure declares when nothing else in the load is new: a component, or an existing group linked to a component, was persisted but never flushed, so an `--append` load could drop it while its summary reported it created ([#437](https://github.com/components-web-app/api-components-bundle/pull/437))
 
 ## [2.0.0-alpha.18](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.17...2.0.0-alpha.18) - 2026-10-13

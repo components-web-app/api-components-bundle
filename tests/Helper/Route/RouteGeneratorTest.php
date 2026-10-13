@@ -206,6 +206,79 @@ class RouteGeneratorTest extends TestCase
         self::assertSame($path, $this->generator->create($child)->getPath());
     }
 
+    public function test_a_redirect_is_named_after_the_path_it_redirects_from(): void
+    {
+        $target = (new Route())->setName('new')->setPath('/new');
+
+        $redirect = $this->redirectGenerator([])->createRedirect('/old', $target);
+
+        self::assertSame('/old', $redirect->getName());
+        self::assertSame('/old', $redirect->getPath());
+        self::assertSame($target, $redirect->getRedirect());
+    }
+
+    public function test_a_redirect_whose_name_is_taken_keeps_its_path_and_takes_the_first_free_suffix(): void
+    {
+        $redirect = $this->redirectGenerator(['/old', '/old-1'])->createRedirect('/old', new Route());
+
+        self::assertSame('/old-2', $redirect->getName());
+        self::assertSame('/old', $redirect->getPath());
+    }
+
+    public function test_a_redirect_from_a_path_filling_the_column_whose_name_is_taken_is_given_a_shortened_name_that_fits(): void
+    {
+        $path = '/' . str_repeat('a', 254);
+
+        $redirect = $this->redirectGenerator([$path])->createRedirect($path, new Route());
+
+        self::assertSame('/' . str_repeat('a', 252) . '-1', $redirect->getName());
+        self::assertSame($path, $redirect->getPath());
+        self::assertCount(0, self::validator()->validateProperty($redirect, 'name'));
+    }
+
+    public function test_a_shortened_redirect_name_that_is_taken_takes_the_next_suffix(): void
+    {
+        $path = '/' . str_repeat('a', 254);
+
+        $redirect = $this->redirectGenerator([$path, '/' . str_repeat('a', 252) . '-1'])->createRedirect($path, new Route());
+
+        self::assertSame('/' . str_repeat('a', 252) . '-2', $redirect->getName());
+    }
+
+    public function test_a_redirect_is_timestamped_as_new(): void
+    {
+        $timestamped = $this->createMock(TimestampedDataPersister::class);
+        $timestamped->expects(self::once())->method('persistTimestampedFields')->with(self::isInstanceOf(Route::class), true);
+        $generator = new RouteGenerator(new Slugify(), $this->createStub(ManagerRegistry::class), $timestamped, $this->routeRepositoryWithNames([]), self::validator());
+
+        $generator->createRedirect('/old', new Route());
+    }
+
+    /**
+     * @param list<string> $takenNames
+     */
+    private function redirectGenerator(array $takenNames): RouteGenerator
+    {
+        return new RouteGenerator(
+            new Slugify(),
+            $this->createStub(ManagerRegistry::class),
+            $this->createStub(TimestampedDataPersister::class),
+            $this->routeRepositoryWithNames($takenNames),
+            self::validator(),
+        );
+    }
+
+    /**
+     * @param list<string> $takenNames
+     */
+    private function routeRepositoryWithNames(array $takenNames): RouteRepository
+    {
+        $routeRepository = $this->createStub(RouteRepository::class);
+        $routeRepository->method('count')->willReturnCallback(static fn (array $criteria): int => ['name'] === array_keys($criteria) && \in_array($criteria['name'], $takenNames, true) ? 1 : 0);
+
+        return $routeRepository;
+    }
+
     private function assertRefusedForMissingParentRoute(Page|AbstractPageData $child): void
     {
         try {

@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
+use Silverback\ApiComponentsBundle\Utility\RouteName;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -50,7 +51,10 @@ class RouteGenerator implements RouteGeneratorInterface
 
     public function createRedirect(string $fromPath, Route $targetRoute): Route
     {
-        [$name] = $this->resolveConflicts($fromPath, $fromPath);
+        $name = $fromPath;
+        for ($suffix = 1; $this->routeRepository->count(['name' => $name]) > 0; ++$suffix) {
+            $name = RouteName::withSuffix($fromPath, $suffix);
+        }
 
         $newRedirect = new Route();
         $newRedirect

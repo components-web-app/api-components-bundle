@@ -268,6 +268,27 @@ Feature: Route resources
     And the Route "/conference/2027/characters(233)" should redirect to "/new-conference1/2027/characters(233)"
 
   @loginAdmin
+  Scenario: Renaming a route whose path fills the path column and is still its name gives the redirect a name that fits the name column
+    Given there is a PageData resource with the route path "/characters(254)"
+    When I send a "PATCH" request to the resource "page_data_route" with data:
+      | path |
+      | /new |
+    Then the response status code should be 200
+    And the Route "/characters(254)" should redirect to "/new"
+    And the route "/characters(254)" should be named "/characters(252)-1"
+
+  @loginAdmin
+  Scenario: A redirect name shortened to fit the name column is still unique
+    Given there is a PageData resource with the route path "/characters(254)"
+    And there is a Route "/characters(252)-1" with a page
+    When I send a "PATCH" request to the resource "page_data_route" with data:
+      | path |
+      | /new |
+    Then the response status code should be 200
+    And the Route "/characters(254)" should redirect to "/new"
+    And the route "/characters(254)" should be named "/characters(252)-2"
+
+  @loginAdmin
   Scenario: GET a route's children terminates when an unrouted child page loops back to it
     Given there is a Page with the route "/cycle" and an unrouted Page which are each other's parent
     When I send a "GET" request to the resource "cycle_route" and the postfix "/children"

@@ -34,6 +34,7 @@ use Silverback\ApiComponentsBundle\Fixture\Builder\PageDataBuilder;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\Utility\RouteName;
 use Symfony\Contracts\Service\ResetInterface;
 
 class CwaFixtureBuilder implements ResetInterface
@@ -934,7 +935,7 @@ class CwaFixtureBuilder implements ResetInterface
     {
         $candidate = $name;
         for ($suffix = 1; isset($this->createdRouteNames[$candidate]) || null !== $this->findOne(Route::class, ['name' => $candidate]); ++$suffix) {
-            $candidate = $name . '-' . $suffix;
+            $candidate = RouteName::withSuffix($name, $suffix);
         }
 
         return $candidate;
