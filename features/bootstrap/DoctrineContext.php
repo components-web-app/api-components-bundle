@@ -2402,6 +2402,34 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Then requests to :urls through one kernel leave nothing in the skolem IRI or resource metadata maps after a services reset
+     */
+    public function requestsThroughOneKernelLeaveNothingAfterAServicesReset(string $urls): void
+    {
+        $container = $this->kernel->getContainer();
+        $testContainer = $container->get('test.service_container');
+        $skolem = $testContainer->get('api_platform.symfony.iri_converter.skolem');
+        $provider = $testContainer->get('silverback.api_components.serializer.resource_metadata_provider');
+        $sizes = static fn (): array => [
+            'skolem' => \count((new \ReflectionProperty($skolem, 'objectHashMap'))->getValue($skolem)),
+            'metadata' => \count((new \ReflectionProperty($provider, 'metadatas'))->getValue($provider)),
+        ];
+
+        $this->manager->clear();
+        foreach (explode(',', $urls) as $url) {
+            $status = $this->kernel->handle(Request::create($url, 'GET', server: ['HTTP_ACCEPT' => 'application/ld+json']))->getStatusCode();
+            $during = $sizes();
+            if (200 !== $status || 0 === $during['skolem'] || 0 === $during['metadata']) {
+                throw new \RuntimeException(\sprintf('%s returned %d and left %d skolem and %d metadata entries; expected 200 with entries in both.', $url, $status, $during['skolem'], $during['metadata']));
+            }
+            $container->get('services_resetter')->reset();
+            if ([0, 0] !== array_values($after = $sizes())) {
+                throw new \RuntimeException(\sprintf('After a services reset following %s, %d skolem and %d metadata entries remain.', $url, $after['skolem'], $after['metadata']));
+            }
+        }
+    }
+
+    /**
      * @Then every IRI in the manifest should resolve
      */
     public function everyIriInTheManifestShouldResolve(): void

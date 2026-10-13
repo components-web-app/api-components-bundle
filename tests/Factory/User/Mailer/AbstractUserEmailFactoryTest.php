@@ -31,6 +31,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\RawMessage;
+use Symfony\Contracts\Service\ResetInterface;
 use Twig\Environment;
 use Twig\Loader\LoaderInterface;
 
@@ -72,6 +73,42 @@ class AbstractUserEmailFactoryTest extends TestEmailCase
             new class extends AbstractUser {
             }
         );
+    }
+
+    public function test_a_reset_forgets_the_user_so_the_next_request_cannot_email_them(): void
+    {
+        $factory = new class($this->containerInterfaceMock, $this->eventDispatcherMock, '-') extends AbstractUserEmailFactory {
+            public function create(AbstractUser $user, array $context = []): ?RawMessage
+            {
+                $this->initUser($user);
+
+                return null;
+            }
+
+            public function createWithoutUser(): ?RawMessage
+            {
+                return $this->createEmailMessage();
+            }
+
+            protected function getTemplate(): string
+            {
+                return '';
+            }
+        };
+        $user = new class extends AbstractUser {
+        };
+        $user->setUsername('my_username')->setEmailAddress('email@address.com');
+        $factory->create($user);
+        $userReference = \WeakReference::create($user);
+        unset($user);
+
+        self::assertInstanceOf(ResetInterface::class, $factory);
+        $factory->reset();
+        gc_collect_cycles();
+
+        self::assertNull($userReference->get());
+        $this->expectException(BadMethodCallException::class);
+        $factory->createWithoutUser();
     }
 
     public function test_exception_thrown_if_user_has_no_username(): void
