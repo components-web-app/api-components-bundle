@@ -125,6 +125,35 @@ class ApiPlatformCompilerPassTest extends TestCase
         self::assertSame(400, $exceptionToStatus[SerializerExceptionInterface::class]);
     }
 
+    public function test_the_skolem_iri_converter_is_reset_between_requests(): void
+    {
+        $container = $this->createContainer();
+        $container->setDefinition('api_platform.symfony.iri_converter.skolem', new Definition());
+
+        (new ApiPlatformCompilerPass())->process($container);
+
+        self::assertSame([['method' => 'reset']], $container->getDefinition('api_platform.symfony.iri_converter.skolem')->getTag('kernel.reset'));
+    }
+
+    public function test_a_skolem_iri_converter_already_tagged_kernel_reset_keeps_its_one_tag(): void
+    {
+        $container = $this->createContainer();
+        $container->setDefinition('api_platform.symfony.iri_converter.skolem', (new Definition())->addTag('kernel.reset', ['method' => 'reset']));
+
+        (new ApiPlatformCompilerPass())->process($container);
+
+        self::assertSame([['method' => 'reset']], $container->getDefinition('api_platform.symfony.iri_converter.skolem')->getTag('kernel.reset'));
+    }
+
+    public function test_without_a_skolem_iri_converter_nothing_is_defined(): void
+    {
+        $container = $this->createContainer();
+
+        (new ApiPlatformCompilerPass())->process($container);
+
+        self::assertFalse($container->hasDefinition('api_platform.symfony.iri_converter.skolem'));
+    }
+
     private function createContainer(): ContainerBuilder
     {
         $container = new ContainerBuilder();

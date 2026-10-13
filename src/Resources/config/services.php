@@ -289,7 +289,8 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set('silverback.api_components.factory.user.mailer.change_email_confirmation_email')
         ->class(ChangeEmailConfirmationEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class);
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(ChangeEmailConfirmationEmailFactory::class, 'silverback.api_components.factory.user.mailer.change_email_confirmation_email');
 
     $services
@@ -748,13 +749,15 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set('silverback.api_components.factory.user.mailer.password_changed_email')
         ->class(PasswordChangedEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class);
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(PasswordChangedEmailFactory::class, 'silverback.api_components.factory.user.mailer.password_changed_email');
 
     $services
         ->set('silverback.api_components.factory.user.mailer.password_reset_email')
         ->class(PasswordResetEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class);
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(PasswordResetEmailFactory::class, 'silverback.api_components.factory.user.mailer.password_reset_email');
 
     $services
@@ -1103,7 +1106,8 @@ return static function (ContainerConfigurator $configurator) {
 
     $services
         ->set('silverback.api_components.serializer.resource_metadata_provider')
-        ->class(ResourceMetadataProvider::class);
+        ->class(ResourceMetadataProvider::class)
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(ResourceMetadataProvider::class, 'silverback.api_components.serializer.resource_metadata_provider');
 
     $services
@@ -1660,7 +1664,8 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set('silverback.api_components.factory.user.mailer.user_enabled_email')
         ->class(UserEnabledEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class);
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(UserEnabledEmailFactory::class, 'silverback.api_components.factory.user.mailer.user_enabled_email');
 
     $services
@@ -1732,7 +1737,8 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set('silverback.api_components.factory.user.mailer.username_changed_email')
         ->class(UsernameChangedEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class);
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(UsernameChangedEmailFactory::class, 'silverback.api_components.factory.user.mailer.username_changed_email');
 
     $services
@@ -1843,13 +1849,15 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set('silverback.api_components.factory.user.mailer.verify_email')
         ->class(VerifyEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class);
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(VerifyEmailFactory::class, 'silverback.api_components.factory.user.mailer.verify_email');
 
     $services
         ->set('silverback.api_components.factory.user.mailer.welcome_email')
         ->class(WelcomeEmailFactory::class)
-        ->parent(AbstractUserEmailFactory::class);
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(WelcomeEmailFactory::class, 'silverback.api_components.factory.user.mailer.welcome_email');
 
     $services
@@ -2088,7 +2096,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(CwaCollectorData::class),
         ])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
-        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush]);
+        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush])
+        ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(PropagateUpdatesListener::class, 'silverback.api_components.event_listener.doctrine.propagate_updates_listener');
 
     $services
