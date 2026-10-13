@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- A page's `uiComponent` is stored as the full component name, `CwaPage<Name>`: a POST or PATCH sending the short name (`PrimaryPageTemplate`, as the admin's page modals do) stores and returns `CwaPagePrimaryPageTemplate`, so pages written through the API and through `CwaFixtureBuilder` agree and `generate-fixtures` reloads them unchanged. Layouts are unchanged. Upgrade step: run `silverback:api-components:prefix-page-ui-components` once to prefix pages already stored with the short name; it is safe to run again ([#431](https://github.com/components-web-app/api-components-bundle/pull/431))
+
 ### Fixed
 - A value longer than its `VARCHAR(255)` column (a page's `title` or `metaDescription`, any `reference`, `uiComponent`, route `path`/`name`, component position `pageDataProperty`/`pageDataClass`, site config `key`, form `formType`, collection `resourceIri`, user `username`/`emailAddress`/`newEmailAddress`) is a 422 with a field violation instead of a 500 from MySQL or PostgreSQL ([#430](https://github.com/components-web-app/api-components-bundle/pull/430))
 - A `PUT` to a user resource updates only the fields it sends. API Platform's default `standard_put` (on 4.x and 5.x) built a new user from the body, so a `PUT` returned 200 after blanking the password hash and resetting roles, `enabled` and email verification, or failed with 422/500 when it sent no email address. The bundle sets `standard_put: false` on every `Put` of an `AbstractUser` resource ([#429](https://github.com/components-web-app/api-components-bundle/pull/429))

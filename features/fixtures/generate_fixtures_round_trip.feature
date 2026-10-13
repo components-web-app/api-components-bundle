@@ -84,3 +84,10 @@ Feature: A site generated as fixtures reloads as the same site
     Then the page "parent" should have no route
     And the route "/parent/child" should belong to the page "child"
     And there should be 1 Route resources
+
+  Scenario: A page's uiComponent comes back as the full CwaPage component name
+    Given the site has a page "legacy" with the uiComponent "PrimaryPageTemplate" at the route "/legacy"
+    And the site has a page "seeded" with the uiComponent "CwaPagePrimaryPageTemplate" at the route "/seeded"
+    When the site is generated as fixtures and reloaded
+    Then the page "legacy" should have the uiComponent "CwaPagePrimaryPageTemplate"
+    And the page "seeded" should have the uiComponent "CwaPagePrimaryPageTemplate"

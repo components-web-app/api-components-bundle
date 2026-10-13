@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -19,6 +20,7 @@ use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\DeduplicateFileInfoCommand;
 use Silverback\ApiComponentsBundle\Command\ImagineGenerateCommand;
+use Silverback\ApiComponentsBundle\Command\PrefixPageUiComponentsCommand;
 use Silverback\ApiComponentsBundle\DependencyInjection\SilverbackApiComponentsExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
@@ -44,6 +46,7 @@ use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
+use Silverback\ApiComponentsBundle\Helper\Page\PageUiComponentPrefixer;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
@@ -63,6 +66,7 @@ use Silverback\ApiComponentsBundle\Security\Voter\RoutableVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\PageUiComponentNormalizer;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
@@ -269,6 +273,28 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame([['command' => 'silverback:api-components:deduplicate-file-info']], $command->getTag('console.command'));
         self::assertEquals([new Reference(FileInfoDeduplicator::class)], $command->getArguments());
         self::assertSame(FileInfoDeduplicator::class, $container->findDefinition(FileInfoDeduplicator::class)->getClass());
+    }
+
+    public function test_the_page_ui_component_prefix_command_is_registered_with_its_helper(): void
+    {
+        [$container] = $this->load(self::minimalConfig());
+
+        $command = $container->findDefinition(PrefixPageUiComponentsCommand::class);
+        self::assertSame([['command' => 'silverback:api-components:prefix-page-ui-components']], $command->getTag('console.command'));
+        self::assertEquals([new Reference(PageUiComponentPrefixer::class)], $command->getArguments());
+        $prefixer = $container->findDefinition(PageUiComponentPrefixer::class);
+        self::assertSame(PageUiComponentPrefixer::class, $prefixer->getClass());
+        self::assertEquals([new Reference(EntityManagerInterface::class)], $prefixer->getArguments());
+    }
+
+    public function test_the_page_ui_component_normalizer_runs_before_the_item_denormalizers(): void
+    {
+        [$container] = $this->load(self::minimalConfig());
+
+        $normalizer = $container->findDefinition(PageUiComponentNormalizer::class);
+        self::assertSame(PageUiComponentNormalizer::class, $normalizer->getClass());
+        self::assertSame([['priority' => -499]], $normalizer->getTag('serializer.normalizer'));
+        self::assertFalse($normalizer->isAutoconfigured());
     }
 
     public function test_without_imagine_no_filter_generator_is_registered(): void

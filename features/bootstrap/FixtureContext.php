@@ -235,6 +235,29 @@ final class FixtureContext implements Context
     }
 
     /**
+     * @Given the site has a page :reference with the uiComponent :uiComponent at the route :path
+     */
+    public function theSiteHasAPageWithTheUiComponent(string $reference, string $uiComponent, string $path): void
+    {
+        $cwa = $this->builder();
+        $cwa->layout('main', 'Primary');
+        $cwa->flush();
+        $layout = $this->manager->getRepository(Layout::class)->findOneBy(['reference' => 'main']);
+
+        $page = $this->newPage($reference, $layout);
+        $page->uiComponent = $uiComponent;
+        $page->setTitle(ucfirst($reference));
+        $route = new Route();
+        $route->setPath($path);
+        $route->setName($reference);
+        $route->setPage($page);
+        $page->setRoute($route);
+        $this->timestampedDataPersister->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+        $this->manager->flush();
+    }
+
+    /**
      * @Given the site has a redirect from :from to :to
      */
     public function theSiteHasARedirect(string $from, string $to): void
@@ -843,6 +866,18 @@ final class FixtureContext implements Context
         $found = \count($this->manager->getRepository(Layout::class)->findBy(['reference' => $reference]));
         if ($count !== $found) {
             throw new \RuntimeException(\sprintf('Expected %d layouts with the reference "%s", found %d.', $count, $reference, $found));
+        }
+    }
+
+    /**
+     * @Then the page :page should have the uiComponent :uiComponent
+     */
+    public function thePageShouldHaveTheUiComponent(string $page, string $uiComponent): void
+    {
+        $this->manager->clear();
+        $actual = $this->findPage($page)->uiComponent;
+        if ($uiComponent !== $actual) {
+            throw new \RuntimeException(\sprintf('The page "%s" has the uiComponent %s.', $page, var_export($actual, true)));
         }
     }
 

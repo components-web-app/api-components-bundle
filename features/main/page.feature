@@ -265,6 +265,55 @@ Feature: Page resources
     And the manifest depth 1 root IRI should be the IRI of the resource "page"
 
   @loginAdmin
+  Scenario Outline: A page's uiComponent is stored as the full CwaPage component name
+    Given there is a Layout
+    When I send a "POST" request to "/_/pages" with data:
+      | layout           | reference | uiComponent   | isTemplate |
+      | resource[layout] | posted    | <uiComponent> | false      |
+    Then the response status code should be 201
+    And the JSON node "uiComponent" should be equal to "CwaPagePrimaryPageTemplate"
+    And the page "posted" should have the uiComponent "CwaPagePrimaryPageTemplate"
+    Examples:
+      | uiComponent                |
+      | PrimaryPageTemplate        |
+      | CwaPagePrimaryPageTemplate |
+
+  @loginAdmin
+  Scenario Outline: Patching a page's uiComponent stores the full CwaPage component name
+    Given there is a child Page with a Layout
+    When I send a "PATCH" request to the resource "child_page" with data:
+      | uiComponent   |
+      | <uiComponent> |
+    Then the response status code should be 200
+    And the JSON node "uiComponent" should be equal to "CwaPagePrimaryPageTemplate"
+    And the page "child" should have the uiComponent "CwaPagePrimaryPageTemplate"
+    Examples:
+      | uiComponent                |
+      | PrimaryPageTemplate        |
+      | CwaPagePrimaryPageTemplate |
+
+  Scenario: The upgrade command prefixes the uiComponent of pages stored with the short name
+    Given there is a Page with the reference "legacy" and with the uiComponent "PrimaryPageTemplate"
+    And there is a Page with the reference "current" and with the uiComponent "CwaPageSecondaryPageTemplate"
+    When I run the console command "silverback:api-components:prefix-page-ui-components"
+    Then the console command should have exited with 0
+    And the console command output should contain "Prefixed the uiComponent of 1 page with CwaPage."
+    And the page "legacy" should have the uiComponent "CwaPagePrimaryPageTemplate"
+    And the page "current" should have the uiComponent "CwaPageSecondaryPageTemplate"
+
+  @loginAdmin
+  Scenario: A layout's uiComponent is stored as sent
+    When I send a "POST" request to "/_/layouts" with body:
+    """
+    {
+      "reference": "unprefixed",
+      "uiComponent": "PrimaryLayout"
+    }
+    """
+    Then the response status code should be 201
+    And the JSON node "uiComponent" should be equal to "PrimaryLayout"
+
+  @loginAdmin
   Scenario Outline: A page field longer than its column is a validation error, not a database error
     Given there is a Layout
     When I send a "POST" request to "/_/pages" with data:
@@ -277,6 +326,7 @@ Feature: Page resources
       | property        | reference       | uiComponent     | title           | metaDescription |
       | reference       | characters(256) | PageComponent   | Title           | Description     |
       | uiComponent     | page            | characters(256) | Title           | Description     |
+      | uiComponent     | page            | characters(249) | Title           | Description     |
       | title           | page            | PageComponent   | characters(256) | Description     |
       | metaDescription | page            | PageComponent   | Title           | characters(256) |
 
@@ -285,5 +335,5 @@ Feature: Page resources
     Given there is a Layout
     When I send a "POST" request to "/_/pages" with data:
       | layout           | isTemplate | reference       | uiComponent     | title           | metaDescription |
-      | resource[layout] | false      | characters(255) | characters(255) | characters(255) | characters(255) |
+      | resource[layout] | false      | characters(255) | characters(248) | characters(255) | characters(255) |
     Then the response status code should be 201
