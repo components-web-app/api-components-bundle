@@ -11,33 +11,32 @@
 
 namespace Silverback\ApiComponentsBundle\Serializer\ResourceMetadata;
 
-class ResourceMetadataProvider
+use Symfony\Contracts\Service\ResetInterface;
+
+class ResourceMetadataProvider implements ResetInterface
 {
-    public array $metadatas = [];
+    /**
+     * @var \WeakMap<object, ResourceMetadata>
+     */
+    private \WeakMap $metadatas;
+
+    public function __construct()
+    {
+        $this->metadatas = new \WeakMap();
+    }
 
     public function findResourceMetadata(object $object): ResourceMetadata
     {
-        $hash = spl_object_id($object);
-        if ($this->resourceMetadataExists($object)) {
-            return $this->metadatas[$hash]['metadata'];
-        }
-        $this->metadatas[$hash] = [
-            'resource' => $object,
-            'metadata' => new ResourceMetadata(),
-        ];
-
-        return $this->metadatas[$hash]['metadata'];
+        return $this->metadatas[$object] ??= new ResourceMetadata();
     }
 
     public function resourceMetadataExists(object $object): bool
     {
-        $hash = spl_object_id($object);
-
-        return isset($this->metadatas[$hash]);
+        return isset($this->metadatas[$object]);
     }
 
-    public function getMetadatas(): array
+    public function reset(): void
     {
-        return $this->metadatas;
+        $this->metadatas = new \WeakMap();
     }
 }

@@ -35,8 +35,9 @@ use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
+use Symfony\Contracts\Service\ResetInterface;
 
-class PropagateUpdatesListener
+class PropagateUpdatesListener implements ResetInterface
 {
     private PropertyAccessor $propertyAccessor;
     private ObjectRepository|EntityRepository $collectionRepository;
@@ -292,7 +293,7 @@ class PropagateUpdatesListener
         }
     }
 
-    private function reset(): void
+    public function reset(): void
     {
         $this->updatedResources = new \SplObjectStorage();
         $this->pageDataPropertiesChanged = [];

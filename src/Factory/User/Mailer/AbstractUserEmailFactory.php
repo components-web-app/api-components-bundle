@@ -27,11 +27,12 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Exception\RfcComplianceException as SymfonyRfcComplianceException;
 use Symfony\Component\Mime\RawMessage;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-abstract class AbstractUserEmailFactory
+abstract class AbstractUserEmailFactory implements ResetInterface
 {
     public const MESSAGE_ID_PREFIX = 'xx';
 
@@ -43,7 +44,7 @@ abstract class AbstractUserEmailFactory
     protected ?string $redirectPathQueryKey;
     protected array $emailContext;
     protected ?RawMessage $message;
-    private AbstractUser $user;
+    private ?AbstractUser $user = null;
 
     public function __construct(ContainerInterface $container, EventDispatcherInterface $eventDispatcher, string $subject, bool $enabled = true, ?string $defaultRedirectPath = null, ?string $redirectPathQueryKey = null, array $emailContext = [])
     {
@@ -62,6 +63,11 @@ abstract class AbstractUserEmailFactory
             'website_name',
             'user',
         ];
+    }
+
+    public function reset(): void
+    {
+        $this->user = null;
     }
 
     protected function initUser(AbstractUser $user): void
