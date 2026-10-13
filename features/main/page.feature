@@ -263,3 +263,52 @@ Feature: Page resources
     Then the response status code should be 200
     And the JSON node "resource_iris" should have 2 elements
     And the manifest depth 1 root IRI should be the IRI of the resource "page"
+
+  @loginAdmin
+  Scenario Outline: A page's uiComponent is stored as the full CwaPage component name
+    Given there is a Layout
+    When I send a "POST" request to "/_/pages" with data:
+      | layout           | reference | uiComponent   | isTemplate |
+      | resource[layout] | posted    | <uiComponent> | false      |
+    Then the response status code should be 201
+    And the JSON node "uiComponent" should be equal to "CwaPagePrimaryPageTemplate"
+    And the page "posted" should have the uiComponent "CwaPagePrimaryPageTemplate"
+    Examples:
+      | uiComponent                |
+      | PrimaryPageTemplate        |
+      | CwaPagePrimaryPageTemplate |
+
+  @loginAdmin
+  Scenario Outline: Patching a page's uiComponent stores the full CwaPage component name
+    Given there is a child Page with a Layout
+    When I send a "PATCH" request to the resource "child_page" with data:
+      | uiComponent   |
+      | <uiComponent> |
+    Then the response status code should be 200
+    And the JSON node "uiComponent" should be equal to "CwaPagePrimaryPageTemplate"
+    And the page "child" should have the uiComponent "CwaPagePrimaryPageTemplate"
+    Examples:
+      | uiComponent                |
+      | PrimaryPageTemplate        |
+      | CwaPagePrimaryPageTemplate |
+
+  Scenario: The upgrade command prefixes the uiComponent of pages stored with the short name
+    Given there is a Page with the reference "legacy" and with the uiComponent "PrimaryPageTemplate"
+    And there is a Page with the reference "current" and with the uiComponent "CwaPageSecondaryPageTemplate"
+    When I run the console command "silverback:api-components:prefix-page-ui-components"
+    Then the console command should have exited with 0
+    And the console command output should contain "Prefixed the uiComponent of 1 page with CwaPage."
+    And the page "legacy" should have the uiComponent "CwaPagePrimaryPageTemplate"
+    And the page "current" should have the uiComponent "CwaPageSecondaryPageTemplate"
+
+  @loginAdmin
+  Scenario: A layout's uiComponent is stored as sent
+    When I send a "POST" request to "/_/layouts" with body:
+    """
+    {
+      "reference": "unprefixed",
+      "uiComponent": "PrimaryLayout"
+    }
+    """
+    Then the response status code should be 201
+    And the JSON node "uiComponent" should be equal to "PrimaryLayout"

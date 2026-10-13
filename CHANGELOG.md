@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- A page's `uiComponent` is stored as the full component name, `CwaPage<Name>`: a POST or PATCH sending the short name (`PrimaryPageTemplate`, as the admin's page modals do) stores and returns `CwaPagePrimaryPageTemplate`, so pages written through the API and through `CwaFixtureBuilder` agree and `generate-fixtures` reloads them unchanged. Layouts are unchanged. Upgrade step: run `silverback:api-components:prefix-page-ui-components` once to prefix pages already stored with the short name; it is safe to run again ([#425](https://github.com/components-web-app/api-components-bundle/issues/425))
+
 ## [2.0.0-alpha.17](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.16...2.0.0-alpha.17) - 2026-10-12
 
 ### Fixed
