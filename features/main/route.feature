@@ -443,6 +443,14 @@ Feature: Route resources
     And the manifest depth 0 root IRI should be "/_/routes//my-route"
     And the manifest depth 0 should contain an IRI matching "/\/page_data\/page_data_with_components\/[a-z0-9\-]+/"
     And the manifest depth 0 should contain an IRI matching "/\/_\/pages\/[a-z0-9\-]+/"
+    And every IRI in the manifest should resolve
+
+  Scenario: The manifest of a redirecting route lists only IRIs, never the redirect path
+    Given there is a Route "/old" with a pageData and a redirect to "/new"
+    When I send a "GET" request to "/_/resource_manifest//old"
+    Then the response status code should be 200
+    And the manifest depth 0 should not contain an IRI matching "/^\/new$/"
+    And every IRI in the manifest should resolve
 
   @loginAdmin
   Scenario: I can get a manifest of all authenticated resources that should be loaded for a route

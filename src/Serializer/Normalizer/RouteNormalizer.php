@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
+use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\Trait\ManifestDepthGroupTrait;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Symfony\Component\Serializer\Exception\CircularReferenceException;
@@ -91,7 +92,7 @@ class RouteNormalizer implements NormalizerInterface, NormalizerAwareInterface
             $reflPageData->setValue($object, $originalPageData);
         }
 
-        if ($isRedirect && \is_array($normalized)) {
+        if ($isRedirect && \is_array($normalized) && !($context[CwaTagCollector::MANIFEST_CONTEXT_KEY] ?? false)) {
             $normalized['redirectPath'] = $finalRoute->getPath();
         }
 

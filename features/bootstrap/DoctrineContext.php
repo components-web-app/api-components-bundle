@@ -79,6 +79,7 @@ use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
@@ -2355,6 +2356,32 @@ final class DoctrineContext implements Context
             }
         }
         throw new \RuntimeException(\sprintf('Manifest depth %d has no IRI matching %s. Has: %s', $depth, $pattern, implode(', ', $iris)));
+    }
+
+    /**
+     * @Then every IRI in the manifest should resolve
+     */
+    public function everyIriInTheManifestShouldResolve(): void
+    {
+        $json = $this->jsonContext->getJsonAsArray();
+        $iris = [];
+        foreach ($json['resource_iris'] ?? [] as $node) {
+            array_push($iris, ...$this->flattenManifestNode($node));
+        }
+        if (!$iris) {
+            throw new \RuntimeException('The manifest lists no IRI.');
+        }
+
+        $unresolved = [];
+        foreach (array_unique($iris) as $iri) {
+            $status = $this->kernel->handle(Request::create($iri, 'GET', server: ['HTTP_ACCEPT' => 'application/ld+json']))->getStatusCode();
+            if (200 !== $status) {
+                $unresolved[] = \sprintf('%s (%d)', $iri, $status);
+            }
+        }
+        if ($unresolved) {
+            throw new \RuntimeException(\sprintf('These manifest IRIs did not resolve anonymously: %s', implode(', ', $unresolved)));
+        }
     }
 
     /**
