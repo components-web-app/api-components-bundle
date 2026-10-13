@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.20](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.19...2.0.0-alpha.20) - 2026-10-13
+
 ### Added
 - `silverback:api-components:warm-http-cache` requests, through the HTTP cache, the API responses server-side rendering fetches for each public route (the route, its `resource_manifest` and every resource the manifest lists, or only the route lookup for a redirect), anonymously and with the module's `Accept`, `preload` and `path` headers and an `Accept-Encoding` of `gzip`, so the cache stores them under the keys SSR asks for. Run it before a new pod takes traffic. Options: `--base-url` (default `http://localhost`), `--path`, `--limit` (shortest paths first), `--concurrency` (default 2), `--max-time`, `--timeout` and `--accept-encoding`. It always exits 0 once it has started, and prints requests, hits, misses, failures and the slowest requests ([#443](https://github.com/components-web-app/api-components-bundle/pull/443))
 
