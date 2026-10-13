@@ -36,6 +36,7 @@ use Silverback\ApiComponentsBundle\Command\ScanOrphanedCommand;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
@@ -2409,6 +2410,35 @@ final class DoctrineContext implements Context
         $response = $this->jsonContext->getJsonAsArray();
         Assert::assertArrayHasKey('@id', $response);
         $this->restContext->resources[$name] = $response['@id'];
+    }
+
+    /**
+     * @Given the page data has the title :title
+     */
+    public function thePageDataHasTheTitle(string $title): void
+    {
+        $pageData = $this->iriConverter->getResourceFromIri($this->restContext->resources['page_data']);
+        if (!$pageData instanceof AbstractPageData) {
+            throw new \RuntimeException('The page_data resource is not page data.');
+        }
+        $pageData->setTitle($title);
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
+     * @Then the page :reference should have no title
+     */
+    public function thePageShouldHaveNoTitle(string $reference): void
+    {
+        $this->manager->clear();
+        $page = $this->manager->getRepository(Page::class)->findOneBy(['reference' => $reference]);
+        if (!$page instanceof Page) {
+            throw new \RuntimeException(\sprintf('There is no page with the reference "%s".', $reference));
+        }
+        if (null !== $page->getTitle()) {
+            throw new \RuntimeException(\sprintf('The page "%s" has the title "%s".', $reference, $page->getTitle()));
+        }
     }
 
     /**

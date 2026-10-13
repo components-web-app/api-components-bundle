@@ -22,6 +22,8 @@ use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Utility\RouteName;
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -29,6 +31,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  */
 class RouteGenerator implements RouteGeneratorInterface
 {
+    public const TITLE_REQUIRED_MESSAGE = 'A title is needed to generate a route.';
+
     private SlugifyInterface $slugify;
     private ManagerRegistry $registry;
     private TimestampedDataPersister $timestampedDataPersister;
@@ -73,6 +77,11 @@ class RouteGenerator implements RouteGeneratorInterface
             throw new UnroutedParentException('Cannot generate a route for this page because its parent page has no route. Give the parent page a route first, or create this page\'s route explicitly.');
         }
 
+        $slug = $this->slugifyTitle($object);
+        if (null === $slug) {
+            throw new ValidationException(new ConstraintViolationList([new ConstraintViolation(self::TITLE_REQUIRED_MESSAGE, self::TITLE_REQUIRED_MESSAGE, [], $object, 'title', $object->getTitle())]));
+        }
+
         $entityManager = $this->registry->getManagerForClass($className = $object::class);
         if (!$entityManager instanceof EntityManagerInterface) {
             throw new InvalidArgumentException(\sprintf('Could not find entity manager for %s', $className));
@@ -86,7 +95,7 @@ class RouteGenerator implements RouteGeneratorInterface
 
         $this->timestampedDataPersister->persistTimestampedFields($route, $isNew);
 
-        [$name, $path] = $this->resolveConflicts($this->slugify->slugify($object->getTitle()), $this->generatePath($object));
+        [$name, $path] = $this->resolveConflicts($slug, $this->pathFor($object, $slug));
 
         $route
             ->setName($name)
@@ -109,15 +118,29 @@ class RouteGenerator implements RouteGeneratorInterface
         return $route;
     }
 
-    public function generatePath(RoutableInterface $object): string
+    public function generatePath(RoutableInterface $object): ?string
     {
-        $path = '/' . ltrim($this->slugify->slugify((string) $object->getTitle()), '/');
+        $slug = $this->slugifyTitle($object);
+
+        return null === $slug ? null : $this->pathFor($object, $slug);
+    }
+
+    private function pathFor(RoutableInterface $object, string $slug): string
+    {
+        $path = '/' . ltrim($slug, '/');
         $parentPageRoute = $object->getParentPageRoute();
         if ($parentPageRoute) {
             $path = '/' . ltrim($parentPageRoute->getPath(), '/') . $path;
         }
 
         return $path;
+    }
+
+    private function slugifyTitle(RoutableInterface $object): ?string
+    {
+        $slug = $this->slugify->slugify((string) $object->getTitle());
+
+        return '' === $slug ? null : $slug;
     }
 
     private function resolveConflicts(string $name, string $path): array

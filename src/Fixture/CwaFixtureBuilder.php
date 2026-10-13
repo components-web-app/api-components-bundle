@@ -531,7 +531,7 @@ class CwaFixtureBuilder implements ResetInterface
             return;
         }
 
-        if ($builder->isWithoutRoute() && null === $spec['route']) {
+        if (($builder->isWithoutRoute() || null === $pageData->getTitle()) && null === $spec['route']) {
             $template = null !== $spec['templateRef'] ? ($this->pageSpecs[$spec['templateRef']]['builder'] ?? null) : null;
             $parent = $pageData->getParentPage() ?? $pageData->getParentPageData();
             if ((null !== $template && self::CREATED === ($this->decisions[spl_object_id($template)] ?? null))
@@ -555,7 +555,7 @@ class CwaFixtureBuilder implements ResetInterface
         }
 
         $path = $spec['route'] ?? $this->routeGenerator->generatePath($pageData);
-        $existing = $this->findOne(Route::class, ['path' => $path])?->getPageData();
+        $existing = null === $path ? null : $this->findOne(Route::class, ['path' => $path])?->getPageData();
         if (!$existing instanceof $pageData) {
             $existing = null;
         }
@@ -693,7 +693,7 @@ class CwaFixtureBuilder implements ResetInterface
             if (null !== $entity->getRoute()) {
                 continue;
             }
-            if (null === $spec['route'] && $builder->isWithoutRoute()) {
+            if (null === $spec['route'] && ($builder->isWithoutRoute() || null === $entity->getTitle())) {
                 $this->routedSpecs[$builderId] = true;
                 continue;
             }

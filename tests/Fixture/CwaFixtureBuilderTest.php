@@ -16,6 +16,7 @@ use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
@@ -74,6 +75,20 @@ class CwaFixtureBuilderTest extends TestCase
         );
 
         return $em;
+    }
+
+    /**
+     * @template T of AbstractPage
+     *
+     * @param T $page
+     *
+     * @return T
+     */
+    private static function titled(AbstractPage $page, string $title = 'Page data'): AbstractPage
+    {
+        $page->setTitle($title);
+
+        return $page;
     }
 
     private function autoRouteGenerator(): RouteGeneratorInterface
@@ -178,6 +193,77 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame($parent->getPage(), $builder->getRoute('child')->getPage()?->getParentPage());
     }
 
+    public function test_an_untitled_page_with_no_route_is_left_without_a_route(): void
+    {
+        $persisted = [];
+        $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
+        $routeGenerator->expects($this->never())->method('create');
+
+        $builder = $this->makeBuilder($this->collectingEm($persisted), $routeGenerator);
+        $builder->layout('main', 'Primary');
+        $page = $builder->page('home', 'Primary', layout: 'main');
+        $builder->flush();
+
+        $this->assertSame([$page->getPage()], array_values(array_filter($persisted, static fn ($e) => $e instanceof Page)));
+        $this->assertNull($page->getRoute());
+        $this->assertSame([], array_values(array_filter($persisted, static fn ($e) => $e instanceof Route)));
+    }
+
+    public function test_untitled_page_data_with_no_route_is_left_without_a_route(): void
+    {
+        $persisted = [];
+        $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
+        $routeGenerator->expects($this->never())->method('create');
+        $routeGenerator->expects($this->never())->method('generatePath');
+
+        $builder = $this->makeBuilder($this->collectingEm($persisted), $routeGenerator);
+        $builder->layout('main', 'Primary');
+        $builder->page('template', 'Primary', layout: 'main', isTemplate: true);
+        $pageData = new class extends AbstractPageData {};
+        $builder->pageData($pageData, template: 'template');
+        $builder->flush();
+
+        $this->assertContains($pageData, $persisted);
+        $this->assertNull($pageData->getRoute());
+    }
+
+    public function test_an_untitled_nested_page_with_no_route_is_left_without_a_route_under_its_routed_parent(): void
+    {
+        $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
+        $routeGenerator->expects($this->once())->method('create')->willReturnCallback(static function (object $entity): Route {
+            $route = (new Route())->setPath('/parent')->setName('parent');
+            $entity->setRoute($route);
+
+            return $route;
+        });
+
+        $builder = $this->makeBuilder(routeGenerator: $routeGenerator);
+        $builder->layout('main', 'Primary');
+        $child = null;
+        $parent = $builder->page('parent', 'Primary', layout: 'main')->title('Parent');
+        $parent->nested(static function (CwaFixtureBuilder $nested) use (&$child): void {
+            $child = $nested->page('child', 'Primary', layout: 'main');
+        });
+        $builder->flush();
+
+        $this->assertSame('/parent', $parent->getRoute()?->getPath());
+        $this->assertNull($child->getRoute());
+        $this->assertSame($parent->getPage(), $child->getPage()->getParentPage());
+    }
+
+    public function test_an_untitled_page_with_a_live_at_and_no_route_is_left_without_a_route(): void
+    {
+        $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
+        $routeGenerator->expects($this->never())->method('create');
+
+        $builder = $this->makeBuilder(routeGenerator: $routeGenerator);
+        $builder->layout('main', 'Primary');
+        $page = $builder->page('home', 'Primary', layout: 'main')->liveAt(null);
+        $builder->flush();
+
+        $this->assertNull($page->getRoute());
+    }
+
     public function test_page_without_route_and_not_template_calls_route_generator(): void
     {
         $persisted = [];
@@ -185,7 +271,7 @@ class CwaFixtureBuilderTest extends TestCase
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
-        $builder->page('home', 'PrimaryPageTemplate', layout: 'main');
+        $builder->page('home', 'PrimaryPageTemplate', layout: 'main')->title('Page');
         $builder->flush();
 
         $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
@@ -213,7 +299,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder = $this->makeBuilder(routeGenerator: $routeGenerator);
         $builder->layout('main', 'Primary');
 
-        $pageData = new class extends AbstractPageData {};
+        $pageData = self::titled(new class extends AbstractPageData {});
         $builder->pageData($pageData, routeName: 'my-pagedata');
         $builder->flush();
 
@@ -457,8 +543,8 @@ class CwaFixtureBuilderTest extends TestCase
 
     public function test_nested_pagedata_sets_parent_relationship(): void
     {
-        $parentPageData = new class extends AbstractPageData {};
-        $childPageData = new class extends AbstractPageData {};
+        $parentPageData = self::titled(new class extends AbstractPageData {});
+        $childPageData = self::titled(new class extends AbstractPageData {});
 
         $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
         $routeGenerator->expects($this->exactly(2))
@@ -487,13 +573,13 @@ class CwaFixtureBuilderTest extends TestCase
         $persisted = [];
         $em = $this->collectingEm($persisted);
 
-        $parentPageData = new class extends AbstractPageData {};
+        $parentPageData = self::titled(new class extends AbstractPageData {});
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $child): void {
-                $child->page('chapter', 'ChapterTemplate', layout: 'main');
+                $child->page('chapter', 'ChapterTemplate', layout: 'main')->title('Page');
             });
         $builder->flush();
 
@@ -528,7 +614,7 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_parent_route_is_created_before_child_route(): void
     {
         $createOrder = [];
-        $parentPageData = new class extends AbstractPageData {};
+        $parentPageData = self::titled(new class extends AbstractPageData {});
 
         $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
         $routeGenerator->expects($this->exactly(2))->method('create')
@@ -546,7 +632,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->layout('main', 'Primary');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $child): void {
-                $child->page('chapter', 'ChapterTemplate', layout: 'main');
+                $child->page('chapter', 'ChapterTemplate', layout: 'main')->title('Page');
             });
         $builder->flush();
 
@@ -611,7 +697,7 @@ class CwaFixtureBuilderTest extends TestCase
 
         $builder = $this->makeBuilder(routeGenerator: $routeGenerator);
         $builder->layout('main', 'Primary');
-        $builder->page('home', 'Template', layout: 'main');
+        $builder->page('home', 'Template', layout: 'main')->title('Page');
 
         $builder->flush();
         $builder->flush();
@@ -619,7 +705,7 @@ class CwaFixtureBuilderTest extends TestCase
 
     public function test_on_routes_created_fires_after_child_routes_exist_with_child_builders(): void
     {
-        $parentPageData = new class extends AbstractPageData {};
+        $parentPageData = self::titled(new class extends AbstractPageData {});
         $capturedBuilders = null;
         $capturedChildRoute = null;
 
@@ -627,7 +713,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->layout('main', 'Primary');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $child): void {
-                $child->page('chapter', 'ChapterTemplate', layout: 'main');
+                $child->page('chapter', 'ChapterTemplate', layout: 'main')->title('Page');
             })
             ->onRoutesCreated(static function (array $childBuilders) use (&$capturedBuilders, &$capturedChildRoute): void {
                 $capturedBuilders = $childBuilders;
@@ -655,8 +741,8 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_parent_pagedata_route_created_before_child_pagedata_route(): void
     {
         $createOrder = [];
-        $parentPageData = new class extends AbstractPageData {};
-        $childPageData = new class extends AbstractPageData {};
+        $parentPageData = self::titled(new class extends AbstractPageData {});
+        $childPageData = self::titled(new class extends AbstractPageData {});
 
         $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
         $routeGenerator->expects($this->exactly(2))->method('create')
@@ -685,8 +771,8 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_nested_pagedata_entity_is_persisted_in_evaluatenested(): void
     {
         $persisted = [];
-        $parent = new class extends AbstractPageData {};
-        $child = new class extends AbstractPageData {};
+        $parent = self::titled(new class extends AbstractPageData {});
+        $child = self::titled(new class extends AbstractPageData {});
 
         $builder = $this->makeBuilder($this->collectingEm($persisted), $this->autoRouteGenerator());
         $builder->pageData($parent)
@@ -701,13 +787,13 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_nested_page_in_evaluatenested_gets_layout_linked(): void
     {
         $persisted = [];
-        $parent = new class extends AbstractPageData {};
+        $parent = self::titled(new class extends AbstractPageData {});
 
         $builder = $this->makeBuilder($this->collectingEm($persisted), $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
         $builder->pageData($parent)
             ->nested(static function (CwaFixtureBuilder $nested): void {
-                $nested->page('child', 'Template', layout: 'main');
+                $nested->page('child', 'Template', layout: 'main')->title('Page');
             });
         $builder->flush();
 
@@ -732,8 +818,8 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_evaluate_nested_flushes_when_new_nested_entities_added(): void
     {
         $flushCount = 0;
-        $parent = new class extends AbstractPageData {};
-        $child = new class extends AbstractPageData {};
+        $parent = self::titled(new class extends AbstractPageData {});
+        $child = self::titled(new class extends AbstractPageData {});
 
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount), $this->autoRouteGenerator());
         $builder->pageData($parent)
@@ -823,7 +909,7 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_phase_three_point_five_does_not_flush_when_no_callbacks(): void
     {
         $flushCount = 0;
-        $pd = new class extends AbstractPageData {};
+        $pd = self::titled(new class extends AbstractPageData {});
 
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount), $this->autoRouteGenerator());
         $builder->pageData($pd);
@@ -835,13 +921,13 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_phase_three_point_five_flushes_when_on_routes_created_fires(): void
     {
         $flushCount = 0;
-        $pd = new class extends AbstractPageData {};
+        $pd = self::titled(new class extends AbstractPageData {});
 
         $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount), $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
         $builder->pageData($pd)
             ->nested(static function (CwaFixtureBuilder $nested): void {
-                $nested->page('child', 'Template', layout: 'main');
+                $nested->page('child', 'Template', layout: 'main')->title('Page');
             })
             ->onRoutesCreated(static function (array $builders): void {});
         $builder->flush();
@@ -851,8 +937,8 @@ class CwaFixtureBuilderTest extends TestCase
 
     public function test_multiple_pagedata_specs_all_on_routes_created_callbacks_evaluated(): void
     {
-        $pd1 = new class extends AbstractPageData {};
-        $pd2 = new class extends AbstractPageData {};
+        $pd1 = self::titled(new class extends AbstractPageData {});
+        $pd2 = self::titled(new class extends AbstractPageData {});
         $callbackCalled = false;
 
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
@@ -945,9 +1031,9 @@ class CwaFixtureBuilderTest extends TestCase
 
     public function test_multiple_pagedata_specs_all_nested_closures_evaluated(): void
     {
-        $childPageData = new class extends AbstractPageData {};
-        $parent1 = new class extends AbstractPageData {};
-        $parent2 = new class extends AbstractPageData {};
+        $childPageData = self::titled(new class extends AbstractPageData {});
+        $parent1 = self::titled(new class extends AbstractPageData {});
+        $parent2 = self::titled(new class extends AbstractPageData {});
 
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
         $builder->pageData($parent1);
@@ -985,15 +1071,15 @@ class CwaFixtureBuilderTest extends TestCase
 
     public function test_on_routes_created_receives_only_child_page_builders_not_pre_existing_pages(): void
     {
-        $parentPageData = new class extends AbstractPageData {};
+        $parentPageData = self::titled(new class extends AbstractPageData {});
         $capturedCount = null;
 
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
-        $builder->page('existing', 'ExistingTemplate', layout: 'main');
+        $builder->page('existing', 'ExistingTemplate', layout: 'main')->title('Page');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $nested): void {
-                $nested->page('chapter', 'ChapterTemplate', layout: 'main');
+                $nested->page('chapter', 'ChapterTemplate', layout: 'main')->title('Page');
             })
             ->onRoutesCreated(static function (array $childBuilders) use (&$capturedCount): void {
                 $capturedCount = \count($childBuilders);
@@ -1010,7 +1096,7 @@ class CwaFixtureBuilderTest extends TestCase
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
-        $builder->page('home', 'PrimaryPageTemplate', layout: 'main', routeName: 'home-page');
+        $builder->page('home', 'PrimaryPageTemplate', layout: 'main', routeName: 'home-page')->title('Page');
         $builder->flush();
 
         $route = $builder->getRoute('home-page');
@@ -1221,8 +1307,8 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_timestamped_persister_called_with_is_new_true_for_nested_pagedata(): void
     {
         $calls = [];
-        $parent = new class extends AbstractPageData {};
-        $child = new class extends AbstractPageData {};
+        $parent = self::titled(new class extends AbstractPageData {});
+        $child = self::titled(new class extends AbstractPageData {});
 
         $builder = $this->makeBuilder(
             $this->collectingEm(),
@@ -1245,7 +1331,7 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_timestamped_persister_called_with_is_new_true_for_nested_page(): void
     {
         $calls = [];
-        $parent = new class extends AbstractPageData {};
+        $parent = self::titled(new class extends AbstractPageData {});
 
         $builder = $this->makeBuilder(
             $this->collectingEm(),
@@ -1255,7 +1341,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->layout('main', 'Primary');
         $builder->pageData($parent)
             ->nested(static function (CwaFixtureBuilder $child): void {
-                $child->page('nested-child', 'Template', layout: 'main');
+                $child->page('nested-child', 'Template', layout: 'main')->title('Page');
             });
         $builder->flush();
 
@@ -1269,13 +1355,13 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_nested_page_groups_are_created_in_evaluate_nested(): void
     {
         $persisted = [];
-        $parent = new class extends AbstractPageData {};
+        $parent = self::titled(new class extends AbstractPageData {});
 
         $builder = $this->makeBuilder($this->collectingEm($persisted), $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
         $builder->pageData($parent)
             ->nested(static function (CwaFixtureBuilder $child): void {
-                $child->page('child', 'Template', layout: 'main')
+                $child->page('child', 'Template', layout: 'main')->title('Page')
                     ->group('primary');
             });
         $builder->flush();
@@ -1347,7 +1433,7 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_timestamped_persister_called_with_is_new_true_for_pagedata_in_phase_one(): void
     {
         $calls = [];
-        $pageData = new class extends AbstractPageData {};
+        $pageData = self::titled(new class extends AbstractPageData {});
 
         $builder = $this->makeBuilder(
             timestampedPersister: $this->recordingTimestampedPersister($calls),
@@ -1367,7 +1453,7 @@ class CwaFixtureBuilderTest extends TestCase
         $persisted = [];
         $em = $this->collectingEm($persisted);
 
-        $pageData = new class extends AbstractPageData {};
+        $pageData = self::titled(new class extends AbstractPageData {});
         $builder = $this->makeBuilder($em);
         $builder->pageData($pageData);
         $builder->flush();
@@ -1441,7 +1527,7 @@ class CwaFixtureBuilderTest extends TestCase
     {
         $persisted = [];
         $em = $this->collectingEm($persisted);
-        $pageData = new class extends AbstractPageData {};
+        $pageData = self::titled(new class extends AbstractPageData {});
 
         $builder = $this->makeBuilder($em, $this->autoRouteGenerator());
         $builder->pageData($pageData);
@@ -1465,14 +1551,14 @@ class CwaFixtureBuilderTest extends TestCase
 
     public function test_on_routes_created_child_builders_contains_no_null_entries(): void
     {
-        $parentPageData = new class extends AbstractPageData {};
+        $parentPageData = self::titled(new class extends AbstractPageData {});
         $capturedBuilders = null;
 
         $builder = $this->makeBuilder($this->collectingEm(), $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $child): void {
-                $child->page('chapter', 'Template', layout: 'main');
+                $child->page('chapter', 'Template', layout: 'main')->title('Page');
             })
             ->onRoutesCreated(static function (array $childBuilders) use (&$capturedBuilders): void {
                 $capturedBuilders = $childBuilders;
@@ -1488,14 +1574,14 @@ class CwaFixtureBuilderTest extends TestCase
 
     public function test_on_routes_created_child_builders_are_reindexed_from_zero(): void
     {
-        $parentPageData = new class extends AbstractPageData {};
+        $parentPageData = self::titled(new class extends AbstractPageData {});
         $capturedKeys = null;
 
         $builder = $this->makeBuilder($this->collectingEm(), $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $child): void {
-                $child->page('chapter', 'Template', layout: 'main');
+                $child->page('chapter', 'Template', layout: 'main')->title('Page');
             })
             ->onRoutesCreated(static function (array $childBuilders) use (&$capturedKeys): void {
                 $capturedKeys = array_keys($childBuilders);
@@ -1775,8 +1861,8 @@ class CwaFixtureBuilderTest extends TestCase
         $persisted = [];
         $em = $this->collectingEm($persisted);
 
-        $firstPd = new class extends AbstractPageData {};
-        $secondPd = new class extends AbstractPageData {};
+        $firstPd = self::titled(new class extends AbstractPageData {});
+        $secondPd = self::titled(new class extends AbstractPageData {});
 
         $existingRoute = new Route();
         $existingRoute->setPath('/first');
@@ -1826,7 +1912,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder = $this->makeBuilder($em, $routeGenerator);
         $builder->layout('main', 'Primary');
         $builder->page('first', 'Template', layout: 'main', route: '/first');
-        $builder->page('second', 'Template', layout: 'main');
+        $builder->page('second', 'Template', layout: 'main')->title('Page');
         $builder->flush();
 
         $routes = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route));
@@ -2078,13 +2164,13 @@ class CwaFixtureBuilderTest extends TestCase
     public function test_on_routes_created_fires_exactly_once_across_multiple_flushes(): void
     {
         $callCount = 0;
-        $parentPageData = new class extends AbstractPageData {};
+        $parentPageData = self::titled(new class extends AbstractPageData {});
 
         $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
         $builder->pageData($parentPageData)
             ->nested(static function (CwaFixtureBuilder $child): void {
-                $child->page('chapter', 'Template', layout: 'main');
+                $child->page('chapter', 'Template', layout: 'main')->title('Page');
             })
             ->onRoutesCreated(static function (array $builders) use (&$callCount): void {
                 ++$callCount;
@@ -2323,7 +2409,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder = $this->makeBuilder($this->collectingEm($persisted), routeGenerator: $this->autoRouteGenerator());
 
         $builder->layout('main', 'Primary');
-        $builder->page('home', 'Primary', layout: 'main')->liveAt(null);
+        $builder->page('home', 'Primary', layout: 'main')->title('Page')->liveAt(null);
         $builder->flush();
 
         $pages = array_values(array_filter($persisted, static fn ($e) => $e instanceof Page));
@@ -2348,8 +2434,8 @@ class CwaFixtureBuilderTest extends TestCase
     {
         $builder = $this->makeBuilder($this->collectingEm(), routeGenerator: $this->autoRouteGenerator());
         $liveAt = new \DateTimeImmutable('2999-01-01');
-        $explicit = new class extends AbstractPageData {};
-        $generated = new class extends AbstractPageData {};
+        $explicit = self::titled(new class extends AbstractPageData {});
+        $generated = self::titled(new class extends AbstractPageData {});
 
         $builder->pageData($explicit, route: '/explicit')->liveAt($liveAt);
         $builder->pageData($generated)->liveAt(null);

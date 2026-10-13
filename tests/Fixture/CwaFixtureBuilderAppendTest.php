@@ -195,6 +195,7 @@ class CwaFixtureBuilderAppendTest extends TestCase
     public function test_an_existing_page_is_kept_untouched_and_gets_no_new_route(): void
     {
         $page = $this->existingPage('home');
+        $page->setTitle('Home');
         $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
         $routeGenerator->expects(self::never())->method('create');
         $this->routeGenerator = $routeGenerator;
@@ -206,7 +207,7 @@ class CwaFixtureBuilderAppendTest extends TestCase
 
         self::assertSame([], $this->persistedOf(Page::class));
         self::assertSame([], $this->persistedOf(Route::class));
-        self::assertSame('Unnamed Page', $page->getTitle());
+        self::assertSame('Home', $page->getTitle());
         self::assertFalse(isset($page->layout));
         self::assertContains(['notice', 'kept page `home`'], $this->logs);
     }
@@ -419,6 +420,67 @@ class CwaFixtureBuilderAppendTest extends TestCase
         self::assertSame([], $this->persistedOf(PageDataWithComponent::class));
         self::assertSame([], $this->persistedOf(AbstractComponent::class));
         self::assertSame(1, $cwa->getSummary()->count(CwaFixtureSummary::SKIPPED, CwaFixtureSummary::PAGE_DATA, 'unidentifiable'));
+    }
+
+    public function test_untitled_page_data_with_no_route_under_an_existing_template_is_skipped_as_unidentifiable(): void
+    {
+        $this->existingPage('template');
+        $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
+        $routeGenerator->expects(self::never())->method('generatePath');
+        $routeGenerator->expects(self::never())->method('create');
+        $this->routeGenerator = $routeGenerator;
+        $cwa = $this->builder();
+
+        $cwa->layout('main', 'Primary');
+        $cwa->page('template', 'Primary', layout: 'main', isTemplate: true);
+        $pageData = new PageData();
+        $cwa->pageData($pageData, template: 'template');
+        $cwa->flush();
+
+        self::assertSame([], $this->persistedOf(PageData::class));
+        self::assertSame(1, $cwa->getSummary()->count(CwaFixtureSummary::SKIPPED, CwaFixtureSummary::PAGE_DATA, 'unidentifiable'));
+    }
+
+    public function test_untitled_page_data_with_no_route_is_created_without_a_route_when_its_template_is_created(): void
+    {
+        $routeGenerator = $this->createMock(RouteGeneratorInterface::class);
+        $routeGenerator->expects(self::never())->method('generatePath');
+        $routeGenerator->expects(self::never())->method('create');
+        $this->routeGenerator = $routeGenerator;
+        $cwa = $this->builder();
+
+        $cwa->layout('main', 'Primary');
+        $cwa->page('template', 'Primary', layout: 'main', isTemplate: true);
+        $pageData = new PageData();
+        $cwa->pageData($pageData, template: 'template');
+        $cwa->flush();
+
+        self::assertSame([$pageData], $this->persistedOf(PageData::class));
+        self::assertNull($pageData->getRoute());
+        self::assertSame(1, $cwa->getSummary()->count(CwaFixtureSummary::CREATED, CwaFixtureSummary::PAGE_DATA));
+    }
+
+    public function test_titled_page_data_with_no_generated_path_is_not_matched_and_is_created(): void
+    {
+        $this->existing(Route::class, ['path' => null], $this->route('/', 'root')->setPageData(new PageData()));
+        $routeGenerator = $this->createStub(RouteGeneratorInterface::class);
+        $routeGenerator->method('generatePath')->willReturn(null);
+        $routeGenerator->method('create')->willReturnCallback(static function (PageData $pageData): Route {
+            $route = (new Route())->setPath('/x')->setName('x');
+            $pageData->setRoute($route);
+
+            return $route;
+        });
+        $this->routeGenerator = $routeGenerator;
+        $cwa = $this->builder();
+
+        $pageData = new PageData();
+        $pageData->setTitle('?');
+        $cwa->pageData($pageData);
+        $cwa->flush();
+
+        self::assertSame([$pageData], $this->persistedOf(PageData::class));
+        self::assertSame(1, $cwa->getSummary()->count(CwaFixtureSummary::CREATED, CwaFixtureSummary::PAGE_DATA));
     }
 
     public function test_page_data_without_a_route_is_created_when_its_parent_is_created(): void

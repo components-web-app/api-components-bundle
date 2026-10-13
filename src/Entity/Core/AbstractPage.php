@@ -59,7 +59,7 @@ abstract class AbstractPage implements RoutableInterface
 
     #[ORM\Column(nullable: true)]
     #[Assert\Length(max: 255)]
-    protected ?string $title = 'Unnamed Page';
+    protected ?string $title = null;
 
     #[ORM\Column(name: 'meta_description', nullable: true)]
     #[Assert\Length(max: 255)]
