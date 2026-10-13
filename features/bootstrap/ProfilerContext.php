@@ -36,6 +36,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\Unreacha
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\EventSubscriber\TemplatedEmailMessageEventSubscriber;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\KernelHttpClient;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\SwitchableMailer;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\MercureBundle\DataCollector\MercureDataCollector;
@@ -868,5 +869,100 @@ class ProfilerContext implements Context
         if (!\is_string($link) || !str_starts_with($link, $prefix)) {
             throw new \RuntimeException(\sprintf('Expected the email link to start with "%s", got "%s"', $prefix, var_export($link, true)));
         }
+    }
+
+    /**
+     * @BeforeScenario
+     *
+     * @AfterScenario
+     */
+    public function resetHttpCacheWarmClient(): void
+    {
+        KernelHttpClient::reset();
+    }
+
+    /**
+     * @Given the HTTP cache warm gets a :status response for URLs matching :pattern
+     */
+    public function theHttpCacheWarmGetsAResponseForUrlsMatching(int $status, string $pattern): void
+    {
+        KernelHttpClient::respondWith($pattern, $status);
+    }
+
+    /**
+     * @Then the HTTP cache warm should have requested :path
+     */
+    public function theHttpCacheWarmShouldHaveRequested(string $path): void
+    {
+        foreach (KernelHttpClient::getRequests() as $request) {
+            if (parse_url($request['url'], \PHP_URL_PATH) === $path) {
+                return;
+            }
+        }
+
+        throw new \RuntimeException(\sprintf('The HTTP cache warm did not request "%s". It requested: %s', $path, $this->describeHttpCacheWarmRequests()));
+    }
+
+    /**
+     * @Then the HTTP cache warm should have requested a URL matching :pattern with the path header :pathHeader
+     */
+    public function theHttpCacheWarmShouldHaveRequestedAUrlMatchingWithThePathHeader(string $pattern, string $pathHeader): void
+    {
+        foreach (KernelHttpClient::getRequests() as $request) {
+            if (preg_match($pattern, $request['url']) && ($request['headers']['path'] ?? null) === $pathHeader) {
+                return;
+            }
+        }
+
+        throw new \RuntimeException(\sprintf('The HTTP cache warm did not request a URL matching "%s" with the path header "%s". It requested: %s', $pattern, $pathHeader, $this->describeHttpCacheWarmRequests()));
+    }
+
+    /**
+     * @Then the HTTP cache warm should not have requested a URL containing :text
+     */
+    public function theHttpCacheWarmShouldNotHaveRequestedAUrlContaining(string $text): void
+    {
+        foreach (KernelHttpClient::getRequests() as $request) {
+            if (str_contains($request['url'], $text)) {
+                throw new \RuntimeException(\sprintf('The HTTP cache warm requested "%s"', $request['url']));
+            }
+        }
+    }
+
+    /**
+     * @Then every HTTP cache warm request should have returned :status
+     */
+    public function everyHttpCacheWarmRequestShouldHaveReturned(int $status): void
+    {
+        $requests = KernelHttpClient::getRequests();
+        if (!$requests) {
+            throw new \RuntimeException('The HTTP cache warm made no request');
+        }
+        foreach ($requests as $request) {
+            if ($status !== $request['status']) {
+                throw new \RuntimeException(\sprintf('The HTTP cache warm request for "%s" returned %d. It requested: %s', $request['url'], $request['status'], $this->describeHttpCacheWarmRequests()));
+            }
+        }
+    }
+
+    /**
+     * @Then no HTTP cache warm request should have carried credentials
+     */
+    public function noHttpCacheWarmRequestShouldHaveCarriedCredentials(): void
+    {
+        $requests = KernelHttpClient::getRequests();
+        if (!$requests) {
+            throw new \RuntimeException('The HTTP cache warm made no request');
+        }
+        foreach ($requests as $request) {
+            if (isset($request['headers']['cookie']) || isset($request['headers']['authorization'])) {
+                throw new \RuntimeException(\sprintf('The HTTP cache warm request for "%s" carried credentials', $request['url']));
+            }
+        }
+    }
+
+    private function describeHttpCacheWarmRequests(): string
+    {
+        return implode(', ', array_map(static fn (array $request) => \sprintf('%d %s (path: %s)', $request['status'], $request['url'], $request['headers']['path'] ?? '-'), KernelHttpClient::getRequests()));
     }
 }
