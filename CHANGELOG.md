@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.19](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.18...2.0.0-alpha.19) - 2026-10-13
+
 ### Breaking
 - A page's and a page data's `title` defaults to `null` instead of `'Unnamed Page'`, and page data's `title` column is nullable like the page's. `POST /_/routes/generate` (and `RouteGenerator::create()`) refuses a page or page data with no title, or one that gives no slug, with a 422 and a `title` violation, creating nothing; `RouteGeneratorInterface::generatePath()` returns `null` for it. `CwaFixtureBuilder` leaves an untitled page or page data with no `route:` without a route, and treats untitled page data like `withoutRoute()` page data in an `--append` load. Upgrade step: generate and run a migration (it makes `_acb_abstract_page_data.title` nullable), then clear the old default with `UPDATE _acb_page SET title = NULL WHERE title = 'Unnamed Page';` and `UPDATE _acb_abstract_page_data SET title = NULL WHERE title = 'Unnamed Page';` (with your `table_prefix` if it is not `_acb_`) ([#440](https://github.com/components-web-app/api-components-bundle/pull/440))
 
