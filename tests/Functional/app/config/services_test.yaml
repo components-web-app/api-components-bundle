@@ -45,6 +45,19 @@ services:
         arguments:
             $factory: '@mercure.hub.default.jwt.factory.default_claims'
             
+    Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\KernelHttpClient:
+        arguments:
+            $kernel: '@kernel'
+
+    silverback.api_components.http_cache.warmer:
+        class: Silverback\ApiComponentsBundle\HttpCache\Warm\HttpCacheWarmer
+        autowire: false
+        autoconfigure: false
+        arguments:
+            - '@Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\KernelHttpClient'
+            - '@api_platform.iri_converter'
+            - '@clock'
+
 #    ->set('messenger.transport.in_memory.factory', InMemoryTransportFactory::class)
 #    ->tag('messenger.transport_factory')
 #    ->tag('kernel.reset', ['method' => 'reset'])        

@@ -15,6 +15,7 @@
 
 use Silverback\ApiComponentsBundle\Command\PurgeHttpCacheCommand;
 use Silverback\ApiComponentsBundle\Command\PurgeRenderedHtmlCommand;
+use Silverback\ApiComponentsBundle\Command\WarmHttpCacheCommand;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\HttpCachePurgeStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RenderedHtmlPurgeStateProcessor;
@@ -22,6 +23,8 @@ use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCacheFlusher;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Silverback\ApiComponentsBundle\HttpCache\ManifestKeyResolver;
+use Silverback\ApiComponentsBundle\HttpCache\Warm\HttpCacheWarmer;
+use Silverback\ApiComponentsBundle\HttpCache\Warm\PublicRoutePaths;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -98,6 +101,37 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('silverback.api_components.http_cache.purger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ]);
     $services->alias(PurgeHttpCacheCommand::class, 'silverback.api_components.command.purge_http_cache');
+
+    $services
+        ->set('silverback.api_components.http_cache.warmer')
+        ->class(HttpCacheWarmer::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference('http_client'),
+            new Reference('api_platform.iri_converter'),
+            new Reference('clock'),
+        ]);
+    $services->alias(HttpCacheWarmer::class, 'silverback.api_components.http_cache.warmer');
+
+    $services
+        ->set('silverback.api_components.http_cache.public_route_paths')
+        ->class(PublicRoutePaths::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference('doctrine'),
+            new Reference('silverback.api_components.doctrine.orm.extension.route'),
+        ]);
+    $services->alias(PublicRoutePaths::class, 'silverback.api_components.http_cache.public_route_paths');
+
+    $services
+        ->set('silverback.api_components.command.warm_http_cache')
+        ->class(WarmHttpCacheCommand::class)
+        ->tag('console.command')
+        ->args([
+            new Reference('silverback.api_components.http_cache.public_route_paths'),
+            new Reference('silverback.api_components.http_cache.warmer'),
+        ]);
+    $services->alias(WarmHttpCacheCommand::class, 'silverback.api_components.command.warm_http_cache');
 
     $services
         ->set(HttpCachePurgeStateProcessor::class)
