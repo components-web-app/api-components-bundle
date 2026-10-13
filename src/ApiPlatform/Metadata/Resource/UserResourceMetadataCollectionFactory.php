@@ -13,14 +13,13 @@ namespace Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UserStateProvider;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 
 /**
- * Adds a /me endpoint.
- *
  * @author Daniel West <daniel@silverback.is>
  */
 readonly class UserResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
@@ -51,6 +50,9 @@ readonly class UserResourceMetadataCollectionFactory implements ResourceMetadata
                         '_api_me',
                         $meOperation
                     );
+                }
+                if ($operation instanceof Put) {
+                    $operation = $operation->withExtraProperties([...$operation->getExtraProperties(), 'standard_put' => false]);
                 }
                 $operations->add(
                     $key,

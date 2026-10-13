@@ -312,3 +312,28 @@ Feature: Page resources
     """
     Then the response status code should be 201
     And the JSON node "uiComponent" should be equal to "PrimaryLayout"
+
+  @loginAdmin
+  Scenario Outline: A page field longer than its column is a validation error, not a database error
+    Given there is a Layout
+    When I send a "POST" request to "/_/pages" with data:
+      | layout           | isTemplate | reference   | uiComponent   | title   | metaDescription   |
+      | resource[layout] | false      | <reference> | <uiComponent> | <title> | <metaDescription> |
+    Then the response status code should be 422
+    And the JSON node "violations" should have 1 element
+    And the JSON node "violations[0].propertyPath" should be equal to "<property>"
+    Examples:
+      | property        | reference       | uiComponent     | title           | metaDescription |
+      | reference       | characters(256) | PageComponent   | Title           | Description     |
+      | uiComponent     | page            | characters(256) | Title           | Description     |
+      | uiComponent     | page            | characters(249) | Title           | Description     |
+      | title           | page            | PageComponent   | characters(256) | Description     |
+      | metaDescription | page            | PageComponent   | Title           | characters(256) |
+
+  @loginAdmin
+  Scenario: A page field at its column length is accepted
+    Given there is a Layout
+    When I send a "POST" request to "/_/pages" with data:
+      | layout           | isTemplate | reference       | uiComponent     | title           | metaDescription |
+      | resource[layout] | false      | characters(255) | characters(248) | characters(255) | characters(255) |
+    Then the response status code should be 201

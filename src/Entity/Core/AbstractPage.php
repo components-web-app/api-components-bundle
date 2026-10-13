@@ -58,9 +58,11 @@ abstract class AbstractPage implements RoutableInterface
     public bool $isReachableWithoutRoute = false;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\Length(max: 255)]
     protected ?string $title = 'Unnamed Page';
 
     #[ORM\Column(name: 'meta_description', nullable: true)]
+    #[Assert\Length(max: 255)]
     protected ?string $metaDescription = null;
 
     public function getRoute(): ?Route

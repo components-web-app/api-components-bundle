@@ -49,11 +49,13 @@ class ComponentGroup
     #[ORM\Column(unique: true)]
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
     #[Assert\NotBlank(message: 'The reference cannot be blank.')]
+    #[Assert\Length(max: 255)]
     public ?string $reference = null;
 
     #[ORM\Column]
     #[Assert\NotBlank(message: 'The location cannot be blank.')]
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
+    #[Assert\Length(max: 255)]
     public ?string $location = null;
 
     #[ORM\ManyToMany(targetEntity: Layout::class, mappedBy: 'componentGroups')]
