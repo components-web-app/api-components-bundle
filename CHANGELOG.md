@@ -9,6 +9,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Fixed
 - Memory no longer grows request after request in a worker (FrankenPHP worker mode). `ResourceMetadataProvider` kept every serialised resource and its `_metadata`, and API Platform's skolem IRI converter, which is not tagged `kernel.reset` (api-platform/core#8681), kept every `_metadata` object it gave a `/.well-known/genid/` IRI, each keeping the other's objects alive. Both are now reset between requests. `PropagateUpdatesListener` is reset too, so a flush that fails no longer leaves its entities to be purged and published by the next request's flush, and the user email factories no longer keep the last user they emailed ([#449](https://github.com/components-web-app/api-components-bundle/pull/449))
+- A component on a live routed page is readable anonymously when it is also placed on an unrouted page. `ComponentVoter` collected the component's pages with `iterator_to_array()`, which kept the repeated keys of the collections it `yield from`s, so a later page replaced the routed one and the visitor got a 401 ([#450](https://github.com/components-web-app/api-components-bundle/pull/450))
 
 ## [2.0.0-alpha.20](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.19...2.0.0-alpha.20) - 2026-10-13
 

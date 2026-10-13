@@ -71,7 +71,7 @@ class ComponentVoter extends Voter
         $subject = $this->getPublishedSubject($subject);
 
         $pagesGenerator = $this->getComponentPages($subject);
-        $pages = iterator_to_array($pagesGenerator);
+        $pages = iterator_to_array($pagesGenerator, false);
 
         $routeVoteResult = $this->voteByRoute($pages);
         if ($routeVoteResult) {

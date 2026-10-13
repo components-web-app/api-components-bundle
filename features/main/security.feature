@@ -237,6 +237,11 @@ Feature: Restrict loading of components and routes
     When I send a "GET" request to the resource "parent_component"
     Then the response status code should be 200
 
+  Scenario: A component on a routed page is readable anonymously when it is also placed on a routeless page
+    Given there is a component on the routed Page "/shared-component" that is also placed on a routeless Page
+    When I send a "GET" request to the resource "parent_component"
+    Then the response status code should be 200
+
   Scenario: A component in a routeless page which nothing routes to is not readable anonymously
     Given there is a routeless Page with a component and no routed descendant
     When I send a "GET" request to the resource "parent_component"
