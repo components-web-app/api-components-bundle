@@ -63,6 +63,31 @@ Feature: Loading a scaffold into a database that already has one
     And there should be 0 components labelled "Extra"
     And the last load summary should be "CWA scaffold: created 1 group, 1 component; kept 1 page, 1 layout, 2 groups"
 
+  Scenario: A nested page whose component owns an existing group is kept, and the group stays linked to the component
+    Given the scaffold has a layout "main" with a group "top" holding the components "Logo"
+    And the scaffold has a page "parent" using the layout "main" at the route "/parent" with a group "primary" holding the components "Hero"
+    And the scaffold has, nested under the page "parent", a page "child" at the route "/parent/child" with a group "main" holding a component "Tabs" whose own group "panels" at the location reference "shared-panels" holds the components "Panel"
+    When the scaffold is loaded
+    Then the component group "panels_shared-panels" should belong to the components "Tabs"
+    When the database contents are recorded
+    And the scaffold is loaded again without purging
+    Then the database contents should be unchanged
+    And the component "Tabs" should own a group "panels" holding the component "Panel"
+    And the last load summary should be "CWA scaffold: kept 2 pages, 1 layout, 3 groups"
+
+  Scenario: A component declared in a nested closure is saved with its link to an existing group when nothing else in the load is new
+    Given the scaffold has a layout "main" with a group "panels" at the location reference "shared-panels" holding the components "Panel"
+    And the scaffold has a page "parent" using the layout "main" at the route "/parent" with a group "primary" holding the components "Hero"
+    When the scaffold is loaded
+    And the database contents are recorded
+    And the scaffold has, nested under the page "parent", a component "Accordion" whose own group "panels" at the location reference "shared-panels" holds the components "Section"
+    And the scaffold is loaded again without purging
+    Then the database should have gained only:
+      | Component | 1 |
+    And the component group "panels_shared-panels" should belong to the components "Accordion"
+    And there should be 0 components labelled "Section"
+    And the last load summary should be "CWA scaffold: created 1 component; kept 1 page, 1 layout, 2 groups"
+
   Scenario: Page data with a generated route is kept rather than given a suffixed route
     Given the scaffold has a layout "main" with a group "top" holding the components "Logo"
     And the scaffold has a template page "template" using the layout "main"
