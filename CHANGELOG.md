@@ -5,6 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Fixed
+- A `PUT` to a user resource updates only the fields it sends. API Platform's default `standard_put` (on 4.x and 5.x) built a new user from the body, so a `PUT` returned 200 after blanking the password hash and resetting roles, `enabled` and email verification, or failed with 422/500 when it sent no email address. The bundle sets `standard_put: false` on every `Put` of an `AbstractUser` resource ([#429](https://github.com/components-web-app/api-components-bundle/pull/429))
 - `CwaFixtureBuilder` creates the groups of components declared inside a `nested()` closure, with their positions, so a scaffold generated from a site with nested pages no longer reloads those pages emptied below their first component ([#428](https://github.com/components-web-app/api-components-bundle/pull/428))
 
 ## [2.0.0-alpha.17](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.16...2.0.0-alpha.17) - 2026-10-12
