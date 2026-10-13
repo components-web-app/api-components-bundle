@@ -5,7 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Fixed
-- `CwaFixtureBuilder` creates the groups of components declared inside a `nested()` closure, with their positions, so a scaffold generated from a site with nested pages no longer reloads those pages emptied below their first component ([#424](https://github.com/components-web-app/api-components-bundle/issues/424))
+- `CwaFixtureBuilder` creates the groups of components declared inside a `nested()` closure, with their positions, so a scaffold generated from a site with nested pages no longer reloads those pages emptied below their first component ([#428](https://github.com/components-web-app/api-components-bundle/pull/428))
 
 ## [2.0.0-alpha.17](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.16...2.0.0-alpha.17) - 2026-10-12
 
