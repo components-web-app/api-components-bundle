@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.21](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.20...2.0.0-alpha.21) - 2026-10-13
+
 ### Breaking
 - `ResourceMetadataProvider` no longer has the public `$metadatas` property or `getMetadatas()`: it keeps each resource's metadata in a `WeakMap` and is reset between requests (see Fixed) ([#449](https://github.com/components-web-app/api-components-bundle/pull/449))
 
