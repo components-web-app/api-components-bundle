@@ -958,6 +958,49 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given there is a component on the routed Page :path that is also placed on a routeless Page
+     */
+    public function thereIsAComponentOnARoutedPageAlsoPlacedOnARoutelessPage(string $path): void
+    {
+        $routedPage = new Page();
+        $routedPage->isTemplate = false;
+        $routedPage->reference = 'shared component routed page';
+        $routedPage->addComponentGroup($this->buildReachabilityComponentGroup('routed page group'));
+        $this->timestampedHelper->persistTimestampedFields($routedPage, true);
+        $this->manager->persist($routedPage);
+
+        $route = new Route();
+        $route->setPath($path)->setName($path)->setPage($routedPage);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+        $this->manager->flush();
+
+        $component = $this->iriConverter->getResourceFromIri($this->restContext->resources['parent_component']);
+        $routelessGroup = new ComponentGroup();
+        $routelessGroup->reference = 'routeless page group';
+        $routelessGroup->location = 'routeless page group';
+        $this->timestampedHelper->persistTimestampedFields($routelessGroup, true);
+        $this->manager->persist($routelessGroup);
+
+        $position = new ComponentPosition();
+        $position->componentGroup = $routelessGroup;
+        $position->component = $component;
+        $position->sortValue = 0;
+        $this->timestampedHelper->persistTimestampedFields($position, true);
+        $this->manager->persist($position);
+
+        $routelessPage = new Page();
+        $routelessPage->isTemplate = false;
+        $routelessPage->reference = 'shared component routeless page';
+        $routelessPage->addComponentGroup($routelessGroup);
+        $this->timestampedHelper->persistTimestampedFields($routelessPage, true);
+        $this->manager->persist($routelessPage);
+
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
      * @Given there is a routeless Page with a component and no routed descendant
      */
     public function thereIsARoutelessPageWithNoRoutedDescendant(): void

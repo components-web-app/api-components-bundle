@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- A component on a live routed page is readable anonymously when it is also placed on an unrouted page. `ComponentVoter` collected the component's pages with `iterator_to_array()`, which kept the repeated keys of the collections it `yield from`s, so a later page replaced the routed one and the visitor got a 401 ([#447](https://github.com/components-web-app/api-components-bundle/issues/447))
+
 ## [2.0.0-alpha.20](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.19...2.0.0-alpha.20) - 2026-10-13
 
 ### Added
