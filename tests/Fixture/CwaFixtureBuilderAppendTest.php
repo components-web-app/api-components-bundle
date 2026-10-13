@@ -537,6 +537,67 @@ class CwaFixtureBuilderAppendTest extends TestCase
         self::assertGreaterThan(0, $this->flushCount);
     }
 
+    public function test_a_component_declared_in_a_nested_closure_is_flushed_with_its_link_to_an_existing_group_when_nothing_else_is_new(): void
+    {
+        $this->existingLayout('main');
+        $this->existingPage('parent', $this->route('/parent', 'parent'));
+        $group = $this->existingGroup('panels_shared');
+        $cwa = $this->builder();
+
+        $accordion = $this->labelled('Accordion');
+        $cwa->layout('main', 'Primary');
+        $cwa->page('parent', 'Primary', layout: 'main', route: '/parent', routeName: 'parent')->nested(function (CwaFixtureBuilder $nested) use ($accordion): void {
+            $nested->component($accordion)->group('panels', locationReference: 'shared')->add($this->labelled('Section'));
+        });
+        $cwa->flush();
+
+        self::assertSame([$accordion], $this->persistedOf(AbstractComponent::class));
+        self::assertTrue($group->components->contains($accordion));
+        self::assertTrue($accordion->getComponentGroups()->contains($group));
+        self::assertSame([], $this->persistedOf(ComponentPosition::class));
+        self::assertSame(1, $this->flushCount);
+    }
+
+    public function test_a_component_with_no_groups_declared_in_a_nested_closure_is_flushed_when_nothing_else_is_new(): void
+    {
+        $this->existingLayout('main');
+        $this->existingPage('parent', $this->route('/parent', 'parent'));
+        $cwa = $this->builder();
+
+        $text = $this->labelled('Text');
+        $cwa->layout('main', 'Primary');
+        $cwa->page('parent', 'Primary', layout: 'main', route: '/parent', routeName: 'parent')->nested(static function (CwaFixtureBuilder $nested) use ($text): void {
+            $nested->component($text);
+        });
+        $cwa->flush();
+
+        self::assertSame([$text], $this->persistedOf(AbstractComponent::class));
+        self::assertSame(1, $this->flushCount);
+    }
+
+    public function test_an_existing_group_linked_in_a_nested_closure_to_a_component_already_saved_is_flushed_once(): void
+    {
+        $this->existingLayout('main');
+        $this->existingPage('parent', $this->route('/parent', 'parent'));
+        $group = $this->existingGroup('panels_shared');
+        $cwa = $this->builder();
+
+        $tabs = $this->labelled('Tabs');
+        $cwa->layout('main', 'Primary');
+        $cwa->component($tabs);
+        $cwa->page('parent', 'Primary', layout: 'main', route: '/parent', routeName: 'parent')->nested(static function (CwaFixtureBuilder $nested) use ($tabs): void {
+            $nested->component($tabs)->group('panels', locationReference: 'shared');
+        });
+        $cwa->flush();
+
+        self::assertTrue($group->components->contains($tabs));
+        self::assertSame(2, $this->flushCount);
+
+        $cwa->flush();
+
+        self::assertSame(2, $this->flushCount);
+    }
+
     public function test_an_existing_redirect_path_is_kept_and_registered_by_name(): void
     {
         $redirect = $this->route('/old', 'old');

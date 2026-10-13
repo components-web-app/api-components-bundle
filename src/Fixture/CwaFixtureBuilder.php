@@ -338,6 +338,7 @@ class CwaFixtureBuilder implements ResetInterface
 
     private function evaluateNested(): void
     {
+        $entityCountBefore = \count($this->persistedEntities);
         $existingPageDataCount = \count($this->pageDataSpecs);
         $existingPageRefs = array_keys($this->pageSpecs);
 
@@ -392,6 +393,9 @@ class CwaFixtureBuilder implements ResetInterface
         if ($this->processComponentBuilders()) {
             $hasNew = true;
         }
+
+        $hasNew = $hasNew || \count($this->persistedEntities) > $entityCountBefore || $this->hasPendingLinks;
+        $this->hasPendingLinks = false;
 
         if ($hasNew) {
             $this->manager->flush();
