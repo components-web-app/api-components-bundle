@@ -89,23 +89,60 @@ Feature: Route resources
   @loginUser
   Scenario: I can automatically generate a route from a PageData resource
     Given there is a PageData resource with the route path null
+    And the page data has the title "Programme"
     When I send a "POST" request to "/_/routes/generate" with data:
      | pageData            |
      | resource[page_data] |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
-    And the JSON node "path" should be equal to the string "/unnamed-page"
-    And the JSON node "name" should be equal to the string "unnamed-page"
+    And the JSON node "path" should be equal to the string "/programme"
+    And the JSON node "name" should be equal to the string "programme"
+
+  @loginUser
+  Scenario: A route is not generated for page data with no title
+    Given there is a PageData resource with the route path null
+    When I send a "POST" request to "/_/routes/generate" with data:
+     | pageData            |
+     | resource[page_data] |
+    Then the response status code should be 422
+    And the JSON node "violations" should have 1 element
+    And the JSON node "violations[0].propertyPath" should be equal to "title"
+    And the JSON node "violations[0].message" should be equal to "A title is needed to generate a route."
+    And there should be 0 Route resources
+
+  @loginUser
+  Scenario: A route is not generated for a page with no title
+    Given there is a Page with the reference "untitled"
+    When I send a "POST" request to "/_/routes/generate" with data:
+     | page               |
+     | resource[untitled] |
+    Then the response status code should be 422
+    And the JSON node "violations" should have 1 element
+    And the JSON node "violations[0].propertyPath" should be equal to "title"
+    And the JSON node "violations[0].message" should be equal to "A title is needed to generate a route."
+    And there should be 0 Route resources
+
+  @loginUser
+  Scenario: A route is not generated for page data whose existing route would become a redirect when it has no title
+    Given there is a PageData resource with the route path "/original"
+    When I send a "POST" request to "/_/routes/generate" with data:
+      | pageData            |
+      | resource[page_data] |
+    Then the response status code should be 422
+    And the JSON node "violations[0].propertyPath" should be equal to "title"
+    And there should be 1 Route resources
+    And the Route "/original" should not redirect
 
   @loginUser
   Scenario: I generate a route for page data with a pre-existing route. The original route will change to a redirect.
     Given there is a PageData resource with the route path "/original"
+    And the page data has the title "Programme"
     When I send a "POST" request to "/_/routes/generate" with data:
       | pageData            |
       | resource[page_data] |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
-    And the Route "/original" should redirect to "/unnamed-page"
+    And the Route "/original" should redirect to "/programme"
 
   @loginUser
   Scenario: A route cannot be generated for a nested page whose parent page has no route
@@ -120,15 +157,17 @@ Feature: Route resources
   @loginUser
   Scenario: A route generated for a nested page whose parent page has a route is prefixed with the parent path
     Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    And the page data has the title "Schedule"
     When I send a "POST" request to "/_/routes/generate" with data:
       | pageData            |
       | resource[page_data] |
     Then the response status code should be 201
-    And the JSON node "path" should be equal to the string "/conference/unnamed-page"
+    And the JSON node "path" should be equal to the string "/conference/schedule"
 
   @loginUser
   Scenario: A route is not generated when the parent path and the title slug together are longer than the path column
     Given there is a PageData resource with the route path "/conference/programme" nested within the route "/characters(242)"
+    And the page data has the title "Speaker List"
     When I send a "POST" request to "/_/routes/generate" with data:
       | pageData            |
       | resource[page_data] |
@@ -141,12 +180,13 @@ Feature: Route resources
   @loginUser
   Scenario: A route is generated when the parent path and the title slug together fill the path column
     Given there is a PageData resource with the route path "/conference/programme" nested within the route "/characters(241)"
+    And the page data has the title "Speaker List"
     When I send a "POST" request to "/_/routes/generate" with data:
       | pageData            |
       | resource[page_data] |
     Then the response status code should be 201
-    And the JSON node "path" should be equal to the string "/characters(241)/unnamed-page"
-    And the Route "/conference/programme" should redirect to "/characters(241)/unnamed-page"
+    And the JSON node "path" should be equal to the string "/characters(241)/speaker-list"
+    And the Route "/conference/programme" should redirect to "/characters(241)/speaker-list"
 
   @loginUser
   Scenario: A route can still be created explicitly for a nested page whose parent page has no route
@@ -321,22 +361,23 @@ Feature: Route resources
 
   @loginUser
   Scenario: I generate a route for a path that already exists and the new route is generated with a postfix
-    Given there is a PageData resource with the route path "/unnamed-page"
+    Given there is a PageData resource with the route path "/programme"
+    And the page data has the title "Programme"
     When I send a "POST" request to "/_/routes/generate" with data:
       | pageData            |
       | resource[page_data] |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "route.schema.json"
-    And the JSON node "path" should be equal to the string "/unnamed-page-1"
-    And the JSON node "name" should be equal to the string "unnamed-page-1"
+    And the JSON node "path" should be equal to the string "/programme-1"
+    And the JSON node "name" should be equal to the string "programme-1"
 
   @loginUser
   Scenario: I can get all the redirects for a route in a single request
-    Given there is a Route "/redirect1" which redirects to "/unnamed-page"
+    Given there is a Route "/redirect1" which redirects to "/final-page"
     When I send a "GET" request to the resource "final_route" and the postfix "/redirects"
     Then the response status code should be 200
     And the JSON node "@id" should exist
-    And the JSON node "path" should be equal to the string "/unnamed-page"
+    And the JSON node "path" should be equal to the string "/final-page"
     And the JSON node "redirectedFrom[0]" should exist
     And the JSON node "redirectedFrom[0].redirectedFrom" should exist
     And the JSON node "redirectedFrom[0].redirectedFrom[0].path" should be equal to the string "/redirect1"

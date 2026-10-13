@@ -57,7 +57,7 @@ class RouteGeneratorTest extends TestCase
     {
         $parent = $this->createPage('Conference');
         $parent->setRoute((new Route())->setName('conference')->setPath('/' . str_repeat('a', 242)));
-        $child = $this->createPage('Unnamed Page');
+        $child = $this->createPage('Speaker List');
         $child->setParentPage($parent);
 
         $violations = $this->assertRefusedAsInvalid($child);
@@ -69,7 +69,7 @@ class RouteGeneratorTest extends TestCase
     {
         $parent = $this->createPage('Conference');
         $parent->setRoute((new Route())->setName('conference')->setPath('/' . str_repeat('a', 241)));
-        $child = $this->createPage('Unnamed Page');
+        $child = $this->createPage('Speaker List');
         $child->setParentPage($parent);
 
         $route = $this->generator->create($child);
@@ -147,6 +147,103 @@ class RouteGeneratorTest extends TestCase
         $child->setParentPageData($parent);
 
         $this->assertRefusedForMissingParentRoute($child);
+    }
+
+    public function test_a_route_is_not_generated_for_a_page_with_no_title(): void
+    {
+        $page = $this->createPage(null);
+
+        $violations = $this->assertRefusedAsInvalid($page);
+
+        self::assertSame(['title'], $violations);
+    }
+
+    public function test_a_route_is_not_generated_for_page_data_with_no_title(): void
+    {
+        $pageData = $this->createPageData(null);
+
+        $violations = $this->assertRefusedAsInvalid($pageData);
+
+        self::assertSame(['title'], $violations);
+    }
+
+    public function test_a_route_is_not_generated_for_a_page_whose_title_gives_no_slug(): void
+    {
+        $page = $this->createPage(' !? ');
+
+        $violations = $this->assertRefusedAsInvalid($page);
+
+        self::assertSame(['title'], $violations);
+    }
+
+    public function test_the_refusal_of_an_untitled_page_says_a_title_is_needed_and_carries_the_title(): void
+    {
+        $page = $this->createPage(' !? ');
+
+        try {
+            $this->generator->create($page);
+            self::fail('A route was generated for a page with no usable title.');
+        } catch (ValidationException $exception) {
+            $violations = $exception->getConstraintViolationList();
+        }
+
+        self::assertCount(1, $violations);
+        self::assertSame('A title is needed to generate a route.', $violations[0]->getMessage());
+        self::assertSame(' !? ', $violations[0]->getInvalidValue());
+        self::assertSame($page, $violations[0]->getRoot());
+    }
+
+    public function test_an_untitled_page_is_refused_before_its_route_or_its_existing_route_is_touched(): void
+    {
+        $existingRoute = (new Route())->setName('original')->setPath('/original');
+        $page = $this->createPage(null);
+        $page->setRoute($existingRoute);
+        $unitOfWork = $this->createStub(UnitOfWork::class);
+        $unitOfWork->method('getOriginalEntityData')->willReturn(['route' => $existingRoute]);
+        $entityManager = $this->createStub(EntityManagerInterface::class);
+        $entityManager->method('getUnitOfWork')->willReturn($unitOfWork);
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn($entityManager);
+        $timestamped = $this->createMock(TimestampedDataPersister::class);
+        $timestamped->expects(self::never())->method('persistTimestampedFields');
+        $routeRepository = $this->createMock(RouteRepository::class);
+        $routeRepository->expects(self::never())->method('findConflicts');
+        $generator = new RouteGenerator(new Slugify(), $registry, $timestamped, $routeRepository, self::validator());
+        $route = new Route();
+
+        try {
+            $generator->create($page, $route);
+            self::fail('A route was generated for a page with no title.');
+        } catch (ValidationException) {
+        }
+
+        self::assertSame($existingRoute, $page->getRoute());
+        self::assertNull($existingRoute->getRedirect());
+        self::assertSame('', $route->getPath());
+    }
+
+    public function test_an_untitled_page_whose_parent_page_has_no_route_is_refused_for_the_missing_parent_route(): void
+    {
+        $parent = $this->createPage('Conference');
+        $child = $this->createPage(null);
+        $child->setParentPage($parent);
+
+        $this->assertRefusedForMissingParentRoute($child);
+    }
+
+    public function test_there_is_no_generated_path_for_a_page_with_no_title(): void
+    {
+        self::assertNull($this->generator->generatePath($this->createPage(null)));
+    }
+
+    public function test_there_is_no_generated_path_for_a_page_whose_title_gives_no_slug_even_under_a_routed_parent(): void
+    {
+        $parent = $this->createPage('Conference');
+        $parent->setRoute((new Route())->setName('conference')->setPath('/conference'));
+        $child = $this->createPage(' !? ');
+        $child->setParentPage($parent);
+
+        self::assertNull($this->generator->generatePath($child));
     }
 
     public function test_generating_a_route_fails_clearly_without_an_orm_entity_manager(): void
@@ -294,7 +391,7 @@ class RouteGeneratorTest extends TestCase
     /**
      * @return list<string>
      */
-    private function assertRefusedAsInvalid(Page $page): array
+    private function assertRefusedAsInvalid(Page|AbstractPageData $page): array
     {
         try {
             $this->generator->create($page);
@@ -318,7 +415,7 @@ class RouteGeneratorTest extends TestCase
         return Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator();
     }
 
-    private function createPage(string $title): Page
+    private function createPage(?string $title): Page
     {
         $page = new Page();
         $page->setTitle($title);
@@ -326,7 +423,7 @@ class RouteGeneratorTest extends TestCase
         return $page;
     }
 
-    private function createPageData(string $title): AbstractPageData
+    private function createPageData(?string $title): AbstractPageData
     {
         $pageData = new class extends AbstractPageData {};
         $pageData->setTitle($title);

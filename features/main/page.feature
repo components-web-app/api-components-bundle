@@ -16,6 +16,16 @@ Feature: Page resources
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "page.schema.json"
 
+  @loginAdmin
+  Scenario: A page created with no title has no title
+    Given there is a Layout
+    When I send a "POST" request to "/_/pages" with data:
+      | layout           | reference | uiComponent | isTemplate |
+      | resource[layout] | untitled  | myComponent | false      |
+    Then the response status code should be 201
+    And the JSON node "title" should be null
+    And the page "untitled" should have no title
+
   @loginUser
   Scenario: A non-admin user cannot create a page
     Given there is a Layout

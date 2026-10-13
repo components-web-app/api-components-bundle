@@ -30,9 +30,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\AssociationOverrides([
     new ORM\AssociationOverride(name: 'route', inversedBy: 'pageData'),
 ])]
-#[ORM\AttributeOverrides([
-    new ORM\AttributeOverride(name: 'title', column: new ORM\Column(nullable: false)),
-])]
 #[ApiResource]
 #[Get]
 abstract class AbstractPageData extends AbstractPage implements PageDataInterface

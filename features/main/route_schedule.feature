@@ -96,12 +96,13 @@ Feature: Scheduled and draft route publication
   @loginAdmin
   Scenario: A route generated under a scheduled parent inherits the parent go-live date
     Given there is a PageData resource with the route path "/conference/programme" nested within the route "/conference"
+    And the page data has the title "Schedule"
     And the Route "/conference" goes live at "2999-01-01T00:00:00+00:00"
     When I send a "POST" request to "/_/routes/generate" with data:
       | pageData            |
       | resource[page_data] |
     Then the response status code should be 201
-    And the Route "/conference/unnamed-page" should not be live
+    And the Route "/conference/schedule" should not be live
 
   # Admin access, editing and exposure
 
