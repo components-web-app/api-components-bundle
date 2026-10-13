@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Helper\Route;
 
+use ApiPlatform\Validator\Exception\ValidationException;
 use Cocur\Slugify\Slugify;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnitOfWork;
@@ -25,6 +26,8 @@ use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGenerator;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RouteGeneratorTest extends TestCase
 {
@@ -46,7 +49,51 @@ class RouteGeneratorTest extends TestCase
             $registry,
             $this->createStub(TimestampedDataPersister::class),
             $routeRepository,
+            self::validator(),
         );
+    }
+
+    public function test_a_route_is_not_generated_when_the_parent_path_and_the_slug_are_longer_than_the_path_column(): void
+    {
+        $parent = $this->createPage('Conference');
+        $parent->setRoute((new Route())->setName('conference')->setPath('/' . str_repeat('a', 242)));
+        $child = $this->createPage('Unnamed Page');
+        $child->setParentPage($parent);
+
+        $violations = $this->assertRefusedAsInvalid($child);
+
+        self::assertSame(['path'], $violations);
+    }
+
+    public function test_a_route_is_generated_when_the_parent_path_and_the_slug_fill_the_path_column(): void
+    {
+        $parent = $this->createPage('Conference');
+        $parent->setRoute((new Route())->setName('conference')->setPath('/' . str_repeat('a', 241)));
+        $child = $this->createPage('Unnamed Page');
+        $child->setParentPage($parent);
+
+        $route = $this->generator->create($child);
+
+        self::assertSame(255, \strlen($route->getPath()));
+        self::assertSame($route, $child->getRoute());
+    }
+
+    public function test_a_route_is_not_generated_when_its_name_is_longer_than_the_name_column(): void
+    {
+        $page = $this->createPage(str_repeat('b', 256));
+
+        $violations = $this->assertRefusedAsInvalid($page);
+
+        self::assertSame(['path', 'name'], $violations);
+    }
+
+    public function test_a_route_is_not_generated_when_its_name_fits_but_its_path_with_the_leading_slash_does_not(): void
+    {
+        $page = $this->createPage(str_repeat('b', 255));
+
+        $violations = $this->assertRefusedAsInvalid($page);
+
+        self::assertSame(['path'], $violations);
     }
 
     public function test_a_page_with_no_parent_is_given_a_top_level_path(): void
@@ -106,7 +153,7 @@ class RouteGeneratorTest extends TestCase
     {
         $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getManagerForClass')->willReturn($this->createStub(ObjectManager::class));
-        $generator = new RouteGenerator(new Slugify(), $registry, $this->createStub(TimestampedDataPersister::class), $this->createStub(RouteRepository::class));
+        $generator = new RouteGenerator(new Slugify(), $registry, $this->createStub(TimestampedDataPersister::class), $this->createStub(RouteRepository::class), self::validator());
         $page = $this->createPage('Programme');
 
         $this->expectException(InvalidArgumentException::class);
@@ -118,7 +165,7 @@ class RouteGeneratorTest extends TestCase
     {
         $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getManagerForClass')->willReturn(null);
-        $generator = new RouteGenerator(new Slugify(), $registry, $this->createStub(TimestampedDataPersister::class), $this->createStub(RouteRepository::class));
+        $generator = new RouteGenerator(new Slugify(), $registry, $this->createStub(TimestampedDataPersister::class), $this->createStub(RouteRepository::class), self::validator());
         $page = $this->createPage('Programme');
 
         $this->expectException(InvalidArgumentException::class);
@@ -138,7 +185,7 @@ class RouteGeneratorTest extends TestCase
     {
         $routeRepository = $this->createStub(RouteRepository::class);
         $routeRepository->method('findConflicts')->willReturn([(new Route())->setName('programme')->setPath('/conference/programme')]);
-        $generator = new RouteGenerator(new Slugify(), $this->createStub(ManagerRegistry::class), $this->createStub(TimestampedDataPersister::class), $routeRepository);
+        $generator = new RouteGenerator(new Slugify(), $this->createStub(ManagerRegistry::class), $this->createStub(TimestampedDataPersister::class), $routeRepository, self::validator());
         $parent = $this->createPageData('Conference');
         $parent->setRoute((new Route())->setName('conference')->setPath('/conference'));
         $child = $this->createPageData('Programme');
@@ -169,6 +216,33 @@ class RouteGeneratorTest extends TestCase
         }
 
         self::assertNull($child->getRoute());
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function assertRefusedAsInvalid(Page $page): array
+    {
+        try {
+            $this->generator->create($page);
+            self::fail('A route was generated that does not fit its columns.');
+        } catch (ValidationException $exception) {
+            $violations = $exception->getConstraintViolationList();
+        }
+
+        self::assertNull($page->getRoute());
+
+        $propertyPaths = [];
+        foreach ($violations as $violation) {
+            $propertyPaths[] = $violation->getPropertyPath();
+        }
+
+        return $propertyPaths;
+    }
+
+    private static function validator(): ValidatorInterface
+    {
+        return Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator();
     }
 
     private function createPage(string $title): Page
