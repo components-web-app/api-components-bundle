@@ -5,10 +5,10 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Breaking
-- `ResourceMetadataProvider` no longer has the public `$metadatas` property or `getMetadatas()`: it keeps each resource's metadata in a `WeakMap` and is reset between requests (see Fixed) ([#447](https://github.com/components-web-app/api-components-bundle/pull/447))
+- `ResourceMetadataProvider` no longer has the public `$metadatas` property or `getMetadatas()`: it keeps each resource's metadata in a `WeakMap` and is reset between requests (see Fixed) ([#449](https://github.com/components-web-app/api-components-bundle/pull/449))
 
 ### Fixed
-- Memory no longer grows request after request in a worker (FrankenPHP worker mode). `ResourceMetadataProvider` kept every serialised resource and its `_metadata`, and API Platform's skolem IRI converter, which is not tagged `kernel.reset` (api-platform/core#8681), kept every `_metadata` object it gave a `/.well-known/genid/` IRI, each keeping the other's objects alive. Both are now reset between requests. `PropagateUpdatesListener` is reset too, so a flush that fails no longer leaves its entities to be purged and published by the next request's flush, and the user email factories no longer keep the last user they emailed ([#447](https://github.com/components-web-app/api-components-bundle/pull/447))
+- Memory no longer grows request after request in a worker (FrankenPHP worker mode). `ResourceMetadataProvider` kept every serialised resource and its `_metadata`, and API Platform's skolem IRI converter, which is not tagged `kernel.reset` (api-platform/core#8681), kept every `_metadata` object it gave a `/.well-known/genid/` IRI, each keeping the other's objects alive. Both are now reset between requests. `PropagateUpdatesListener` is reset too, so a flush that fails no longer leaves its entities to be purged and published by the next request's flush, and the user email factories no longer keep the last user they emailed ([#449](https://github.com/components-web-app/api-components-bundle/pull/449))
 
 ## [2.0.0-alpha.20](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.19...2.0.0-alpha.20) - 2026-10-13
 
