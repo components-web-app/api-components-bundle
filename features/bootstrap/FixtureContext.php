@@ -65,6 +65,12 @@ final class FixtureContext implements Context
     /** @var array<string, PageDataBuilder> */
     private array $pageDataBuilders = [];
 
+    /** @var array<string, PageBuilder> */
+    private array $pageBuilders = [];
+
+    /** @var array<string, list<\Closure(CwaFixtureBuilder): void>> */
+    private array $nestedUnderPage = [];
+
     /** @var array<string, array<int, string>> */
     private array $recordedTables = [];
 
@@ -100,6 +106,8 @@ final class FixtureContext implements Context
         $this->generatedFile = null;
         $this->scaffold = [];
         $this->pageDataBuilders = [];
+        $this->pageBuilders = [];
+        $this->nestedUnderPage = [];
         $this->recordedTables = [];
         $this->recordedCounts = [];
         $this->lastSummary = null;
@@ -657,10 +665,63 @@ final class FixtureContext implements Context
     public function theScaffoldHasAPage(string $page, string $layout, string $path, string $group, string $labels): void
     {
         $this->scaffold[] = function (CwaFixtureBuilder $cwa) use ($page, $layout, $path, $group, $labels): void {
-            $cwa->page($page, 'Primary', layout: $layout, route: $path, routeName: $page, configure: function (PageBuilder $builder) use ($group, $labels): void {
+            $this->pageBuilders[$page] = $cwa->page($page, 'Primary', layout: $layout, route: $path, routeName: $page, configure: function (PageBuilder $builder) use ($group, $labels): void {
                 $this->addLabelledComponents($builder->group($group), $labels);
             });
         };
+    }
+
+    /**
+     * @Given the scaffold has a layout :layout with a group :group at the location reference :locationReference holding the components :labels
+     */
+    public function theScaffoldHasALayoutWithALocatedGroup(string $layout, string $group, string $locationReference, string $labels): void
+    {
+        $this->scaffold[] = function (CwaFixtureBuilder $cwa) use ($layout, $group, $locationReference, $labels): void {
+            $this->addLabelledComponents($cwa->layout($layout, 'Primary')->group($group, locationReference: $locationReference), $labels);
+        };
+    }
+
+    /**
+     * @Given the scaffold has, nested under the page :parent, a page :page at the route :path with a group :group holding a component :owner whose own group :ownGroup at the location reference :locationReference holds the components :labels
+     */
+    public function theScaffoldHasANestedPageWithAComponentOwningALocatedGroup(string $parent, string $page, string $path, string $group, string $owner, string $ownGroup, string $locationReference, string $labels): void
+    {
+        $this->nestedUnderPage[$parent][] = function (CwaFixtureBuilder $nested) use ($page, $path, $group, $owner, $ownGroup, $locationReference, $labels): void {
+            $component = new DummyComponent();
+            $component->uiComponent = $owner;
+            $nested->page($page, 'Primary', layout: 'main', route: $path, routeName: $page)->group($group)->add($component);
+            $this->addLabelledComponents($nested->component($component)->group($ownGroup, locationReference: $locationReference), $labels);
+        };
+    }
+
+    /**
+     * @Given the scaffold has, nested under the page :parent, a component :owner whose own group :ownGroup at the location reference :locationReference holds the components :labels
+     */
+    public function theScaffoldHasANestedComponentOwningALocatedGroup(string $parent, string $owner, string $ownGroup, string $locationReference, string $labels): void
+    {
+        $this->nestedUnderPage[$parent][] = function (CwaFixtureBuilder $nested) use ($owner, $ownGroup, $locationReference, $labels): void {
+            $component = new DummyComponent();
+            $component->uiComponent = $owner;
+            $this->addLabelledComponents($nested->component($component)->group($ownGroup, locationReference: $locationReference), $labels);
+        };
+    }
+
+    /**
+     * @Then the component group :reference should belong to the components :labels
+     */
+    public function theComponentGroupShouldBelongToTheComponents(string $reference, string $labels): void
+    {
+        $group = $this->manager->getRepository(ComponentGroup::class)->findOneBy(['reference' => $reference]);
+        if (null === $group) {
+            throw new \RuntimeException(\sprintf('There is no component group "%s".', $reference));
+        }
+        $owners = array_map(static fn (AbstractComponent $component) => $component->uiComponent, $group->components->toArray());
+        sort($owners);
+        $expected = array_map('trim', explode(',', $labels));
+        sort($expected);
+        if ($expected !== $owners) {
+            throw new \RuntimeException(\sprintf('The group "%s" belongs to the components [%s], expected [%s].', $reference, implode(', ', $owners), implode(', ', $expected)));
+        }
     }
 
     /**
@@ -751,8 +812,16 @@ final class FixtureContext implements Context
     {
         $cwa = $this->newBuilder();
         $this->pageDataBuilders = [];
+        $this->pageBuilders = [];
         foreach ($this->scaffold as $definition) {
             $definition($cwa);
+        }
+        foreach ($this->nestedUnderPage as $parent => $definitions) {
+            $this->pageBuilders[$parent]->nested(static function (CwaFixtureBuilder $nested) use ($definitions): void {
+                foreach ($definitions as $definition) {
+                    $definition($nested);
+                }
+            });
         }
         $cwa->flush();
         $this->lastSummary = (string) $cwa->getSummary();
