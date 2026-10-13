@@ -344,6 +344,7 @@ Route, Layout and Page declare `QueryParameter`s: `search` = `FreeTextQueryFilte
 - 4xx/5xx from AP's exception handler are `application/problem+json`.
 - Symfony 8 constraints need named arguments (`new Count(min: 1)`).
 - Prefer `?string = null` with a nullable column, so null reaches `NotBlank` on every Symfony version.
+- **Every API-writable `string` column needs an `Assert\Length` whose max is its column length** (255 by default), in every validation group its other constraints run in (#427). SQLite ignores `VARCHAR` length, so the Behat app saves an over-long value that MySQL and PostgreSQL reject with a 500. `StringColumnLengthTest` checks every `string` field in `src/Entity`; a column only the server writes goes in its exemption list.
 - Set `$context['api_sub_level'] = true` when normalising a sub-object, or `PartialCollectionViewNormalizer` injects `view` into arrays whenever the URI has a query string.
 - `ApiResource::getOperations()` is `Operations<HttpOperation>`. Do not annotate its items as `Operation`, which hides the HTTP methods.
 - ORM-only calls (`getUnitOfWork()`, `ClassMetadata::getFieldValue()`, `getAssociationMappings()`) need the manager narrowed to `EntityManagerInterface`; `getManagerForClass()` returns the Persistence `ObjectManager`.

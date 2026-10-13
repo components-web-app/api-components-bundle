@@ -22,6 +22,7 @@ use ApiPlatform\Metadata\Put;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Repository\Core\SiteConfigParameterRepository;
 use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -45,6 +46,7 @@ class SiteConfigParameter
     #[ORM\Id]
     #[ORM\Column(unique: true, nullable: false)]
     #[ApiProperty(identifier: true)]
+    #[Assert\Length(max: 255)]
     private ?string $key = null;
 
     #[ORM\Column(type: 'json', nullable: true)]

@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- A value longer than its `VARCHAR(255)` column (a page's `title` or `metaDescription`, any `reference`, `uiComponent`, route `path`/`name`, component position `pageDataProperty`/`pageDataClass`, site config `key`, form `formType`, collection `resourceIri`, user `username`/`emailAddress`/`newEmailAddress`) is a 422 with a field violation instead of a 500 from MySQL or PostgreSQL ([#427](https://github.com/components-web-app/api-components-bundle/issues/427))
+
 ## [2.0.0-alpha.17](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.16...2.0.0-alpha.17) - 2026-10-12
 
 ### Fixed

@@ -56,6 +56,7 @@ class Layout
     #[ORM\Column]
     #[Assert\NotBlank(message: 'Please enter a reference.')]
     #[Groups(['Layout:read', 'Layout:write'])]
+    #[Assert\Length(max: 255)]
     public string $reference;
 
     #[ORM\OneToMany(targetEntity: Page::class, mappedBy: 'layout')]

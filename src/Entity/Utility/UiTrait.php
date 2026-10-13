@@ -16,6 +16,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -26,6 +27,7 @@ trait UiTrait
 {
     #[ORM\Column(nullable: true)]
     #[Groups(['Layout:read', 'Layout:write'])]
+    #[Assert\Length(max: 255)]
     public ?string $uiComponent = null;
 
     #[ORM\Column(type: 'json', nullable: true)]

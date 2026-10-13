@@ -92,11 +92,13 @@ class Route
     #[ORM\Column(name: 'route', unique: true)]
     #[Assert\NotBlank]
     #[Groups(['Route:redirect:read'])]
+    #[Assert\Length(max: 255)]
     private string $path = '';
 
     #[ORM\Column(unique: true)]
     #[Assert\NotNull]
     #[Groups(['Route:redirect:read'])]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'redirectedFrom', fetch: 'EAGER')]

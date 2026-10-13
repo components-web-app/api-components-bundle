@@ -43,12 +43,14 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Please enter a username.', allowNull: false, groups: ['Default'])]
     #[Groups(['User:superAdmin', 'User:output', 'Form:cwa_resource:read'])]
+    #[Assert\Length(max: 255)]
     protected ?string $username;
 
     #[ORM\Column(name: 'email_address', length: 255)]
     #[Assert\NotBlank(message: 'Please enter your email address.', allowNull: false, groups: ['Default'])]
     #[Assert\Email]
     #[Groups(['User:superAdmin', 'User:output', 'Form:cwa_resource:read'])]
+    #[Assert\Length(max: 255)]
     protected ?string $emailAddress;
 
     /** @var list<string> */
@@ -97,6 +99,7 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     #[Assert\NotBlank(allowNull: true, groups: ['User:emailAddress', 'Default'])]
     #[Assert\Email]
     #[Groups(['User:input', 'User:output', 'User:emailAddress', 'Form:cwa_resource:read:role_user'])]
+    #[Assert\Length(max: 255, groups: ['User:emailAddress', 'Default'])]
     protected ?string $newEmailAddress = null;
 
     /**

@@ -70,6 +70,7 @@ class Form extends AbstractComponent
     use TimestampedTrait;
 
     #[ORM\Column(nullable: false)]
+    #[Assert\Length(max: 255)]
     public string $formType;
 
     #[ApiProperty(writable: false)]
