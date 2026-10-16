@@ -16,6 +16,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - The orphaned files scan reads an SVG's size as Symfony's `Image` constraint does (`viewBox` fallback, length units), also when file info is cached ([#459](https://github.com/components-web-app/api-components-bundle/pull/459))
 - The orphaned files scan checks a row with a publication date against its field's publish-group constraints too (`{ShortName}:published` or the class's `validationGroups`), as publishing does ([#459](https://github.com/components-web-app/api-components-bundle/pull/459))
 
+### Tooling
+- Codecov waits for both coverage uploads (`phpunit` and `behat`) before posting its statuses and comment, so `codecov/project` no longer fails on partial coverage mid-run ([#473](https://github.com/components-web-app/api-components-bundle/pull/473))
+
 ## [2.0.0-alpha.22](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.21...2.0.0-alpha.22) - 2026-10-16
 
 ### Breaking
