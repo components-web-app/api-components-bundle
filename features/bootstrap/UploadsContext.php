@@ -39,6 +39,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploa
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithConstraints;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithPublishedConstraints;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadedImage;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -250,11 +251,15 @@ class UploadsContext implements Context
     }
 
     /**
-     * @Given /^there is a (DummyUploadable|DummyUploadableWithConstraints) with the file "([^"]+)" saved as "([^"]+)"$/
+     * @Given /^there is a (DummyUploadable|DummyUploadableWithConstraints|DummyUploadedImage) with the file "([^"]+)" saved as "([^"]+)"$/
      */
     public function thereIsADummyUploadableWithTheFileSavedAs(string $class, string $file, string $name): void
     {
-        $object = 'DummyUploadable' === $class ? new DummyUploadable() : new DummyUploadableWithConstraints();
+        $object = match ($class) {
+            'DummyUploadable' => new DummyUploadable(),
+            'DummyUploadableWithConstraints' => new DummyUploadableWithConstraints(),
+            'DummyUploadedImage' => new DummyUploadedImage(),
+        };
         $object->file = new File(__DIR__ . '/../assets/files/' . $file);
         $this->uploadableHelper->persistFiles($object);
         $this->manager->persist($object);

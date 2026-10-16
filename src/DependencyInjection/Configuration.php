@@ -20,6 +20,7 @@ use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Silverback\ApiComponentsBundle\Utility\EmailRecipientList;
+use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImage;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition;
@@ -194,6 +195,14 @@ class Configuration implements ConfigurationInterface
                             ->children()
                                 ->append($this->cacheControlNode('original', 'public, max-age=31536000, immutable', 'For an uploaded file. A stored name is never reused, so it can be immutable.'))
                                 ->append($this->cacheControlNode('imagine', 'public, max-age=2592000', 'For an imagine variant, which is rewritten at the same path when its filter is regenerated.'))
+                            ->end()
+                        ->end()
+                        ->scalarNode('image_max_pixels')
+                            ->info('The pixel limit of a #[UploadedImage] constraint that sets no maxPixels, on upload and in the orphaned files report. 30 megapixels fits the default imagine memory_limit. null sets no limit.')
+                            ->defaultValue(UploadedImage::DEFAULT_MAX_PIXELS)
+                            ->validate()
+                                ->ifTrue(static fn (mixed $value): bool => null !== $value && (!\is_int($value) || $value < 1))
+                                ->thenInvalid('The uploaded image pixel limit must be a positive integer, or null for none; got %s.')
                             ->end()
                         ->end()
                     ->end()

@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Validator\StoredFile;
 
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFile;
+use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImage;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\Image;
@@ -33,6 +34,10 @@ final class StoredFileConstraintValidator extends ConstraintValidator
         self::MIB_BYTES => 'MiB',
     ];
 
+    public function __construct(private readonly int|float|null $defaultMaxPixels = UploadedImage::DEFAULT_MAX_PIXELS)
+    {
+    }
+
     public function validate(mixed $value, Constraint $constraint): void
     {
         if (!$constraint instanceof File) {
@@ -43,6 +48,16 @@ final class StoredFileConstraintValidator extends ConstraintValidator
         }
         if (!$value instanceof StoredFile) {
             throw new UnexpectedValueException($value, StoredFile::class);
+        }
+        if ($constraint instanceof UploadedImage) {
+            if ($value->isSvg() && !$constraint->allowSvg) {
+                $this->context->buildViolation($constraint->svgNotAllowedMessage)
+                    ->setCode(UploadedImage::SVG_NOT_ALLOWED_ERROR)
+                    ->addViolation();
+
+                return;
+            }
+            $constraint = $constraint->forFile($value->isSvg(), $this->defaultMaxPixels);
         }
         if (!$this->validateFile($value, $constraint) || !$constraint instanceof Image) {
             return;

@@ -203,6 +203,7 @@ use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\RequiresUploadedFileValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ResourceIriValidator;
+use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImageValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\UserPasswordValidator;
 use Silverback\ApiComponentsBundle\Validator\MappingLoader\TimestampedLoader as TimestampedValidatorMappingLoader;
 use Silverback\ApiComponentsBundle\Validator\MappingLoader\UploadableLoader as UploadableValidatorMappingLoader;
@@ -1443,6 +1444,12 @@ return static function (ContainerConfigurator $configurator) {
         ->class(RequiresUploadedFileValidator::class)
         ->tag('validator.constraint_validator');
     $services->alias(RequiresUploadedFileValidator::class, 'silverback.api_components.validator.requires_uploaded_file');
+
+    $services
+        ->set('silverback.api_components.validator.uploaded_image')
+        ->class(UploadedImageValidator::class)
+        ->tag('validator.constraint_validator');
+    $services->alias(UploadedImageValidator::class, 'silverback.api_components.validator.uploaded_image');
 
     $services
         ->set('silverback.api_components.validator.timestamped')

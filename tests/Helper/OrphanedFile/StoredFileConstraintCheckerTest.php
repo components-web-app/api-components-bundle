@@ -17,6 +17,7 @@ use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFile;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileConstraintChecker;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithConstraints;
+use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImage;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\Image;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -134,6 +135,18 @@ class StoredFileConstraintCheckerTest extends TestCase
             ['The image width is too big (500px). Allowed maximum width is 10px.'],
             $checker->violations($this->file('image/png', 500, 715), [new When(expression: 'value.getSize() > 1', constraints: [new Image(maxWidth: 10)])])
         );
+    }
+
+    public function test_an_uploaded_image_without_max_pixels_is_checked_against_the_given_limit(): void
+    {
+        $checker = new StoredFileConstraintChecker($this->createStub(MetadataFactoryInterface::class), null, 300000);
+
+        self::assertSame(
+            ['The image is too large (357500 pixels). Resize it to at most 300000 pixels (about 670 x 447) and upload it again.'],
+            $checker->violations($this->file('image/png', 500, 715), [new UploadedImage()])
+        );
+        self::assertSame([], $checker->violations($this->file(StoredFile::SVG_MIME_TYPE, 5000, 7150), [new UploadedImage()]));
+        self::assertSame([], $this->checker()->violations($this->file('image/png', 500, 715), [new UploadedImage()]));
     }
 
     private function checker(): StoredFileConstraintChecker

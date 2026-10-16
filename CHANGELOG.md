@@ -8,6 +8,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - `UploadedDataUriFile`'s constructor no longer takes `$error` and `$test`: a decoded data URI is always a valid upload ([#459](https://github.com/components-web-app/api-components-bundle/pull/459))
 - `OrphanedFileDetector` takes the `PublishableAttributeReader` (`$publishableAttributeReader`) ([#459](https://github.com/components-web-app/api-components-bundle/pull/459))
 
+### Added
+- `#[UploadedImage]`, an `Assert\Image` for upload fields that skips the image checks for an SVG (`allowSvg: false` refuses one), takes its `maxPixels` from the new `uploadable.image_max_pixels` (default 30,000,000) when it sets none, and says the limit with an approximate width x height; the orphaned files report checks it the same way ([#456](https://github.com/components-web-app/api-components-bundle/pull/456))
+
 ### Fixed
 - A base64 or data-URI upload to a field with a `File` or `Image` constraint was refused with "The file could not be uploaded." instead of being validated ([#459](https://github.com/components-web-app/api-components-bundle/pull/459))
 - The orphaned files scan reads an SVG's size as Symfony's `Image` constraint does (`viewBox` fallback, length units), also when file info is cached ([#459](https://github.com/components-web-app/api-components-bundle/pull/459))
