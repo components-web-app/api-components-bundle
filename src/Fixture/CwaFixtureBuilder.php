@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Fixture;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
@@ -495,9 +496,6 @@ class CwaFixtureBuilder implements ResetInterface
                 $this->decide($layoutBuilder, $layout, $this->findOne(Layout::class, ['reference' => $ref]), CwaFixtureSummary::LAYOUT, (string) $ref);
             }
             if (self::CREATED === $this->decisions[spl_object_id($layoutBuilder)]) {
-                if (!isset($this->persistedEntities[spl_object_id($layout)])) {
-                    $this->timestampedPersister->persistTimestampedFields($layout, true);
-                }
                 $this->persistWithAssociations($layout);
             }
             foreach ($layoutBuilder->getGroupBuilders() as $groupBuilder) {
@@ -556,11 +554,6 @@ class CwaFixtureBuilder implements ResetInterface
                 $this->markSkipped($component);
                 continue;
             }
-            if (!isset($this->persistedEntities[spl_object_id($component)])) {
-                if ($this->timestampedPersister->isConfigured($component)) {
-                    $this->timestampedPersister->persistTimestampedFields($component, true);
-                }
-            }
             $this->persistWithAssociations($component);
             foreach ($componentBuilder->getGroupBuilders() as $groupBuilder) {
                 $this->createAndLinkComponentGroup($groupBuilder, $component);
@@ -586,9 +579,6 @@ class CwaFixtureBuilder implements ResetInterface
             if (null !== $layoutBuilder) {
                 $page->layout = $this->resolve($layoutBuilder->getLayout());
             }
-            if (!isset($this->persistedEntities[spl_object_id($page)])) {
-                $this->timestampedPersister->persistTimestampedFields($page, true);
-            }
             $this->persistWithAssociations($page);
         }
         foreach ($builder->getGroupBuilders() as $groupBuilder) {
@@ -608,9 +598,6 @@ class CwaFixtureBuilder implements ResetInterface
         }
         if (null !== $spec['templateRef'] && isset($this->pageSpecs[$spec['templateRef']])) {
             $pageData->page = $this->resolve($this->pageSpecs[$spec['templateRef']]['builder']->getPage());
-        }
-        if (!isset($this->persistedEntities[spl_object_id($pageData)])) {
-            $this->timestampedPersister->persistTimestampedFields($pageData, true);
         }
         $this->persistWithAssociations($pageData);
     }
@@ -1131,9 +1118,6 @@ class CwaFixtureBuilder implements ResetInterface
 
             return false;
         }
-        if ($this->timestampedPersister->isConfigured($component)) {
-            $this->timestampedPersister->persistTimestampedFields($component, true);
-        }
         $this->persistWithAssociations($component);
 
         return true;
@@ -1167,10 +1151,6 @@ class CwaFixtureBuilder implements ResetInterface
             $position->sortValue = $item['sort'];
             $position->component = $component;
             $position->componentGroup = $componentGroup;
-            if (!isset($this->persistedEntities[spl_object_id($component)])
-                && $this->timestampedPersister->isConfigured($component)) {
-                $this->timestampedPersister->persistTimestampedFields($component, true);
-            }
             $this->timestampedPersister->persistTimestampedFields($position, true);
             $this->persistWithAssociations($component);
             $this->manager->persist($position);
@@ -1342,6 +1322,9 @@ class CwaFixtureBuilder implements ResetInterface
             return;
         }
         $wasManaged = $this->manager->contains($entity);
+        if ((!$wasManaged || $this->isScheduledForInsert($entity)) && $this->timestampedPersister->isConfigured($entity)) {
+            $this->timestampedPersister->persistTimestampedFields($entity, true);
+        }
         $this->persistedEntities[$oid] = true;
         $this->manager->persist($entity);
         $this->persistUploadedFile($entity);
@@ -1352,6 +1335,11 @@ class CwaFixtureBuilder implements ResetInterface
         foreach ($this->owningRelations($entity) as $related) {
             $this->persistWithAssociations($related);
         }
+    }
+
+    private function isScheduledForInsert(object $entity): bool
+    {
+        return $this->manager instanceof EntityManagerInterface && $this->manager->getUnitOfWork()->isScheduledForInsert($entity);
     }
 
     /**

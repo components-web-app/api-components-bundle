@@ -12,12 +12,17 @@
 namespace Silverback\ApiComponentsBundle\Tests\Fixture;
 
 use ApiPlatform\Metadata\IriConverterInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata as OrmClassMetadata;
+use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\ClassMetadata;
+use Doctrine\Persistence\Mapping\RuntimeReflectionService;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
@@ -39,7 +44,10 @@ use Silverback\ApiComponentsBundle\Tests\Command\Fixture\PageDataWithFilters;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyNavigationLink;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestamped;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithParentTypedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithRoute;
 use Symfony\Component\HttpFoundation\File\File;
 
@@ -3283,5 +3291,122 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertNotNull($scaffold->child);
         $this->assertSame('about', $scaffold->child->getPage()->getParentPage()?->reference);
         $this->assertSame($scaffold->child->getRoute(), $builder->getRoute('team'));
+    }
+
+    private function timestampingPersister(): TimestampedDataPersister
+    {
+        $entityManager = $this->createStub(EntityManagerInterface::class);
+        $entityManager->method('getClassMetadata')->willReturnCallback(static function (string $class): OrmClassMetadata {
+            $metadata = new OrmClassMetadata($class);
+            $metadata->initializeReflection(new RuntimeReflectionService());
+            $metadata->mapField(['fieldName' => 'createdAt', 'type' => 'datetime_immutable']);
+            $metadata->mapField(['fieldName' => 'modifiedAt', 'type' => 'datetime']);
+            $metadata->wakeupReflection(new RuntimeReflectionService());
+
+            return $metadata;
+        });
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn($entityManager);
+        $reader = new TimestampedAttributeReader($registry);
+
+        return new TimestampedDataPersister($registry, $reader);
+    }
+
+    /**
+     * @param array<class-string, list<string>> $associations
+     */
+    private function associatingEm(array $associations, int &$flushCount, ?UnitOfWork $unitOfWork = null, bool $contains = false): EntityManagerInterface
+    {
+        $em = $this->createStub(EntityManagerInterface::class);
+        $em->method('getClassMetadata')->willReturnCallback(function (string $class) use ($associations): OrmClassMetadata {
+            $metadata = $this->createStub(OrmClassMetadata::class);
+            $metadata->method('getAssociationNames')->willReturn($associations[$class] ?? []);
+            $metadata->method('isAssociationInverseSide')->willReturn(false);
+
+            return $metadata;
+        });
+        $em->method('flush')->willReturnCallback(static function () use (&$flushCount): void { ++$flushCount; });
+        $em->method('contains')->willReturn($contains);
+        $em->method('getUnitOfWork')->willReturn($unitOfWork ?? $this->createStub(UnitOfWork::class));
+
+        return $em;
+    }
+
+    public function test_an_entity_given_only_to_persist_is_timestamped(): void
+    {
+        $flushCount = 0;
+        $entity = new DummyTimestamped();
+
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount), timestampedPersister: $this->timestampingPersister());
+        $builder->persist($entity);
+        $builder->flush();
+
+        $this->assertInstanceOf(\DateTimeImmutable::class, $entity->createdAt);
+        $this->assertInstanceOf(\DateTime::class, $entity->modifiedAt);
+        $this->assertSame(1, $flushCount);
+    }
+
+    public function test_a_component_reached_only_through_a_page_data_field_is_timestamped(): void
+    {
+        $flushCount = 0;
+        $component = new DummyTimestampedComponent();
+        $pageData = new PageDataWithParentTypedComponent();
+        $pageData->component = $component;
+
+        $builder = $this->makeBuilder(
+            $this->associatingEm([PageDataWithParentTypedComponent::class => ['component']], $flushCount),
+            timestampedPersister: $this->timestampingPersister(),
+        );
+        $builder->pageData(self::titled($pageData), route: '/timestamped');
+        $builder->flush();
+
+        $this->assertInstanceOf(\DateTimeImmutable::class, $component->createdAt);
+        $this->assertInstanceOf(\DateTime::class, $component->modifiedAt);
+        $this->assertInstanceOf(\DateTimeImmutable::class, $pageData->createdAt);
+        $this->assertSame(2, $flushCount);
+    }
+
+    public function test_an_entity_a_cascade_already_scheduled_for_insert_is_timestamped(): void
+    {
+        $flushCount = 0;
+        $entity = new DummyTimestamped();
+        $unitOfWork = $this->createStub(UnitOfWork::class);
+        $unitOfWork->method('isScheduledForInsert')->willReturn(true);
+
+        $builder = $this->makeBuilder($this->associatingEm([], $flushCount, $unitOfWork, contains: true), timestampedPersister: $this->timestampingPersister());
+        $builder->persist($entity);
+        $builder->flush();
+
+        $this->assertInstanceOf(\DateTimeImmutable::class, $entity->createdAt);
+        $this->assertInstanceOf(\DateTime::class, $entity->modifiedAt);
+    }
+
+    public function test_a_managed_entity_already_in_the_database_keeps_its_timestamps(): void
+    {
+        $flushCount = 0;
+        $createdAt = new \DateTimeImmutable('2001-02-03 04:05:06');
+        $modifiedAt = new \DateTime('2002-03-04 05:06:07');
+        $entity = new DummyTimestamped();
+        $entity->createdAt = $createdAt;
+        $entity->modifiedAt = $modifiedAt;
+
+        $builder = $this->makeBuilder($this->associatingEm([], $flushCount, contains: true), timestampedPersister: $this->timestampingPersister());
+        $builder->persist($entity);
+        $builder->flush();
+
+        $this->assertSame($createdAt, $entity->createdAt);
+        $this->assertSame($modifiedAt, $entity->modifiedAt);
+    }
+
+    public function test_an_entity_that_is_not_timestamped_is_not_given_timestamps(): void
+    {
+        $calls = [];
+        $component = new DummyComponent();
+
+        $builder = $this->makeBuilder($this->collectingEm(), timestampedPersister: $this->recordingTimestampedPersister($calls, isConfigured: false));
+        $builder->persist($component);
+        $builder->flush();
+
+        $this->assertSame([], $calls);
     }
 }
