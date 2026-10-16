@@ -15,7 +15,9 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Silverback\ApiComponentsBundle\AttributeReader\ExplicitAllowOnlyAttributeReader;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
 use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPosition as ComponentPositionConstraint;
 use Symfony\Component\Validator\Constraint;
@@ -30,6 +32,7 @@ class ComponentPositionValidator extends ConstraintValidator
         private readonly IriConverterInterface $iriConverter,
         private readonly PageDataMetadataProvider $pageDataMetadataProvider,
         private readonly ExplicitAllowOnlyAttributeReader $explicitAllowOnlyReader,
+        private readonly ListedComponentPositions $listedComponentPositions,
     ) {
     }
 
@@ -44,6 +47,8 @@ class ComponentPositionValidator extends ConstraintValidator
             return;
         }
 
+        $this->validateMaxComponents($componentPosition, $constraint, $collection);
+
         $component = $componentPosition->component;
         if ($component) {
             $this->validateDirectComponent($componentPosition, $constraint, $component, $collection);
@@ -56,6 +61,25 @@ class ComponentPositionValidator extends ConstraintValidator
         if ($pageDataClass && $pageDataProperty) {
             $this->validateDynamicPosition($componentPosition, $constraint, $pageDataClass, $pageDataProperty, $collection);
         }
+    }
+
+    private function validateMaxComponents(ComponentPosition $componentPosition, ComponentPositionConstraint $constraint, ComponentGroup $collection): void
+    {
+        $limit = $collection->maxComponents;
+        if (null === $limit || $collection->componentPositions->contains($componentPosition)) {
+            return;
+        }
+
+        if (\count($this->listedComponentPositions->of($collection)) < $limit) {
+            return;
+        }
+
+        $this->context->buildViolation($constraint->fullMessage)
+            ->atPath('componentGroup')
+            ->setParameter('{{ reference }}', (string) $collection->reference)
+            ->setParameter('{{ limit }}', (string) $limit)
+            ->setPlural($limit)
+            ->addViolation();
     }
 
     private function validateDirectComponent(ComponentPosition $componentPosition, ComponentPositionConstraint $constraint, object $component, object $collection): void

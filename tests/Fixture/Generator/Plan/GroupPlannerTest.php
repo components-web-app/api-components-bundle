@@ -110,6 +110,18 @@ class GroupPlannerTest extends TestCase
         ], $this->report->all());
     }
 
+    public function test_a_maximum_number_of_components_is_written_after_the_allowed_components(): void
+    {
+        $group = $this->group('top_/_/layouts/main', '/_/layouts/main');
+        $group->allowedComponents = ['/component/dummy_components'];
+        $group->maxComponents = 1;
+
+        $plan = $this->plan($group, $this->layout('main', 'CwaLayoutPrimary'));
+
+        self::assertSame(["'top'", 'allow: [DummyComponent::class]', 'max: 1'], $plan?->arguments);
+        self::assertSame([], $this->report->all());
+    }
+
     public function test_a_component_class_without_a_collection_iri_matches_nothing(): void
     {
         $iriConverter = $this->createStub(IriConverterInterface::class);

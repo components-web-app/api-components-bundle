@@ -1579,6 +1579,7 @@ class GenerateFixturesCommandTest extends TestCase
 
         $header = $this->group('header_/_/layouts/main', '/_/layouts/main', $layout);
         $header->allowedComponents = ['/component/dummy_navigation_links'];
+        $header->maxComponents = 5;
         $contactUs = null;
         foreach ([['Home', $homeRoute, null, null], ['About', $aboutRoute, null, null], ['Our team', $teamRoute, 'subtle', null], ['Conference', $conferenceRoute, null, '2099-03-01T09:00:00+00:00'], ['Contact us', $aboutRoute, null, null]] as $sort => [$label, $route, $theme, $eventDate]) {
             $link = new DummyNavigationLink();

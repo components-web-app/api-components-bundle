@@ -25,6 +25,7 @@ class GroupBuilder
         private readonly string $name,
         private readonly array $allowedClasses = [],
         private readonly ?string $locationReference = null,
+        private readonly ?int $maxComponents = null,
     ) {
     }
 
@@ -52,6 +53,11 @@ class GroupBuilder
     public function getAllowedClasses(): array
     {
         return $this->allowedClasses;
+    }
+
+    public function getMaxComponents(): ?int
+    {
+        return $this->maxComponents;
     }
 
     public function getLocationReference(): ?string

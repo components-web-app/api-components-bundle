@@ -138,6 +138,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
 use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResourceHelper;
@@ -202,6 +203,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
+use Silverback\ApiComponentsBundle\Validator\Constraints\AddedComponentPositionsValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPositionValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
@@ -394,9 +396,22 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(IriConverterInterface::class),
             new Reference('silverback.metadata_provider.page_data'),
             new Reference(ExplicitAllowOnlyAttributeReader::class),
+            new Reference('silverback.api_components.helper.listed_component_positions'),
         ])
         ->tag('validator.constraint_validator');
     $services->alias(ComponentPositionValidator::class, 'silverback.api_components.validator.component_position');
+
+    $services
+        ->set('silverback.api_components.helper.listed_component_positions')
+        ->class(ListedComponentPositions::class)
+        ->args([new Reference(IriConverterInterface::class)]);
+    $services->alias(ListedComponentPositions::class, 'silverback.api_components.helper.listed_component_positions');
+
+    $services
+        ->set('silverback.api_components.validator.added_component_positions')
+        ->class(AddedComponentPositionsValidator::class)
+        ->tag('validator.constraint_validator');
+    $services->alias(AddedComponentPositionsValidator::class, 'silverback.api_components.validator.added_component_positions');
 
     $services
         ->set('silverback.api_components.api_platform.property_metadata_factory.component')

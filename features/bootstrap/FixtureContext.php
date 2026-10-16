@@ -180,6 +180,18 @@ final class FixtureContext implements Context
     }
 
     /**
+     * @Given the site has a layout group that holds at most :max components and a page group with no maximum
+     */
+    public function theSiteHasGroupsWithAndWithoutAMaximum(int $max): void
+    {
+        $cwa = $this->builder();
+        $cwa->layout('main', 'Primary')->group('top', max: $max)->add(new DummyComponent());
+        $cwa->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home', configure: static function (PageBuilder $page): void {
+            $page->group('primary')->add(new DummyComponent());
+        });
+    }
+
+    /**
      * @Given the site has a published component :reference with a draft :draftReference
      */
     public function theSiteHasAPublishedComponentWithADraft(string $reference, string $draftReference): void
@@ -668,6 +680,30 @@ final class FixtureContext implements Context
     {
         $owner = $this->manager->getRepository(Page::class)->findOneBy(['reference' => $page]);
         $this->assertGroup($this->findOwnedGroup($owner?->getComponentGroups() ?? [], $group), $shortName, $count);
+    }
+
+    /**
+     * @Then the group :group of the layout :layout should hold at most :max components
+     */
+    public function theGroupOfTheLayoutShouldHoldAtMost(string $group, string $layout, int $max): void
+    {
+        $owner = $this->manager->getRepository(Layout::class)->findOneBy(['reference' => $layout]);
+        $componentGroup = $this->findOwnedGroup($owner?->getComponentGroups() ?? [], $group);
+        if ($max !== $componentGroup->maxComponents) {
+            throw new \RuntimeException(\sprintf('The group "%s" holds at most %s components, expected %d.', $componentGroup->reference, var_export($componentGroup->maxComponents, true), $max));
+        }
+    }
+
+    /**
+     * @Then the group :group of the page :page should have no maximum number of components
+     */
+    public function theGroupOfThePageShouldHaveNoMaximum(string $group, string $page): void
+    {
+        $owner = $this->manager->getRepository(Page::class)->findOneBy(['reference' => $page]);
+        $componentGroup = $this->findOwnedGroup($owner?->getComponentGroups() ?? [], $group);
+        if (null !== $componentGroup->maxComponents) {
+            throw new \RuntimeException(\sprintf('The group "%s" holds at most %d components, expected no maximum.', $componentGroup->reference, $componentGroup->maxComponents));
+        }
     }
 
     /**

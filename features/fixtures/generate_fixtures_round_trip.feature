@@ -11,6 +11,14 @@ Feature: A site generated as fixtures reloads as the same site
     Then the group "top" of the layout "main" should allow only "DummyComponent" and hold 1 component
     And the group "primary" of the page "home" should allow only "DummyComponent" and hold 1 component
 
+  Scenario: A group keeps its maximum number of components
+    Given the site has a layout group that holds at most 2 components and a page group with no maximum
+    When the site is generated as fixtures and reloaded
+    Then the group "top" of the layout "main" should hold at most 2 components
+    And the group "primary" of the page "home" should have no maximum number of components
+    And the generated fixtures should contain "max: 2"
+    And the command output should not contain "could not be reproduced"
+
   Scenario: Published components stay published and a draft stays linked to its published component
     Given the site has a published component "live" with a draft "live-draft"
     When the site is generated as fixtures and reloaded

@@ -119,10 +119,10 @@ class PageBuilder
         return $routeName;
     }
 
-    public function group(string $name, ?\Closure $configure = null, ?string $locationReference = null, array $allow = []): GroupBuilder
+    public function group(string $name, ?\Closure $configure = null, ?string $locationReference = null, array $allow = [], ?int $max = null): GroupBuilder
     {
         if (!isset($this->groupBuilders[$name])) {
-            $this->groupBuilders[$name] = new GroupBuilder($name, $allow, $locationReference);
+            $this->groupBuilders[$name] = new GroupBuilder($name, $allow, $locationReference, $max);
         }
         if (null !== $configure) {
             $configure($this->groupBuilders[$name]);

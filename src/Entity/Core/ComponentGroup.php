@@ -79,6 +79,11 @@ class ComponentGroup
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write', 'Layout:read', 'Page:read'])]
     public ?array $allowedComponents = null;
 
+    #[ORM\Column(name: 'max_components', type: 'integer', nullable: true)]
+    #[Groups(['ComponentGroup:read', 'ComponentGroup:write', 'Layout:read', 'Page:read'])]
+    #[Assert\Positive]
+    public ?int $maxComponents = null;
+
     public function __construct()
     {
         $this->layouts = new ArrayCollection();
