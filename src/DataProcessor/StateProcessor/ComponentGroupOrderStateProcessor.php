@@ -13,14 +13,12 @@ namespace Silverback\ApiComponentsBundle\DataProcessor\StateProcessor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\Validator\Exception\ValidationException;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\ApiResource\ComponentGroupOrder;
-use Silverback\ApiComponentsBundle\ApiResource\ComponentGroupOrderInput;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
-use Silverback\ApiComponentsBundle\Factory\ComponentPosition\ComponentGroupOrderFactory;
-use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentGroupLock;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionIriResolver;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionOrderer;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentGroupRepository;
@@ -29,40 +27,39 @@ use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 
 /**
- * @implements ProcessorInterface<mixed, ComponentGroupOrder>
+ * @implements ProcessorInterface<mixed, ComponentGroupOrder|null>
  */
 final class ComponentGroupOrderStateProcessor implements ProcessorInterface
 {
     public const string NOT_IN_GROUP_MESSAGE = 'The position `{{ iri }}` is not in the component group `{{ reference }}`.';
     public const string REPEATED_MESSAGE = 'The position `{{ iri }}` is listed more than once.';
 
+    /**
+     * @param ProviderInterface<ComponentGroupOrder> $orderProvider
+     */
     public function __construct(
         private readonly ComponentGroupRepository $componentGroupRepository,
-        private readonly ComponentGroupLock $lock,
         private readonly ComponentPositionOrderer $orderer,
         private readonly ComponentPositionIriResolver $positionIriResolver,
-        private readonly ComponentGroupOrderFactory $componentGroupOrderFactory,
+        private readonly ProviderInterface $orderProvider,
         private readonly ManagerRegistry $registry,
     ) {
     }
 
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): ComponentGroupOrder
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): ?ComponentGroupOrder
     {
         $id = $uriVariables['id'] ?? null;
         $group = \is_string($id) ? $this->componentGroupRepository->findOneByIdOrReference($id) : null;
         if (!$group) {
             throw new NotFoundHttpException('Not Found');
         }
-        $iris = $data instanceof ComponentGroupOrderInput ? $data->componentPositions : [];
 
-        return $this->lock->transactional(function () use ($group, $iris): ComponentGroupOrder {
-            $current = $this->lock->lockedPositions($group);
-            $listed = $this->listedPositions($group, $current, $iris);
-            $ordered = $this->orderer->reorder($current, $listed);
-            $this->registry->getManagerForClass(ComponentPosition::class)?->flush();
+        $current = $this->orderer->sorted($group->componentPositions);
+        $iris = $data instanceof ComponentGroupOrder ? $data->componentPositions : [];
+        $this->orderer->reorder($current, $this->listedPositions($group, $current, $iris));
+        $this->registry->getManagerForClass(ComponentPosition::class)?->flush();
 
-            return $this->componentGroupOrderFactory->create($group, $ordered);
-        });
+        return $this->orderProvider->provide($operation, $uriVariables, $context);
     }
 
     /**

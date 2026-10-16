@@ -15,36 +15,41 @@ use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Link;
-use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Patch;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentGroupOrderStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupOrderStateProvider;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(
     uriTemplate: '/component_groups/{id}/order{._format}',
     operations: [
         new Get(),
-        new Put(input: ComponentGroupOrderInput::class, processor: ComponentGroupOrderStateProcessor::class),
+        new Patch(processor: ComponentGroupOrderStateProcessor::class),
     ],
     uriVariables: ['id' => new Link(fromClass: self::class, identifiers: ['id'])],
     requirements: ['id' => '.+'],
-    normalizationContext: ['groups' => ['ComponentGroupOrder:read']],
+    normalizationContext: ['groups' => ['ComponentGroupOrder:read'], AbstractObjectNormalizer::PRESERVE_EMPTY_OBJECTS => true],
     denormalizationContext: ['groups' => ['ComponentGroupOrder:write']],
     provider: ComponentGroupOrderStateProvider::class,
 )]
 final class ComponentGroupOrder
 {
     /**
-     * @param array<string, int> $sortValues
+     * @param array<string>             $componentPositions
+     * @param \ArrayObject<string, int> $sortValues
      */
     public function __construct(
         #[ApiProperty(readable: false, writable: false, identifier: true)]
         public string $id,
         #[Groups(['ComponentGroupOrder:read'])]
-        public ComponentGroup $componentGroup,
+        public string $componentGroup,
+        #[Groups(['ComponentGroupOrder:read', 'ComponentGroupOrder:write'])]
+        #[Assert\All([new Assert\Type('string')])]
+        public array $componentPositions,
         #[Groups(['ComponentGroupOrder:read'])]
-        public array $sortValues = [],
+        public \ArrayObject $sortValues,
     ) {
     }
 }

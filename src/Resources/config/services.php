@@ -112,7 +112,6 @@ use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTClearTokenListener;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Mailer\MessageEventListener;
 use Silverback\ApiComponentsBundle\EventListener\ResourceChangedEventListener;
-use Silverback\ApiComponentsBundle\Factory\ComponentPosition\ComponentGroupOrderFactory;
 use Silverback\ApiComponentsBundle\Factory\Form\FormViewFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\ApiUrlGenerator;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
@@ -141,7 +140,6 @@ use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
-use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentGroupLock;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionIriResolver;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionOrderer;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
@@ -396,34 +394,18 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(ComponentPositionOrderer::class, 'silverback.api_components.helper.component_position_orderer');
 
     $services
-        ->set('silverback.api_components.helper.component_group_lock')
-        ->class(ComponentGroupLock::class)
-        ->args([
-            new Reference(ManagerRegistry::class),
-            new Reference('silverback.api_components.event_listener.doctrine.propagate_updates_listener', ContainerInterface::NULL_ON_INVALID_REFERENCE),
-        ]);
-    $services->alias(ComponentGroupLock::class, 'silverback.api_components.helper.component_group_lock');
-
-    $services
         ->set('silverback.api_components.helper.component_position_iri_resolver')
         ->class(ComponentPositionIriResolver::class)
         ->args([new Reference(IriConverterInterface::class)]);
     $services->alias(ComponentPositionIriResolver::class, 'silverback.api_components.helper.component_position_iri_resolver');
 
     $services
-        ->set('silverback.api_components.factory.component_group_order')
-        ->class(ComponentGroupOrderFactory::class)
-        ->args([
-            new Reference(IriConverterInterface::class),
-            new Reference('silverback.api_components.helper.listed_component_positions'),
-        ]);
-    $services->alias(ComponentGroupOrderFactory::class, 'silverback.api_components.factory.component_group_order');
-
-    $services
         ->set(ComponentGroupOrderStateProvider::class)
         ->args([
             new Reference('silverback.doctrine.repository.component_group'),
-            new Reference('silverback.api_components.factory.component_group_order'),
+            new Reference('silverback.api_components.helper.listed_component_positions'),
+            new Reference('silverback.api_components.helper.component_position_orderer'),
+            new Reference(IriConverterInterface::class),
         ])
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
@@ -433,10 +415,9 @@ return static function (ContainerConfigurator $configurator) {
         ->set(ComponentGroupOrderStateProcessor::class)
         ->args([
             new Reference('silverback.doctrine.repository.component_group'),
-            new Reference('silverback.api_components.helper.component_group_lock'),
             new Reference('silverback.api_components.helper.component_position_orderer'),
             new Reference('silverback.api_components.helper.component_position_iri_resolver'),
-            new Reference('silverback.api_components.factory.component_group_order'),
+            new Reference(ComponentGroupOrderStateProvider::class),
             new Reference(ManagerRegistry::class),
         ])
         ->autoconfigure(false)
@@ -2076,8 +2057,6 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('silverback.api_components.api_platform.state_processor.component_position_placement.inner'),
-                new Reference(ManagerRegistry::class),
-                new Reference('silverback.api_components.helper.component_group_lock'),
                 new Reference('silverback.api_components.helper.component_position_orderer'),
                 new Reference('silverback.api_components.helper.component_position_iri_resolver'),
             ]

@@ -17,11 +17,9 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\State\ProcessorInterface;
 use ApiPlatform\Validator\Exception\ValidationException;
-use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionPlacementStateProcessor;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
-use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentGroupLock;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionOrderer;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 
@@ -29,7 +27,7 @@ class ComponentPositionPlacementStateProcessorTest extends TestCase
 {
     use ComponentPositionDatabaseTrait;
 
-    private bool $transactionWhilePersisting = false;
+    private bool $persisted = false;
 
     protected function setUp(): void
     {
@@ -44,7 +42,7 @@ class ComponentPositionPlacementStateProcessorTest extends TestCase
         $result = $this->processor()->process($position, new Post());
 
         self::assertSame('done', $result);
-        self::assertTrue($this->transactionWhilePersisting);
+        self::assertTrue($this->persisted);
         self::assertSame(11, $position->sortValue);
         self::assertSame('A0 B10 new11', $this->stored($group));
     }
@@ -123,10 +121,11 @@ class ComponentPositionPlacementStateProcessorTest extends TestCase
 
         $this->processor(true)->process($position, new Patch());
 
-        self::assertFalse($this->transactionWhilePersisting);
+        self::assertSame(5, $position->sortValue);
+        self::assertSame(5, $this->iris['/position/B']->sortValue);
     }
 
-    public function test_an_anchor_gone_from_the_group_by_the_time_it_is_locked_is_refused(): void
+    public function test_an_anchor_outside_the_group_is_refused_before_anything_is_persisted(): void
     {
         $group = $this->group('main', ['A' => 0]);
         $this->group('other', ['X' => 0]);
@@ -142,7 +141,7 @@ class ComponentPositionPlacementStateProcessorTest extends TestCase
             self::assertSame('The position `/position/X` is not in the component group `main`.', $violation->getMessage());
             self::assertSame('/position/X', $violation->getInvalidValue());
         }
-        self::assertFalse($this->entityManager->getConnection()->isTransactionActive());
+        self::assertFalse($this->persisted);
         self::assertSame('A0', $this->stored($group));
     }
 
@@ -154,38 +153,37 @@ class ComponentPositionPlacementStateProcessorTest extends TestCase
         yield 'a delete' => [new Delete(), new ComponentPosition()];
         yield 'an operation that is not HTTP' => [new class extends Operation {}, new ComponentPosition()];
         yield 'a resource that holds no positions' => [new Post(), new \stdClass()];
+        yield 'a position with no group' => [new Post(), new ComponentPosition()];
         yield 'a component with no positions' => [new Post(), new DummyComponent()];
     }
 
     #[\PHPUnit\Framework\Attributes\DataProvider('untouched')]
     public function test_nothing_is_placed_for(Operation $operation, mixed $data): void
     {
-        $registry = $this->createMock(ManagerRegistry::class);
-        $registry->expects(self::never())->method('getManagerForClass');
         $decorated = $this->createMock(ProcessorInterface::class);
         $decorated->expects(self::once())->method('process')->with($data, $operation)->willReturn('done');
-
-        $processor = new ComponentPositionPlacementStateProcessor($decorated, $registry, new ComponentGroupLock($registry), new ComponentPositionOrderer(), $this->resolver());
+        $processor = new ComponentPositionPlacementStateProcessor($decorated, new ComponentPositionOrderer(), $this->resolver());
 
         self::assertSame('done', $processor->process($data, $operation));
+        if ($data instanceof ComponentPosition) {
+            self::assertNull($data->sortValue);
+        }
     }
 
-    public function test_a_registry_without_an_orm_entity_manager_is_refused(): void
+    public function test_a_position_with_no_group_is_not_placed(): void
     {
-        $registry = $this->createStub(ManagerRegistry::class);
-        $registry->method('getManagerForClass')->willReturn(null);
-        $processor = new ComponentPositionPlacementStateProcessor($this->createStub(ProcessorInterface::class), $registry, new ComponentGroupLock($registry), new ComponentPositionOrderer(), $this->resolver());
+        $position = new ComponentPosition();
 
-        $this->expectException(\LogicException::class);
+        $this->processor(true)->process($position, new Post());
 
-        $processor->process(new ComponentPosition(), new Post());
+        self::assertNull($position->sortValue);
     }
 
     private function processor(bool $flushOnly = false): ComponentPositionPlacementStateProcessor
     {
         $decorated = $this->createStub(ProcessorInterface::class);
         $decorated->method('process')->willReturnCallback(function (mixed $data) use ($flushOnly): string {
-            $this->transactionWhilePersisting = $this->entityManager->getConnection()->isTransactionActive();
+            $this->persisted = true;
             if (!$flushOnly) {
                 $this->entityManager->persist($data);
             }
@@ -194,7 +192,7 @@ class ComponentPositionPlacementStateProcessorTest extends TestCase
             return 'done';
         });
 
-        return new ComponentPositionPlacementStateProcessor($decorated, $this->registry, new ComponentGroupLock($this->registry), new ComponentPositionOrderer(), $this->resolver());
+        return new ComponentPositionPlacementStateProcessor($decorated, new ComponentPositionOrderer(), $this->resolver());
     }
 
     private function newPosition(\Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup $group): ComponentPosition

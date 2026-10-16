@@ -73,6 +73,7 @@ trait ComponentPositionDatabaseTrait
         $position->componentGroup = $group;
         $position->component = $component;
         $position->sortValue = $sortValue;
+        $group->addComponentPosition($position);
         $this->entityManager->persist($position);
 
         return $position;

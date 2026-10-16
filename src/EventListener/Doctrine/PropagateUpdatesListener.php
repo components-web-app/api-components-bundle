@@ -45,7 +45,6 @@ class PropagateUpdatesListener implements ResetInterface
     private \SplObjectStorage $updatedResources;
     private array $pageDataPropertiesChanged = [];
     private array $updatedCollectionClassToIriMapping = [];
-    private int $holds = 0;
 
     /**
      * @param iterable|ResourceChangedPropagatorInterface[] $resourceChangedPropagators
@@ -102,39 +101,11 @@ class PropagateUpdatesListener implements ResetInterface
 
     public function postFlush(PostFlushEventArgs $eventArgs): void
     {
-        if ($this->fixtureLoad?->isLoadingFixtures() || $this->holds > 0) {
+        if ($this->fixtureLoad?->isLoadingFixtures()) {
             return;
         }
 
-        $this->propagate($eventArgs->getObjectManager());
-    }
-
-    public function hold(): void
-    {
-        ++$this->holds;
-    }
-
-    public function release(ObjectManager $objectManager, bool $committed): void
-    {
-        if ($this->holds > 0 && --$this->holds > 0) {
-            return;
-        }
-
-        if ($committed) {
-            $this->propagate($objectManager);
-
-            return;
-        }
-
-        foreach ($this->resourceChangedPropagators as $resourceChangedPropagator) {
-            $resourceChangedPropagator->reset();
-        }
-        $this->reset();
-    }
-
-    private function propagate(ObjectManager $objectManager): void
-    {
-        $this->refreshUpdatedEntities($objectManager);
+        $this->refreshUpdatedEntities($eventArgs->getObjectManager());
         $this->collectDynamicComponentPositionResources();
         $this->collectRelatedCollectionComponentResources();
         $this->purgeResources();
@@ -334,7 +305,6 @@ class PropagateUpdatesListener implements ResetInterface
 
     public function reset(): void
     {
-        $this->holds = 0;
         $this->updatedResources = new \SplObjectStorage();
         $this->pageDataPropertiesChanged = [];
         $this->updatedCollectionClassToIriMapping = [];

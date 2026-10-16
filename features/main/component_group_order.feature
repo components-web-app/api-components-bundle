@@ -293,6 +293,27 @@ Feature: Ordering the positions in a component group
     And the ComponentGroup "component_group" should hold the positions "B10 N15 A16"
 
   @loginUser
+  Scenario: A position another request added between the client's read and its reorder is in the reorder response
+    Given there is a ComponentGroup with the positions "A0 B10"
+    When I send a "GET" request to the resource "component_group" and the postfix "/order"
+    Then the order response should list the sort values "A0 B10"
+    Given there is a DummyComponent
+    And I add "Accept" header equal to "application/ld+json"
+    And I add the logged in user's token to the request
+    When I send a "POST" request to "/_/component_positions" with data:
+      | componentGroup            | component                 |
+      | resource[component_group] | resource[dummy_component] |
+    Then the response status code should be 201
+    And I save the JSON node "@id" as the resource "N"
+    Given I add "Accept" header equal to "application/ld+json"
+    And I add the logged in user's token to the request
+    When I send the order "B, A" for the ComponentGroup "component_group"
+    Then the response status code should be 200
+    And the order response should list the sort values "B10 N11 A12"
+    And the JSON node "componentPositions" should list the resources "B, N, A" in that order
+    And the ComponentGroup "component_group" should hold the positions "B10 N11 A12"
+
+  @loginUser
   Scenario: A position deleted since the client loaded the group is ignored
     Given there is a ComponentGroup with the positions "A0 B10 C20"
     And the ComponentPosition "C" has been deleted
@@ -322,8 +343,10 @@ Feature: Ordering the positions in a component group
     Then the response status code should be 200
     And the order response should be the order of the ComponentGroup "component_group"
     And the order response should list the sort values "C20 A21 B22"
+    And the JSON node "componentPositions" should list the resources "C, A, B" in that order
     And Mercure updates should have been published for exactly the ComponentPositions "A, B"
     And the order response should equal a fresh read of the order of the ComponentGroup "component_group"
+    And the JSON node "componentPositions" should list the resources "C, A, B" in that order
 
   Scenario: Anyone who can read the group can read its order
     Given there is a ComponentGroup with the positions "A0 B10"
@@ -331,6 +354,7 @@ Feature: Ordering the positions in a component group
     Then the response status code should be 200
     And the order response should be the order of the ComponentGroup "component_group"
     And the order response should list the sort values "A0 B10"
+    And the JSON node "componentPositions" should list the resources "A, B" in that order
 
   @loginAdmin
   Scenario Outline: An admin reads the same order with or without the draft query
@@ -357,6 +381,7 @@ Feature: Ordering the positions in a component group
     When I send a "GET" request to the resource "component_group" and the postfix "/order"
     Then the response status code should be 200
     And the order response should list the sort values "A0 B20"
+    And the JSON node "componentPositions" should list the resources "A, B" in that order
 
   Scenario: The order of a group with no positions is empty
     Given there is a ComponentGroup with the positions ""
@@ -427,11 +452,34 @@ Feature: Ordering the positions in a component group
 
   @loginUser
   Scenario: A reorder of a group that does not exist is a 404
-    When I send a "PUT" request to "/_/component_groups/not-a-group/order" with body:
+    Given I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to "/_/component_groups/not-a-group/order" with body:
     """
     {"componentPositions": []}
     """
     Then the response status code should be 404
+
+  @loginUser
+  Scenario: A reorder is a merge-patch
+    Given there is a ComponentGroup with the positions "A0 B10"
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to "/_/component_groups/collection/order" with data:
+      | componentPositions                         |
+      | json_decode(["resource[B]", "resource[A]"]) |
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the order response should list the sort values "B10 A11"
+
+  @loginUser
+  Scenario: A reorder sent as JSON-LD is refused
+    Given there is a ComponentGroup with the positions "A0 B10"
+    And I add "Content-Type" header equal to "application/ld+json"
+    When I send a "PATCH" request to "/_/component_groups/collection/order" with body:
+    """
+    {"componentPositions": []}
+    """
+    Then the response status code should be 415
+    And the ComponentGroup "component_group" should hold the positions "A0 B10"
 
   @loginUser
   Scenario: The order is the group's own IRI with /order appended, under the route import prefix
@@ -451,3 +499,18 @@ Feature: Ordering the positions in a component group
     Then the response status code should be 200
     And the order response should be the order of the ComponentGroup "prefixed_group"
     And the order response should list the sort values "B10 A11"
+
+  @loginUser
+  Scenario: The sortValues and componentGroup of a reorder body are read-only and change nothing
+    Given there is a ComponentGroup with the positions "A0 B10"
+    And there is another ComponentGroup with the positions "X0"
+    And I add "Content-Type" header equal to "application/merge-patch+json"
+    When I send a "PATCH" request to "/_/component_groups/collection/order" with data:
+      | componentGroup                  | sortValues                          |
+      | resource[other_component_group] | json_decode({"resource[B]": 0, "resource[A]": 5}) |
+    Then the response status code should be 200
+    And the order response should be the order of the ComponentGroup "component_group"
+    And the order response should list the sort values "A0 B10"
+    And the JSON node "componentPositions" should list the resources "A, B" in that order
+    And the ComponentGroup "component_group" should hold the positions "A0 B10"
+    And the ComponentGroup "other_component_group" should hold the positions "X0"

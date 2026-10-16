@@ -11,8 +11,10 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Helper\ComponentPosition;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionOrderer;
 
@@ -148,6 +150,17 @@ class ComponentPositionOrdererTest extends TestCase
                 }
             }
         }
+    }
+
+    public function test_positions_are_sorted_by_sort_value_then_id(): void
+    {
+        $late = $this->position('L', 9);
+        $second = $this->position('S', 2);
+        (new \ReflectionProperty(ComponentPosition::class, 'id'))->setValue($second, Uuid::fromString('bbbbbbbb-0000-4000-8000-000000000000'));
+        $first = $this->position('F', 2);
+        (new \ReflectionProperty(ComponentPosition::class, 'id'))->setValue($first, Uuid::fromString('aaaaaaaa-0000-4000-8000-000000000000'));
+
+        self::assertSame([$first, $second, $late], $this->orderer->sorted(new ArrayCollection([$late, $second, $first])));
     }
 
     /**

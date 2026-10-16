@@ -11,13 +11,12 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\DataProcessor\StateProcessor;
 
-use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Validator\Exception\ValidationException;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentsBundle\ApiResource\ComponentGroupOrderInput;
+use Silverback\ApiComponentsBundle\ApiResource\ComponentGroupOrder;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentGroupOrderStateProcessor;
-use Silverback\ApiComponentsBundle\Factory\ComponentPosition\ComponentGroupOrderFactory;
-use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentGroupLock;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupOrderStateProvider;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionOrderer;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentGroupRepository;
@@ -36,30 +35,31 @@ class ComponentGroupOrderStateProcessorTest extends TestCase
     {
         $group = $this->group('main', ['A' => 0, 'B' => 10, 'C' => 20]);
 
-        $order = $this->processor()->process($this->input(['/position/B', '/position/A', '/position/C']), new Put(), ['id' => 'main']);
+        $order = $this->processor()->process($this->input(['/position/B', '/position/A', '/position/C']), new Patch(), ['id' => 'main']);
 
-        self::assertSame($group, $order->componentGroup);
-        self::assertSame(['/position/B' => 10, '/position/A' => 11, '/position/C' => 20], $order->sortValues);
+        self::assertSame('/group/main', $order?->componentGroup);
+        self::assertSame(['/position/B' => 10, '/position/A' => 11, '/position/C' => 20], $order->sortValues->getArrayCopy());
+        self::assertSame(['/position/B', '/position/A', '/position/C'], $order->componentPositions);
         self::assertSame('B10 A11 C20', $this->stored($group));
-        self::assertFalse($this->entityManager->getConnection()->isTransactionActive());
     }
 
     public function test_a_position_that_no_longer_exists_is_ignored(): void
     {
         $group = $this->group('main', ['A' => 0, 'B' => 10]);
 
-        $order = $this->processor()->process($this->input(['/position/deleted', '/position/B', '/position/A']), new Put(), ['id' => 'main']);
+        $order = $this->processor()->process($this->input(['/position/deleted', '/position/B', '/position/A']), new Patch(), ['id' => 'main']);
 
-        self::assertSame(['/position/B' => 10, '/position/A' => 11], $order->sortValues);
+        self::assertSame(['/position/B' => 10, '/position/A' => 11], $order?->sortValues->getArrayCopy());
         self::assertSame('B10 A11', $this->stored($group));
     }
 
-    public function test_an_unlisted_position_follows_its_predecessor(): void
+    public function test_an_unlisted_position_follows_its_predecessor_and_is_in_the_response(): void
     {
         $group = $this->group('main', ['A' => 0, 'N' => 5, 'B' => 10]);
 
-        $this->processor()->process($this->input(['/position/B', '/position/A']), new Put(), ['id' => 'main']);
+        $order = $this->processor()->process($this->input(['/position/B', '/position/A']), new Patch(), ['id' => 'main']);
 
+        self::assertSame(['/position/B' => 10, '/position/A' => 11, '/position/N' => 12], $order?->sortValues->getArrayCopy());
         self::assertSame('B10 A11 N12', $this->stored($group));
     }
 
@@ -84,7 +84,7 @@ class ComponentGroupOrderStateProcessorTest extends TestCase
         $this->group('other', ['X' => 0]);
 
         try {
-            $this->processor()->process($this->input($iris), new Put(), ['id' => 'main']);
+            $this->processor()->process($this->input($iris), new Patch(), ['id' => 'main']);
             self::fail('The order was not refused');
         } catch (ValidationException $exception) {
             $violations = $exception->getConstraintViolationList();
@@ -95,7 +95,6 @@ class ComponentGroupOrderStateProcessorTest extends TestCase
         }
 
         self::assertSame('A0 B10', $this->stored($group));
-        self::assertFalse($this->entityManager->getConnection()->isTransactionActive());
     }
 
     public function test_every_refusal_is_reported(): void
@@ -104,7 +103,7 @@ class ComponentGroupOrderStateProcessorTest extends TestCase
         $this->group('other', ['X' => 0]);
 
         try {
-            $this->processor()->process($this->input(['/position/X', '/position/A', '/position/A']), new Put(), ['id' => 'main']);
+            $this->processor()->process($this->input(['/position/X', '/position/A', '/position/A']), new Patch(), ['id' => 'main']);
             self::fail('The order was not refused');
         } catch (ValidationException $exception) {
             self::assertCount(2, $exception->getConstraintViolationList());
@@ -115,35 +114,35 @@ class ComponentGroupOrderStateProcessorTest extends TestCase
     {
         $this->expectException(NotFoundHttpException::class);
 
-        $this->processor()->process($this->input([]), new Put(), ['id' => 'missing']);
+        $this->processor()->process($this->input([]), new Patch(), ['id' => 'missing']);
     }
 
     public function test_an_id_that_is_not_a_string_is_not_found(): void
     {
         $this->expectException(NotFoundHttpException::class);
 
-        $this->processor()->process($this->input([]), new Put(), []);
+        $this->processor()->process($this->input([]), new Patch(), []);
     }
 
     public function test_data_that_is_not_an_order_lists_nothing(): void
     {
-        $group = $this->group('main', ['A' => 5, 'B' => 5]);
+        $this->group('main', ['A' => 5, 'B' => 5]);
 
-        $order = $this->processor()->process(null, new Put(), ['id' => 'main']);
+        $order = $this->processor()->process(null, new Patch(), ['id' => 'main']);
 
-        self::assertSame([5, 6], array_values($order->sortValues));
+        self::assertSame([5, 6], array_values($order?->sortValues->getArrayCopy() ?? []));
     }
 
     private function processor(): ComponentGroupOrderStateProcessor
     {
         $iriConverter = $this->iriConverter();
+        $repository = new ComponentGroupRepository($this->registry);
 
         return new ComponentGroupOrderStateProcessor(
-            new ComponentGroupRepository($this->registry),
-            new ComponentGroupLock($this->registry),
+            $repository,
             new ComponentPositionOrderer(),
             $this->resolver(),
-            new ComponentGroupOrderFactory($iriConverter, new ListedComponentPositions($iriConverter)),
+            new ComponentGroupOrderStateProvider($repository, new ListedComponentPositions($iriConverter), new ComponentPositionOrderer(), $iriConverter),
             $this->registry,
         );
     }
@@ -151,11 +150,8 @@ class ComponentGroupOrderStateProcessorTest extends TestCase
     /**
      * @param list<string> $iris
      */
-    private function input(array $iris): ComponentGroupOrderInput
+    private function input(array $iris): ComponentGroupOrder
     {
-        $input = new ComponentGroupOrderInput();
-        $input->componentPositions = $iris;
-
-        return $input;
+        return new ComponentGroupOrder('main', '/group/main', $iris, new \ArrayObject());
     }
 }

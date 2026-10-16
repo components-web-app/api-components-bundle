@@ -172,8 +172,8 @@ class RestContext implements Context
         if (!str_starts_with($groupIri, $this->resourceIriPrefix . '/')) {
             $groupIri = $this->resourceIriPrefix . $groupIri;
         }
-        $this->restContext->iAddHeaderEqualTo('Content-Type', 'application/ld+json');
-        $this->restContext->iSendARequestToWithBody('PUT', $groupIri . '/order', new PyStringNode([json_encode(['componentPositions' => $iris], \JSON_THROW_ON_ERROR)], 0));
+        $this->restContext->iAddHeaderEqualTo('Content-Type', 'application/merge-patch+json');
+        $this->restContext->iSendARequestToWithBody('PATCH', $groupIri . '/order', new PyStringNode([json_encode(['componentPositions' => $iris], \JSON_THROW_ON_ERROR)], 0));
     }
 
     /**

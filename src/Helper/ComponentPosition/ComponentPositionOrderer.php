@@ -16,6 +16,19 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 final class ComponentPositionOrderer
 {
     /**
+     * @param iterable<ComponentPosition> $positions
+     *
+     * @return list<ComponentPosition>
+     */
+    public function sorted(iterable $positions): array
+    {
+        $sorted = [...$positions];
+        usort($sorted, static fn (ComponentPosition $a, ComponentPosition $b) => [$a->sortValue, (string) $a->getId()] <=> [$b->sortValue, (string) $b->getId()]);
+
+        return $sorted;
+    }
+
+    /**
      * @param list<ComponentPosition> $current
      *
      * @return list<ComponentPosition>
