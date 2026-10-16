@@ -26,7 +26,7 @@ class PageDataBuilder
     private ?string $redirectTo = null;
     private ?AbstractPageData $existingPageData = null;
 
-    /** @var list<array{string, string}> */
+    /** @var list<array{string, string|PageBuilder|PageDataBuilder}> */
     private array $routeLinks = [];
 
     /** @var list<IriLink> */
@@ -85,14 +85,14 @@ class PageDataBuilder
         return $routeName;
     }
 
-    public function linkRoute(string $property, string $routeName): self
+    public function linkRoute(string $property, ?string $routeName = null, PageBuilder|self|null $page = null): self
     {
-        $this->routeLinks[] = [$property, $routeName];
+        $this->routeLinks[] = RouteLink::to($property, $routeName, $page);
 
         return $this;
     }
 
-    /** @return list<array{string, string}> */
+    /** @return list<array{string, string|PageBuilder|PageDataBuilder}> */
     public function getRouteLinks(): array
     {
         return $this->routeLinks;
@@ -101,7 +101,7 @@ class PageDataBuilder
     /**
      * @param string|int|array<string|int>|null $key
      */
-    public function linkIri(string $property, string|int|array|null $key = null, ?string $page = null, ?string $layout = null, ?string $pageData = null, ?string $route = null): self
+    public function linkIri(string $property, string|int|array|null $key = null, string|PageBuilder|null $page = null, ?string $layout = null, string|self|null $pageData = null, string|PageBuilder|self|null $route = null): self
     {
         $this->iriLinks[] = IriLink::to($property, $key, $page, $layout, $pageData, $route);
 

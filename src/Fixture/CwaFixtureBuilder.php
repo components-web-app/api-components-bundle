@@ -88,7 +88,7 @@ class CwaFixtureBuilder implements ResetInterface
     /** @var array<int, \Closure> */
     private array $afterRoutesCallbacks = [];
 
-    /** @var array<int, array{path: string, to: string, name: ?string, route: ?Route}> */
+    /** @var array<int, array{path: string, to: string|PageBuilder|PageDataBuilder, name: ?string, route: ?Route}> */
     private array $redirectSpecs = [];
 
     /** @var array<int, ComponentBuilder> keyed by spl_object_id of the AbstractComponent */
@@ -380,7 +380,7 @@ class CwaFixtureBuilder implements ResetInterface
         return $this;
     }
 
-    public function redirect(string $path, string $to, ?string $name = null): static
+    public function redirect(string $path, string|PageBuilder|PageDataBuilder $to, ?string $name = null): static
     {
         $this->redirectSpecs[] = ['path' => $path, 'to' => $to, 'name' => $name, 'route' => null];
 
@@ -405,6 +405,26 @@ class CwaFixtureBuilder implements ResetInterface
     private function routeNamedBy(string $routeName, string $referrer): Route
     {
         return $this->findNamedRoute($routeName) ?? throw new \LogicException(\sprintf('%s the route name "%s", but no route in this load or the database has that name. Routes in this load: %s.', $referrer, $routeName, [] === $this->namedRoutes ? 'none' : implode(', ', array_keys($this->namedRoutes))));
+    }
+
+    private function routeTo(string|PageBuilder|PageDataBuilder $target, string $referrer): Route
+    {
+        if (\is_string($target)) {
+            return $this->routeNamedBy($target, $referrer);
+        }
+
+        return $target->getRoute() ?? $this->routeAtDeclaredPath($target) ?? throw new \LogicException(\sprintf('%s %s, which has no route.', $referrer, $target instanceof PageBuilder ? \sprintf('the page "%s"', $target->getPage()->reference) : \sprintf('the page data %s %s', $target->getPageData()::class, null === $target->getPageData()->getTitle() ? '(untitled)' : \sprintf('"%s"', $target->getPageData()->getTitle()))));
+    }
+
+    private function routeAtDeclaredPath(PageBuilder|PageDataBuilder $target): ?Route
+    {
+        foreach ([...$this->pageSpecs, ...$this->pageDataSpecs] as $spec) {
+            if ($spec['builder'] === $target && null !== $spec['route']) {
+                return $this->findOne(Route::class, ['path' => $spec['route']]);
+            }
+        }
+
+        return null;
     }
 
     public function flush(): void
@@ -876,7 +896,7 @@ class CwaFixtureBuilder implements ResetInterface
                 }
             }
             $route = $this->createExplicitRoute($spec['path'], $spec['name'] ?? $this->uniqueRouteName(RouteName::fromPath($spec['path'])));
-            $route->setRedirect($this->routeNamedBy($spec['to'], \sprintf('The redirect "%s" leads to', $spec['path'])));
+            $route->setRedirect($this->routeTo($spec['to'], \sprintf('The redirect "%s" leads to', $spec['path'])));
             $this->timestampedPersister->persistTimestampedFields($route, true);
             $this->manager->persist($route);
             $this->createdRouteNames[$route->getName()] = $route->getPath();
@@ -1026,15 +1046,15 @@ class CwaFixtureBuilder implements ResetInterface
     }
 
     /**
-     * @param list<array{string, string}> $links
+     * @param list<array{string, string|PageBuilder|PageDataBuilder}> $links
      */
     private function applyRouteLinks(ComponentBuilder|PageDataBuilder $builder, object $target, array $links): void
     {
         $oid = spl_object_id($builder);
         $pending = \array_slice($links, $this->appliedRouteLinks[$oid] ?? 0);
         $this->appliedRouteLinks[$oid] = \count($links);
-        foreach ($pending as [$property, $routeName]) {
-            $route = $this->routeNamedBy($routeName, \sprintf('%s::$%s links to', $target::class, $property));
+        foreach ($pending as [$property, $routeTarget]) {
+            $route = $this->routeTo($routeTarget, \sprintf('%s::$%s links to', $target::class, $property));
             try {
                 $this->propertyAccessor->setValue($target, $property, $route);
             } catch (NoSuchPropertyException|InvalidTypeException $exception) {
@@ -1069,12 +1089,21 @@ class CwaFixtureBuilder implements ResetInterface
 
     private function iriLinkTarget(IriLink $link, string $referrer): object
     {
+        if (IriLink::ROUTE === $link->target) {
+            return $this->routeTo($link->name, $referrer);
+        }
+        if ($link->name instanceof PageBuilder) {
+            return $this->resolve($link->name->getPage());
+        }
+        if ($link->name instanceof PageDataBuilder) {
+            return $this->resolve($link->name->getPageData());
+        }
+
         return match ($link->target) {
             IriLink::PAGE => (isset($this->pageSpecs[$link->name]) ? $this->resolve($this->pageSpecs[$link->name]['builder']->getPage()) : $this->findOne(Page::class, ['reference' => $link->name]))
                 ?? throw new \LogicException(\sprintf('%s the page "%s", but no page in this load or the database has that reference.', $referrer, $link->name)),
             IriLink::LAYOUT => (isset($this->layoutBuilders[$link->name]) ? $this->resolve($this->layoutBuilders[$link->name]->getLayout()) : $this->findOne(Layout::class, ['reference' => $link->name]))
                 ?? throw new \LogicException(\sprintf('%s the layout "%s", but no layout in this load or the database has that reference.', $referrer, $link->name)),
-            IriLink::ROUTE => $this->routeNamedBy($link->name, $referrer),
             default => $this->pageDataAt($this->routeNamedBy($link->name, $referrer))
                 ?? throw new \LogicException(\sprintf('%s the page data at the route "%s", but that route has no page data.', $referrer, $link->name)),
         };

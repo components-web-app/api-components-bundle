@@ -25,16 +25,16 @@ final readonly class IriLink
         public string $property,
         public array $key,
         public string $target,
-        public string $name,
+        public string|PageBuilder|PageDataBuilder $name,
     ) {
     }
 
     /**
      * @param string|int|array<mixed>|null $key
      */
-    public static function to(string $property, string|int|array|null $key = null, ?string $page = null, ?string $layout = null, ?string $pageData = null, ?string $route = null): self
+    public static function to(string $property, string|int|array|null $key = null, string|PageBuilder|null $page = null, ?string $layout = null, string|PageDataBuilder|null $pageData = null, string|PageBuilder|PageDataBuilder|null $route = null): self
     {
-        $targets = array_filter([self::PAGE => $page, self::LAYOUT => $layout, self::PAGE_DATA => $pageData, self::ROUTE => $route], static fn (?string $name): bool => null !== $name);
+        $targets = array_filter([self::PAGE => $page, self::LAYOUT => $layout, self::PAGE_DATA => $pageData, self::ROUTE => $route], static fn (string|PageBuilder|PageDataBuilder|null $name): bool => null !== $name);
         if (1 !== \count($targets)) {
             throw new \InvalidArgumentException(\sprintf('linkIri() for the property "%s" needs exactly one of page, layout, pageData or route; %d given.', $property, \count($targets)));
         }
@@ -45,7 +45,7 @@ final readonly class IriLink
             }
         }
 
-        return new self($property, $key, (string) array_key_first($targets), (string) reset($targets));
+        return new self($property, $key, (string) array_key_first($targets), reset($targets));
     }
 
     public function describe(): string

@@ -3104,6 +3104,154 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->flush();
     }
 
+    private function suffixingRouteGenerator(): RouteGeneratorInterface
+    {
+        $generator = $this->createStub(RouteGeneratorInterface::class);
+        $generator->method('create')->willReturnCallback(static function (AbstractPage $entity): Route {
+            $name = strtolower((string) $entity->getTitle()) . '-1';
+            $route = (new Route())->setPath('/' . $name)->setName($name);
+            $entity->setRoute($route);
+
+            return $route;
+        });
+
+        return $generator;
+    }
+
+    public function test_a_page_builder_as_a_route_link_target_resolves_to_its_generated_suffixed_route_with_no_extra_flush(): void
+    {
+        $counts = [];
+        foreach (['about-1', null] as $routeName) {
+            $flushCount = 0;
+            $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount), $this->suffixingRouteGenerator());
+            $link = new DummyNavigationLink();
+            $builder->layout('main', 'Primary')->group('nav')->add($link);
+            $about = $builder->page('about', 'Primary', layout: 'main')->title('About');
+            $componentBuilder = null === $routeName ? $builder->component($link)->linkRoute('route', page: $about) : $builder->component($link)->linkRoute('route', $routeName);
+            $this->assertInstanceOf(ComponentBuilder::class, $componentBuilder);
+            $builder->flush();
+            $counts[] = $flushCount;
+
+            $this->assertSame('/about-1', $link->route?->getPath());
+            $this->assertSame($about->getRoute(), $link->route);
+        }
+
+        $this->assertSame($counts[0], $counts[1]);
+    }
+
+    public function test_a_page_data_builder_as_a_route_link_target_resolves_to_its_generated_route(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), $this->suffixingRouteGenerator());
+        $link = new DummyNavigationLink();
+        $builder->layout('main', 'Primary')->group('nav')->add($link);
+        $about = $builder->page('about', 'Primary', layout: 'main')->title('About');
+        $event = $builder->pageData(self::titled(new PageData(), 'Event'));
+        $related = new PageDataWithRoute();
+        $related->setTitle('Related');
+
+        $builder->component($link)->linkRoute('route', page: $event);
+        $this->assertInstanceOf(PageDataBuilder::class, $builder->pageData($related)->linkRoute('relatedRoute', page: $about));
+        $builder->flush();
+
+        $this->assertSame('/event-1', $link->route?->getPath());
+        $this->assertSame('/about-1', $related->relatedRoute?->getPath());
+    }
+
+    public function test_a_redirect_to_a_page_builder_or_a_page_data_builder_leads_to_its_generated_route(): void
+    {
+        $persisted = [];
+        $builder = $this->makeBuilder($this->collectingEm($persisted), $this->suffixingRouteGenerator());
+        $builder->layout('main', 'Primary');
+        $about = $builder->page('about', 'Primary', layout: 'main')->title('About');
+        $event = $builder->pageData(self::titled(new PageData(), 'Event'));
+
+        $builder->redirect('/old-about', to: $about)->redirect('/old-event', to: $event);
+        $builder->flush();
+
+        $redirects = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route && null !== $e->getRedirect()));
+        $this->assertSame(['/about-1', '/event-1'], array_map(static fn (Route $r) => $r->getRedirect()->getPath(), $redirects));
+    }
+
+    public function test_an_iri_link_takes_a_page_builder_a_page_data_builder_or_either_as_a_route(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), $this->suffixingRouteGenerator(), $this->referenceIriConverter());
+        $collection = new Collection();
+        $builder->layout('main', 'Primary')->group('nav')->add($collection);
+        $blog = $builder->page('blog', 'Primary', layout: 'main')->title('Blog');
+        $event = $builder->pageData(self::titled(new PageData(), 'Event'));
+
+        $builder->component($collection)
+            ->linkIri('defaultQueryParameters', key: 'page', page: $blog)
+            ->linkIri('defaultQueryParameters', key: 'pageData', pageData: $event)
+            ->linkIri('defaultQueryParameters', key: 'pageRoute', route: $blog)
+            ->linkIri('defaultQueryParameters', key: 'pageDataRoute', route: $event);
+        $builder->flush();
+
+        $this->assertSame([
+            'page' => '/_/pages/blog',
+            'pageData' => '/page_data/Event',
+            'pageRoute' => '/_/routes/blog-1',
+            'pageDataRoute' => '/_/routes/event-1',
+        ], $collection->getDefaultQueryParameters());
+    }
+
+    public function test_a_route_link_to_a_page_builder_with_no_route_throws_naming_the_page_and_the_caller(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $link = new DummyNavigationLink();
+        $builder->layout('main', 'Primary')->group('nav')->add($link);
+        $template = $builder->page('template', 'Primary', layout: 'main', isTemplate: true);
+        $builder->component($link)->linkRoute('route', page: $template);
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage(DummyNavigationLink::class . '::$route links to the page "template", which has no route.');
+        $builder->flush();
+    }
+
+    public function test_a_redirect_to_a_page_data_builder_with_no_route_throws_naming_the_page_data_and_the_redirect(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), $this->suffixingRouteGenerator());
+        $builder->layout('main', 'Primary');
+        $event = $builder->pageData(self::titled(new PageData(), 'Event'))->withoutRoute();
+        $builder->redirect('/old', to: $event);
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('The redirect "/old" leads to the page data ' . PageData::class . ' "Event", which has no route.');
+        $builder->flush();
+    }
+
+    public function test_an_iri_link_to_the_route_of_an_untitled_page_data_builder_throws_naming_the_caller(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), $this->suffixingRouteGenerator(), $this->referenceIriConverter());
+        $collection = new Collection();
+        $builder->layout('main', 'Primary')->group('nav')->add($collection);
+        $untitled = $builder->pageData(new PageData());
+        $builder->component($collection)->linkIri('resourceIri', route: $untitled);
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage(Collection::class . '::$resourceIri links to the page data ' . PageData::class . ' (untitled), which has no route.');
+        $builder->flush();
+    }
+
+    public function test_a_route_link_with_neither_a_route_name_nor_a_page_throws(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('linkRoute() for the property "route" needs exactly one of routeName or page; 0 given.');
+        $builder->component(new DummyNavigationLink())->linkRoute('route');
+    }
+
+    public function test_a_route_link_with_both_a_route_name_and_a_page_throws(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $about = $builder->page('about', 'Primary', layout: 'main', route: '/about');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('linkRoute() for the property "relatedRoute" needs exactly one of routeName or page; 2 given.');
+        $builder->pageData(new PageDataWithRoute())->linkRoute('relatedRoute', 'about', page: $about);
+    }
+
     public function test_an_iri_link_writes_the_iri_of_a_page_into_a_key_of_an_array_field_before_after_routes_callbacks_run(): void
     {
         $builder = $this->makeBuilder($this->collectingEm(), iriConverter: $this->referenceIriConverter());
