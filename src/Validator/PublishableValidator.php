@@ -42,11 +42,7 @@ final class PublishableValidator implements ValidatorInterface
             && $this->publishableStatusChecker->getAttributeReader()->isConfigured($data)
             && ($this->publishableStatusChecker->hasPublicationDate($data) || isset($context[self::PUBLISHED_KEY]))
         ) {
-            $groups = [(new \ReflectionClass($data::class))->getShortName() . ':published'];
-            if (!empty($this->publishableStatusChecker->getAttributeReader()->getConfiguration($data)->validationGroups)) {
-                $groups = $this->publishableStatusChecker->getAttributeReader()->getConfiguration($data)->validationGroups;
-            }
-            $context['groups'] = array_merge($context['groups'] ?? ['Default'], $groups);
+            $context['groups'] = array_merge($context['groups'] ?? ['Default'], $this->publishableStatusChecker->getAttributeReader()->getPublishedValidationGroups($data));
         }
 
         $this->decorated->validate($data, $context);

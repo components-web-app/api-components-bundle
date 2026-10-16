@@ -16,10 +16,12 @@ use League\Flysystem\FilesystemOperator;
 final class StoredFile
 {
     public const string SVG_MIME_TYPE = 'image/svg+xml';
+    private const string SVG_NUMBER = '-?[0-9]*\.?[0-9]+(?:e[+-]?[0-9]+)?';
+    private const string SVG_LENGTH = self::SVG_NUMBER . '(?i:px|in|cm|mm|pt|pc|q)?';
 
     private ?string $mimeType = null;
     private ?int $size = null;
-    /** @var array{int, int}|false|null */
+    /** @var array{int|float, int|float}|false|null */
     private array|false|null $dimensions = null;
 
     /**
@@ -33,7 +35,9 @@ final class StoredFile
         if (null !== $fileInfo) {
             $this->mimeType = $fileInfo['mimeType'];
             $this->size = $fileInfo['fileSize'];
-            $this->dimensions = null !== $fileInfo['width'] && null !== $fileInfo['height'] ? [$fileInfo['width'], $fileInfo['height']] : false;
+            if (!$this->isSvg()) {
+                $this->dimensions = null !== $fileInfo['width'] && null !== $fileInfo['height'] ? [$fileInfo['width'], $fileInfo['height']] : false;
+            }
         }
     }
 
@@ -63,7 +67,7 @@ final class StoredFile
     }
 
     /**
-     * @return array{int, int}|null
+     * @return array{int|float, int|float}|null
      */
     public function getDimensions(): ?array
     {
@@ -73,7 +77,7 @@ final class StoredFile
     }
 
     /**
-     * @return array{int, int}|null
+     * @return array{int|float, int|float}|null
      */
     private function readDimensions(): ?array
     {
@@ -104,20 +108,44 @@ final class StoredFile
     }
 
     /**
-     * @return array{int, int}|null
+     * @return array{int|float, int|float}|null
      */
     private function svgDimensions(string $content): ?array
     {
-        $svg = @simplexml_load_string(str_replace("\0", '', $content));
-        if (false === $svg) {
-            return null;
+        if (preg_match('/<svg[^<>]+width="(?<width>' . self::SVG_LENGTH . ')"[^<>]*>/', $content, $widthMatches)) {
+            $width = self::svgLengthToPixels($widthMatches['width']);
         }
-        $width = (int) $svg['width'];
-        $height = (int) $svg['height'];
-        if (0 === $width || 0 === $height) {
+        if (preg_match('/<svg[^<>]+height="(?<height>' . self::SVG_LENGTH . ')"[^<>]*>/', $content, $heightMatches)) {
+            $height = self::svgLengthToPixels($heightMatches['height']);
+        }
+        if (preg_match('/<svg[^<>]+viewBox="' . self::SVG_NUMBER . ' ' . self::SVG_NUMBER . ' (?<width>' . self::SVG_NUMBER . ') (?<height>' . self::SVG_NUMBER . ')"[^<>]*>/', $content, $viewBoxMatches)) {
+            $width ??= self::svgLengthToPixels($viewBoxMatches['width']);
+            $height ??= self::svgLengthToPixels($viewBoxMatches['height']);
+        }
+        if (!isset($width, $height) || 0 === $width || 0 === $height) {
             return null;
         }
 
         return [$width, $height];
+    }
+
+    private static function svgLengthToPixels(string $length): int|float
+    {
+        $value = (float) $length;
+        if (is_numeric($length)) {
+            return (int) $length == $value ? (int) $length : $value;
+        }
+
+        $value = match (strtolower(substr($length, -2))) {
+            'in' => $value * 96,
+            'cm' => $value * 96 / 2.54,
+            'mm' => $value * 96 / 25.4,
+            'pt' => $value * 96 / 72,
+            'pc' => $value * 16,
+            default => 'q' === strtolower(substr($length, -1)) ? $value * 96 / 101.6 : $value,
+        };
+        $rounded = round($value);
+
+        return abs($value - $rounded) < 1e-10 ? (int) $rounded : $value;
     }
 }

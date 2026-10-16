@@ -68,6 +68,38 @@ class StoredFileConstraintCheckerTest extends TestCase
         self::assertSame(2, $constraints[0]->maxSize);
     }
 
+    public function test_the_constraints_of_every_given_group_are_included_once_in_group_order(): void
+    {
+        $inBoth = new File(maxSize: 3, groups: ['Default', 'DummyUploadable:published']);
+        $metadata = new ClassMetadata(DummyUploadable::class);
+        $metadata->addPropertyConstraint('file', new File(maxSize: 1, groups: ['DummyUploadable:published']));
+        $metadata->addPropertyConstraint('file', new File(maxSize: 2));
+        $metadata->addPropertyConstraint('file', $inBoth);
+        $metadata->addPropertyConstraint('file', new File(maxSize: 4, groups: ['other']));
+        $metadataFactory = $this->createStub(MetadataFactoryInterface::class);
+        $metadataFactory->method('getMetadataFor')->willReturn($metadata);
+
+        $constraints = (new StoredFileConstraintChecker($metadataFactory))->constraints(DummyUploadable::class, 'file', ['Default', 'DummyUploadable:published']);
+
+        self::assertSame([2, 3, 1], array_map(static fn (File $constraint) => $constraint->maxSize, $constraints));
+        self::assertSame($inBoth, $constraints[1]);
+    }
+
+    public function test_a_constraint_is_validated_in_the_given_groups_and_once_however_many_of_them_it_belongs_to(): void
+    {
+        $checker = $this->checker();
+        $file = $this->file('image/png', 500, 715);
+        $inBoth = new Image(maxWidth: 10, groups: ['Default', 'X:published']);
+        $publishedOnly = new When(expression: 'value.getSize() > 1', constraints: [new Image(maxHeight: 10)], groups: ['X:published']);
+
+        self::assertSame(
+            ['The image width is too big (500px). Allowed maximum width is 10px.', 'The image height is too big (715px). Allowed maximum height is 10px.'],
+            $checker->violations($file, [$inBoth, $publishedOnly], ['Default', 'X:published'])
+        );
+        self::assertSame(['The image width is too big (500px). Allowed maximum width is 10px.'], $checker->violations($file, [$inBoth, $publishedOnly]));
+        self::assertSame(['The image height is too big (715px). Allowed maximum height is 10px.'], $checker->violations($file, [$publishedOnly], ['Default', 'X:published']));
+    }
+
     public function test_the_violation_messages_are_returned_in_order_and_a_when_expression_sees_the_stored_files_mime_type(): void
     {
         $checker = $this->checker();

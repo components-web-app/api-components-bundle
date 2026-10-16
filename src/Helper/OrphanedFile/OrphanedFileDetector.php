@@ -22,12 +22,14 @@ use League\Flysystem\WhitespacePathNormalizer;
 use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\ApiResource\OrphanedFileReport;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\OrphanedFileReportRecord;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
+use Symfony\Component\Validator\Constraint;
 
 class OrphanedFileDetector
 {
@@ -40,6 +42,7 @@ class OrphanedFileDetector
     public function __construct(
         ManagerRegistry $registry,
         private readonly UploadableAttributeReader $uploadableAttributeReader,
+        private readonly PublishableAttributeReader $publishableAttributeReader,
         private readonly FilesystemProvider $filesystemProvider,
         private readonly IriConverterInterface $iriConverter,
         private readonly StoredFileLister $lister,
@@ -121,7 +124,7 @@ class OrphanedFileDetector
     }
 
     /**
-     * @param list<array{class: class-string, id: mixed, field: string, adapter: string, path: string}> $references
+     * @param list<array{class: class-string, id: mixed, field: string, adapter: string, path: string, published: bool}> $references
      *
      * @return list<array{resource: string, field: string, adapter: string, path: string, violations: list<string>}>
      */
@@ -131,14 +134,15 @@ class OrphanedFileDetector
         $fileInfo = null;
         $invalidFiles = [];
         foreach ($references as $reference) {
-            $fieldConstraints = $constraints[$reference['class']][$reference['field']] ??= $this->constraintChecker->constraints($reference['class'], $reference['field']);
+            $groups = $reference['published'] ? [Constraint::DEFAULT_GROUP, ...$this->publishableAttributeReader->getPublishedValidationGroups($reference['class'])] : [Constraint::DEFAULT_GROUP];
+            $fieldConstraints = $constraints[$reference['class']][$reference['field']][(int) $reference['published']] ??= $this->constraintChecker->constraints($reference['class'], $reference['field'], $groups);
             if (!$fieldConstraints) {
                 continue;
             }
             $fileInfo ??= $this->fileInfoRepository->findOriginalsByPath();
             $file = new StoredFile($this->filesystemProvider->getFilesystem($reference['adapter']), $reference['path'], $fileInfo[$reference['path']] ?? null);
             try {
-                $violations = $this->constraintChecker->violations($file, $fieldConstraints);
+                $violations = $this->constraintChecker->violations($file, $fieldConstraints, $groups);
             } catch (FilesystemException $exception) {
                 $this->logger?->warning('A stored file could not be read to check it against its field\'s constraints.', [
                     'adapter' => $reference['adapter'],
@@ -186,7 +190,7 @@ class OrphanedFileDetector
     }
 
     /**
-     * @return array{array<string, list<string>>, list<array{class: class-string, id: mixed, field: string, adapter: string, path: string}>}
+     * @return array{array<string, list<string>>, list<array{class: class-string, id: mixed, field: string, adapter: string, path: string, published: bool}>}
      */
     private function readReferences(EntityManagerInterface $entityManager): array
     {
@@ -205,6 +209,10 @@ class OrphanedFileDetector
                 $hasPath->add($queryBuilder->expr()->isNotNull('e.' . $field->property));
             }
             $queryBuilder->where($hasPath);
+            $publishable = $this->publishableAttributeReader->isConfigured($class);
+            if ($publishable) {
+                $queryBuilder->addSelect(\sprintf('e.%s AS publishedAt', $this->publishableAttributeReader->getConfiguration($class)->fieldName));
+            }
             if (\count($metadata->subClasses)) {
                 $queryBuilder->andWhere(\sprintf('e NOT INSTANCE OF (%s)', implode(', ', $metadata->subClasses)));
             }
@@ -213,7 +221,7 @@ class OrphanedFileDetector
                 foreach ($fields as $fileProperty => $field) {
                     $path = $row['path' . $index++];
                     if (\is_string($path) && '' !== $path) {
-                        $references[] = ['class' => $class, 'id' => $row['id'], 'field' => $fileProperty, 'adapter' => $field->adapter, 'path' => $path];
+                        $references[] = ['class' => $class, 'id' => $row['id'], 'field' => $fileProperty, 'adapter' => $field->adapter, 'path' => $path, 'published' => $publishable && null !== $row['publishedAt']];
                     }
                 }
             }

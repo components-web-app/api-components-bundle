@@ -129,7 +129,7 @@ final class StoredFileConstraintValidator extends ConstraintValidator
         $this->validateShape($constraint, $width, $height);
     }
 
-    private function validateRasterSize(Image $constraint, int $width, int $height): bool
+    private function validateRasterSize(Image $constraint, int|float $width, int|float $height): bool
     {
         if ($constraint->minWidth && $width < $constraint->minWidth) {
             $this->context->buildViolation($constraint->minWidthMessage)
@@ -189,7 +189,7 @@ final class StoredFileConstraintValidator extends ConstraintValidator
         return true;
     }
 
-    private function validateShape(Image $constraint, int $width, int $height): void
+    private function validateShape(Image $constraint, int|float $width, int|float $height): void
     {
         $ratio = round($width / $height, 2);
         if (null !== $constraint->minRatio && $ratio < round((float) $constraint->minRatio, 2)) {
@@ -217,7 +217,7 @@ final class StoredFileConstraintValidator extends ConstraintValidator
         }
     }
 
-    private function addShapeViolation(string $message, string $code, int $width, int $height): void
+    private function addShapeViolation(string $message, string $code, int|float $width, int|float $height): void
     {
         $this->context->buildViolation($message)
             ->setParameter('{{ width }}', (string) $width)

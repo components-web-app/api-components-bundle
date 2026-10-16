@@ -18,11 +18,8 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  */
 class UploadedDataUriFile extends UploadedFile
 {
-    /**
-     * @param null $mimeType
-     */
-    public function __construct(DataUriFile $file, ?string $originalName = null, ?string $mimeType = null, ?int $error = null, bool $test = false)
+    public function __construct(DataUriFile $file, ?string $originalName = null, ?string $mimeType = null)
     {
-        parent::__construct($file->getPathname(), $originalName ?: $file->getFilename(), $mimeType, $error, $test);
+        parent::__construct($file->getPathname(), $originalName ?: $file->getFilename(), $mimeType, null, true);
     }
 }

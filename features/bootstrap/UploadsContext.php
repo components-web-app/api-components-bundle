@@ -38,6 +38,7 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploa
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableTemporaryUrl;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithConstraints;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithImagineFilters;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithPublishedConstraints;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -254,6 +255,20 @@ class UploadsContext implements Context
     public function thereIsADummyUploadableWithTheFileSavedAs(string $class, string $file, string $name): void
     {
         $object = 'DummyUploadable' === $class ? new DummyUploadable() : new DummyUploadableWithConstraints();
+        $object->file = new File(__DIR__ . '/../assets/files/' . $file);
+        $this->uploadableHelper->persistFiles($object);
+        $this->manager->persist($object);
+        $this->manager->flush();
+        $this->restContext->resources[$name] = $this->iriConverter->getIriFromResource($object);
+    }
+
+    /**
+     * @Given /^there is a (published|draft) DummyUploadableWithPublishedConstraints with the file "([^"]+)" saved as "([^"]+)"$/
+     */
+    public function thereIsAPublishableUploadableWithPublishedConstraints(string $status, string $file, string $name): void
+    {
+        $object = new DummyUploadableWithPublishedConstraints();
+        $object->setPublishedAt('published' === $status ? new \DateTime('-1 day') : null);
         $object->file = new File(__DIR__ . '/../assets/files/' . $file);
         $this->uploadableHelper->persistFiles($object);
         $this->manager->persist($object);

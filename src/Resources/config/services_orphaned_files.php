@@ -73,6 +73,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             '$registry' => new Reference(ManagerRegistry::class),
             '$uploadableAttributeReader' => new Reference('silverback.api_components.attribute_reader.uploadable'),
+            '$publishableAttributeReader' => new Reference('silverback.api_components.attribute_reader.publishable'),
             '$filesystemProvider' => new Reference(FilesystemProvider::class),
             '$iriConverter' => new Reference(IriConverterInterface::class),
             '$lister' => new Reference('silverback.api_components.orphaned_file.lister'),

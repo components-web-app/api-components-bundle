@@ -30,4 +30,17 @@ final class PublishableAttributeReader extends AttributeReader
 
         return $publishable;
     }
+
+    /**
+     * @return list<string>
+     */
+    public function getPublishedValidationGroups(object|string $class): array
+    {
+        $validationGroups = $this->getConfiguration($class)->validationGroups;
+        if (!empty($validationGroups)) {
+            return array_values($validationGroups);
+        }
+
+        return [(new \ReflectionClass($class))->getShortName() . ':published'];
+    }
 }
