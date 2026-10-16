@@ -235,3 +235,25 @@ Feature: A site generated as fixtures reloads as the same site
     Then the command output should contain "could not be reproduced"
     And the command output should contain "panels_"
     And the generated fixtures should not contain "->group('panels')"
+
+  Scenario: A page and page data whose own routes redirect keep their redirects and regenerate identically
+    Given the site has a page "home" at the route "/" with a derived route name
+    And the site has a page "graphs" at the route "/graphs" with a derived route name
+    And the site has a page "findings" at the route "/graphs/findings" with a derived route name
+    And the site has a PageData titled "Event" at the route "/event"
+    And the site's route "/" redirects to the route "/graphs"
+    And the site's route "/graphs" redirects to the route "/graphs/findings"
+    And the site's route "/event" redirects to the route "/graphs"
+    When the site is generated as fixtures and reloaded
+    Then the generated fixtures should contain "->redirectTo(routeName: 'graphs');"
+    And the generated fixtures should contain "->redirectTo(routeName: 'graphs-findings');"
+    And the generated fixtures should not contain "$cwa->redirect("
+    And the command output should not contain "could not be reproduced"
+    And the route "/" should belong to the page "home"
+    And the route "/graphs" should belong to the page "graphs"
+    And the Route "/" should redirect to "/graphs"
+    And the Route "/graphs" should redirect to "/graphs/findings"
+    And the Route "/event" should redirect to "/graphs"
+    And the Route "/graphs/findings" should not redirect
+    When the site is generated as fixtures again
+    Then the generated fixtures and their assets should be identical to the previous generation

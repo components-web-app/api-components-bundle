@@ -885,9 +885,47 @@ class CwaFixtureBuilder implements ResetInterface
             $hadNew = true;
         }
 
+        if ($this->applyRouteRedirects()) {
+            $hadNew = true;
+        }
+
         if ($hadNew) {
             $this->manager->flush();
         }
+    }
+
+    private function applyRouteRedirects(): bool
+    {
+        $applied = false;
+        foreach ($this->orderedRouteSpecs as $spec) {
+            $builder = $spec['builder'];
+            $decision = $this->decisions[spl_object_id($builder)] ?? null;
+            if (null === $decision) {
+                continue;
+            }
+            $routeName = $builder->takeRedirectTo();
+            if (null === $routeName || self::CREATED !== $decision) {
+                continue;
+            }
+            if ('page' === $spec['type']) {
+                $entity = $builder->getPage();
+                $label = \sprintf('the page "%s"', $entity->reference);
+            } else {
+                $entity = $builder->getPageData();
+                $label = \sprintf('the page data "%s"', $entity->getTitle() ?? $entity::class);
+            }
+            $route = $entity->getRoute();
+            if (null === $route) {
+                if (null !== $spec['route']) {
+                    continue;
+                }
+                throw new \LogicException(\sprintf('redirectTo(): %s has no route to redirect to "%s".', $label, $routeName));
+            }
+            $route->setRedirect($this->routeNamedBy($routeName, \sprintf('The route of %s redirects to', $label)));
+            $applied = true;
+        }
+
+        return $applied;
     }
 
     private function registerNamedRoute(array $spec, ?AbstractPage $entity): void
@@ -959,6 +997,7 @@ class CwaFixtureBuilder implements ResetInterface
         $this->resolveRouteLinks();
 
         if ($hasChanges) {
+            $this->applyRouteRedirects();
             $this->manager->flush();
             $this->hasPendingLinks = false;
         }
