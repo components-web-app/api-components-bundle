@@ -392,7 +392,7 @@ class CwaFixtureBuilder implements ResetInterface
 
     private function routeAtDeclaredPath(PageBuilder|PageDataBuilder $target): ?Route
     {
-        foreach ([...array_values($this->pageSpecs), ...$this->pageDataSpecs] as $spec) {
+        foreach ([...$this->pageSpecs, ...$this->pageDataSpecs] as $spec) {
             if ($spec['builder'] === $target && null !== $spec['route']) {
                 return $this->findOne(Route::class, ['path' => $spec['route']]);
             }
