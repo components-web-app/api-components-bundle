@@ -757,6 +757,59 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given the ComponentGroup :resource has the maxComponents :maxComponents
+     */
+    public function theComponentGroupHasTheMaxComponents(string $resource, int $maxComponents): void
+    {
+        /** @var ComponentGroup $componentGroup */
+        $componentGroup = $this->iriConverter->getResourceFromIri($this->restContext->resources[$resource]);
+        $componentGroup->maxComponents = $maxComponents;
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given the ComponentGroup has a pageDataProperty position
+     */
+    public function theComponentGroupHasAPageDataPropertyPosition(): void
+    {
+        /** @var ComponentGroup $componentGroup */
+        $componentGroup = $this->iriConverter->getResourceFromIri($this->restContext->resources['component_group']);
+        $position = new ComponentPosition();
+        $position->pageDataClass = PageDataWithComponent::class;
+        $position->pageDataProperty = 'component';
+        $position->sortValue = 0;
+        $position->componentGroup = $componentGroup;
+        $this->timestampedHelper->persistTimestampedFields($position, true);
+        $this->manager->persist($position);
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given the ComponentGroup holds a published DummyPublishableComponent with a draft
+     */
+    public function theComponentGroupHoldsAPublishedComponentWithADraft(): void
+    {
+        /** @var ComponentGroup $componentGroup */
+        $componentGroup = $this->iriConverter->getResourceFromIri($this->restContext->resources['component_group']);
+        $published = new DummyPublishableComponent();
+        $published->setPublishedAt(new \DateTime('-1 day'));
+        $this->manager->persist($published);
+        $draft = new DummyPublishableComponent();
+        $draft->setPublishedResource($published);
+        $this->manager->persist($draft);
+        $position = new ComponentPosition();
+        $position->sortValue = 0;
+        $position->componentGroup = $componentGroup;
+        $position->component = $published;
+        $this->timestampedHelper->persistTimestampedFields($position, true);
+        $this->manager->persist($position);
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
      * @Given the ComponentGroup has a RestrictedComponent position with the sortValue :sortValue
      */
     public function theComponentGroupHasARestrictedComponentPositionWithTheSortValue(int $sortValue): void

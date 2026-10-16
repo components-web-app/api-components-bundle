@@ -18,6 +18,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
+use Silverback\ApiComponentsBundle\Validator\Constraints as AcbAssert;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 /**
@@ -44,6 +45,7 @@ abstract class AbstractComponent implements ComponentInterface
     private Collection $componentGroups;
 
     #[ORM\OneToMany(targetEntity: ComponentPosition::class, mappedBy: 'component', cascade: ['persist'])]
+    #[AcbAssert\AddedComponentPositions]
     private Collection $componentPositions;
 
     public function __construct()

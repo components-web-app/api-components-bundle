@@ -726,6 +726,7 @@ class CwaFixtureBuilder implements ResetInterface
             $componentGroup = new ComponentGroup();
             $componentGroup->location = $ownerIri;
             $componentGroup->reference = $fullRef;
+            $componentGroup->maxComponents = $groupBuilder->getMaxComponents();
 
             foreach ($groupBuilder->getAllowedClasses() as $class) {
                 $componentGroup->addAllowedComponent(

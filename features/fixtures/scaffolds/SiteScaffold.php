@@ -51,7 +51,7 @@ class SiteScaffold extends AbstractCwaScaffold
         $cwa->component($this->contactUsDummyNavigationLink)->linkRoute('route', routeName: 'about');
 
         $cwa->layout('main', uiComponent: 'Primary')
-            ->group('header', allow: [DummyNavigationLink::class])
+            ->group('header', allow: [DummyNavigationLink::class], max: 5)
             ->add($homeDummyNavigationLink)
             ->add($aboutDummyNavigationLink)
             ->add($ourTeamDummyNavigationLink)

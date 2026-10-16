@@ -2406,6 +2406,32 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame(['/_/some_components'], $groups[0]->allowedComponents);
     }
 
+    public function test_a_group_takes_its_maximum_number_of_components_from_every_owner_kind(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturnCallback(
+            static fn ($resource) => \is_string($resource) ? '/_/some_components' : '/_/owners/' . spl_object_id($resource)
+        );
+
+        $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
+        $builder->layout('main', 'Primary')->group('nav', max: 1);
+        $builder->page('home', 'Primary', layout: 'main', route: '/')->group('primary', max: 2);
+        $builder->component(new class extends AbstractComponent {})->group('items', max: 3);
+        $builder->layout('other', 'Primary')->group('footer');
+        $builder->flush();
+
+        $limits = [];
+        foreach ($persisted as $entity) {
+            if ($entity instanceof ComponentGroup) {
+                $limits[strstr((string) $entity->reference, '_', true)] = $entity->maxComponents;
+            }
+        }
+        ksort($limits);
+        $this->assertSame(['footer' => null, 'items' => 3, 'nav' => 1, 'primary' => 2], $limits);
+    }
+
     public function test_page_live_at_is_set_on_an_explicit_route(): void
     {
         $persisted = [];
