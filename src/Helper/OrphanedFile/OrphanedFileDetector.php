@@ -135,7 +135,7 @@ class OrphanedFileDetector
         $invalidFiles = [];
         foreach ($references as $reference) {
             $groups = $reference['published'] ? [Constraint::DEFAULT_GROUP, ...$this->publishableAttributeReader->getPublishedValidationGroups($reference['class'])] : [Constraint::DEFAULT_GROUP];
-            $fieldConstraints = $constraints[$reference['class']][$reference['field']][(int) $reference['published']] ??= $this->constraintChecker->constraints($reference['class'], $reference['field'], $groups);
+            $fieldConstraints = $constraints[$reference['class']][$reference['field']][$reference['published']] ??= $this->constraintChecker->constraints($reference['class'], $reference['field'], $groups);
             if (!$fieldConstraints) {
                 continue;
             }
