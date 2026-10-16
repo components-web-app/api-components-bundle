@@ -45,6 +45,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
+use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileConstraintChecker;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
 use Silverback\ApiComponentsBundle\Helper\Page\PageUiComponentPrefixer;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
@@ -67,6 +68,7 @@ use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PageUiComponentNormalizer;
+use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImageValidator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
@@ -222,6 +224,29 @@ class SilverbackApiComponentsExtensionTest extends TestCase
 
         self::assertSame('public, max-age=31536000, immutable', $this->argument($container, UploadableCacheControl::class, '$original'));
         self::assertSame('public, max-age=2592000', $this->argument($container, UploadableCacheControl::class, '$imagine'));
+    }
+
+    public function test_the_uploaded_image_pixel_limit_reaches_the_upload_validator_and_the_orphaned_file_scan(): void
+    {
+        $config = self::minimalConfig();
+        $config['uploadable']['image_max_pixels'] = 300000;
+
+        [$container] = $this->load($config);
+
+        $validator = $container->findDefinition(UploadedImageValidator::class);
+        self::assertSame(UploadedImageValidator::class, $validator->getClass());
+        self::assertTrue($validator->hasTag('validator.constraint_validator'));
+        self::assertSame(300000, $validator->getArgument('$defaultMaxPixels'));
+        self::assertSame('silverback.api_components.validator.uploaded_image', (string) $container->getAlias(UploadedImageValidator::class));
+        self::assertSame(300000, $this->argument($container, StoredFileConstraintChecker::class, '$defaultMaxPixels'));
+    }
+
+    public function test_the_default_uploaded_image_pixel_limit_reaches_both_validators(): void
+    {
+        [$container] = $this->load(self::minimalConfig());
+
+        self::assertSame(30000000, $this->argument($container, UploadedImageValidator::class, '$defaultMaxPixels'));
+        self::assertSame(30000000, $this->argument($container, StoredFileConstraintChecker::class, '$defaultMaxPixels'));
     }
 
     public function test_with_imagine_enabled_the_generate_command_is_registered_with_its_helper(): void

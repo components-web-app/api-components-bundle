@@ -11,7 +11,10 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Validator\StoredFile;
 
+use League\Flysystem\FilesystemOperator;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFile;
+use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImage;
 use Silverback\ApiComponentsBundle\Validator\StoredFile\SkippedConstraintValidator;
 use Silverback\ApiComponentsBundle\Validator\StoredFile\StoredFileConstraintValidator;
 use Silverback\ApiComponentsBundle\Validator\StoredFile\StoredFileConstraintValidatorFactory;
@@ -24,6 +27,8 @@ use Symfony\Component\Validator\Constraints\SequentiallyValidator;
 use Symfony\Component\Validator\Constraints\When;
 use Symfony\Component\Validator\Constraints\WhenValidator;
 use Symfony\Component\Validator\ConstraintValidatorFactoryInterface;
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class StoredFileConstraintValidatorFactoryTest extends TestCase
 {
@@ -35,6 +40,16 @@ class StoredFileConstraintValidatorFactoryTest extends TestCase
 
         self::assertInstanceOf(StoredFileConstraintValidator::class, $validator);
         self::assertSame($validator, $factory->getInstance(new Image()));
+    }
+
+    public function test_the_stored_file_validator_is_given_the_configured_pixel_limit(): void
+    {
+        $file = new StoredFile($this->createStub(FilesystemOperator::class), 'a.png', ['mimeType' => 'image/png', 'fileSize' => 10, 'width' => 500, 'height' => 715]);
+
+        self::assertCount(1, $this->validator(new StoredFileConstraintValidatorFactory(defaultMaxPixels: 357499))->validate($file, new UploadedImage()));
+        self::assertCount(0, $this->validator(new StoredFileConstraintValidatorFactory(defaultMaxPixels: null))->validate($file, new UploadedImage(maxPixels: null)));
+        self::assertCount(0, $this->validator(new StoredFileConstraintValidatorFactory())->validate($file, new UploadedImage()));
+        self::assertCount(1, $this->validator(new StoredFileConstraintValidatorFactory())->validate($file, new UploadedImage(maxPixels: 357499)));
     }
 
     public function test_composites_are_validated_by_symfonys_own_validators_by_default(): void
@@ -63,5 +78,10 @@ class StoredFileConstraintValidatorFactoryTest extends TestCase
 
         self::assertInstanceOf(SkippedConstraintValidator::class, $validator);
         self::assertSame($validator, $factory->getInstance(new Regex('/a/')));
+    }
+
+    private function validator(StoredFileConstraintValidatorFactory $factory): ValidatorInterface
+    {
+        return Validation::createValidatorBuilder()->setConstraintValidatorFactory($factory)->getValidator();
     }
 }

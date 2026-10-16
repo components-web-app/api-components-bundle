@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Validator\StoredFile;
 
+use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImage;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\Composite;
 use Symfony\Component\Validator\Constraints\File;
@@ -23,14 +24,16 @@ final class StoredFileConstraintValidatorFactory implements ConstraintValidatorF
     private ?StoredFileConstraintValidator $storedFileValidator = null;
     private ?SkippedConstraintValidator $skippedValidator = null;
 
-    public function __construct(private readonly ConstraintValidatorFactoryInterface $compositeValidatorFactory = new ConstraintValidatorFactory())
-    {
+    public function __construct(
+        private readonly ConstraintValidatorFactoryInterface $compositeValidatorFactory = new ConstraintValidatorFactory(),
+        private readonly int|float|null $defaultMaxPixels = UploadedImage::DEFAULT_MAX_PIXELS,
+    ) {
     }
 
     public function getInstance(Constraint $constraint): ConstraintValidatorInterface
     {
         if ($constraint instanceof File) {
-            return $this->storedFileValidator ??= new StoredFileConstraintValidator();
+            return $this->storedFileValidator ??= new StoredFileConstraintValidator($this->defaultMaxPixels);
         }
         if ($constraint instanceof Composite) {
             return $this->compositeValidatorFactory->getInstance($constraint);

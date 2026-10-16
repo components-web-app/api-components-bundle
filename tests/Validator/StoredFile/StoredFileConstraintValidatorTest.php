@@ -17,6 +17,7 @@ use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFile;
+use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImage;
 use Silverback\ApiComponentsBundle\Validator\StoredFile\StoredFileConstraintValidator;
 use Silverback\ApiComponentsBundle\Validator\StoredFile\StoredFileConstraintValidatorFactory;
 use Symfony\Component\HttpFoundation\File\File as FileObject;
@@ -71,8 +72,16 @@ class StoredFileConstraintValidatorTest extends TestCase
             'image height does not stop further checks' => new Image(maxHeight: 714, maxPixels: 1, minPixels: 1000000, minRatio: 2, allowPortrait: false),
             'image too large file' => new Image(maxSize: 10, maxPixels: 1),
             'image wrong type' => new Image(mimeTypes: ['image/jpeg'], maxPixels: 1),
+            'uploaded image no options' => new UploadedImage(),
+            'uploaded image max pixels' => new UploadedImage(maxPixels: 357499),
+            'uploaded image max pixels equal' => new UploadedImage(maxPixels: 357500),
+            'uploaded image dimension options' => new UploadedImage(maxPixels: 1, minWidth: 10000, maxRatio: 0.1, allowPortrait: false),
+            'uploaded image too large file' => new UploadedImage(maxSize: 10, maxPixels: 1),
+            'uploaded image wrong type' => new UploadedImage(mimeTypes: ['image/jpeg']),
+            'uploaded image no svg' => new UploadedImage(allowSvg: false, maxPixels: 1),
+            'uploaded image no svg and other options' => new UploadedImage(allowSvg: false, svgNotAllowedMessage: 'No SVG here.', mimeTypes: ['image/jpeg'], maxSize: 10),
         ];
-        foreach (['image.png', 'image.svg', 'test_file.txt'] as $asset) {
+        foreach (['image.png', 'image.svg', 'unsized.svg', 'test_file.txt'] as $asset) {
             foreach ($constraints as $name => $constraint) {
                 yield \sprintf('%s: %s', $asset, $name) => [$asset, $constraint];
             }
@@ -89,6 +98,18 @@ class StoredFileConstraintValidatorTest extends TestCase
         $actual = $this->summarise($this->validator()->validate(new StoredFile($filesystem, $asset), $constraint));
 
         self::assertSame($expected, $actual);
+    }
+
+    public function test_an_uploaded_image_without_max_pixels_takes_the_configured_limit(): void
+    {
+        $file = $this->cached('image/png', 10, 500, 715);
+        $message = 'The image is too large (357500 pixels). Resize it to at most 357499 pixels (about 732 x 488) and upload it again.';
+
+        self::assertSame([[Image::TOO_MANY_PIXEL_ERROR, $message]], $this->summarise($this->validator(357499)->validate($file, new UploadedImage())));
+        self::assertSame([], $this->summarise($this->validator(357499)->validate($file, new UploadedImage(maxPixels: 357500))));
+        self::assertSame([], $this->summarise($this->validator(null)->validate($file, new UploadedImage())));
+        self::assertSame([], $this->summarise($this->validator()->validate($file, new UploadedImage())));
+        self::assertSame([], $this->summarise($this->validator(357499)->validate($file, new Image())));
     }
 
     public function test_an_empty_file_is_a_violation_as_symfony_reports_it(): void
@@ -174,9 +195,9 @@ class StoredFileConstraintValidatorTest extends TestCase
         return new StoredFile($this->createStub(FilesystemOperator::class), 'a.png', ['mimeType' => $mimeType, 'fileSize' => $size, 'width' => $width, 'height' => $height]);
     }
 
-    private function validator(): ValidatorInterface
+    private function validator(int|float|null $defaultMaxPixels = UploadedImage::DEFAULT_MAX_PIXELS): ValidatorInterface
     {
-        return Validation::createValidatorBuilder()->setConstraintValidatorFactory(new StoredFileConstraintValidatorFactory())->getValidator();
+        return Validation::createValidatorBuilder()->setConstraintValidatorFactory(new StoredFileConstraintValidatorFactory(defaultMaxPixels: $defaultMaxPixels))->getValidator();
     }
 
     /**
