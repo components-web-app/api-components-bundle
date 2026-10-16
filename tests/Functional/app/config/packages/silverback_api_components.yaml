@@ -40,3 +40,5 @@ silverback_api_components:
     orphaned_resources:
         notify:
             recipients: '%env(default::ORPHANED_RESOURCES_NOTIFY_RECIPIENTS)%'
+    uploadable:
+        image_max_pixels: 300000

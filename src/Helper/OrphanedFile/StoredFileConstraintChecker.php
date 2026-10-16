@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Helper\OrphanedFile;
 
+use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImage;
 use Silverback\ApiComponentsBundle\Validator\StoredFile\StoredFileConstraintValidatorFactory;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidatorFactory;
@@ -27,9 +28,10 @@ final class StoredFileConstraintChecker
     public function __construct(
         private readonly MetadataFactoryInterface $metadataFactory,
         ?ConstraintValidatorFactoryInterface $compositeValidatorFactory = null,
+        int|float|null $defaultMaxPixels = UploadedImage::DEFAULT_MAX_PIXELS,
     ) {
         $this->storedFileValidator = Validation::createValidatorBuilder()
-            ->setConstraintValidatorFactory(new StoredFileConstraintValidatorFactory($compositeValidatorFactory ?? new ConstraintValidatorFactory()))
+            ->setConstraintValidatorFactory(new StoredFileConstraintValidatorFactory($compositeValidatorFactory ?? new ConstraintValidatorFactory(), $defaultMaxPixels))
             ->getValidator();
     }
 

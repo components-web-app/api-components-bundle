@@ -447,9 +447,43 @@ class ConfigurationTest extends TestCase
     public function test_uploads_are_cached_for_a_year_and_their_variants_for_thirty_days_by_default(): void
     {
         self::assertSame(
-            ['cache_control' => ['original' => 'public, max-age=31536000, immutable', 'imagine' => 'public, max-age=2592000']],
+            ['cache_control' => ['original' => 'public, max-age=31536000, immutable', 'imagine' => 'public, max-age=2592000'], 'image_max_pixels' => 30000000],
             $this->process(self::minimalConfig())['uploadable']
         );
+    }
+
+    public function test_the_uploaded_image_pixel_limit_can_be_configured_or_set_to_nothing(): void
+    {
+        $config = self::minimalConfig();
+        $config['uploadable']['image_max_pixels'] = 300000;
+        self::assertSame(300000, $this->process($config)['uploadable']['image_max_pixels']);
+
+        $config['uploadable']['image_max_pixels'] = 1;
+        self::assertSame(1, $this->process($config)['uploadable']['image_max_pixels']);
+
+        $config['uploadable']['image_max_pixels'] = null;
+        self::assertNull($this->process($config)['uploadable']['image_max_pixels']);
+    }
+
+    /**
+     * @return iterable<string, array{mixed}>
+     */
+    public static function invalidImageMaxPixels(): iterable
+    {
+        yield 'zero' => [0];
+        yield 'negative' => [-1];
+        yield 'string' => ['30M'];
+        yield 'float' => [1.5];
+    }
+
+    #[DataProvider('invalidImageMaxPixels')]
+    public function test_an_uploaded_image_pixel_limit_that_is_not_a_positive_integer_is_rejected(mixed $value): void
+    {
+        $config = self::minimalConfig();
+        $config['uploadable']['image_max_pixels'] = $value;
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->process($config);
     }
 
     public function test_the_upload_cache_control_can_be_configured_or_set_to_nothing(): void

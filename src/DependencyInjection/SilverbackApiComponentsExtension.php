@@ -45,6 +45,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\NewEmailAddressType;
 use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
+use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileConstraintChecker;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResource\OrphanedResourceNotifier;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
@@ -68,6 +69,7 @@ use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\RouteNormalizer;
+use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImageValidator;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -165,6 +167,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition = $container->findDefinition(UploadableCacheControl::class);
         $definition->setArgument('$original', $config['uploadable']['cache_control']['original']);
         $definition->setArgument('$imagine', $config['uploadable']['cache_control']['imagine']);
+
+        $container->findDefinition(UploadedImageValidator::class)->setArgument('$defaultMaxPixels', $config['uploadable']['image_max_pixels']);
+        $container->findDefinition(StoredFileConstraintChecker::class)->setArgument('$defaultMaxPixels', $config['uploadable']['image_max_pixels']);
 
         $definition = $container->findDefinition(OrphanedFileDetector::class);
         $definition->setArgument('$minimumAge', $config['orphaned_files']['minimum_age']);
