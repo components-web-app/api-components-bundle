@@ -58,7 +58,7 @@ class DeleteStoredFilesCommandTest extends TestCase
         self::assertSame(Command::SUCCESS, $this->tester->execute(['filesystem' => 'gcloud', 'path' => 'review/a']));
 
         self::assertSame(['image.png', 'review/b/image.png'], $this->storedFiles());
-        self::assertStringContainsString('Deleted 2 file(s)', $this->tester->getDisplay());
+        self::assertStringContainsString('Deleted 2 file(s) from gcloud/review/a.', $this->tester->getDisplay());
     }
 
     public function test_it_refuses_to_empty_the_filesystem_without_a_path_or_all(): void
@@ -66,6 +66,7 @@ class DeleteStoredFilesCommandTest extends TestCase
         self::assertSame(Command::INVALID, $this->tester->execute(['filesystem' => 'gcloud']));
 
         self::assertCount(4, $this->storedFiles());
+        self::assertStringContainsString('Give a path, or --all to delete every file in the filesystem.', $this->tester->getDisplay());
     }
 
     public function test_all_empties_the_filesystem(): void
@@ -73,6 +74,7 @@ class DeleteStoredFilesCommandTest extends TestCase
         self::assertSame(Command::SUCCESS, $this->tester->execute(['filesystem' => 'gcloud', '--all' => true]));
 
         self::assertSame([], $this->storedFiles());
+        self::assertStringContainsString('Deleted 4 file(s) from gcloud/.', $this->tester->getDisplay());
     }
 
     public function test_a_dry_run_lists_the_files_and_deletes_nothing(): void
@@ -80,41 +82,50 @@ class DeleteStoredFilesCommandTest extends TestCase
         self::assertSame(Command::SUCCESS, $this->tester->execute(['filesystem' => 'gcloud', 'path' => 'review/a', '--dry-run' => true]));
 
         self::assertCount(4, $this->storedFiles());
-        self::assertStringContainsString('Would delete 2 file(s)', $this->tester->getDisplay());
-        self::assertStringContainsString('review/a/cache/thumbnail/image.webp', $this->tester->getDisplay());
+        self::assertStringContainsString('Would delete 2 file(s) from gcloud/review/a.', $this->tester->getDisplay());
+        self::assertStringContainsString('  - review/a/cache/thumbnail/image.webp', $this->tester->getDisplay());
     }
 
     public function test_deleted_files_are_listed_when_verbose(): void
     {
         $this->tester->execute(['filesystem' => 'gcloud', 'path' => 'review/a'], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
-        self::assertStringContainsString('review/a/image.png', $this->tester->getDisplay());
+        self::assertStringContainsString('  - review/a/image.png', $this->tester->getDisplay());
+    }
+
+    public function test_deleted_files_are_not_listed_at_normal_verbosity(): void
+    {
+        $this->tester->execute(['filesystem' => 'gcloud', 'path' => 'review/a']);
+
+        self::assertStringNotContainsString('review/a/image.png', $this->tester->getDisplay());
     }
 
     public function test_an_unknown_filesystem_is_invalid(): void
     {
         self::assertSame(Command::INVALID, $this->tester->execute(['filesystem' => 'missing', '--all' => true]));
+        self::assertStringContainsString('There is no filesystem "missing".', $this->tester->getDisplay());
     }
 
     /**
-     * @return iterable<string, array{array<string, string>}>
+     * @return iterable<string, array{array<string, string>, string}>
      */
     public static function incompleteGuards(): iterable
     {
-        yield 'a pattern without a value' => [['--matching' => self::REVIEW_PATTERN]];
-        yield 'a value without a pattern' => [['--only-if-value' => 'review/a/']];
-        yield 'an invalid pattern' => [['--only-if-value' => 'review/a/', '--matching' => '~(review~']];
+        yield 'a pattern without a value' => [['--matching' => self::REVIEW_PATTERN], '--only-if-value and --matching go together.'];
+        yield 'a value without a pattern' => [['--only-if-value' => 'review/a/'], '--only-if-value and --matching go together.'];
+        yield 'an invalid pattern' => [['--only-if-value' => 'review/a/', '--matching' => '~(review~'], '--matching is not a valid pattern: ~(review~'];
     }
 
     /**
      * @param array<string, string> $guard
      */
     #[DataProvider('incompleteGuards')]
-    public function test_an_incomplete_or_invalid_guard_is_invalid_and_deletes_nothing(array $guard): void
+    public function test_an_incomplete_or_invalid_guard_is_invalid_and_deletes_nothing(array $guard, string $message): void
     {
         self::assertSame(Command::INVALID, $this->tester->execute(['filesystem' => 'gcloud', '--all' => true] + $guard));
 
         self::assertCount(4, $this->storedFiles());
+        self::assertStringContainsString($message, $this->tester->getDisplay());
     }
 
     /**
@@ -134,6 +145,7 @@ class DeleteStoredFilesCommandTest extends TestCase
 
         self::assertSame(Command::FAILURE, $status);
         self::assertCount(4, $this->storedFiles());
+        self::assertStringContainsString(\sprintf('Refusing: "%s" does not match %s. Nothing was deleted.', $value, self::REVIEW_PATTERN), $this->tester->getDisplay());
     }
 
     public function test_a_value_the_pattern_matches_runs_the_delete(): void

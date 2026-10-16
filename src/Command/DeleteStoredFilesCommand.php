@@ -87,7 +87,7 @@ class DeleteStoredFilesCommand extends Command
             return Command::INVALID;
         }
 
-        $dryRun = (bool) $input->getOption('dry-run');
+        $dryRun = $input->getOption('dry-run');
         $paths = [];
         /** @var StorageAttributes $item */
         foreach ($filesystem->listContents($path ?? '', true) as $item) {
