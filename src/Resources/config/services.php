@@ -48,6 +48,7 @@ use Silverback\ApiComponentsBundle\Command\DeduplicateFileInfoCommand;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\GenerateFixturesCommand;
 use Silverback\ApiComponentsBundle\Command\PrefixPageUiComponentsCommand;
+use Silverback\ApiComponentsBundle\Command\PruneFixtureAssetsCommand;
 use Silverback\ApiComponentsBundle\Command\RefreshTokensExpireCommand;
 use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
@@ -90,6 +91,7 @@ use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UnpublishedRouteExceptionListener;
 use Silverback\ApiComponentsBundle\EventListener\Console\ConsoleOutputListener;
+use Silverback\ApiComponentsBundle\EventListener\Console\FixtureLoadListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\MappedSuperclassDiscriminatorMapListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
@@ -122,6 +124,8 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\UsernameChangedEmailFacto
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetLoader;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetStoreFactory;
 use Silverback\ApiComponentsBundle\Fixture\CwaFixtureBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Generator\ScaffoldGenerator;
 use Silverback\ApiComponentsBundle\Fixture\Placeholder\HtmlContentPlaceholder;
@@ -1663,9 +1667,18 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('console.command')
         ->args([
             new Reference('silverback.api_components.fixture.scaffold_generator'),
+            new Reference('silverback.api_components.fixture.asset_store_factory'),
         ]);
 
     $services->alias(GenerateFixturesCommand::class, 'silverback.api_components.command.generate_fixtures');
+
+    $services->set('silverback.api_components.command.prune_fixture_assets', PruneFixtureAssetsCommand::class)
+        ->tag('console.command')
+        ->args([
+            new Reference('silverback.api_components.fixture.asset_store_factory'),
+        ]);
+
+    $services->alias(PruneFixtureAssetsCommand::class, 'silverback.api_components.command.prune_fixture_assets');
 
     $services
         ->set(UserStateProvider::class)
@@ -2112,6 +2125,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(PageDataProvider::class),
             new Reference('silverback.doctrine.repository.component_position'),
             new Reference(CwaCollectorData::class),
+            new Reference('silverback.api_components.event_listener.console.fixture_load'),
         ])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush])
@@ -2130,9 +2144,29 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             new Reference('silverback.api_components.event_listener.console.console_output'),
             new Reference(PublishableAttributeReader::class),
+            new Reference('silverback.api_components.fixture.asset_loader'),
         ])
         ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(CwaFixtureBuilder::class, 'silverback.api_components.fixture.cwa_fixture_builder');
+
+    $services
+        ->set('silverback.api_components.fixture.asset_store_factory')
+        ->class(FixtureAssetStoreFactory::class)
+        ->autoconfigure(false)
+        ->args([
+            '$filesystemProvider' => new Reference(FilesystemProvider::class),
+        ]);
+    $services->alias(FixtureAssetStoreFactory::class, 'silverback.api_components.fixture.asset_store_factory');
+
+    $services
+        ->set('silverback.api_components.fixture.asset_loader')
+        ->class(FixtureAssetLoader::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference('silverback.api_components.fixture.asset_store_factory'),
+        ])
+        ->tag('kernel.reset', ['method' => 'reset']);
+    $services->alias(FixtureAssetLoader::class, 'silverback.api_components.fixture.asset_loader');
 
     $services
         ->set('silverback.api_components.fixture.scaffold_generator')
@@ -2156,6 +2190,20 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => ConsoleEvents::TERMINATE, 'method' => 'onConsoleTerminate'])
         ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(ConsoleOutputListener::class, 'silverback.api_components.event_listener.console.console_output');
+
+    $services
+        ->set('silverback.api_components.event_listener.console.fixture_load')
+        ->class(FixtureLoadListener::class)
+        ->autoconfigure(false)
+        ->args([
+            '$httpCacheFlusher' => new Reference('silverback.api_components.http_cache.flusher', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            '$imagineEnabled' => false,
+            '$logger' => new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ])
+        ->tag('kernel.event_listener', ['event' => ConsoleEvents::COMMAND, 'method' => 'onConsoleCommand'])
+        ->tag('kernel.event_listener', ['event' => ConsoleEvents::TERMINATE, 'method' => 'onConsoleTerminate'])
+        ->tag('kernel.reset', ['method' => 'reset']);
+    $services->alias(FixtureLoadListener::class, 'silverback.api_components.event_listener.console.fixture_load');
 
     $services
         ->set('silverback.api_components.fixture.html_content_placeholder')

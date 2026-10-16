@@ -12,22 +12,31 @@
 namespace Silverback\ApiComponentsBundle\Fixture\Generator;
 
 use League\Flysystem\FilesystemException;
+use Silverback\ApiComponentsBundle\Fixture\Generator\Code\ImportCollector;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Utility\StoredFileName;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Mime\MimeTypes;
 
 /**
  * @internal
  */
-final class StoredFileExporter
+final class StoredFileExporter implements StoredFileExport
 {
     /** @var array<string, true> */
     private array $names = [];
+    /** @var array<string, string> */
+    private array $namesByHash = [];
 
     public function __construct(
         private readonly FilesystemProvider $filesystemProvider,
         private readonly string $directory,
     ) {
+    }
+
+    public function expression(string $adapter, string $storedPath, string $field, ImportCollector $imports): string
+    {
+        return \sprintf("new %s(__DIR__ . '/assets/%s')", $imports->add(File::class), $this->export($adapter, $storedPath));
     }
 
     /**
@@ -36,16 +45,17 @@ final class StoredFileExporter
     public function export(string $adapter, string $storedPath): string
     {
         $contents = $this->filesystemProvider->getFilesystem($adapter)->read($storedPath);
+        $hash = hash('sha256', $contents);
+        if (isset($this->namesByHash[$hash])) {
+            return $this->namesByHash[$hash];
+        }
         if (!is_dir($this->directory)) {
             mkdir($this->directory, 0777, true);
         }
         $file = $this->directory . '/.export';
         file_put_contents($file, $contents);
 
-        $basename = pathinfo($storedPath, \PATHINFO_BASENAME);
-        $extension = pathinfo($basename, \PATHINFO_EXTENSION);
-        $originalName = StoredFileName::stripToken(pathinfo($basename, \PATHINFO_FILENAME)) . ('' === $extension ? '' : '.' . $extension);
-        $exported = StoredFileName::withoutToken($originalName, MimeTypes::getDefault()->guessMimeType($file));
+        $exported = StoredFileName::fromStoredPath($storedPath, MimeTypes::getDefault()->guessMimeType($file));
         $extension = pathinfo($exported, \PATHINFO_EXTENSION);
         $stem = pathinfo($exported, \PATHINFO_FILENAME);
         $suffix = '' === $extension ? '' : '.' . $extension;
@@ -54,6 +64,7 @@ final class StoredFileExporter
             $name = $stem . '-' . $i . $suffix;
         }
         $this->names[$name] = true;
+        $this->namesByHash[$hash] = $name;
         rename($file, $this->directory . '/' . $name);
 
         return $name;

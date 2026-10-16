@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Fixture;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
@@ -28,6 +29,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\EventListener\Console\ConsoleOutputListener;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetLoader;
 use Silverback\ApiComponentsBundle\Fixture\Builder\ComponentBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\GroupBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\IriLink;
@@ -38,6 +40,7 @@ use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Utility\RouteName;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\PropertyAccess\Exception\AccessException;
 use Symfony\Component\PropertyAccess\Exception\InvalidTypeException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
@@ -53,6 +56,7 @@ class CwaFixtureBuilder implements ResetInterface
 
     private ?ObjectManager $manager = null;
     private ?AbstractPage $parentContext = null;
+    private ?string $assetManifest = null;
     private CwaFixtureSummary $summary;
 
     /** @var array<string, LayoutBuilder> */
@@ -147,6 +151,7 @@ class CwaFixtureBuilder implements ResetInterface
         private readonly ?LoggerInterface $logger = null,
         private readonly ?ConsoleOutputListener $consoleOutput = null,
         private readonly ?PublishableAttributeReader $publishableAttributeReader = null,
+        private readonly ?FixtureAssetLoader $assetLoader = null,
     ) {
         $this->summary = new CwaFixtureSummary();
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
@@ -160,10 +165,31 @@ class CwaFixtureBuilder implements ResetInterface
         return $this;
     }
 
+    public function withAssetManifest(string $path): static
+    {
+        $this->assetManifest = $path;
+
+        return $this;
+    }
+
+    public function asset(string $hash, ?string $name = null): UploadedFile
+    {
+        if (null === $this->assetLoader) {
+            throw new \LogicException('asset() needs the fixture asset loader. Pass it to the CwaFixtureBuilder.');
+        }
+        if (null === $this->assetManifest) {
+            throw new \LogicException('asset() is only available while an AbstractCwaScaffold loads, which tells the builder where its asset manifest is.');
+        }
+
+        return $this->assetLoader->load($this->assetManifest, $hash, $name);
+    }
+
     public function reset(): void
     {
         $this->manager = null;
         $this->parentContext = null;
+        $this->assetManifest = null;
+        $this->assetLoader?->reset();
         $this->summary = new CwaFixtureSummary();
         $this->layoutBuilders = [];
         $this->pageSpecs = [];
@@ -495,9 +521,6 @@ class CwaFixtureBuilder implements ResetInterface
                 $this->decide($layoutBuilder, $layout, $this->findOne(Layout::class, ['reference' => $ref]), CwaFixtureSummary::LAYOUT, (string) $ref);
             }
             if (self::CREATED === $this->decisions[spl_object_id($layoutBuilder)]) {
-                if (!isset($this->persistedEntities[spl_object_id($layout)])) {
-                    $this->timestampedPersister->persistTimestampedFields($layout, true);
-                }
                 $this->persistWithAssociations($layout);
             }
             foreach ($layoutBuilder->getGroupBuilders() as $groupBuilder) {
@@ -556,11 +579,6 @@ class CwaFixtureBuilder implements ResetInterface
                 $this->markSkipped($component);
                 continue;
             }
-            if (!isset($this->persistedEntities[spl_object_id($component)])) {
-                if ($this->timestampedPersister->isConfigured($component)) {
-                    $this->timestampedPersister->persistTimestampedFields($component, true);
-                }
-            }
             $this->persistWithAssociations($component);
             foreach ($componentBuilder->getGroupBuilders() as $groupBuilder) {
                 $this->createAndLinkComponentGroup($groupBuilder, $component);
@@ -586,9 +604,6 @@ class CwaFixtureBuilder implements ResetInterface
             if (null !== $layoutBuilder) {
                 $page->layout = $this->resolve($layoutBuilder->getLayout());
             }
-            if (!isset($this->persistedEntities[spl_object_id($page)])) {
-                $this->timestampedPersister->persistTimestampedFields($page, true);
-            }
             $this->persistWithAssociations($page);
         }
         foreach ($builder->getGroupBuilders() as $groupBuilder) {
@@ -608,9 +623,6 @@ class CwaFixtureBuilder implements ResetInterface
         }
         if (null !== $spec['templateRef'] && isset($this->pageSpecs[$spec['templateRef']])) {
             $pageData->page = $this->resolve($this->pageSpecs[$spec['templateRef']]['builder']->getPage());
-        }
-        if (!isset($this->persistedEntities[spl_object_id($pageData)])) {
-            $this->timestampedPersister->persistTimestampedFields($pageData, true);
         }
         $this->persistWithAssociations($pageData);
     }
@@ -874,9 +886,47 @@ class CwaFixtureBuilder implements ResetInterface
             $hadNew = true;
         }
 
+        if ($this->applyRouteRedirects()) {
+            $hadNew = true;
+        }
+
         if ($hadNew) {
             $this->manager->flush();
         }
+    }
+
+    private function applyRouteRedirects(): bool
+    {
+        $applied = false;
+        foreach ($this->orderedRouteSpecs as $spec) {
+            $builder = $spec['builder'];
+            $decision = $this->decisions[spl_object_id($builder)] ?? null;
+            if (null === $decision) {
+                continue;
+            }
+            $routeName = $builder->takeRedirectTo();
+            if (null === $routeName || self::CREATED !== $decision) {
+                continue;
+            }
+            if ('page' === $spec['type']) {
+                $entity = $builder->getPage();
+                $label = \sprintf('the page "%s"', $entity->reference);
+            } else {
+                $entity = $builder->getPageData();
+                $label = \sprintf('the page data "%s"', $entity->getTitle() ?? $entity::class);
+            }
+            $route = $entity->getRoute();
+            if (null === $route) {
+                if (null !== $spec['route']) {
+                    continue;
+                }
+                throw new \LogicException(\sprintf('redirectTo(): %s has no route to redirect to "%s".', $label, $routeName));
+            }
+            $route->setRedirect($this->routeNamedBy($routeName, \sprintf('The route of %s redirects to', $label)));
+            $applied = true;
+        }
+
+        return $applied;
     }
 
     private function registerNamedRoute(array $spec, ?AbstractPage $entity): void
@@ -948,6 +998,7 @@ class CwaFixtureBuilder implements ResetInterface
         $this->resolveRouteLinks();
 
         if ($hasChanges) {
+            $this->applyRouteRedirects();
             $this->manager->flush();
             $this->hasPendingLinks = false;
         }
@@ -1132,9 +1183,6 @@ class CwaFixtureBuilder implements ResetInterface
 
             return false;
         }
-        if ($this->timestampedPersister->isConfigured($component)) {
-            $this->timestampedPersister->persistTimestampedFields($component, true);
-        }
         $this->persistWithAssociations($component);
 
         return true;
@@ -1168,10 +1216,6 @@ class CwaFixtureBuilder implements ResetInterface
             $position->sortValue = $item['sort'];
             $position->component = $component;
             $position->componentGroup = $componentGroup;
-            if (!isset($this->persistedEntities[spl_object_id($component)])
-                && $this->timestampedPersister->isConfigured($component)) {
-                $this->timestampedPersister->persistTimestampedFields($component, true);
-            }
             $this->timestampedPersister->persistTimestampedFields($position, true);
             $this->persistWithAssociations($component);
             $this->manager->persist($position);
@@ -1343,6 +1387,9 @@ class CwaFixtureBuilder implements ResetInterface
             return;
         }
         $wasManaged = $this->manager->contains($entity);
+        if ((!$wasManaged || $this->isScheduledForInsert($entity)) && $this->timestampedPersister->isConfigured($entity)) {
+            $this->timestampedPersister->persistTimestampedFields($entity, true);
+        }
         $this->persistedEntities[$oid] = true;
         $this->manager->persist($entity);
         $this->persistUploadedFile($entity);
@@ -1353,6 +1400,11 @@ class CwaFixtureBuilder implements ResetInterface
         foreach ($this->owningRelations($entity) as $related) {
             $this->persistWithAssociations($related);
         }
+    }
+
+    private function isScheduledForInsert(object $entity): bool
+    {
+        return $this->manager instanceof EntityManagerInterface && $this->manager->getUnitOfWork()->isScheduledForInsert($entity);
     }
 
     /**

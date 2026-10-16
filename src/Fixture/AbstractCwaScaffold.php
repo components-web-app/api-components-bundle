@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Fixture;
 
 use Doctrine\Common\DataFixtures\FixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetManifest;
 
 abstract class AbstractCwaScaffold implements FixtureInterface
 {
@@ -22,7 +23,8 @@ abstract class AbstractCwaScaffold implements FixtureInterface
 
     public function load(ObjectManager $manager): void
     {
-        $cwa = $this->cwa->withManager($manager);
+        $class = new \ReflectionClass($this);
+        $cwa = $this->cwa->withManager($manager)->withAssetManifest(FixtureAssetManifest::pathFor(\dirname((string) $class->getFileName()), $class->getShortName()));
         $this->build($cwa);
         $cwa->flush();
         $cwa->reportSummary();

@@ -68,7 +68,7 @@ class StoredFileExporterTest extends TestCase
     {
         $this->filesystem->write('a/notes-0a1b2c3d', 'plain text');
         $this->filesystem->write('b/Photo-0a1b2c3d.jpg', base64_decode(self::PNG, true));
-        $this->filesystem->write('c/data-0a1b2c3d.md', 'plain text');
+        $this->filesystem->write('c/data-0a1b2c3d.md', 'more plain text');
         $exporter = $this->exporter();
 
         self::assertSame(['notes.txt', 'photo.png', 'data.md'], [
@@ -80,11 +80,11 @@ class StoredFileExporterTest extends TestCase
 
     public function test_names_that_would_collide_get_a_number_that_survives_a_reload(): void
     {
-        $this->filesystem->write('a/image-0a1b2c3d.png', base64_decode(self::PNG, true));
-        $this->filesystem->write('b/image-9f8e7d6c.png', base64_decode(self::PNG, true));
-        $this->filesystem->write('c/IMAGE', base64_decode(self::PNG, true));
-        $this->filesystem->write('d/phpGPCPOl', base64_decode(self::PNG, true));
-        $this->filesystem->write('e/phpgpcpol-2-0a1b2c3d.png', base64_decode(self::PNG, true));
+        $this->filesystem->write('a/image-0a1b2c3d.png', $this->png(1));
+        $this->filesystem->write('b/image-9f8e7d6c.png', $this->png(2));
+        $this->filesystem->write('c/IMAGE', $this->png(3));
+        $this->filesystem->write('d/phpGPCPOl', $this->png(4));
+        $this->filesystem->write('e/phpgpcpol-2-0a1b2c3d.png', $this->png(5));
         $exporter = $this->exporter();
 
         self::assertSame(['image.png', 'image-2.png', 'image-3.png', 'phpgpcpol.png', 'phpgpcpol-2.png'], [
@@ -96,6 +96,28 @@ class StoredFileExporterTest extends TestCase
         ]);
         self::assertSame(5, $exporter->count());
         self::assertSame(['image-2.png', 'image-3.png', 'image.png', 'phpgpcpol-2.png', 'phpgpcpol.png'], $this->exportedFiles());
+        self::assertSame($this->png(2), file_get_contents($this->directory . '/image-2.png'));
+    }
+
+    public function test_identical_content_is_written_once_under_the_name_of_its_first_export(): void
+    {
+        $this->filesystem->write('a/logo-0a1b2c3d.png', $this->png(1));
+        $this->filesystem->write('b/phpGPCPOl', $this->png(1));
+        $this->filesystem->write('c/logo-9f8e7d6c.png', $this->png(1));
+        $this->filesystem->write('d/logo-1a2b3c4d.png', $this->png(2));
+        $exporter = $this->exporter();
+
+        self::assertSame(['logo.png', 'logo.png', 'logo.png', 'logo-2.png', 'logo.png'], [
+            $exporter->export('local', 'a/logo-0a1b2c3d.png'),
+            $exporter->export('local', 'b/phpGPCPOl'),
+            $exporter->export('local', 'c/logo-9f8e7d6c.png'),
+            $exporter->export('local', 'd/logo-1a2b3c4d.png'),
+            $exporter->export('local', 'a/logo-0a1b2c3d.png'),
+        ]);
+        self::assertSame(2, $exporter->count());
+        self::assertSame(['logo-2.png', 'logo.png'], $this->exportedFiles());
+        self::assertSame($this->png(1), file_get_contents($this->directory . '/logo.png'));
+        self::assertSame($this->png(2), file_get_contents($this->directory . '/logo-2.png'));
     }
 
     public function test_a_name_that_is_only_a_token_keeps_a_stem(): void
@@ -117,6 +139,11 @@ class StoredFileExporterTest extends TestCase
 
         self::assertDirectoryDoesNotExist($this->directory);
         self::assertSame(0, $exporter->count());
+    }
+
+    private function png(int $variant): string
+    {
+        return base64_decode(self::PNG, true) . str_repeat("\0", $variant);
     }
 
     /**

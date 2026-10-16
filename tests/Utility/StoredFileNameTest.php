@@ -50,6 +50,21 @@ class StoredFileNameTest extends TestCase
         yield 'a name that is only a token is empty' => ['-0a1b2c3d', ''];
     }
 
+    public static function storedPaths(): iterable
+    {
+        yield 'the directory and the token are removed' => ['components/home-hero-0a1b2c3d.png', 'image/png', 'home-hero.png'];
+        yield 'a PHP temp name takes the type\'s extension' => ['components/phpGPCPOl', 'image/png', 'phpgpcpol.png'];
+        yield 'a name that is only a token keeps a stem' => ['-0a1b2c3d.png', 'image/png', 'file.png'];
+        yield 'the extension comes from the type' => ['b/Photo-0a1b2c3d.jpg', 'image/png', 'photo.png'];
+        yield 'no type keeps the extension' => ['notes-0a1b2c3d.md', null, 'notes.md'];
+    }
+
+    #[DataProvider('storedPaths')]
+    public function test_a_stored_path_is_exported_under_the_name_its_reload_is_stored_under_without_the_token(string $storedPath, ?string $mimeType, string $expected): void
+    {
+        self::assertSame($expected, StoredFileName::fromStoredPath($storedPath, $mimeType));
+    }
+
     #[DataProvider('tokenised')]
     public function test_the_token_is_stripped_from_a_stored_stem(string $stem, string $expected): void
     {
