@@ -5,15 +5,15 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Breaking
-- `sortValue` on a component position is read-only on the API: a value in a request body is ignored, and with `after`/`before` it is a 422; the server places every insert, move and reorder by one rule that keeps the most values it can and leaves every value unique ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
-- `ComponentPositionSortValueHelper` (`silverback.helper.component_position_sort_value`) and `ComponentPosition::getSortCollection()` are removed; `ComponentPositionOrderer` replaces the helper, and `ComponentPositionNormalizer` no longer takes it. `ComponentPositionValidator` takes the new `ComponentPositionIriResolver` ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+- `sortValue` on a component position is read-only on the API: a value in a request body is ignored, and with `after`/`before` it is a 422; the server places every insert, move and reorder by one rule that keeps the most values it can and leaves every value unique ([#480](https://github.com/components-web-app/api-components-bundle/pull/480))
+- `ComponentPositionSortValueHelper` (`silverback.helper.component_position_sort_value`) and `ComponentPosition::getSortCollection()` are removed; `ComponentPositionOrderer` replaces the helper, and `ComponentPositionNormalizer` no longer takes it. `ComponentPositionValidator` takes the new `ComponentPositionIriResolver` ([#480](https://github.com/components-web-app/api-components-bundle/pull/480))
 
 ### Added
-- `after`/`before` (a position IRI) on a component position created on its own, embedded in a component write, or patched into or within a group: it goes right after or before that position, and an anchor that is not a position of the group is a 422 on that field ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
-- `PUT /_/component_groups/{id}/order` with `{"componentPositions": [iri, …]}` reorders a group in one locked request, and `GET` on the same path returns `{componentGroup, sortValues: {iri: int}}` for the positions the group lists ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+- `after`/`before` (a position IRI) on a component position created on its own, embedded in a component write, or patched into or within a group: it goes right after or before that position, and an anchor that is not a position of the group is a 422 on that field ([#480](https://github.com/components-web-app/api-components-bundle/pull/480))
+- `PUT /_/component_groups/{id}/order` with `{"componentPositions": [iri, …]}` reorders a group in one locked request, and `GET` on the same path returns `{componentGroup, sortValues: {iri: int}}` for the positions the group lists ([#480](https://github.com/components-web-app/api-components-bundle/pull/480))
 
 ### Changed
-- Positions sharing a `sortValue` are ordered by id. Purges and Mercure updates from a placement or reorder are sent after its transaction commits ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+- Positions sharing a `sortValue` are ordered by id. Purges and Mercure updates from a placement or reorder are sent after its transaction commits ([#480](https://github.com/components-web-app/api-components-bundle/pull/480))
 
 ## [2.0.0-alpha.23](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.22...2.0.0-alpha.23) - 2026-10-16
 
