@@ -17,7 +17,7 @@ class GroupBuilder
 {
     private array $components = [];
     private array $pageDataPositions = [];
-    private int $nextSort = 10;
+    private int $nextSort = 0;
     private int $processedComponentCount = 0;
     private int $processedPositionCount = 0;
 
@@ -32,7 +32,7 @@ class GroupBuilder
     public function add(AbstractComponent $component, ?int $sort = null): self
     {
         $this->components[] = ['component' => $component, 'sort' => $sort ?? $this->nextSort];
-        $this->nextSort += 10;
+        ++$this->nextSort;
 
         return $this;
     }
@@ -40,7 +40,7 @@ class GroupBuilder
     public function pageDataPosition(string $pageDataClass, string $propertyName, ?int $sort = null): self
     {
         $this->pageDataPositions[] = ['class' => $pageDataClass, 'property' => $propertyName, 'sort' => $sort ?? $this->nextSort];
-        $this->nextSort += 10;
+        ++$this->nextSort;
 
         return $this;
     }
