@@ -29,6 +29,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
+use Silverback\ApiComponentsBundle\EventListener\Console\FixtureLoadListener;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\DisallowedRequestOriginException;
 use Silverback\ApiComponentsBundle\Exception\HttpCacheFlushFailedException;
@@ -320,6 +321,15 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame(PageUiComponentNormalizer::class, $normalizer->getClass());
         self::assertSame([['priority' => -499]], $normalizer->getTag('serializer.normalizer'));
         self::assertFalse($normalizer->isAutoconfigured());
+    }
+
+    public function test_the_fixture_load_listener_says_to_generate_variants_only_with_imagine_enabled(): void
+    {
+        [$withImagine] = $this->load(self::minimalConfig(), true);
+        [$withoutImagine] = $this->load(self::minimalConfig());
+
+        self::assertTrue($this->argument($withImagine, FixtureLoadListener::class, '$imagineEnabled'));
+        self::assertFalse($this->argument($withoutImagine, FixtureLoadListener::class, '$imagineEnabled'));
     }
 
     public function test_without_imagine_no_filter_generator_is_registered(): void

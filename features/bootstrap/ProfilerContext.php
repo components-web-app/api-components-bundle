@@ -102,6 +102,18 @@ class ProfilerContext implements Context
     public function resetMercureHub(): void
     {
         HubStub::setUnreachable(false);
+        HubStub::clearPublished();
+    }
+
+    /**
+     * @Then no Mercure update should have been published
+     */
+    public function noMercureUpdateShouldHaveBeenPublished(): void
+    {
+        $topics = array_map(static fn ($update) => implode(', ', $update->getTopics()), HubStub::getPublished());
+        if ([] !== $topics) {
+            throw new \RuntimeException(\sprintf('%d Mercure updates were published: %s', \count($topics), implode('; ', $topics)));
+        }
     }
 
     /**

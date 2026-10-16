@@ -90,6 +90,7 @@ use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UnpublishedRouteExceptionListener;
 use Silverback\ApiComponentsBundle\EventListener\Console\ConsoleOutputListener;
+use Silverback\ApiComponentsBundle\EventListener\Console\FixtureLoadListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\MappedSuperclassDiscriminatorMapListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
@@ -2097,6 +2098,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(PageDataProvider::class),
             new Reference('silverback.doctrine.repository.component_position'),
             new Reference(CwaCollectorData::class),
+            new Reference('silverback.api_components.event_listener.console.fixture_load'),
         ])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush])
@@ -2141,6 +2143,20 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('kernel.event_listener', ['event' => ConsoleEvents::TERMINATE, 'method' => 'onConsoleTerminate'])
         ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(ConsoleOutputListener::class, 'silverback.api_components.event_listener.console.console_output');
+
+    $services
+        ->set('silverback.api_components.event_listener.console.fixture_load')
+        ->class(FixtureLoadListener::class)
+        ->autoconfigure(false)
+        ->args([
+            '$httpCacheFlusher' => new Reference('silverback.api_components.http_cache.flusher', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            '$imagineEnabled' => false,
+            '$logger' => new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ])
+        ->tag('kernel.event_listener', ['event' => ConsoleEvents::COMMAND, 'method' => 'onConsoleCommand'])
+        ->tag('kernel.event_listener', ['event' => ConsoleEvents::TERMINATE, 'method' => 'onConsoleTerminate'])
+        ->tag('kernel.reset', ['method' => 'reset']);
+    $services->alias(FixtureLoadListener::class, 'silverback.api_components.event_listener.console.fixture_load');
 
     $services
         ->set('silverback.api_components.fixture.html_content_placeholder')
