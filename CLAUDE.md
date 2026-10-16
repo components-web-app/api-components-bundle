@@ -316,6 +316,7 @@ Resources are fetched and cached **individually**. Never embed related data outs
 - **A failed notification never fails the scan.** The report is saved before sending. The send uses the user emails' semantics: a `TransportExceptionInterface` is logged at error as a `MailerTransportException`, and the command prints that the notification failed and exits 0.
 - **The GET must stay `private, no-store`.** A new scan writes `OrphanedResourceReportRecord`, which is not an API resource, so nothing purges a shared-cache copy.
 - The POST needs `read: true` like the purge endpoints. Anonymous POST 401 in the test app is the firewall's; the `@loginUser` 403 is the operation's own security.
+- **`silverback:api-components:delete-stored-files <filesystem> [<path>]`** (#477) deletes every file under a path of a `FilesystemProvider` filesystem; no path needs `--all`. Its guard, `--only-if-value` + `--matching`, takes the value from the caller because an adapter's path prefix is private to Flysystem: the template passes its `GCLOUD_PATH_PREFIX`, so a review app deployed with no prefix can't empty the bucket. Keep the guard checked before the filesystem is touched.
 
 ### Orphaned file report (#371)
 

@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Added
+- `silverback:api-components:delete-stored-files <filesystem> [<path>]` deletes every stored file under a path of a filesystem (`--all` for the whole filesystem, `--dry-run`); `--only-if-value` with `--matching` runs it only when a caller-supplied value, such as the adapter's path prefix, matches a pattern ([#478](https://github.com/components-web-app/api-components-bundle/pull/478))
+
 ### Changed
 - `CwaFixtureBuilder` gives positions sort values from 0 in steps of 1, as the API does, instead of from 10 in steps of 10 ([#479](https://github.com/components-web-app/api-components-bundle/pull/479))
 
