@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.22](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.21...2.0.0-alpha.22) - 2026-10-16
+
 ### Breaking
 - `GenerateFixturesCommand` takes the new `ScaffoldGenerator` service (`silverback.api_components.fixture.scaffold_generator`) instead of the six collaborators it used to build the scaffold itself ([#453](https://github.com/components-web-app/api-components-bundle/pull/453))
 - `nested()` on a page or page data adds a closure instead of replacing the previous one, and `PageBuilder::nested()` returns the builder ([#453](https://github.com/components-web-app/api-components-bundle/pull/453))
