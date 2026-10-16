@@ -1210,6 +1210,23 @@ final class FixtureContext implements Context
     }
 
     /**
+     * @Then there should be :count :shortName with a created and a modified date
+     */
+    public function thereShouldBeEntitiesWithACreatedAndAModifiedDate(int $count, string $shortName): void
+    {
+        $this->manager->clear();
+        $entities = $this->manager->getRepository('Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\\' . $shortName)->findAll();
+        if ($count !== \count($entities)) {
+            throw new \RuntimeException(\sprintf('Expected %d %s, found %d.', $count, $shortName, \count($entities)));
+        }
+        foreach ($entities as $entity) {
+            if (!$entity->createdAt instanceof \DateTimeInterface || !$entity->modifiedAt instanceof \DateTimeInterface) {
+                throw new \RuntimeException(\sprintf('A %s has no created or modified date.', $shortName));
+            }
+        }
+    }
+
+    /**
      * @When I run the command :command
      */
     public function iRunTheCommand(string $command): void
