@@ -1214,6 +1214,76 @@ class GenerateFixturesCommandTest extends TestCase
         self::assertStringContainsString('The redirect from "/orphan" to "/nowhere", whose target has no page.', $this->display);
     }
 
+    public function test_a_page_whose_route_redirects_redirects_to_its_target_by_route_name(): void
+    {
+        $layout = $this->layout('main', uiComponent: 'CwaLayoutPrimary');
+        $home = $this->route('/', 'home');
+        $graphs = $this->route('/graphs', 'graphs');
+        $findings = $this->route('/graphs/top-line-findings', 'top-line-findings');
+        $home->setRedirect($graphs);
+        $graphs->setRedirect($findings);
+        $this->page('home', $layout, $home)->setTitle('Home');
+        $graphsPage = $this->page('graphs', $layout, $graphs);
+        $graphsPage->setTitle('Graphs');
+        $this->page('top-line-findings', $layout, $findings)->setParentPage($graphsPage);
+        $this->repositories[Route::class] = [$home, $graphs, $findings];
+
+        $code = $this->generate();
+
+        self::assertStringContainsString("\$cwa->page('home', uiComponent: 'Primary', layout: 'main', route: '/', routeName: 'home')\n            ->title('Home')\n            ->redirectTo(routeName: 'graphs');\n", $code);
+        self::assertStringContainsString("->title('Graphs')\n            ->redirectTo(routeName: 'top-line-findings')\n            ->nested(\$this->topLineFindingsPage(...));\n", $code);
+        self::assertStringNotContainsString('$cwa->redirect(', $code);
+        self::assertStringNotContainsString('could not be reproduced', $this->display);
+        $this->assertLints();
+    }
+
+    public function test_no_route_redirect_is_left_out_without_being_reported(): void
+    {
+        $layout = $this->layout('main', uiComponent: 'CwaLayoutPrimary');
+        $about = $this->route('/about', 'about');
+        $aboutPage = $this->page('about', $layout, $about);
+        $nowhere = $this->route('/nowhere', 'nowhere');
+        $redirects = [];
+        $redirect = static function (Route $route, Route $target) use (&$redirects): Route {
+            $route->setRedirect($target);
+            $redirects[] = $route;
+
+            return $route;
+        };
+        $old = $redirect($this->route('/old', 'old'), $about);
+        $redirect($this->route('/older', 'older'), $old);
+        $orphan = $redirect($this->route('/orphan', 'orphan'), $nowhere);
+        $redirect($this->route('/orphan-chain', 'orphan-chain'), $orphan);
+        $this->page('home', $layout, $redirect($this->route('/', 'home'), $about));
+        $this->page('legacy', $layout, $redirect($this->route('/legacy', 'legacy'), $old));
+        $this->page('lost', $layout, $redirect($this->route('/lost', 'lost'), $nowhere));
+        $this->page('stray', $layout, $redirect($this->route('/stray', 'stray'), $orphan));
+        $this->page('child', $layout, $redirect($this->route('/about/child', 'child'), $about))->setParentPage($aboutPage);
+        $event = new PageData();
+        $event->setTitle('Event');
+        $redirect($this->route('/event', 'event'), $about)->setPageData($event);
+        $lostEvent = new PageData();
+        $lostEvent->setTitle('Lost event');
+        $redirect($this->route('/lost-event', 'lost-event'), $nowhere)->setPageData($lostEvent);
+        $this->repositories[AbstractPageData::class] = [$event, $lostEvent];
+        $first = $this->page('first-loop', $layout, $redirect($this->route('/loop-one', 'loop-one'), $about));
+        $second = $this->page('second-loop', $layout, $redirect($this->route('/loop-two', 'loop-two'), $about));
+        $first->setParentPage($second);
+        $second->setParentPage($first);
+        $this->repositories[Route::class] = [$about, $nowhere, ...$redirects];
+
+        $code = $this->generate();
+
+        foreach ($redirects as $route) {
+            $path = $route->getPath();
+            $carried = str_contains($code, \sprintf("\$cwa->redirect('%s', to: '%s'", $path, $route->getRedirect()->getName()))
+                || 1 === preg_match(\sprintf("/route: '%s'[^;]*->redirectTo\\(routeName: '%s'\\);/s", preg_quote($path, '/'), preg_quote($route->getRedirect()->getName(), '/')), $code);
+            $reported = str_contains($this->display, \sprintf('"%s"', $path)) || str_contains($this->display, '/_/pages/' . $route->getPage()?->reference . ' ');
+            self::assertTrue($carried || $reported, \sprintf('The redirect from "%s" is neither carried nor reported.', $path));
+        }
+        $this->assertLints();
+    }
+
     public function test_redirects_with_no_dependency_between_them_are_ordered_by_path(): void
     {
         $layout = $this->layout('main', uiComponent: 'CwaLayoutPrimary');
@@ -1479,7 +1549,9 @@ class GenerateFixturesCommandTest extends TestCase
         $conferenceRedirect->setRedirect($conferenceRoute);
         $teamRedirect = $this->route('/our-team', 'our-team');
         $teamRedirect->setRedirect($teamRoute);
-        $this->repositories[Route::class] = [$teamRedirect, $homeRoute, $conferenceRedirect, $aboutRoute, $teamRoute, $conferenceRoute];
+        $eventsRoute = $this->route('/events', 'events');
+        $eventsRoute->setRedirect($conferenceRoute);
+        $this->repositories[Route::class] = [$teamRedirect, $homeRoute, $conferenceRedirect, $aboutRoute, $eventsRoute, $teamRoute, $conferenceRoute];
 
         $header = $this->group('header_/_/layouts/main', '/_/layouts/main', $layout);
         $header->allowedComponents = ['/component/dummy_navigation_links'];
@@ -1544,6 +1616,8 @@ class GenerateFixturesCommandTest extends TestCase
         $teamText->html = '<p>A small team of developers and designers.</p>';
         $this->position($teamGroup, $teamText, 10);
         $this->position($teamGroup, $contactUs, 20);
+
+        $this->page('events', $layout, $eventsRoute)->setTitle('Events');
 
         $template = $this->page('conference', $layout);
         $template->isTemplate = true;

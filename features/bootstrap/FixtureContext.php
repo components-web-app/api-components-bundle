@@ -456,6 +456,17 @@ final class FixtureContext implements Context
     }
 
     /**
+     * @Given the site's route :path redirects to the route :to
+     */
+    public function theSitesRouteRedirectsTo(string $path, string $to): void
+    {
+        $this->builder()->flush();
+        $this->manager->flush();
+        $this->findRoute($path)->setRedirect($this->findRoute($to));
+        $this->manager->flush();
+    }
+
+    /**
      * @Given the site has a PageDataWithComponent titled :title whose component is a DummyComponent :uiComponent
      */
     public function theSiteHasAPageDataWithComponent(string $title, string $uiComponent): void
@@ -994,6 +1005,16 @@ final class FixtureContext implements Context
     {
         $this->scaffold[] = static function (CwaFixtureBuilder $cwa) use ($from, $to): void {
             $cwa->redirect($from, to: $to);
+        };
+    }
+
+    /**
+     * @Given the scaffold's page :page redirects to the route :routeName
+     */
+    public function theScaffoldsPageRedirectsTo(string $page, string $routeName): void
+    {
+        $this->scaffold[] = function () use ($page, $routeName): void {
+            $this->pageBuilders[$page]->redirectTo($routeName);
         };
     }
 
