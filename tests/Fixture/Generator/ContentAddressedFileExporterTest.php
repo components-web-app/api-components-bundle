@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Tests\Fixture\Generator;
 
 use League\Flysystem\Filesystem;
+use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
@@ -140,6 +141,34 @@ class ContentAddressedFileExporterTest extends TestCase
             self::assertInstanceOf(UnableToWriteFile::class, $exception->getPrevious());
         }
         self::assertSame(0, $exporter->count());
+    }
+
+    public function test_the_stored_file_is_closed_after_it_is_exported_or_refused_by_the_store(): void
+    {
+        $source = fopen('php://memory', 'r+');
+        fwrite($source, 'same');
+        rewind($source);
+        $adapter = $this->createStub(FilesystemAdapter::class);
+        $adapter->method('readStream')->willReturn($source);
+        $provider = new FilesystemProvider(new ServiceLocator(['local' => static fn () => new Filesystem($adapter)]));
+
+        (new ContentAddressedFileExporter($provider, new FixtureAssetStore($this->assets, 'fixtures', false, 'test'), $this->manifest, new PhpValueExporter()))
+            ->expression('local', 'a/photo-0a1b2c3d.txt', 'App\\Entity\\Doc::file', $this->imports);
+
+        self::assertFalse(\is_resource($source));
+
+        $refused = fopen('php://memory', 'r+');
+        $adapter = $this->createStub(FilesystemAdapter::class);
+        $adapter->method('readStream')->willReturn($refused);
+        $store = $this->createStub(FilesystemOperator::class);
+        $store->method('writeStream')->willThrowException(UnableToWriteFile::atLocation('fixtures/x', 'denied'));
+        try {
+            (new ContentAddressedFileExporter(new FilesystemProvider(new ServiceLocator(['local' => static fn () => new Filesystem($adapter)])), new FixtureAssetStore($store, 'fixtures', false, 'test'), $this->manifest, new PhpValueExporter()))
+                ->expression('local', 'b/other-0a1b2c3d.txt', 'App\\Entity\\Doc::file', $this->imports);
+            self::fail('A file the store refused was exported.');
+        } catch (\RuntimeException) {
+        }
+        self::assertFalse(\is_resource($refused));
     }
 
     private function exporter(): ContentAddressedFileExporter

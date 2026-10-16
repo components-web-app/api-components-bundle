@@ -60,7 +60,7 @@ class PruneFixtureAssetsCommandTest extends TestCase
         self::assertFalse($this->bucket->fileExists('fixtures/' . hash('sha256', 'stale')));
         self::assertTrue($this->bucket->fileExists('fixtures/README.md'));
         self::assertStringContainsString('Deleted 1 asset(s) that no kept manifest names from the fixture asset store the gcloud filesystem under fixtures.', $tester->getDisplay());
-        self::assertStringContainsString(hash('sha256', 'stale'), $tester->getDisplay());
+        self::assertStringContainsString("\n  - " . hash('sha256', 'stale') . "\n", $tester->getDisplay());
     }
 
     public function test_the_assets_are_listed_only_when_verbose(): void
@@ -117,6 +117,21 @@ class PruneFixtureAssetsCommandTest extends TestCase
         self::assertSame(0, $tester->getStatusCode());
         self::assertFileExists($this->directory . '/assets/' . hash('sha256', 'current'));
         self::assertFileDoesNotExist($this->directory . '/assets/' . hash('sha256', 'stale'));
+    }
+
+    public function test_with_no_configured_store_only_the_first_manifest_decides_the_folder(): void
+    {
+        mkdir($this->directory . '/first/assets', 0777, true);
+        mkdir($this->directory . '/second/assets', 0777, true);
+        rename($this->current, $first = $this->directory . '/first/Current.assets.json');
+        rename($this->previous, $second = $this->directory . '/second/Previous.assets.json');
+        file_put_contents($this->directory . '/first/assets/' . hash('sha256', 'stale'), 'stale');
+        file_put_contents($this->directory . '/second/assets/' . hash('sha256', 'stale'), 'stale');
+
+        $this->prune(['manifests' => [$first, $second]], OutputInterface::VERBOSITY_NORMAL, new FixtureAssetStoreFactory(new FilesystemProvider(new ServiceLocator([]))));
+
+        self::assertFileDoesNotExist($this->directory . '/first/assets/' . hash('sha256', 'stale'));
+        self::assertFileExists($this->directory . '/second/assets/' . hash('sha256', 'stale'));
     }
 
     public function test_a_directory_for_one_run_is_pruned_instead(): void

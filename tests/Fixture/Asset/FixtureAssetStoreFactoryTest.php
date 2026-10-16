@@ -116,6 +116,7 @@ class FixtureAssetStoreFactoryTest extends TestCase
         self::assertTrue($store?->isLocal());
         self::assertSame($this->directory . '/one-off', $store->description);
         self::assertSame($this->directory . '/one-off', $this->factory()->forGeneration('/elsewhere', 'local', $this->directory . '/one-off')?->description);
+        self::assertSame($this->directory . '/one-off', $this->factory(enabled: true, path: '/configured')->forGeneration('/elsewhere', null, $this->directory . '/one-off')?->description);
     }
 
     public static function invalidStores(): iterable

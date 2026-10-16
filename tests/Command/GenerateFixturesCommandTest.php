@@ -80,6 +80,7 @@ class GenerateFixturesCommandTest extends TestCase
         self::assertStringNotContainsString('$g = [];', $code);
         self::assertStringNotContainsString('afterRoutes', $code);
         self::assertStringContainsString('Fixture class written to ' . $this->outputFile, $this->display);
+        self::assertStringNotContainsString('stored file(s)', $this->display);
     }
 
     public function test_the_class_is_named_after_the_output_file(): void

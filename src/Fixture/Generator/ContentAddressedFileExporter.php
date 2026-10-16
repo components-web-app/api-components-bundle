@@ -74,11 +74,10 @@ final readonly class ContentAddressedFileExporter implements StoredFileExport
     {
         try {
             if (!$this->store->has($hash)) {
-                rewind($copy);
                 $this->store->write($hash, $copy);
             }
         } catch (FilesystemException $exception) {
-            throw new \RuntimeException(\sprintf('The stored file "%s" could not be written to the fixture asset store (%s) as %s: %s', $storedPath, $this->store->description, $hash, $exception->getMessage()), 0, $exception);
+            throw new \RuntimeException(\sprintf('The stored file "%s" could not be written to the fixture asset store (%s) as %s: %s', $storedPath, $this->store->description, $hash, $exception->getMessage()), previous: $exception);
         }
     }
 }
