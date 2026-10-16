@@ -5,7 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Added
-- `#[UploadedImage]`, an `Assert\Image` for upload fields that skips the image checks for an SVG (`allowSvg: false` refuses one), takes its `maxPixels` from the new `uploadable.image_max_pixels` (default 30,000,000) when it sets none, and says the limit with an approximate width x height; the orphaned files report checks it the same way ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+- `#[UploadedImage]`, an `Assert\Image` for upload fields that skips the image checks for an SVG (`allowSvg: false` refuses one), takes its `maxPixels` from the new `uploadable.image_max_pixels` (default 30,000,000) when it sets none, and says the limit with an approximate width x height; the orphaned files report checks it the same way ([#456](https://github.com/components-web-app/api-components-bundle/pull/456))
 
 ## [2.0.0-alpha.22](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.21...2.0.0-alpha.22) - 2026-10-16
 
