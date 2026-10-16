@@ -797,6 +797,30 @@ class GenerateFixturesCommandTest extends TestCase
         self::assertFileDoesNotExist($this->outputDirectory . '/GeneratedScaffold.assets.json');
     }
 
+    public function test_identical_stored_files_are_exported_as_one_asset_that_both_resources_name(): void
+    {
+        $layout = $this->layout('main', uiComponent: 'CwaLayoutPrimary');
+        $group = $this->group('top_/_/layouts/main', '/_/layouts/main', $layout);
+        $this->filesystem->write('components/logo-0a1b2c3d.txt', 'same');
+        $this->filesystem->write('components/phpGPCPOl', 'same');
+        $this->filesystem->write('components/logo-9f8e7d6c.txt', 'different');
+        foreach (['components/logo-0a1b2c3d.txt', 'components/phpGPCPOl', 'components/logo-9f8e7d6c.txt'] as $sort => $path) {
+            $component = new DummyUploadableAndPublishable();
+            $component->setFilename($path);
+            $this->position($group, $component, $sort);
+        }
+
+        $code = $this->generate();
+
+        self::assertStringContainsString("\$mainTopDummyUploadableAndPublishable->file = new File(__DIR__ . '/assets/logo.txt');", $code);
+        self::assertStringContainsString("\$mainTopDummyUploadableAndPublishable2->file = new File(__DIR__ . '/assets/logo.txt');", $code);
+        self::assertStringContainsString("\$mainTopDummyUploadableAndPublishable3->file = new File(__DIR__ . '/assets/logo-2.txt');", $code);
+        self::assertSame(['logo-2.txt', 'logo.txt'], array_values(array_diff(scandir($this->outputDirectory . '/assets') ?: [], ['.', '..'])));
+        self::assertSame('same', file_get_contents($this->outputDirectory . '/assets/logo.txt'));
+        self::assertSame('different', file_get_contents($this->outputDirectory . '/assets/logo-2.txt'));
+        self::assertStringContainsString('2 stored file(s) exported to ' . $this->outputDirectory . '/assets', $this->display);
+    }
+
     public function test_with_a_local_asset_store_files_are_stored_by_content_hash_and_listed_in_a_manifest(): void
     {
         $this->twoUploads('first', 'second');
