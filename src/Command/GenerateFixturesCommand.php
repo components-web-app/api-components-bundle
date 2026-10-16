@@ -11,6 +11,8 @@
 
 namespace Silverback\ApiComponentsBundle\Command;
 
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetManifest;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetStoreFactory;
 use Silverback\ApiComponentsBundle\Fixture\Generator\ScaffoldGenerator;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -26,8 +28,10 @@ class GenerateFixturesCommand extends Command
 {
     private const string IDENTIFIER = '[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*';
 
-    public function __construct(private readonly ScaffoldGenerator $generator)
-    {
+    public function __construct(
+        private readonly ScaffoldGenerator $generator,
+        private readonly FixtureAssetStoreFactory $assetStores,
+    ) {
         parent::__construct();
     }
 
@@ -36,6 +40,8 @@ class GenerateFixturesCommand extends Command
         $this->addOption('output', 'o', InputOption::VALUE_REQUIRED, 'Output file path; the class is named after the file', 'src/DataFixtures/GeneratedScaffold.php');
         $this->addOption('namespace', null, InputOption::VALUE_REQUIRED, 'Namespace of the generated class', 'App\\DataFixtures');
         $this->addOption('keep-timestamps', null, InputOption::VALUE_NONE, 'Write every publish date and go-live date exactly, instead of publishing past dates at load time');
+        $this->addOption('assets-store', null, InputOption::VALUE_REQUIRED, 'Store stored files by content hash in this fixture asset store for this run: local or flysystem (fixtures.assets configures it)');
+        $this->addOption('assets-dir', null, InputOption::VALUE_REQUIRED, 'Store stored files by content hash in this local folder for this run');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -55,12 +61,37 @@ class GenerateFixturesCommand extends Command
             return Command::FAILURE;
         }
 
-        $assetsDirectory = \dirname($outputPath) . '/assets';
-        $scaffold = $this->generator->generate($namespace, $className, $assetsDirectory, (bool) $input->getOption('keep-timestamps'));
+        $outputDirectory = \dirname($outputPath);
+        try {
+            /** @var string|null $store */
+            $store = $input->getOption('assets-store');
+            /** @var string|null $directory */
+            $directory = $input->getOption('assets-dir');
+            $assetStore = $this->assetStores->forGeneration($outputDirectory, $store, $directory);
+        } catch (\InvalidArgumentException $exception) {
+            $output->writeln(\sprintf('<error>%s</error>', $exception->getMessage()));
+
+            return Command::INVALID;
+        }
+
+        $assetsDirectory = $outputDirectory . '/assets';
+        $scaffold = $this->generator->generate($namespace, $className, $assetsDirectory, (bool) $input->getOption('keep-timestamps'), null, $assetStore);
         file_put_contents($outputPath, $scaffold->code);
 
         $output->writeln(\sprintf('<info>Fixture class written to %s</info>', $outputPath));
-        if ($scaffold->assetCount > 0) {
+        if (null !== $assetStore && null !== $scaffold->assetManifest) {
+            $manifestPath = FixtureAssetManifest::pathFor($outputDirectory, $className);
+            file_put_contents($manifestPath, $scaffold->assetManifest->toJson());
+            $output->writeln(\sprintf('<info>%d stored file(s) in the fixture asset store %s, listed in %s</info>', $scaffold->assetCount, $assetStore->description, $manifestPath));
+            if ($assetStore->isLocal()) {
+                $pruned = $assetStore->prune($scaffold->assetManifest->hashes());
+                if ([] !== $pruned) {
+                    $output->writeln(\sprintf('<info>%d asset(s) no longer in the manifest deleted from the fixture asset store</info>', \count($pruned)));
+                }
+            } else {
+                $output->writeln(\sprintf('<comment>Assets no longer in any manifest stay in the store until silverback:api-components:prune-fixture-assets %s is run.</comment>', $manifestPath));
+            }
+        } elseif ($scaffold->assetCount > 0) {
             $output->writeln(\sprintf('<info>%d stored file(s) exported to %s</info>', $scaffold->assetCount, $assetsDirectory));
         }
         if ([] !== $scaffold->notReproduced) {

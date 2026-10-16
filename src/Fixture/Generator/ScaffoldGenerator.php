@@ -16,6 +16,8 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetManifest;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetStore;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Code\ImportCollector;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Code\PhpValueExporter;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Code\ScaffoldRenderer;
@@ -39,10 +41,15 @@ final readonly class ScaffoldGenerator
         $this->siteReader = new SiteReader($registry);
     }
 
-    public function generate(string $namespace, string $className, string $assetsDirectory, bool $keepTimestamps = false, ?\DateTimeImmutable $now = null): GeneratedScaffold
+    public function generate(string $namespace, string $className, string $assetsDirectory, bool $keepTimestamps = false, ?\DateTimeImmutable $now = null, ?FixtureAssetStore $assetStore = null): GeneratedScaffold
     {
         $imports = new ImportCollector($className);
+        $manifest = null;
         $storedFiles = new StoredFileExporter($this->filesystemProvider, $assetsDirectory);
+        if (null !== $assetStore) {
+            $manifest = new FixtureAssetManifest();
+            $storedFiles = new ContentAddressedFileExporter($this->filesystemProvider, $assetStore, $manifest, new PhpValueExporter());
+        }
         $planner = new ScaffoldPlanner(
             $this->registry,
             $this->iriConverter,
@@ -55,6 +62,6 @@ final readonly class ScaffoldGenerator
         );
         $plan = $planner->plan($this->siteReader->read());
 
-        return new GeneratedScaffold((new ScaffoldRenderer())->render($plan, $namespace, $className), $plan->notReproduced, $storedFiles->count());
+        return new GeneratedScaffold((new ScaffoldRenderer())->render($plan, $namespace, $className), $plan->notReproduced, $storedFiles->count(), $manifest);
     }
 }

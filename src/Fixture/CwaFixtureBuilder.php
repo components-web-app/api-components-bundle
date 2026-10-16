@@ -29,6 +29,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\EventListener\Console\ConsoleOutputListener;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetLoader;
 use Silverback\ApiComponentsBundle\Fixture\Builder\ComponentBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\GroupBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\IriLink;
@@ -39,6 +40,7 @@ use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Utility\RouteName;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\PropertyAccess\Exception\AccessException;
 use Symfony\Component\PropertyAccess\Exception\InvalidTypeException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
@@ -54,6 +56,7 @@ class CwaFixtureBuilder implements ResetInterface
 
     private ?ObjectManager $manager = null;
     private ?AbstractPage $parentContext = null;
+    private ?string $assetManifest = null;
     private CwaFixtureSummary $summary;
 
     /** @var array<string, LayoutBuilder> */
@@ -148,6 +151,7 @@ class CwaFixtureBuilder implements ResetInterface
         private readonly ?LoggerInterface $logger = null,
         private readonly ?ConsoleOutputListener $consoleOutput = null,
         private readonly ?PublishableAttributeReader $publishableAttributeReader = null,
+        private readonly ?FixtureAssetLoader $assetLoader = null,
     ) {
         $this->summary = new CwaFixtureSummary();
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
@@ -161,10 +165,31 @@ class CwaFixtureBuilder implements ResetInterface
         return $this;
     }
 
+    public function withAssetManifest(string $path): static
+    {
+        $this->assetManifest = $path;
+
+        return $this;
+    }
+
+    public function asset(string $hash, ?string $name = null): UploadedFile
+    {
+        if (null === $this->assetLoader) {
+            throw new \LogicException('asset() needs the fixture asset loader. Pass it to the CwaFixtureBuilder.');
+        }
+        if (null === $this->assetManifest) {
+            throw new \LogicException('asset() is only available while an AbstractCwaScaffold loads, which tells the builder where its asset manifest is.');
+        }
+
+        return $this->assetLoader->load($this->assetManifest, $hash, $name);
+    }
+
     public function reset(): void
     {
         $this->manager = null;
         $this->parentContext = null;
+        $this->assetManifest = null;
+        $this->assetLoader?->reset();
         $this->summary = new CwaFixtureSummary();
         $this->layoutBuilders = [];
         $this->pageSpecs = [];

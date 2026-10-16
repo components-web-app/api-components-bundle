@@ -1,0 +1,12 @@
+{
+    "assets": {
+        "2beb03392db998dae1af8544147f347c861c506797b8e6a59ceefa3c741252c6": {
+            "name": "home-hero.png",
+            "mimeType": "image/png",
+            "size": 3467,
+            "fields": [
+                "Silverback\\ApiComponentsBundle\\Tests\\Functional\\TestBundle\\Entity\\DummyUploadableAndPublishable::file"
+            ]
+        }
+    }
+}

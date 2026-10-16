@@ -32,10 +32,15 @@ use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Fixture\AbstractCwaScaffold;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetLoader;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetManifest;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetStore;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetStoreFactory;
 use Silverback\ApiComponentsBundle\Fixture\Builder\GroupBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\PageBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\PageDataBuilder;
 use Silverback\ApiComponentsBundle\Fixture\CwaFixtureBuilder;
+use Silverback\ApiComponentsBundle\Fixture\Generator\ScaffoldGenerator;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
@@ -95,6 +100,20 @@ final class FixtureContext implements Context
     /** @var array<string, AbstractComponent> */
     private array $sharedScaffoldComponents = [];
 
+    private ?FixtureAssetStoreFactory $configuredAssetStores = null;
+
+    private ?string $assetStoreDirectory = null;
+
+    private ?string $assetStorePrefix = null;
+
+    /** @var array<string, string|bool> */
+    private array $generationOptions = [];
+
+    private ?string $previousManifest = null;
+
+    /** @var array<string, string> */
+    private array $previousStoredAssets = [];
+
     public function __construct(
         ManagerRegistry $doctrine,
         private readonly TimestampedDataPersister $timestampedDataPersister,
@@ -106,6 +125,8 @@ final class FixtureContext implements Context
         private readonly FilesystemProvider $filesystemProvider,
         private readonly KernelInterface $kernel,
         private readonly PublishableAttributeReader $publishableAttributeReader,
+        private readonly ScaffoldGenerator $scaffoldGenerator,
+        private readonly FixtureAssetStoreFactory $assetStoreFactory,
     ) {
         $this->manager = $doctrine->getManager();
     }
@@ -132,6 +153,18 @@ final class FixtureContext implements Context
         $this->sharedScaffoldComponents = [];
         $this->previousGeneration = null;
         $this->previousAssets = [];
+        if (null !== $this->assetStoreDirectory && is_dir($this->assetStoreDirectory)) {
+            $this->removeDirectory($this->assetStoreDirectory);
+        }
+        if (null !== $this->assetStorePrefix) {
+            $this->filesystemProvider->getFilesystem('public_url_local')->deleteDirectory($this->assetStorePrefix);
+        }
+        $this->configuredAssetStores = null;
+        $this->assetStoreDirectory = null;
+        $this->assetStorePrefix = null;
+        $this->generationOptions = [];
+        $this->previousManifest = null;
+        $this->previousStoredAssets = [];
     }
 
     /**
@@ -498,7 +531,9 @@ final class FixtureContext implements Context
         }
         $this->generatedFile = $this->outputDirectory . '/' . $fileName;
 
-        $tester = new CommandTester($this->generateFixturesCommand);
+        $this->generationOptions = $options;
+        $command = null === $this->configuredAssetStores ? $this->generateFixturesCommand : new GenerateFixturesCommand($this->scaffoldGenerator, $this->configuredAssetStores);
+        $tester = new CommandTester($command);
         $status = $tester->execute(['--output' => $this->generatedFile] + $options, ['interactive' => false]);
         $this->commandOutput = $tester->getDisplay();
         $this->manager->clear();
@@ -1795,7 +1830,181 @@ final class FixtureContext implements Context
             null,
             null,
             $this->publishableAttributeReader,
+            new FixtureAssetLoader($this->assetStores()),
         ))->withManager($this->manager);
+    }
+
+    private function assetStores(): FixtureAssetStoreFactory
+    {
+        return $this->configuredAssetStores ?? $this->assetStoreFactory;
+    }
+
+    private function generatedAssetStore(): FixtureAssetStore
+    {
+        /** @var string|null $store */
+        $store = $this->generationOptions['--assets-store'] ?? null;
+        /** @var string|null $directory */
+        $directory = $this->generationOptions['--assets-dir'] ?? null;
+
+        return $this->assetStores()->forGeneration((string) $this->outputDirectory, $store, $directory)
+            ?? throw new \RuntimeException('The site was generated with no fixture asset store.');
+    }
+
+    private function generatedManifestPath(): string
+    {
+        return FixtureAssetManifest::pathFor((string) $this->outputDirectory, pathinfo((string) $this->generatedFile, \PATHINFO_FILENAME));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function storedAssets(): array
+    {
+        $store = $this->generatedAssetStore();
+        $assets = [];
+        foreach ($store->hashes() as $hash) {
+            $assets[$hash] = hash('sha256', (string) stream_get_contents($store->readStream($hash)));
+        }
+
+        return $assets;
+    }
+
+    /**
+     * @Given fixture assets are configured to be stored in a local folder
+     */
+    public function fixtureAssetsAreConfiguredToBeStoredInALocalFolder(): void
+    {
+        $this->assetStoreDirectory = sys_get_temp_dir() . '/cwa-fixture-assets-' . bin2hex(random_bytes(6));
+        $this->configuredAssetStores = new FixtureAssetStoreFactory($this->filesystemProvider, true, FixtureAssetStoreFactory::LOCAL, $this->assetStoreDirectory);
+    }
+
+    /**
+     * @Given fixture assets are configured to be stored on the :adapter filesystem under a prefix
+     */
+    public function fixtureAssetsAreConfiguredToBeStoredOnAFilesystem(string $adapter): void
+    {
+        $this->assetStorePrefix = 'fixture-assets-' . bin2hex(random_bytes(6));
+        $this->configuredAssetStores = new FixtureAssetStoreFactory($this->filesystemProvider, true, FixtureAssetStoreFactory::FLYSYSTEM, null, $adapter, $this->assetStorePrefix . '/');
+    }
+
+    /**
+     * @Given the site has :count uploadable components with the file :filename
+     */
+    public function theSiteHasUploadableComponentsWithTheFile(int $count, string $filename): void
+    {
+        for ($i = 0; $i < $count; ++$i) {
+            $this->theSiteHasAnUploadableComponentWithTheFile($filename);
+        }
+    }
+
+    /**
+     * @When the site is generated as fixtures with the option :option set to :value and reloaded
+     */
+    public function theSiteIsGeneratedAsFixturesWithTheOptionSetToAndReloaded(string $option, string $value): void
+    {
+        $this->theSiteIsGeneratedAsFixtures('GeneratedScaffold.php', [$option => $value]);
+        $this->theGeneratedFixturesShouldBeValidPhp();
+        $this->theDatabaseIsPurgedAndTheGeneratedFixturesAreLoaded();
+    }
+
+    /**
+     * @When the site is generated as fixtures again into the same asset store
+     */
+    public function theSiteIsGeneratedAsFixturesAgainIntoTheSameAssetStore(): void
+    {
+        $this->previousGeneration = (string) file_get_contents((string) $this->generatedFile);
+        $this->previousAssets = $this->listFiles($this->outputDirectory . '/assets');
+        $this->previousManifest = (string) file_get_contents($this->generatedManifestPath());
+        $this->previousStoredAssets = $this->storedAssets();
+        $this->theSiteIsGeneratedAsFixtures(basename((string) $this->generatedFile), $this->generationOptions);
+    }
+
+    /**
+     * @Then the generated fixtures, their asset manifest and the asset store should be identical to the previous generation
+     */
+    public function theGeneratedFixturesManifestAndAssetStoreShouldBeIdenticalToThePreviousGeneration(): void
+    {
+        $this->theGeneratedFixturesAndAssetsShouldBeIdenticalToThePreviousGeneration();
+        $manifest = (string) file_get_contents($this->generatedManifestPath());
+        if ($this->previousManifest !== $manifest) {
+            throw new \RuntimeException(\sprintf("The asset manifest differs from the previous generation.\nPrevious:\n%s\nNow:\n%s", $this->previousManifest, $manifest));
+        }
+        $assets = $this->storedAssets();
+        if ($this->previousStoredAssets !== $assets) {
+            throw new \RuntimeException(\sprintf('The asset store holds %s, the previous generation left %s.', json_encode($assets), json_encode($this->previousStoredAssets)));
+        }
+    }
+
+    /**
+     * @Then the fixture asset store should hold exactly the :count asset(s) the manifest lists, each under its content hash
+     */
+    public function theFixtureAssetStoreShouldHoldExactlyTheAssetsTheManifestLists(int $count): void
+    {
+        $listed = FixtureAssetManifest::fromFile($this->generatedManifestPath())->hashes();
+        $stored = $this->storedAssets();
+        if ($count !== \count($listed) || $listed !== array_keys($stored)) {
+            throw new \RuntimeException(\sprintf('The manifest lists %s and the store holds %s, expected %d.', json_encode($listed), json_encode(array_keys($stored)), $count));
+        }
+        foreach ($stored as $hash => $contentHash) {
+            if ($hash !== $contentHash) {
+                throw new \RuntimeException(\sprintf('The asset %s does not hold the content its name says.', $hash));
+            }
+        }
+    }
+
+    /**
+     * @Then the fixture asset manifest should name the asset :name
+     */
+    public function theFixtureAssetManifestShouldNameTheAsset(string $name): void
+    {
+        $manifest = FixtureAssetManifest::fromFile($this->generatedManifestPath());
+        $names = array_map(static fn (string $hash): ?string => $manifest->get($hash)['name'] ?? null, $manifest->hashes());
+        if ([$name] !== $names) {
+            throw new \RuntimeException(\sprintf('The asset manifest names %s, expected "%s".', json_encode($names), $name));
+        }
+    }
+
+    /**
+     * @Then no fixture asset manifest should have been written
+     */
+    public function noFixtureAssetManifestShouldHaveBeenWritten(): void
+    {
+        if (file_exists($this->generatedManifestPath())) {
+            throw new \RuntimeException(\sprintf('An asset manifest was written to %s.', $this->generatedManifestPath()));
+        }
+    }
+
+    /**
+     * @Then the uploadable component's stored file should be named :stem with a token and the extension :extension
+     */
+    public function theUploadableComponentsStoredFileShouldBeNamed(string $stem, string $extension): void
+    {
+        $components = $this->manager->getRepository(DummyUploadableAndPublishable::class)->findAll();
+        $basename = 1 === \count($components) ? basename((string) $components[0]->getFilename()) : '';
+        if (1 !== preg_match('/^' . preg_quote($stem, '/') . '-[0-9a-f]{8}\.' . preg_quote($extension, '/') . '$/', $basename)) {
+            throw new \RuntimeException(\sprintf('The stored file is named "%s", expected "%s-<token>.%s".', $basename, $stem, $extension));
+        }
+    }
+
+    /**
+     * @Then every uploadable component should have a stored file with the same content as :filename
+     */
+    public function everyUploadableComponentShouldHaveAStoredFileWithTheSameContent(string $filename): void
+    {
+        $components = $this->manager->getRepository(DummyUploadableAndPublishable::class)->findAll();
+        if (\count($components) < 2) {
+            throw new \RuntimeException(\sprintf('Expected uploadable components, found %d.', \count($components)));
+        }
+        foreach ($components as $component) {
+            if (null === $component->getFilename()) {
+                throw new \RuntimeException('An uploadable component has no stored file.');
+            }
+            foreach ($this->uploadableAttributeReader->getConfiguredProperties($component, true) as $fieldConfiguration) {
+                if ($this->filesystemProvider->getFilesystem($fieldConfiguration->adapter)->read($component->getFilename()) !== file_get_contents($this->assetPath($filename))) {
+                    throw new \RuntimeException(\sprintf('The stored file "%s" does not have the content of "%s".', $component->getFilename(), $filename));
+                }
+            }
+        }
     }
 
     private function newPage(string $reference, ?Layout $layout): Page

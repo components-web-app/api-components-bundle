@@ -16,8 +16,7 @@ use Silverback\ApiComponentsBundle\Fixture\Generator\Code\ImportCollector;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Code\PhpValueExporter;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Site\EntityStateReader;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Site\PropertyValue;
-use Silverback\ApiComponentsBundle\Fixture\Generator\StoredFileExporter;
-use Symfony\Component\HttpFoundation\File\File;
+use Silverback\ApiComponentsBundle\Fixture\Generator\StoredFileExport;
 
 /**
  * @internal
@@ -26,7 +25,7 @@ final readonly class PropertyValueWriter
 {
     public function __construct(
         private EntityStateReader $stateReader,
-        private StoredFileExporter $storedFileExporter,
+        private StoredFileExport $storedFileExporter,
         private ImportCollector $imports,
         private PhpValueExporter $exporter,
         private NotReproducedReport $report,
@@ -47,14 +46,12 @@ final readonly class PropertyValueWriter
                 /** @var array{adapter: string, path: string} $file */
                 $file = $value->value;
                 try {
-                    $asset = $this->storedFileExporter->export($file['adapter'], $file['path']);
+                    return $this->storedFileExporter->expression($file['adapter'], $file['path'], $this->stateReader->className($entity) . '::' . $value->property, $this->imports);
                 } catch (FilesystemException $exception) {
                     $this->report->add(\sprintf('The stored file "%s" could not be read: %s', $file['path'], $exception->getMessage()));
 
                     return null;
                 }
-
-                return \sprintf("new %s(__DIR__ . '/assets/%s')", $this->imports->add(File::class), $asset);
             case PropertyValue::COLLECTION:
                 $this->report->addForEach(\sprintf('The collection %s::$%s.', $this->stateReader->className($entity), $value->property), $entity);
 

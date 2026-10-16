@@ -389,6 +389,71 @@ class ConfigurationTest extends TestCase
         );
     }
 
+    public function test_fixture_assets_have_no_store_by_default(): void
+    {
+        self::assertSame(
+            ['assets' => ['enabled' => false, 'store' => 'local', 'path' => null, 'adapter' => null, 'prefix' => '']],
+            $this->process(self::minimalConfig())['fixtures']
+        );
+    }
+
+    public function test_a_local_fixture_asset_store_can_be_configured(): void
+    {
+        $config = self::minimalConfig();
+        $config['fixtures']['assets'] = ['store' => 'local', 'path' => '/app/fixtures/assets'];
+
+        self::assertSame(
+            ['store' => 'local', 'path' => '/app/fixtures/assets', 'enabled' => true, 'adapter' => null, 'prefix' => ''],
+            $this->process($config)['fixtures']['assets']
+        );
+    }
+
+    public function test_a_flysystem_fixture_asset_store_can_be_configured(): void
+    {
+        $config = self::minimalConfig();
+        $config['fixtures']['assets'] = ['store' => 'flysystem', 'adapter' => 'gcloud', 'prefix' => 'fixtures/'];
+
+        self::assertSame(
+            ['store' => 'flysystem', 'adapter' => 'gcloud', 'prefix' => 'fixtures/', 'enabled' => true, 'path' => null],
+            $this->process($config)['fixtures']['assets']
+        );
+    }
+
+    public static function invalidFixtureAssetStores(): iterable
+    {
+        yield 'an unknown store' => [['store' => 's3'], 'is not one of "local" or "flysystem"'];
+        yield 'a flysystem store with no adapter' => [['store' => 'flysystem'], 'The flysystem fixture asset store needs an adapter.'];
+        yield 'a flysystem store with an empty adapter' => [['store' => 'flysystem', 'adapter' => ''], 'The flysystem fixture asset store needs an adapter.'];
+    }
+
+    #[DataProvider('invalidFixtureAssetStores')]
+    public function test_an_invalid_fixture_asset_store_is_rejected(array $assets, string $message): void
+    {
+        $config = self::minimalConfig();
+        $config['fixtures']['assets'] = $assets;
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage($message);
+        $this->process($config);
+    }
+
+    public function test_a_fixture_asset_store_from_environment_variables_is_left_to_run_time(): void
+    {
+        $config = self::minimalConfig();
+        $config['fixtures']['assets'] = ['store' => '%env(FIXTURE_ASSETS_STORE)%', 'adapter' => '%env(default::FIXTURE_ASSETS_ADAPTER)%'];
+
+        self::assertSame('%env(FIXTURE_ASSETS_STORE)%', $this->process($config)['fixtures']['assets']['store']);
+
+        BaseNode::setPlaceholderUniquePrefix('env_fixture_assets_test');
+        try {
+            $config['fixtures']['assets'] = ['store' => 'env_fixture_assets_test_STORE'];
+
+            self::assertSame('env_fixture_assets_test_STORE', $this->process($config)['fixtures']['assets']['store']);
+        } finally {
+            BaseNode::resetPlaceholders();
+        }
+    }
+
     public function test_a_negative_orphaned_files_minimum_age_is_rejected(): void
     {
         $config = self::minimalConfig();

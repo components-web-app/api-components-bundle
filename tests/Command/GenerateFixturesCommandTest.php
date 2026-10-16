@@ -25,6 +25,8 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetManifest;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetStoreFactory;
 use Silverback\ApiComponentsBundle\Fixture\Generator\ScaffoldGenerator;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Tests\Command\Fixture\Clash\PageData as ComponentNamedPageData;
@@ -50,6 +52,7 @@ class GenerateFixturesCommandTest extends TestCase
     private string $outputDirectory;
     private string $outputFile;
     private string $display = '';
+    private ?FixtureAssetStoreFactory $assetStores = null;
 
     protected function setUp(): void
     {
@@ -77,6 +80,7 @@ class GenerateFixturesCommandTest extends TestCase
         self::assertStringNotContainsString('$g = [];', $code);
         self::assertStringNotContainsString('afterRoutes', $code);
         self::assertStringContainsString('Fixture class written to ' . $this->outputFile, $this->display);
+        self::assertStringNotContainsString('stored file(s)', $this->display);
     }
 
     public function test_the_class_is_named_after_the_output_file(): void
@@ -790,6 +794,110 @@ class GenerateFixturesCommandTest extends TestCase
         self::assertSame('first', file_get_contents($this->outputDirectory . '/assets/image.png'));
         self::assertSame('second', file_get_contents($this->outputDirectory . '/assets/image-2.png'));
         self::assertStringContainsString('2 stored file(s) exported to ' . $this->outputDirectory . '/assets', $this->display);
+        self::assertFileDoesNotExist($this->outputDirectory . '/GeneratedScaffold.assets.json');
+    }
+
+    public function test_with_a_local_asset_store_files_are_stored_by_content_hash_and_listed_in_a_manifest(): void
+    {
+        $this->twoUploads('first', 'second');
+
+        $code = $this->generate(['--assets-store' => 'local']);
+
+        self::assertStringContainsString(\sprintf("\$mainTopDummyUploadableAndPublishable->file = \$cwa->asset('%s');", hash('sha256', 'first')), $code);
+        self::assertStringContainsString(\sprintf("\$mainTopDummyUploadableAndPublishable2->file = \$cwa->asset('%s');", hash('sha256', 'second')), $code);
+        self::assertStringNotContainsString('HttpFoundation\\File\\File', $code);
+        self::assertSame('first', file_get_contents($this->outputDirectory . '/assets/' . hash('sha256', 'first')));
+        self::assertSame('second', file_get_contents($this->outputDirectory . '/assets/' . hash('sha256', 'second')));
+        $manifest = FixtureAssetManifest::fromFile($this->outputDirectory . '/GeneratedScaffold.assets.json');
+        self::assertEqualsCanonicalizing([hash('sha256', 'first'), hash('sha256', 'second')], $manifest->hashes());
+        self::assertSame(['name' => 'image.txt', 'mimeType' => 'text/plain', 'size' => 5, 'fields' => [DummyUploadableAndPublishable::class . '::file']], $manifest->get(hash('sha256', 'first')));
+        self::assertStringContainsString('2 stored file(s) in the fixture asset store ' . $this->outputDirectory . '/assets, listed in ' . $this->outputDirectory . '/GeneratedScaffold.assets.json', $this->display);
+    }
+
+    public function test_generating_into_a_local_asset_store_deletes_the_assets_its_manifest_no_longer_names(): void
+    {
+        $this->twoUploads('first', 'second');
+        mkdir($this->outputDirectory . '/assets');
+        file_put_contents($this->outputDirectory . '/assets/' . hash('sha256', 'stale'), 'stale');
+        file_put_contents($this->outputDirectory . '/assets/README.md', 'notes');
+
+        $this->generate(['--assets-store' => 'local']);
+
+        self::assertFileDoesNotExist($this->outputDirectory . '/assets/' . hash('sha256', 'stale'));
+        self::assertFileExists($this->outputDirectory . '/assets/' . hash('sha256', 'first'));
+        self::assertFileExists($this->outputDirectory . '/assets/README.md');
+        self::assertStringContainsString('1 asset(s) no longer in the manifest deleted from the fixture asset store', $this->display);
+    }
+
+    public function test_a_second_generation_writes_the_same_manifest_and_assets(): void
+    {
+        $this->twoUploads('first', 'second');
+        $code = $this->generate(['--assets-store' => 'local']);
+        $manifest = file_get_contents($this->outputDirectory . '/GeneratedScaffold.assets.json');
+
+        self::assertSame($code, $this->generate(['--assets-store' => 'local']));
+        self::assertSame($manifest, file_get_contents($this->outputDirectory . '/GeneratedScaffold.assets.json'));
+        self::assertEqualsCanonicalizing([hash('sha256', 'first'), hash('sha256', 'second')], array_values(array_diff(scandir($this->outputDirectory . '/assets'), ['.', '..'])));
+        self::assertStringNotContainsString('deleted from the fixture asset store', $this->display);
+    }
+
+    public function test_an_assets_directory_for_one_run_is_a_local_store_there(): void
+    {
+        $this->twoUploads('first', 'second');
+
+        $this->generate(['--assets-dir' => $this->outputDirectory . '/elsewhere']);
+
+        self::assertFileExists($this->outputDirectory . '/elsewhere/' . hash('sha256', 'first'));
+        self::assertDirectoryDoesNotExist($this->outputDirectory . '/assets');
+        self::assertFileExists($this->outputDirectory . '/GeneratedScaffold.assets.json');
+    }
+
+    public function test_a_configured_flysystem_store_receives_the_assets_and_is_never_pruned_by_generating(): void
+    {
+        $this->twoUploads('first', 'second');
+        $bucket = new Filesystem(new InMemoryFilesystemAdapter());
+        $bucket->write('fixtures/' . hash('sha256', 'stale'), 'stale');
+        $this->assetStores = new FixtureAssetStoreFactory(new FilesystemProvider(new ServiceLocator(['gcloud' => static fn () => $bucket])), true, 'flysystem', null, 'gcloud', 'fixtures/');
+
+        $code = $this->generate();
+
+        self::assertStringContainsString(\sprintf("\$cwa->asset('%s')", hash('sha256', 'first')), $code);
+        self::assertSame('first', $bucket->read('fixtures/' . hash('sha256', 'first')));
+        self::assertTrue($bucket->fileExists('fixtures/' . hash('sha256', 'stale')));
+        self::assertDirectoryDoesNotExist($this->outputDirectory . '/assets');
+        self::assertFileExists($this->outputDirectory . '/GeneratedScaffold.assets.json');
+        self::assertStringContainsString('2 stored file(s) in the fixture asset store the gcloud filesystem under fixtures', $this->display);
+        self::assertStringContainsString('silverback:api-components:prune-fixture-assets', $this->display);
+    }
+
+    public static function invalidAssetStores(): iterable
+    {
+        yield 'an unknown store' => [['--assets-store' => 's3'], 'The fixture asset store "s3" is not one of "local" or "flysystem".'];
+        yield 'a directory for a flysystem store' => [['--assets-store' => 'flysystem', '--assets-dir' => '/tmp/x'], 'A directory can only be given for the local fixture asset store.'];
+    }
+
+    #[DataProvider('invalidAssetStores')]
+    public function test_an_invalid_asset_store_fails_without_writing(array $options, string $message): void
+    {
+        $tester = $this->runCommand($options);
+
+        self::assertSame(2, $tester->getStatusCode());
+        self::assertStringContainsString($message, $tester->getDisplay());
+        self::assertFileDoesNotExist($this->outputFile);
+        self::assertFileDoesNotExist($this->outputDirectory . '/GeneratedScaffold.assets.json');
+    }
+
+    private function twoUploads(string $first, string $second): void
+    {
+        $layout = $this->layout('main', uiComponent: 'CwaLayoutPrimary');
+        $group = $this->group('top_/_/layouts/main', '/_/layouts/main', $layout);
+        $this->filesystem->write('components/image-0a1b2c3d.txt', $first);
+        $this->filesystem->write('components/image-9f8e7d6c.txt', $second);
+        foreach (['components/image-0a1b2c3d.txt', 'components/image-9f8e7d6c.txt'] as $sort => $path) {
+            $component = new DummyUploadableAndPublishable();
+            $component->setFilename($path);
+            $this->position($group, $component, $sort);
+        }
     }
 
     public function test_a_stored_file_that_cannot_be_read_is_reported(): void
@@ -1485,14 +1593,15 @@ class GenerateFixturesCommandTest extends TestCase
     {
         $registry = $this->registry();
 
+        $filesystems = new FilesystemProvider(new ServiceLocator(['local' => fn () => $this->filesystem]));
         $command = new GenerateFixturesCommand(new ScaffoldGenerator(
             $registry,
             $this->iriConverter(),
             new UploadableAttributeReader($registry, true),
             new PublishableAttributeReader($registry),
             new TimestampedAttributeReader($registry),
-            new FilesystemProvider(new ServiceLocator(['local' => fn () => $this->filesystem])),
-        ));
+            $filesystems,
+        ), $this->assetStores ?? new FixtureAssetStoreFactory($filesystems));
 
         $tester = new CommandTester($command);
         $tester->execute($options + ['--output' => $this->outputFile]);

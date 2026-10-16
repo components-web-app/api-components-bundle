@@ -44,6 +44,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetStoreFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\OrphanedFileDetector;
 use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFileConstraintChecker;
@@ -549,6 +550,31 @@ class SilverbackApiComponentsExtensionTest extends TestCase
     public function test_a_disallowed_request_origin_is_mapped_to_bad_request(): void
     {
         self::assertTrue(is_a(DisallowedRequestOriginException::class, UnparseableRequestHeaderException::class, true));
+    }
+
+    public function test_with_no_fixture_asset_store_configured_the_factory_is_wired_disabled(): void
+    {
+        [$container] = $this->load(self::minimalConfig());
+
+        self::assertFalse($this->argument($container, FixtureAssetStoreFactory::class, '$enabled'));
+        self::assertSame('local', $this->argument($container, FixtureAssetStoreFactory::class, '$store'));
+        self::assertNull($this->argument($container, FixtureAssetStoreFactory::class, '$path'));
+        self::assertNull($this->argument($container, FixtureAssetStoreFactory::class, '$adapter'));
+        self::assertSame('', $this->argument($container, FixtureAssetStoreFactory::class, '$prefix'));
+    }
+
+    public function test_the_fixture_asset_store_configuration_reaches_the_factory(): void
+    {
+        $config = self::minimalConfig();
+        $config['fixtures']['assets'] = ['store' => 'flysystem', 'path' => '/app/assets', 'adapter' => 'gcloud', 'prefix' => 'fixtures/'];
+
+        [$container] = $this->load($config);
+
+        self::assertTrue($this->argument($container, FixtureAssetStoreFactory::class, '$enabled'));
+        self::assertSame('flysystem', $this->argument($container, FixtureAssetStoreFactory::class, '$store'));
+        self::assertSame('/app/assets', $this->argument($container, FixtureAssetStoreFactory::class, '$path'));
+        self::assertSame('gcloud', $this->argument($container, FixtureAssetStoreFactory::class, '$adapter'));
+        self::assertSame('fixtures/', $this->argument($container, FixtureAssetStoreFactory::class, '$prefix'));
     }
 
     public function test_the_orphaned_files_configuration_reaches_the_detector(): void
