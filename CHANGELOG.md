@@ -15,7 +15,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - Generating into a local asset store deletes the assets its manifest no longer lists; `silverback:api-components:prune-fixture-assets <manifest>...` (`--dry-run`) deletes from any store the assets that none of the given manifests lists ([#466](https://github.com/components-web-app/api-components-bundle/pull/466))
 
 ### Changed
-- `generate-fixtures` writes byte-identical stored files once in its default `assets/` output, under the name of the first, and every `new File(...)` for them names that asset ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+- `generate-fixtures` writes byte-identical stored files once in its default `assets/` output, under the name of the first, and every `new File(...)` for them names that asset ([#470](https://github.com/components-web-app/api-components-bundle/pull/470))
 
 ### Fixed
 - A base64 or data-URI upload to a field with a `File` or `Image` constraint was refused with "The file could not be uploaded." instead of being validated ([#459](https://github.com/components-web-app/api-components-bundle/pull/459))
