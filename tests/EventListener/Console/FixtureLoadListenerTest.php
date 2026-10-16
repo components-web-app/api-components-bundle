@@ -202,6 +202,17 @@ class FixtureLoadListenerTest extends TestCase
         self::assertFalse($listener->isLoadingFixtures());
     }
 
+    public function test_a_failed_flush_with_no_logger_is_still_reported(): void
+    {
+        $failure = new HttpCacheFlushFailedException('Failed to flush the HTTP cache');
+        $listener = new FixtureLoadListener($this->flusher(true, 1, $failure));
+
+        $this->start($listener, 'doctrine:fixtures:load');
+        $this->terminate($listener, 'doctrine:fixtures:load');
+
+        self::assertSame("Failed to flush the HTTP cache\n", $this->output->fetch());
+    }
+
     public function test_with_imagine_a_successful_load_says_to_generate_the_variants(): void
     {
         $listener = new FixtureLoadListener($this->flusher(true, 1), true);
