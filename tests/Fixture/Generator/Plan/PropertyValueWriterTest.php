@@ -15,11 +15,15 @@ use League\Flysystem\Filesystem;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetManifest;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetStore;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Code\ImportCollector;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Code\PhpValueExporter;
+use Silverback\ApiComponentsBundle\Fixture\Generator\ContentAddressedFileExporter;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Plan\NotReproducedReport;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Plan\PropertyValueWriter;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Site\PropertyValue;
+use Silverback\ApiComponentsBundle\Fixture\Generator\StoredFileExport;
 use Silverback\ApiComponentsBundle\Fixture\Generator\StoredFileExporter;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
@@ -76,6 +80,19 @@ class PropertyValueWriterTest extends TestCase
         self::assertContains('use ' . File::class . ';', $this->imports->lines());
     }
 
+    public function test_with_an_asset_store_a_stored_file_is_referred_to_by_its_hash_and_recorded_with_its_field(): void
+    {
+        $this->filesystem->write('components/photo-0a1b2c3d.png', 'image');
+        $value = new PropertyValue(PropertyValue::FILE, 'file', ['adapter' => 'local', 'path' => 'components/photo-0a1b2c3d.png'], true);
+        $manifest = new FixtureAssetManifest();
+        $assets = new FixtureAssetStore(new Filesystem(new InMemoryFilesystemAdapter()), '', true, 'assets');
+        $storedFiles = new ContentAddressedFileExporter(new FilesystemProvider(new ServiceLocator(['local' => fn () => $this->filesystem])), $assets, $manifest, new PhpValueExporter());
+
+        self::assertSame(\sprintf("\$cwa->asset('%s')", hash('sha256', 'image')), $this->writer($storedFiles)->expression(new DummyComponent(), $value));
+        self::assertSame([DummyComponent::class . '::file'], $manifest->get(hash('sha256', 'image'))['fields'] ?? null);
+        self::assertDirectoryDoesNotExist($this->assets);
+    }
+
     public function test_a_stored_file_that_cannot_be_read_is_reported(): void
     {
         $value = new PropertyValue(PropertyValue::FILE, 'file', ['adapter' => 'local', 'path' => 'components/missing.png'], true);
@@ -115,11 +132,11 @@ class PropertyValueWriterTest extends TestCase
         self::assertSame([DummyComponent::class . '::$secret has no public property or setter to write it with (1 component).'], $this->report->all());
     }
 
-    private function writer(): PropertyValueWriter
+    private function writer(?StoredFileExport $storedFiles = null): PropertyValueWriter
     {
         $this->report = new NotReproducedReport($this->iriConverter());
         $this->imports = new ImportCollector('SiteScaffold');
-        $storedFiles = new StoredFileExporter(new FilesystemProvider(new ServiceLocator(['local' => fn () => $this->filesystem])), $this->assets);
+        $storedFiles ??= new StoredFileExporter(new FilesystemProvider(new ServiceLocator(['local' => fn () => $this->filesystem])), $this->assets);
 
         return new PropertyValueWriter($this->stateReader($this->registry()), $storedFiles, $this->imports, new PhpValueExporter(), $this->report);
     }

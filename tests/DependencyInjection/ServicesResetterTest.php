@@ -28,6 +28,7 @@ class ServicesResetterTest extends TestCase
             'silverback.api_components.event_listener.console.console_output',
             'silverback.api_components.event_listener.console.fixture_load',
             'silverback.api_components.fixture.cwa_fixture_builder',
+            'silverback.api_components.fixture.asset_loader',
             'silverback.api_components.doctrine.event_listener.uploadable_file_deletion',
             'silverback.api_components.helper.uploadable.cache_control',
         ],
