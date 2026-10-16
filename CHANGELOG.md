@@ -4,7 +4,10 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.24](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.23...2.0.0-alpha.24) - 2026-10-17
+
 ### Breaking
+- Release together with the `@cwa/nuxt` release that includes [cwa-nuxt-module#400](https://github.com/components-web-app/cwa-nuxt-module/issues/400): an earlier module reorders by writing `sortValue`, which is now ignored ([#480](https://github.com/components-web-app/api-components-bundle/pull/480))
 - `sortValue` on a component position is read-only on the API: a value in a request body is ignored, and with `after`/`before` it is a 422; the server places every insert, move and reorder by one rule that keeps the most values it can and leaves every value unique ([#480](https://github.com/components-web-app/api-components-bundle/pull/480))
 - `ComponentPositionSortValueHelper` (`silverback.helper.component_position_sort_value`) and `ComponentPosition::getSortCollection()` are removed; `ComponentPositionOrderer` replaces the helper, and `ComponentPositionNormalizer` no longer takes it. `ComponentPositionValidator` takes the new `ComponentPositionIriResolver` ([#480](https://github.com/components-web-app/api-components-bundle/pull/480))
 
