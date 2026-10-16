@@ -250,6 +250,18 @@ Feature: Reporting and deleting orphaned files
     Then the JSON node "invalidFiles" should have 2 elements
 
   @loginAdmin
+  Scenario: A published row's file is also checked against its field's publish-group constraints, and a draft's only against the default group
+    Given there is a published DummyUploadableWithPublishedConstraints with the file "image.png" saved as "published"
+    And there is a draft DummyUploadableWithPublishedConstraints with the file "image.png" saved as "draft"
+    When I send a "POST" request to "/_/orphaned_files/scan"
+    And I send a "GET" request to "/_/orphaned_files"
+    Then the response status code should be 200
+    And the JSON node "invalidFiles" should have 1 element
+    And the JSON node "invalidFiles[0].resource" should be equal to the IRI of the resource "published"
+    And the JSON node "invalidFiles[0].violations" should have 1 element
+    And the JSON node "invalidFiles[0].violations[0]" should be equal to "The image has too many pixels (357500 pixels). Maximum amount expected is 300000 pixels."
+
+  @loginAdmin
   Scenario: The file info cached when the file was served is trusted over reading the stored object
     Given there is a DummyUploadableWithConstraints with the file "image.png" saved as "cached"
     And the stored file of the resource "cached" has file info of 100 by 100 pixels

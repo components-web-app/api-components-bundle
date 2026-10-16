@@ -24,6 +24,7 @@ use Symfony\Component\HttpFoundation\File\File as FileObject;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\Image;
+use Symfony\Component\Validator\Constraints\ImageValidator;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -81,7 +82,7 @@ class StoredFileConstraintValidatorTest extends TestCase
             'uploaded image no svg' => new UploadedImage(allowSvg: false, maxPixels: 1),
             'uploaded image no svg and other options' => new UploadedImage(allowSvg: false, svgNotAllowedMessage: 'No SVG here.', mimeTypes: ['image/jpeg'], maxSize: 10),
         ];
-        foreach (['image.png', 'image.svg', 'unsized.svg', 'test_file.txt'] as $asset) {
+        foreach (['image.png', 'image.svg', 'unsized.svg', 'image_viewbox_only.svg', 'image_length_units.svg', 'image_percentage.svg', 'test_file.txt'] as $asset) {
             foreach ($constraints as $name => $constraint) {
                 yield \sprintf('%s: %s', $asset, $name) => [$asset, $constraint];
             }
@@ -91,6 +92,9 @@ class StoredFileConstraintValidatorTest extends TestCase
     #[DataProvider('constraintsSymfonyAlsoChecks')]
     public function test_a_stored_file_gets_the_violations_symfony_gives_the_same_file_on_disk(string $asset, Constraint $constraint): void
     {
+        if ('image_length_units.svg' === $asset && !method_exists(ImageValidator::class, 'convertSvgLengthToPixels')) {
+            self::markTestSkipped('This symfony/validator reads no SVG length units; the scan reads them as later releases do.');
+        }
         $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
         $filesystem->write($asset, (string) file_get_contents(self::ASSETS . $asset));
 

@@ -17,6 +17,7 @@ use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use League\Flysystem\UnableToDeleteFile;
 use Psr\Log\AbstractLogger;
 use Silverback\ApiComponentsBundle\ApiResource\OrphanedFileReport;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
@@ -291,7 +292,7 @@ class OrphanedFileDeleterTest extends OrphanedResourceDatabaseTestCase
             null,
             null
         );
-        $detector = new OrphanedFileDetector($this->registry, $reader, $filesystemProvider, $this->iriConverter, new StoredFileLister(), new StoredFileNameMatcher(), new FileInfoRepository($this->registry), [], [], 3600, new StoredFileConstraintChecker(Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator()));
+        $detector = new OrphanedFileDetector($this->registry, $reader, new PublishableAttributeReader($this->registry), $filesystemProvider, $this->iriConverter, new StoredFileLister(), new StoredFileNameMatcher(), new FileInfoRepository($this->registry), [], [], 3600, new StoredFileConstraintChecker(Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator()));
 
         return new OrphanedFileDeleter($detector, $fileManager, $filesystemProvider, $this->store, $withLogger ? $this->logger : null);
     }

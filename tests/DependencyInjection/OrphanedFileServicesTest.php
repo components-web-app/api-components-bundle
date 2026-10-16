@@ -78,6 +78,7 @@ class OrphanedFileServicesTest extends TestCase
         self::assertFalse($definition->isAutoconfigured());
         self::assertSame(ManagerRegistry::class, (string) $definition->getArgument('$registry'));
         self::assertSame('silverback.api_components.attribute_reader.uploadable', (string) $definition->getArgument('$uploadableAttributeReader'));
+        self::assertSame('silverback.api_components.attribute_reader.publishable', (string) $definition->getArgument('$publishableAttributeReader'));
         self::assertSame(FilesystemProvider::class, (string) $definition->getArgument('$filesystemProvider'));
         self::assertSame(IriConverterInterface::class, (string) $definition->getArgument('$iriConverter'));
         self::assertSame(self::LISTER_ID, (string) $definition->getArgument('$lister'));

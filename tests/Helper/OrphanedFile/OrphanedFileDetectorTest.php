@@ -19,6 +19,7 @@ use League\Flysystem\UnableToReadFile;
 use League\Flysystem\UnableToRetrieveMetadata;
 use Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface;
 use Psr\Log\AbstractLogger;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\FileInfo;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
@@ -33,8 +34,11 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploa
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableAndPublishable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadablePublicUrl;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithConstraints;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithPublishedConstraints;
 use Silverback\ApiComponentsBundle\Tests\Helper\OrphanedResource\OrphanedResourceDatabaseTestCase;
 use Symfony\Component\DependencyInjection\ServiceLocator;
+use Symfony\Component\Validator\Mapping\Factory\MetadataFactoryInterface;
+use Symfony\Component\Validator\Mapping\MetadataInterface;
 use Symfony\Component\Validator\Validation;
 
 class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
@@ -317,6 +321,59 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
         self::assertTrue($this->local->fileExists('photo-0a1b2c3d.png'));
     }
 
+    public function test_a_row_with_a_publication_date_is_also_checked_in_its_published_groups_and_a_draft_only_in_the_default_group(): void
+    {
+        $image = (string) file_get_contents(self::ASSETS . 'image.png');
+        $published = $this->publishable('published-0a1b2c3d.png', $image, new \DateTime('-1 day'));
+        $scheduled = $this->publishable('scheduled-0a1b2c3d.png', $image, new \DateTime('+1 day'));
+        $this->publishable('draft-0a1b2c3d.png', $image, null);
+        $draftWithWrongType = $this->publishable('draft-0a1b2c3d.txt', 'not an image', null);
+        $publishedWithWrongType = $this->publishable('published-0a1b2c3d.txt', 'not an image', new \DateTime('-1 day'));
+
+        $report = $this->detector()->detect();
+
+        self::assertSame([
+            ['resource' => $this->iri($draftWithWrongType), 'path' => 'draft-0a1b2c3d.txt', 'violations' => ['The mime type of the file is invalid ("text/plain"). Allowed mime types are "image/png".']],
+            ['resource' => $this->iri($published), 'path' => 'published-0a1b2c3d.png', 'violations' => [self::TOO_MANY_PIXELS]],
+            ['resource' => $this->iri($publishedWithWrongType), 'path' => 'published-0a1b2c3d.txt', 'violations' => ['The mime type of the file is invalid ("text/plain"). Allowed mime types are "image/png".', 'This file is not a valid image.']],
+            ['resource' => $this->iri($scheduled), 'path' => 'scheduled-0a1b2c3d.png', 'violations' => [self::TOO_MANY_PIXELS]],
+        ], array_map(static fn (array $invalid) => ['resource' => $invalid['resource'], 'path' => $invalid['path'], 'violations' => $invalid['violations']], $report->invalidFiles));
+    }
+
+    public function test_a_fields_constraints_are_read_once_for_its_published_rows_and_once_for_its_drafts(): void
+    {
+        $image = (string) file_get_contents(self::ASSETS . 'image.png');
+        $this->publishable('published-0a1b2c3d.png', $image, new \DateTime('-1 day'));
+        $this->publishable('published-1a1b2c3d.png', $image, new \DateTime('-2 days'));
+        $this->publishable('draft-0a1b2c3d.png', $image, null);
+        $this->publishable('draft-1a1b2c3d.png', $image, null);
+        $validator = Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator();
+        $metadataFactory = new class($validator) implements MetadataFactoryInterface {
+            public int $reads = 0;
+
+            public function __construct(private readonly MetadataFactoryInterface $inner)
+            {
+            }
+
+            public function getMetadataFor(mixed $value): MetadataInterface
+            {
+                ++$this->reads;
+
+                return $this->inner->getMetadataFor($value);
+            }
+
+            public function hasMetadataFor(mixed $value): bool
+            {
+                return $this->inner->hasMetadataFor($value);
+            }
+        };
+
+        $report = $this->detector(constraintChecker: new StoredFileConstraintChecker($metadataFactory))->detect();
+
+        self::assertCount(2, $report->invalidFiles);
+        self::assertSame(2, $metadataFactory->reads);
+    }
+
     public function test_cached_file_info_is_trusted_over_the_object(): void
     {
         $this->local = new Filesystem(new class extends InMemoryFilesystemAdapter {
@@ -487,15 +544,28 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
         return $uploadable;
     }
 
+    private function publishable(string $path, string $contents, ?\DateTime $publishedAt): DummyUploadableWithPublishedConstraints
+    {
+        $uploadable = new DummyUploadableWithPublishedConstraints();
+        $uploadable->setFilename($path);
+        $uploadable->setPublishedAt($publishedAt);
+        $this->persist($uploadable);
+        $this->entityManager->flush();
+        $this->write($this->local, $path, self::OLD, $contents);
+
+        return $uploadable;
+    }
+
     /**
      * @param list<string>     $excludedPaths
      * @param iterable<object> $cacheResolvers
      */
-    private function detector(int $minimumAge = 3600, array $excludedPaths = [], iterable $cacheResolvers = [], ?AbstractLogger $logger = null): OrphanedFileDetector
+    private function detector(int $minimumAge = 3600, array $excludedPaths = [], iterable $cacheResolvers = [], ?AbstractLogger $logger = null, ?StoredFileConstraintChecker $constraintChecker = null): OrphanedFileDetector
     {
         return new OrphanedFileDetector(
             $this->registry,
             new UploadableAttributeReader($this->registry, true),
+            new PublishableAttributeReader($this->registry),
             new FilesystemProvider(new ServiceLocator([
                 'local' => fn () => $this->local,
                 'public_url_local' => fn () => $this->publicUrlLocal,
@@ -507,7 +577,7 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
             $cacheResolvers,
             $excludedPaths,
             $minimumAge,
-            new StoredFileConstraintChecker(Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator()),
+            $constraintChecker ?? new StoredFileConstraintChecker(Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator()),
             $logger,
         );
     }

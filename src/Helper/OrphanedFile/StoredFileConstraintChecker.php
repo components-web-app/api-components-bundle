@@ -37,18 +37,25 @@ final class StoredFileConstraintChecker
 
     /**
      * @param class-string $class
+     * @param list<string> $groups
      *
      * @return list<Constraint>
      */
-    public function constraints(string $class, string $property): array
+    public function constraints(string $class, string $property, array $groups = [Constraint::DEFAULT_GROUP]): array
     {
         $metadata = $this->metadataFactory->getMetadataFor($class);
         if (!$metadata instanceof ClassMetadataInterface || !$metadata->hasPropertyMetadata($property)) {
             return [];
         }
         $constraints = [];
-        foreach ($metadata->getPropertyMetadata($property) as $propertyMetadata) {
-            array_push($constraints, ...$propertyMetadata->findConstraints(Constraint::DEFAULT_GROUP));
+        foreach ($groups as $group) {
+            foreach ($metadata->getPropertyMetadata($property) as $propertyMetadata) {
+                foreach ($propertyMetadata->findConstraints($group) as $constraint) {
+                    if (!\in_array($constraint, $constraints, true)) {
+                        $constraints[] = $constraint;
+                    }
+                }
+            }
         }
 
         return $constraints;
@@ -56,14 +63,21 @@ final class StoredFileConstraintChecker
 
     /**
      * @param list<Constraint> $constraints
+     * @param list<string>     $groups
      *
      * @return list<string>
      */
-    public function violations(StoredFile $file, array $constraints): array
+    public function violations(StoredFile $file, array $constraints, array $groups = [Constraint::DEFAULT_GROUP]): array
     {
         $messages = [];
-        foreach ($this->storedFileValidator->validate($file, $constraints, [Constraint::DEFAULT_GROUP]) as $violation) {
-            $messages[] = (string) $violation->getMessage();
+        foreach ($constraints as $constraint) {
+            $group = array_values(array_intersect($groups, $constraint->groups))[0] ?? null;
+            if (null === $group) {
+                continue;
+            }
+            foreach ($this->storedFileValidator->validate($file, $constraint, [$group]) as $violation) {
+                $messages[] = (string) $violation->getMessage();
+            }
         }
 
         return $messages;

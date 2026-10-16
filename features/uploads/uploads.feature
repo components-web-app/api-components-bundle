@@ -25,6 +25,24 @@ Feature: API Resources which can have files uploaded
       | test_file.docx | uploadable_has_files.schema.json |
 
   @loginUser
+  Scenario: A base64 upload is checked against its field's file constraints, not refused as a failed upload
+    When I send a "POST" request to "/dummy_uploadable_with_constraints" with data:
+      | file              |
+      | base64(image.png) |
+    Then the response status code should be 422
+    And the JSON node "violations" should have 1 element
+    And the JSON node "violations[0].propertyPath" should be equal to "file"
+    And the JSON node "violations[0].message" should be equal to "The image has too many pixels (357500 pixels). Maximum amount expected is 300000 pixels."
+
+  @loginUser
+  Scenario: A base64 upload that meets its field's file constraints is created
+    When I send a "POST" request to "/dummy_uploadable_with_constraints" with data:
+      | file              |
+      | base64(image.svg) |
+    Then the response status code should be 201
+    And the JSON node "filePath" should not exist
+
+  @loginUser
   Scenario Outline: I can create a new dummy files component with base64 data that is just a string (no data:)
     When I send a "POST" request to "/dummy_uploadables" with data:
       | file                 |
