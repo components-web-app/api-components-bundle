@@ -16,6 +16,8 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\Persistence\ObjectManager;
 use Psr\Log\LoggerInterface;
+use Silverback\ApiComponentsBundle\Annotation\Publishable;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
@@ -28,6 +30,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\EventListener\Console\ConsoleOutputListener;
 use Silverback\ApiComponentsBundle\Fixture\Builder\ComponentBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\GroupBuilder;
+use Silverback\ApiComponentsBundle\Fixture\Builder\IriLink;
 use Silverback\ApiComponentsBundle\Fixture\Builder\LayoutBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\PageBuilder;
 use Silverback\ApiComponentsBundle\Fixture\Builder\PageDataBuilder;
@@ -35,6 +38,11 @@ use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Utility\RouteName;
+use Symfony\Component\PropertyAccess\Exception\AccessException;
+use Symfony\Component\PropertyAccess\Exception\InvalidTypeException;
+use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
 class CwaFixtureBuilder implements ResetInterface
@@ -115,12 +123,20 @@ class CwaFixtureBuilder implements ResetInterface
     /** @var array<int, true> keyed by spl_object_id of the route spec's builder */
     private array $routedSpecs = [];
 
+    /** @var array<int, int> keyed by spl_object_id of the ComponentBuilder or PageDataBuilder */
+    private array $appliedRouteLinks = [];
+
+    /** @var array<int, int> */
+    private array $appliedIriLinks = [];
+
     private bool $hasPendingLinks = false;
 
     private bool $flushing = false;
 
     /** @var array<int, object> */
     private array $pendingPersists = [];
+
+    private readonly PropertyAccessorInterface $propertyAccessor;
 
     public function __construct(
         private readonly TimestampedDataPersister $timestampedPersister,
@@ -130,8 +146,10 @@ class CwaFixtureBuilder implements ResetInterface
         private readonly ?UploadableAttributeReaderInterface $uploadableAttributeReader = null,
         private readonly ?LoggerInterface $logger = null,
         private readonly ?ConsoleOutputListener $consoleOutput = null,
+        private readonly ?PublishableAttributeReader $publishableAttributeReader = null,
     ) {
         $this->summary = new CwaFixtureSummary();
+        $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
 
     public function withManager(ObjectManager $manager): static
@@ -154,6 +172,8 @@ class CwaFixtureBuilder implements ResetInterface
         $this->namedRoutes = [];
         $this->createdRouteNames = [];
         $this->afterRoutesCallbacks = [];
+        $this->appliedRouteLinks = [];
+        $this->appliedIriLinks = [];
         $this->redirectSpecs = [];
         $this->componentBuilders = [];
         $this->componentGroupMap = [];
@@ -289,10 +309,42 @@ class CwaFixtureBuilder implements ResetInterface
     {
         $oid = spl_object_id($component);
         if (!isset($this->componentBuilders[$oid])) {
-            $this->componentBuilders[$oid] = new ComponentBuilder($component);
+            $this->componentBuilders[$oid] = new ComponentBuilder($component, $this->linkDraft(...));
         }
 
         return $this->componentBuilders[$oid];
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param T $resource
+     *
+     * @return T
+     */
+    public function publish(object $resource, ?\DateTimeInterface $at = null): object
+    {
+        $fieldName = $this->publishableConfiguration($resource, 'be published')->fieldName;
+        $type = $this->manager?->getClassMetadata($resource::class)->getTypeOfField($fieldName);
+        $at ??= new \DateTimeImmutable();
+        $date = str_contains((string) $type, '_immutable') ? \DateTimeImmutable::createFromInterface($at) : \DateTime::createFromInterface($at);
+        $this->propertyAccessor->setValue($resource, $fieldName, $date);
+
+        return $resource;
+    }
+
+    private function linkDraft(AbstractComponent $published, AbstractComponent $draft): void
+    {
+        $this->propertyAccessor->setValue($draft, $this->publishableConfiguration($published, 'have a draft')->associationName, $published);
+    }
+
+    private function publishableConfiguration(object $resource, string $action): Publishable
+    {
+        if (null === $this->publishableAttributeReader || !$this->publishableAttributeReader->isConfigured($resource)) {
+            throw new \LogicException(\sprintf('%s is not publishable, so it cannot %s.', $resource::class, $action));
+        }
+
+        return $this->publishableAttributeReader->getConfiguration($resource);
     }
 
     public function afterRoutes(\Closure $callback): static
@@ -311,15 +363,22 @@ class CwaFixtureBuilder implements ResetInterface
 
     public function getRoute(string $routeName): Route
     {
+        return $this->findNamedRoute($routeName) ?? throw new \LogicException(\sprintf('Named route "%s" not found. Did you call flush() before getRoute()?', $routeName));
+    }
+
+    private function findNamedRoute(string $routeName): ?Route
+    {
         if (!isset($this->namedRoutes[$routeName]) && ($existing = $this->manager?->getRepository(Route::class)->findOneBy(['name' => $routeName])) instanceof Route) {
             $this->existing[spl_object_id($existing)] = true;
             $this->namedRoutes[$routeName] = $existing;
         }
-        if (!isset($this->namedRoutes[$routeName])) {
-            throw new \LogicException(\sprintf('Named route "%s" not found. Did you call flush() before getRoute()?', $routeName));
-        }
 
-        return $this->namedRoutes[$routeName];
+        return $this->namedRoutes[$routeName] ?? null;
+    }
+
+    private function routeNamedBy(string $routeName, string $referrer): Route
+    {
+        return $this->findNamedRoute($routeName) ?? throw new \LogicException(\sprintf('%s the route name "%s", but no route in this load or the database has that name. Routes in this load: %s.', $referrer, $routeName, [] === $this->namedRoutes ? 'none' : implode(', ', array_keys($this->namedRoutes))));
     }
 
     public function flush(): void
@@ -339,55 +398,22 @@ class CwaFixtureBuilder implements ResetInterface
     private function evaluateNested(): void
     {
         $entityCountBefore = \count($this->persistedEntities);
-        $existingPageDataCount = \count($this->pageDataSpecs);
-        $existingPageRefs = array_keys($this->pageSpecs);
-
-        foreach ($this->pageDataSpecs as $spec) {
-            $closure = $spec['builder']->getNestedClosure();
-            if (null === $closure) {
-                continue;
-            }
-            $oid = spl_object_id($spec['builder']);
-            if (isset($this->evaluatedNestedIds[$oid])) {
-                continue;
-            }
-            $this->evaluatedNestedIds[$oid] = true;
-            if (self::SKIPPED === ($this->decisions[$oid] ?? null)) {
-                continue;
-            }
-            $beforePageRefs = array_keys($this->pageSpecs);
-            $this->parentContext = $this->resolve($spec['builder']->getPageData());
-            $closure($this);
-            $this->parentContext = null;
-            $addedRefs = array_values(array_diff(array_keys($this->pageSpecs), $beforePageRefs));
-            $spec['builder']->setChildPageRefs($addedRefs);
-        }
-
-        foreach ($this->pageSpecs as $spec) {
-            $closure = $spec['builder']->getNestedClosure();
-            if (null === $closure) {
-                continue;
-            }
-            $oid = spl_object_id($spec['builder']);
-            if (isset($this->evaluatedNestedIds[$oid])) {
-                continue;
-            }
-            $this->evaluatedNestedIds[$oid] = true;
-            $this->parentContext = $this->resolve($spec['builder']->getPage());
-            $closure($this);
-            $this->parentContext = null;
-        }
-
+        $processedPageDataCount = \count($this->pageDataSpecs);
+        $processedPageRefs = array_flip(array_keys($this->pageSpecs));
         $hasNew = false;
 
-        foreach (array_diff_key($this->pageSpecs, array_flip($existingPageRefs)) as $ref => $spec) {
-            $this->processPage($ref, $spec);
-            $hasNew = true;
-        }
+        while ($this->runNestedClosures()) {
+            foreach (array_diff_key($this->pageSpecs, $processedPageRefs) as $ref => $spec) {
+                $processedPageRefs[$ref] = true;
+                $this->processPage($ref, $spec);
+                $hasNew = true;
+            }
 
-        foreach (\array_slice($this->pageDataSpecs, $existingPageDataCount) as $spec) {
-            $this->processPageData($spec);
-            $hasNew = true;
+            foreach (\array_slice($this->pageDataSpecs, $processedPageDataCount) as $spec) {
+                ++$processedPageDataCount;
+                $this->processPageData($spec);
+                $hasNew = true;
+            }
         }
 
         if ($this->processComponentBuilders()) {
@@ -399,6 +425,62 @@ class CwaFixtureBuilder implements ResetInterface
 
         if ($hasNew) {
             $this->manager->flush();
+        }
+    }
+
+    private function runNestedClosures(): bool
+    {
+        $ran = false;
+
+        foreach ($this->pageDataSpecs as $spec) {
+            $closures = $spec['builder']->getNestedClosures();
+            if ([] === $closures) {
+                continue;
+            }
+            $oid = spl_object_id($spec['builder']);
+            if (isset($this->evaluatedNestedIds[$oid])) {
+                continue;
+            }
+            $this->evaluatedNestedIds[$oid] = true;
+            if (self::SKIPPED === ($this->decisions[$oid] ?? null)) {
+                continue;
+            }
+            $beforePageRefs = array_keys($this->pageSpecs);
+            $this->runNested($closures, $this->resolve($spec['builder']->getPageData()));
+            $ran = true;
+            $addedRefs = array_values(array_diff(array_keys($this->pageSpecs), $beforePageRefs));
+            $spec['builder']->setChildPageRefs($addedRefs);
+        }
+
+        foreach ($this->pageSpecs as $spec) {
+            $closures = $spec['builder']->getNestedClosures();
+            if ([] === $closures) {
+                continue;
+            }
+            $oid = spl_object_id($spec['builder']);
+            if (isset($this->evaluatedNestedIds[$oid])) {
+                continue;
+            }
+            $this->evaluatedNestedIds[$oid] = true;
+            $this->runNested($closures, $this->resolve($spec['builder']->getPage()));
+            $ran = true;
+        }
+
+        return $ran;
+    }
+
+    /**
+     * @param list<\Closure> $closures
+     */
+    private function runNested(array $closures, object $parent): void
+    {
+        $this->parentContext = $parent;
+        try {
+            foreach ($closures as $closure) {
+                $closure($this);
+            }
+        } finally {
+            $this->parentContext = null;
         }
     }
 
@@ -431,7 +513,9 @@ class CwaFixtureBuilder implements ResetInterface
             $this->processPageData($spec);
         }
 
-        $this->processComponentBuilders();
+        if (!$this->hasNestedClosures()) {
+            $this->processComponentBuilders();
+        }
 
         foreach ($this->pendingPersists as $oid => $entity) {
             unset($this->pendingPersists[$oid]);
@@ -448,11 +532,25 @@ class CwaFixtureBuilder implements ResetInterface
         }
     }
 
+    private function hasNestedClosures(): bool
+    {
+        foreach ([...$this->pageSpecs, ...$this->pageDataSpecs] as $spec) {
+            if ([] !== $spec['builder']->getNestedClosures()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function processComponentBuilders(): bool
     {
         $groupCountBefore = \count($this->componentGroupMap);
 
         foreach ($this->componentBuilders as $componentBuilder) {
+            if ([] === $componentBuilder->getGroupBuilders()) {
+                continue;
+            }
             $component = $componentBuilder->getComponent();
             if ($this->reachesSkipped($component)) {
                 $this->markSkipped($component);
@@ -615,8 +713,10 @@ class CwaFixtureBuilder implements ResetInterface
             }
             $this->skippedGroupBuilders[$groupBuilderId] = $groupBuilder;
             $this->syncSkipped();
-            if ([] !== $groupBuilder->getComponents() || [] !== $groupBuilder->getPageDataPositions()) {
-                $this->logger?->notice(\sprintf('The group `%s` already exists, so its %d scaffold positions were not created.', $fullRef, \count($groupBuilder->getComponents()) + \count($groupBuilder->getPageDataPositions())));
+            $positions = \count($groupBuilder->getComponents()) + \count($groupBuilder->getPageDataPositions());
+            if ($positions > 0) {
+                $this->summary->record(self::SKIPPED, CwaFixtureSummary::POSITION, 'group kept', $positions);
+                $this->logger?->notice(\sprintf('The group `%s` of %s already exists, so its %d scaffold positions were not created.', $groupBuilder->getName(), $this->describeOwner($owner), $positions));
             }
 
             return;
@@ -698,7 +798,7 @@ class CwaFixtureBuilder implements ResetInterface
                 continue;
             }
             if (null !== $spec['route']) {
-                $name = $spec['routeName'] ?? $this->deriveRouteName($spec['route']);
+                $name = $spec['routeName'] ?? RouteName::fromPath($spec['route']);
                 if (null !== $this->findOne(Route::class, ['path' => $spec['route']]) || null !== $this->findOne(Route::class, ['name' => $name])) {
                     $this->routedSpecs[$builderId] = true;
                     $this->note(self::SKIPPED, CwaFixtureSummary::ROUTE, $spec['route'], 'path in use');
@@ -714,6 +814,7 @@ class CwaFixtureBuilder implements ResetInterface
                 $this->timestampedPersister->persistTimestampedFields($route, true);
                 $this->manager->persist($route);
                 $this->createdRouteNames[$route->getName()] = $route->getPath();
+                $this->namedRoutes[$route->getName()] = $route;
                 if (null !== $spec['routeName']) {
                     $this->namedRoutes[$spec['routeName']] = $route;
                 }
@@ -725,6 +826,7 @@ class CwaFixtureBuilder implements ResetInterface
                 $generated = $entity->getRoute();
                 if (null !== $generated) {
                     $this->createdRouteNames[$generated->getName()] = $generated->getPath();
+                    $this->namedRoutes[$generated->getName()] = $generated;
                     if (null !== $spec['routeName']) {
                         $this->namedRoutes[$spec['routeName']] = $generated;
                     }
@@ -760,8 +862,8 @@ class CwaFixtureBuilder implements ResetInterface
                     continue;
                 }
             }
-            $route = $this->createExplicitRoute($spec['path'], $spec['name'] ?? $this->uniqueRouteName($this->deriveRouteName($spec['path'])));
-            $route->setRedirect($this->getRoute($spec['to']));
+            $route = $this->createExplicitRoute($spec['path'], $spec['name'] ?? $this->uniqueRouteName(RouteName::fromPath($spec['path'])));
+            $route->setRedirect($this->routeNamedBy($spec['to'], \sprintf('The redirect "%s" leads to', $spec['path'])));
             $this->timestampedPersister->persistTimestampedFields($route, true);
             $this->manager->persist($route);
             $this->createdRouteNames[$route->getName()] = $route->getPath();
@@ -779,6 +881,15 @@ class CwaFixtureBuilder implements ResetInterface
     private function registerNamedRoute(array $spec, ?AbstractPage $entity): void
     {
         if (null === $spec['routeName']) {
+            $route = $entity?->getRoute() ?? (null !== $spec['route'] ? $this->findOne(Route::class, ['path' => $spec['route']]) : null);
+            if (!$route instanceof Route) {
+                return;
+            }
+            $this->existing[spl_object_id($route)] = true;
+            foreach (array_unique([$route->getName(), RouteName::fromPath($spec['route'] ?? $route->getPath())]) as $name) {
+                $this->namedRoutes[$name] ??= $route;
+            }
+
             return;
         }
         $route = null !== $spec['route'] ? $this->findOne(Route::class, ['path' => $spec['route']]) : null;
@@ -802,6 +913,7 @@ class CwaFixtureBuilder implements ResetInterface
 
     private function phaseThreePointFive(): void
     {
+        $this->resolveRouteLinks();
         $hasChanges = false;
 
         foreach ($this->pageDataSpecs as $spec) {
@@ -832,9 +944,131 @@ class CwaFixtureBuilder implements ResetInterface
             $hasChanges = true;
         }
 
+        $this->resolveRouteLinks();
+
         if ($hasChanges) {
             $this->manager->flush();
+            $this->hasPendingLinks = false;
         }
+    }
+
+    private function resolveRouteLinks(): void
+    {
+        $this->syncSkipped();
+
+        foreach ($this->componentBuilders as $oid => $componentBuilder) {
+            if (isset($this->skipped[$oid])) {
+                continue;
+            }
+            $this->applyRouteLinks($componentBuilder, $componentBuilder->getComponent(), $componentBuilder->getRouteLinks());
+            $this->applyIriLinks($componentBuilder, $componentBuilder->getComponent(), $componentBuilder->getIriLinks());
+        }
+
+        foreach ($this->pageDataSpecs as $spec) {
+            if (self::CREATED !== ($this->decisions[spl_object_id($spec['builder'])] ?? null)) {
+                continue;
+            }
+            $this->applyRouteLinks($spec['builder'], $spec['builder']->getPageData(), $spec['builder']->getRouteLinks());
+            $this->applyIriLinks($spec['builder'], $spec['builder']->getPageData(), $spec['builder']->getIriLinks());
+        }
+    }
+
+    /**
+     * @param list<array{string, string}> $links
+     */
+    private function applyRouteLinks(ComponentBuilder|PageDataBuilder $builder, object $target, array $links): void
+    {
+        $oid = spl_object_id($builder);
+        $pending = \array_slice($links, $this->appliedRouteLinks[$oid] ?? 0);
+        $this->appliedRouteLinks[$oid] = \count($links);
+        foreach ($pending as [$property, $routeName]) {
+            $route = $this->routeNamedBy($routeName, \sprintf('%s::$%s links to', $target::class, $property));
+            try {
+                $this->propertyAccessor->setValue($target, $property, $route);
+            } catch (NoSuchPropertyException|InvalidTypeException $exception) {
+                throw new \LogicException(\sprintf('linkRoute(): %s has no writable property "%s" that can hold a Route.', $target::class, $property), 0, $exception);
+            }
+            if (isset($this->persistedEntities[spl_object_id($target)])) {
+                $this->hasPendingLinks = true;
+            }
+        }
+    }
+
+    /**
+     * @param list<IriLink> $links
+     */
+    private function applyIriLinks(ComponentBuilder|PageDataBuilder $builder, object $target, array $links): void
+    {
+        $oid = spl_object_id($builder);
+        $pending = \array_slice($links, $this->appliedIriLinks[$oid] ?? 0);
+        $this->appliedIriLinks[$oid] = \count($links);
+        foreach ($pending as $link) {
+            $iri = (string) $this->iriConverter->getIriFromResource($this->iriLinkTarget($link, \sprintf('%s::$%s links to', $target::class, $link->describe())));
+            try {
+                $this->propertyAccessor->setValue($target, $link->property, [] === $link->key ? $iri : $this->withIriAtKey($target, $link, $iri));
+            } catch (AccessException|InvalidTypeException $exception) {
+                throw new \LogicException(\sprintf('linkIri(): %s has no writable property "%s" that can hold an IRI.', $target::class, $link->property), 0, $exception);
+            }
+            if (isset($this->persistedEntities[spl_object_id($target)])) {
+                $this->hasPendingLinks = true;
+            }
+        }
+    }
+
+    private function iriLinkTarget(IriLink $link, string $referrer): object
+    {
+        return match ($link->target) {
+            IriLink::PAGE => (isset($this->pageSpecs[$link->name]) ? $this->resolve($this->pageSpecs[$link->name]['builder']->getPage()) : $this->findOne(Page::class, ['reference' => $link->name]))
+                ?? throw new \LogicException(\sprintf('%s the page "%s", but no page in this load or the database has that reference.', $referrer, $link->name)),
+            IriLink::LAYOUT => (isset($this->layoutBuilders[$link->name]) ? $this->resolve($this->layoutBuilders[$link->name]->getLayout()) : $this->findOne(Layout::class, ['reference' => $link->name]))
+                ?? throw new \LogicException(\sprintf('%s the layout "%s", but no layout in this load or the database has that reference.', $referrer, $link->name)),
+            IriLink::ROUTE => $this->routeNamedBy($link->name, $referrer),
+            default => $this->pageDataAt($this->routeNamedBy($link->name, $referrer))
+                ?? throw new \LogicException(\sprintf('%s the page data at the route "%s", but that route has no page data.', $referrer, $link->name)),
+        };
+    }
+
+    private function pageDataAt(Route $route): ?AbstractPageData
+    {
+        if (null !== $route->getPageData()) {
+            return $route->getPageData();
+        }
+        foreach ($this->pageDataSpecs as $spec) {
+            $pageData = $this->resolve($spec['builder']->getPageData());
+            if ($pageData instanceof AbstractPageData && $pageData->getRoute() === $route) {
+                return $pageData;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    private function withIriAtKey(object $target, IriLink $link, string $iri): array
+    {
+        $value = $this->propertyAccessor->getValue($target, $link->property) ?? [];
+        $path = $target::class . '::$' . $link->property;
+        if (!\is_array($value)) {
+            throw new \LogicException(\sprintf('linkIri(): %s is not an array, so it has no key %s.', $path, json_encode($link->key[0])));
+        }
+        $cursor = &$value;
+        $last = \count($link->key) - 1;
+        foreach ($link->key as $index => $segment) {
+            if ($index === $last) {
+                $cursor[$segment] = $iri;
+                break;
+            }
+            $cursor[$segment] ??= [];
+            $path .= '[' . json_encode($segment) . ']';
+            if (!\is_array($cursor[$segment])) {
+                throw new \LogicException(\sprintf('linkIri(): %s is not an array, so it has no key %s.', $path, json_encode($link->key[$index + 1])));
+            }
+            $cursor = &$cursor[$segment];
+        }
+
+        return $value;
     }
 
     private function phaseFour(): void
@@ -865,9 +1099,44 @@ class CwaFixtureBuilder implements ResetInterface
             }
         }
 
-        if ($hasPositions) {
+        foreach ($this->componentBuilders as $componentBuilder) {
+            if ([] === $componentBuilder->getGroupBuilders() && $this->persistLoose($componentBuilder->getComponent())) {
+                $hasPositions = true;
+            }
+        }
+
+        foreach ($this->componentBuilders as $componentBuilder) {
+            foreach ($componentBuilder->getDrafts() as $draft) {
+                if ($this->persistLoose($draft)) {
+                    $hasPositions = true;
+                }
+            }
+        }
+
+        if ($hasPositions || $this->hasPendingLinks) {
             $this->manager->flush();
         }
+        $this->hasPendingLinks = false;
+    }
+
+    private function persistLoose(AbstractComponent $component): bool
+    {
+        $oid = spl_object_id($component);
+        if (isset($this->skipped[$oid]) || $this->isSettled($component)) {
+            return false;
+        }
+        if ($this->reachesSkipped($component)) {
+            $this->markSkipped($component);
+            $this->note(self::SKIPPED, CwaFixtureSummary::COMPONENT, $component::class, 'linked to skipped content');
+
+            return false;
+        }
+        if ($this->timestampedPersister->isConfigured($component)) {
+            $this->timestampedPersister->persistTimestampedFields($component, true);
+        }
+        $this->persistWithAssociations($component);
+
+        return true;
     }
 
     private function createPositions(GroupBuilder $groupBuilder): bool
@@ -926,7 +1195,7 @@ class CwaFixtureBuilder implements ResetInterface
     {
         $route = new Route();
         $route->setPath($path);
-        $route->setName($name ?? $this->deriveRouteName($path));
+        $route->setName($name ?? RouteName::fromPath($path));
 
         return $route;
     }
@@ -939,13 +1208,6 @@ class CwaFixtureBuilder implements ResetInterface
         }
 
         return $candidate;
-    }
-
-    private function deriveRouteName(string $path): string
-    {
-        $slug = trim(str_replace('/', '-', $path), '-');
-
-        return $slug ?: 'root';
     }
 
     /**
@@ -970,6 +1232,15 @@ class CwaFixtureBuilder implements ResetInterface
     private function findOne(string $class, array $criteria): ?object
     {
         return $this->manager->getRepository($class)->findOneBy($criteria);
+    }
+
+    private function describeOwner(Layout|Page|AbstractComponent $owner): string
+    {
+        return match (true) {
+            $owner instanceof Layout => \sprintf('the layout `%s`', $owner->reference),
+            $owner instanceof Page => \sprintf('the page `%s`', $owner->reference),
+            default => \sprintf('a %s component', $owner::class),
+        };
     }
 
     private function note(string $outcome, string $type, string $label, string $reason = ''): void

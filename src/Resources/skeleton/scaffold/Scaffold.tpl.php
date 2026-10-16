@@ -3,45 +3,38 @@
 namespace <?php echo $namespace; ?>;
 
 <?php echo $use_statements; ?>
-/**
- * CWA site scaffold — wire up layouts, pages, and nav links here.
- *
- * Phase ordering (handled automatically by CwaFixtureBuilder::flush()):
- *   1. Entities persisted (layouts, pages, page data)
- *   2. Component groups created
- *   3. Routes generated (parents before children)
- *   4. Component positions and nav links created
- *
- * Nav links reference routes, so add them AFTER $cwa->page() / $cwa->pageData() calls.
- */
+
 class <?php echo $class_name; ?> extends AbstractCwaScaffold
 {
     public function build(CwaFixtureBuilder $cwa): void
     {
-        // --- Layout -----------------------------------------------------------
-        // The nav group is populated below once routes exist.
-        $navGroup = $cwa->layout('<?php echo $layout_ref; ?>', '<?php echo $layout_component; ?>')
-            ->group('top');
+        $this-><?php echo $layout_method; ?>($cwa);
+        $this->homePage($cwa);
+    }
 
-        // --- Pages ------------------------------------------------------------
-        $cwa->page('home', 'PrimaryPage', layout: '<?php echo $layout_ref; ?>', route: '/', routeName: 'home-page',
-            configure: fn (PageBuilder $page) => $page
-                ->title('Home')
-                ->group('primary')
-        );
+    private function <?php echo $layout_method; ?>(CwaFixtureBuilder $cwa): void
+    {
+<?php if (null !== $link_class) { ?>
+        $<?php echo $link_variable; ?> = new <?php echo $link_class; ?>();
+        $<?php echo $link_variable; ?><?php echo $link_label; ?>;
+<?php if ($publish_link) { ?>
+        $cwa->publish($<?php echo $link_variable; ?>);
+<?php } ?>
+        $cwa->component($<?php echo $link_variable; ?>)->linkRoute('route', routeName: 'home');
 
-        // Add more pages here, e.g.:
-        // $cwa->page('about', 'PrimaryPage', layout: '<?php echo $layout_ref; ?>', route: '/about', routeName: 'about-page',
-        //     configure: fn (PageBuilder $page) => $page->title('About')->group('primary')
-        // );
+        $cwa->layout(<?php echo var_export($layout_ref, true); ?>, uiComponent: <?php echo var_export($layout_component, true); ?>)
+            ->group('header')
+            ->add($<?php echo $link_variable; ?>);
+<?php } else { ?>
+        $cwa->layout(<?php echo var_export($layout_ref, true); ?>, uiComponent: <?php echo var_export($layout_component, true); ?>)
+            ->group('header');
+<?php } ?>
+    }
 
-        // --- Nav links (added after routes exist) -----------------------------
-        // Replace NavigationLink with your nav component class, e.g.:
-        // $navGroup->add(
-        //     (new NavigationLink())
-        //         ->setLabel('Home')
-        //         ->setRoute($cwa->getRoute('home-page'))
-        //         ->setPublishedAt(new \DateTime())
-        // );
+    private function homePage(CwaFixtureBuilder $cwa): void
+    {
+        $cwa->page('home', uiComponent: 'Primary', layout: <?php echo var_export($layout_ref, true); ?>, route: '/', routeName: 'home')
+            ->title('Home')
+            ->group('primary');
     }
 }

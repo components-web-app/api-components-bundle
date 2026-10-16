@@ -15,6 +15,11 @@ final class RouteName
 {
     public const int MAX_LENGTH = 255;
 
+    public static function fromPath(string $path): string
+    {
+        return trim(str_replace('/', '-', $path), '-') ?: 'root';
+    }
+
     public static function withSuffix(string $name, int $suffix): string
     {
         $suffix = '-' . $suffix;

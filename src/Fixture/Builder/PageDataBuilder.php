@@ -16,7 +16,8 @@ use Silverback\ApiComponentsBundle\Entity\Core\Route;
 
 class PageDataBuilder
 {
-    private ?\Closure $nestedClosure = null;
+    /** @var list<\Closure> */
+    private array $nestedClosures = [];
     private ?\Closure $onRoutesCreated = null;
     private array $childPageRefs = [];
     private bool $hasLiveAt = false;
@@ -24,20 +25,27 @@ class PageDataBuilder
     private bool $withoutRoute = false;
     private ?AbstractPageData $existingPageData = null;
 
+    /** @var list<array{string, string}> */
+    private array $routeLinks = [];
+
+    /** @var list<IriLink> */
+    private array $iriLinks = [];
+
     public function __construct(private readonly AbstractPageData $pageData)
     {
     }
 
     public function nested(\Closure $configure): self
     {
-        $this->nestedClosure = $configure;
+        $this->nestedClosures[] = $configure;
 
         return $this;
     }
 
-    public function getNestedClosure(): ?\Closure
+    /** @return list<\Closure> */
+    public function getNestedClosures(): array
     {
-        return $this->nestedClosure;
+        return $this->nestedClosures;
     }
 
     public function liveAt(?\DateTimeImmutable $liveAt): self
@@ -56,6 +64,35 @@ class PageDataBuilder
     public function getLiveAt(): ?\DateTimeImmutable
     {
         return $this->liveAt;
+    }
+
+    public function linkRoute(string $property, string $routeName): self
+    {
+        $this->routeLinks[] = [$property, $routeName];
+
+        return $this;
+    }
+
+    /** @return list<array{string, string}> */
+    public function getRouteLinks(): array
+    {
+        return $this->routeLinks;
+    }
+
+    /**
+     * @param string|int|array<string|int>|null $key
+     */
+    public function linkIri(string $property, string|int|array|null $key = null, ?string $page = null, ?string $layout = null, ?string $pageData = null, ?string $route = null): self
+    {
+        $this->iriLinks[] = IriLink::to($property, $key, $page, $layout, $pageData, $route);
+
+        return $this;
+    }
+
+    /** @return list<IriLink> */
+    public function getIriLinks(): array
+    {
+        return $this->iriLinks;
     }
 
     public function onRoutesCreated(\Closure $cb): self

@@ -22,7 +22,7 @@ use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
-use Silverback\ApiComponentsBundle\Utility\StoredFileExtension;
+use Silverback\ApiComponentsBundle\Utility\StoredFileName;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
@@ -228,21 +228,7 @@ class UploadableFileManager
 
     private function tokeniseFilename(string $originalName, ?string $mimeType = null): string
     {
-        $stem = strtolower((string) preg_replace('/[^A-Za-z0-9]+/', '-', pathinfo($originalName, \PATHINFO_FILENAME)));
-        $stem = trim($stem, '-');
-        if ('' === $stem) {
-            $stem = 'file';
-        }
-        $stem = substr($stem, 0, 100);
-
-        $name = $stem . '-' . bin2hex(random_bytes(4));
-
-        $extension = StoredFileExtension::forMimeType(pathinfo($originalName, \PATHINFO_EXTENSION), $mimeType);
-        if (null !== $extension) {
-            $name .= '.' . $extension;
-        }
-
-        return $name;
+        return StoredFileName::withToken($originalName, $mimeType, bin2hex(random_bytes(4)));
     }
 
     public function deleteFiles(object $object): void
@@ -375,7 +361,7 @@ class UploadableFileManager
         $pathInfo = pathinfo($currentFilepath);
         $directory = '.' === $pathInfo['dirname'] ? '' : $pathInfo['dirname'] . '/';
 
-        $stem = (string) preg_replace('/-[0-9a-f]{8}$/', '', $pathInfo['filename']);
+        $stem = StoredFileName::stripToken($pathInfo['filename']);
         $extension = isset($pathInfo['extension']) ? '.' . $pathInfo['extension'] : '';
 
         do {

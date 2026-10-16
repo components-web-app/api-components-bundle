@@ -12,11 +12,14 @@
 namespace Silverback\ApiComponentsBundle\Tests\Fixture;
 
 use ApiPlatform\Metadata\IriConverterInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\ClassMetadata;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
+use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
@@ -30,10 +33,13 @@ use Silverback\ApiComponentsBundle\Fixture\CwaFixtureBuilder;
 use Silverback\ApiComponentsBundle\Fixture\CwaFixtureSummary;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
+use Silverback\ApiComponentsBundle\Tests\Command\Fixture\PageDataWithFilters;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyNavigationLink;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithRoute;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -112,6 +118,7 @@ class CwaFixtureBuilderAppendTest extends TestCase
             null,
             $logger,
             $consoleOutput,
+            new PublishableAttributeReader($this->createStub(ManagerRegistry::class)),
         ))->withManager($em);
     }
 
@@ -227,6 +234,9 @@ class CwaFixtureBuilderAppendTest extends TestCase
         self::assertSame([], $this->persistedOf(ComponentPosition::class));
         self::assertSame([], $this->persistedOf(ComponentGroup::class));
         self::assertSame(1, $cwa->getSummary()->count(CwaFixtureSummary::KEPT, CwaFixtureSummary::GROUP));
+        self::assertSame(2, $cwa->getSummary()->count(CwaFixtureSummary::SKIPPED, CwaFixtureSummary::POSITION, 'group kept'));
+        self::assertStringContainsString('skipped 2 positions (group kept)', (string) $cwa->getSummary());
+        self::assertContains(['notice', 'The group `primary` of the page `home` already exists, so its 2 scaffold positions were not created.'], $this->logs);
     }
 
     public function test_a_group_missing_from_an_existing_page_is_created_and_linked_with_its_components(): void
@@ -275,6 +285,41 @@ class CwaFixtureBuilderAppendTest extends TestCase
 
         self::assertSame([], $this->persistedOf(Route::class));
         self::assertSame('/contact-us', $cwa->getRoute('contact')->getPath());
+    }
+
+    public function test_a_kept_page_whose_route_has_another_name_is_also_addressable_by_the_name_derived_from_its_path(): void
+    {
+        $route = $this->route('/about', 'about-1');
+        $this->existingPage('about', $route);
+        $cwa = $this->builder();
+
+        $link = new DummyNavigationLink();
+        $cwa->layout('main', 'Primary')->group('nav')->add($link);
+        $cwa->page('about', 'Primary', layout: 'main', route: '/about');
+        $cwa->component($link)->linkRoute('route', 'about');
+        $cwa->flush();
+
+        self::assertSame($route, $link->route);
+        self::assertSame($route, $cwa->getRoute('about'));
+        self::assertSame($route, $cwa->getRoute('about-1'));
+        self::assertSame([], $this->persistedOf(Route::class));
+    }
+
+    public function test_a_page_whose_path_is_taken_by_a_route_with_another_name_is_addressable_by_the_derived_name(): void
+    {
+        $route = $this->route('/about', 'about-1');
+        $this->existing(Route::class, ['path' => '/about'], $route);
+        $cwa = $this->builder();
+
+        $cwa->layout('main', 'Primary');
+        $cwa->page('about', 'Primary', layout: 'main', route: '/about');
+        $cwa->redirect('/old-about', to: 'about');
+        $cwa->flush();
+
+        self::assertSame($route, $cwa->getRoute('about'));
+        $redirects = array_values(array_filter($this->persistedOf(Route::class), static fn (Route $created) => null !== $created->getRedirect()));
+        self::assertCount(1, $redirects);
+        self::assertSame($route, $redirects[0]->getRedirect());
     }
 
     public function test_the_named_route_of_a_kept_page_is_the_existing_route(): void
@@ -550,6 +595,26 @@ class CwaFixtureBuilderAppendTest extends TestCase
         self::assertSame([], $this->persistedOf(ComponentGroup::class));
     }
 
+    public function test_a_component_with_its_own_group_declared_at_the_top_and_placed_only_in_a_kept_group_of_a_nested_page_is_not_created(): void
+    {
+        $this->existingLayout('main');
+        $this->existingPage('parent', $this->route('/parent', 'parent'));
+        $child = $this->existingPage('child', $this->route('/parent/child', 'child'));
+        $child->getComponentGroups()->add($this->existingGroup('primary_/iri/child'));
+        $cwa = $this->builder();
+
+        $tabs = $this->labelled('Tabs');
+        $cwa->layout('main', 'Primary');
+        $cwa->component($tabs)->group('panels')->add($this->labelled('Panel'));
+        $cwa->page('parent', 'Primary', layout: 'main', route: '/parent', routeName: 'parent')->nested(static function (CwaFixtureBuilder $nested) use ($tabs): void {
+            $nested->page('child', 'Primary', layout: 'main', route: '/parent/child', routeName: 'child')->group('primary')->add($tabs);
+        });
+        $cwa->flush();
+
+        self::assertSame([], $this->persistedOf(AbstractComponent::class));
+        self::assertSame([], $this->persistedOf(ComponentGroup::class));
+    }
+
     public function test_a_new_component_in_a_new_group_that_refers_to_a_skipped_component_is_not_placed(): void
     {
         $this->owningAssociations[DummyPublishableComponent::class] = ['publishedResource'];
@@ -646,7 +711,8 @@ class CwaFixtureBuilderAppendTest extends TestCase
 
         $tabs = $this->labelled('Tabs');
         $cwa->layout('main', 'Primary');
-        $cwa->component($tabs);
+        $cwa->persist($tabs);
+        $cwa->component($tabs)->group('tabs');
         $cwa->page('parent', 'Primary', layout: 'main', route: '/parent', routeName: 'parent')->nested(static function (CwaFixtureBuilder $nested) use ($tabs): void {
             $nested->component($tabs)->group('panels', locationReference: 'shared');
         });
@@ -806,5 +872,131 @@ class CwaFixtureBuilderAppendTest extends TestCase
         $cwa->withManager($this->createStub(ObjectManager::class));
 
         self::assertSame('CWA scaffold: nothing to load', (string) $cwa->getSummary());
+    }
+
+    public function test_a_route_link_on_a_skipped_component_is_ignored(): void
+    {
+        $page = $this->existingPage('home');
+        $page->getComponentGroups()->add($this->existingGroup('primary_/iri/home'));
+        $cwa = $this->builder();
+
+        $link = new DummyNavigationLink();
+        $cwa->layout('main', 'Primary');
+        $cwa->page('home', 'Primary', layout: 'main')->group('primary')->add($link);
+        $cwa->component($link)->linkRoute('route', 'missing');
+        $cwa->flush();
+
+        self::assertNull($link->route);
+        self::assertSame([], $this->persistedOf(AbstractComponent::class));
+    }
+
+    public function test_a_route_link_on_kept_page_data_is_not_resolved(): void
+    {
+        $route = $this->route('/event', 'event');
+        $existing = new PageDataWithRoute();
+        $existing->setRoute($route);
+        $route->setPageData($existing);
+        $this->existing(Route::class, ['path' => '/event'], $route);
+        $cwa = $this->builder();
+
+        $pageData = new PageDataWithRoute();
+        $pageData->setTitle('Event');
+        $cwa->pageData($pageData, route: '/event')->linkRoute('relatedRoute', 'missing');
+        $cwa->flush();
+
+        self::assertNull($pageData->relatedRoute);
+        self::assertNull($existing->relatedRoute);
+        self::assertSame([], $this->persistedOf(PageDataWithRoute::class));
+    }
+
+    public function test_an_iri_link_to_a_page_or_layout_only_in_the_database_links_to_it(): void
+    {
+        $this->existingPage('blog');
+        $this->existingLayout('legacy');
+        $cwa = $this->builder();
+
+        $collection = new Collection();
+        $cwa->layout('main', 'Primary')->group('nav')->add($collection);
+        $cwa->component($collection)
+            ->linkIri('defaultQueryParameters', key: 'parentPage', page: 'blog')
+            ->linkIri('resourceIri', layout: 'legacy');
+        $cwa->flush();
+
+        self::assertSame(['parentPage' => '/iri/blog'], $collection->getDefaultQueryParameters());
+        self::assertSame('/iri/legacy', $collection->getResourceIri());
+    }
+
+    public function test_an_iri_link_to_kept_page_data_links_to_the_page_data_in_the_database(): void
+    {
+        $route = $this->route('/event', 'event');
+        $existing = new PageData();
+        $existing->setRoute($route);
+        $route->setPageData($existing);
+        $this->existing(Route::class, ['path' => '/event'], $route);
+        $this->existing(Route::class, ['name' => 'event'], $route);
+        $cwa = $this->builder();
+
+        $pageData = new PageData();
+        $pageData->setTitle('Event');
+        $collection = new Collection();
+        $cwa->layout('main', 'Primary')->group('nav')->add($collection);
+        $cwa->pageData($pageData, route: '/event', routeName: 'event');
+        $cwa->component($collection)->linkIri('resourceIri', pageData: 'event');
+        $cwa->flush();
+
+        self::assertSame('/iri/' . spl_object_id($existing), $collection->getResourceIri());
+    }
+
+    public function test_an_iri_link_on_a_skipped_component_is_ignored(): void
+    {
+        $page = $this->existingPage('home');
+        $page->getComponentGroups()->add($this->existingGroup('primary_/iri/home'));
+        $cwa = $this->builder();
+
+        $collection = new Collection();
+        $cwa->layout('main', 'Primary');
+        $cwa->page('home', 'Primary', layout: 'main')->group('primary')->add($collection);
+        $cwa->component($collection)->linkIri('defaultQueryParameters', key: 'parentPage', page: 'missing');
+        $cwa->flush();
+
+        self::assertNull($collection->getDefaultQueryParameters());
+        self::assertSame([], $this->persistedOf(AbstractComponent::class));
+    }
+
+    public function test_an_iri_link_on_kept_page_data_is_not_resolved(): void
+    {
+        $route = $this->route('/listing', 'listing');
+        $existing = new PageDataWithFilters();
+        $existing->setRoute($route);
+        $route->setPageData($existing);
+        $this->existing(Route::class, ['path' => '/listing'], $route);
+        $cwa = $this->builder();
+
+        $pageData = new PageDataWithFilters();
+        $pageData->setTitle('Listing');
+        $cwa->pageData($pageData, route: '/listing')->linkIri('filters', key: 'parentPage', page: 'missing');
+        $cwa->flush();
+
+        self::assertNull($pageData->filters);
+        self::assertNull($existing->filters);
+    }
+
+    public function test_a_draft_reaching_a_kept_group_is_skipped(): void
+    {
+        $this->owningAssociations[DummyPublishableComponent::class] = ['publishedResource'];
+        $page = $this->existingPage('home');
+        $page->getComponentGroups()->add($this->existingGroup('primary_/iri/home'));
+        $cwa = $this->builder();
+
+        $published = new DummyPublishableComponent();
+        $draft = new DummyPublishableComponent();
+        $cwa->layout('main', 'Primary');
+        $cwa->page('home', 'Primary', layout: 'main')->group('primary')->add($published);
+        $cwa->component($published)->draft($draft);
+        $cwa->flush();
+
+        self::assertSame($published, $draft->getPublishedResource());
+        self::assertSame([], $this->persistedOf(AbstractComponent::class));
+        self::assertSame(1, $cwa->getSummary()->count(CwaFixtureSummary::SKIPPED, CwaFixtureSummary::COMPONENT, 'linked to skipped content'));
     }
 }

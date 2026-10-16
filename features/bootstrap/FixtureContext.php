@@ -16,11 +16,14 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\TableNode;
+use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\GenerateFixturesCommand;
+use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
@@ -38,11 +41,14 @@ use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponentWithRelated;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyHtmlContent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyNavigationLink;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableAndPublishable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithRoute;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\StringInput;
@@ -79,6 +85,16 @@ final class FixtureContext implements Context
 
     private ?string $lastSummary = null;
 
+    private ?\DateTimeImmutable $loadedAt = null;
+
+    private ?string $previousGeneration = null;
+
+    /** @var array<string, string> */
+    private array $previousAssets = [];
+
+    /** @var array<string, AbstractComponent> */
+    private array $sharedScaffoldComponents = [];
+
     public function __construct(
         ManagerRegistry $doctrine,
         private readonly TimestampedDataPersister $timestampedDataPersister,
@@ -89,6 +105,7 @@ final class FixtureContext implements Context
         private readonly GenerateFixturesCommand $generateFixturesCommand,
         private readonly FilesystemProvider $filesystemProvider,
         private readonly KernelInterface $kernel,
+        private readonly PublishableAttributeReader $publishableAttributeReader,
     ) {
         $this->manager = $doctrine->getManager();
     }
@@ -111,6 +128,10 @@ final class FixtureContext implements Context
         $this->recordedTables = [];
         $this->recordedCounts = [];
         $this->lastSummary = null;
+        $this->loadedAt = null;
+        $this->sharedScaffoldComponents = [];
+        $this->previousGeneration = null;
+        $this->previousAssets = [];
     }
 
     /**
@@ -143,6 +164,94 @@ final class FixtureContext implements Context
     }
 
     /**
+     * @Given the site has a published component :reference with a draft :draftReference placed after it in the same group
+     */
+    public function theSiteHasAPublishedComponentWithAPlacedDraft(string $reference, string $draftReference): void
+    {
+        $published = new DummyPublishableComponent();
+        $published->reference = $reference;
+        $published->setPublishedAt(new \DateTime('2020-01-01 00:00:00'));
+        $draft = new DummyPublishableComponent();
+        $draft->reference = $draftReference;
+        $draft->setPublishedResource($published);
+        $this->homePageGroup()->add($published)->add($draft);
+    }
+
+    /**
+     * @Given the site has a published component :reference in no position with a draft :draftReference placed in a group
+     */
+    public function theSiteHasAnUnplacedPublishedComponentWithAPlacedDraft(string $reference, string $draftReference): void
+    {
+        $published = new DummyPublishableComponent();
+        $published->reference = $reference;
+        $published->setPublishedAt(new \DateTime('2020-01-01 00:00:00'));
+        $draft = new DummyPublishableComponent();
+        $draft->reference = $draftReference;
+        $draft->setPublishedResource($published);
+        $this->homePageGroup()->add($draft);
+        $this->builder()->persist($published);
+    }
+
+    /**
+     * @Given the site has a page :reference at the route :path and a collection whose default query parameters hold the page's IRI under :key
+     */
+    public function theSiteHasAPageAndACollectionHoldingItsIri(string $reference, string $path, string $key): void
+    {
+        $collection = new Collection();
+        $collection->setResourceIri('/_/pages');
+        $this->homePageGroup()->add($collection);
+        $cwa = $this->builder();
+        $cwa->page($reference, 'Primary', layout: 'main', route: $path);
+        $cwa->afterRoutes(function (CwaFixtureBuilder $cwa) use ($collection, $reference, $key): void {
+            $page = $cwa->page($reference, 'Primary', layout: 'main')->getPage();
+            $collection->setDefaultQueryParameters(['pagination' => false, $key => $this->iriConverter->getIriFromResource($page)]);
+        });
+    }
+
+    /**
+     * @Given the site has a collection whose default query parameters hold the IRI of page data with no route under :key
+     */
+    public function theSiteHasACollectionHoldingTheIriOfRoutelessPageData(string $key): void
+    {
+        $collection = new Collection();
+        $collection->setResourceIri('/_/pages');
+        $this->homePageGroup()->add($collection);
+        $pageData = new PageData();
+        $pageData->setTitle('Draft');
+        $cwa = $this->templatePage();
+        $cwa->pageData($pageData, template: 'template')->withoutRoute();
+        $cwa->afterRoutes(function () use ($collection, $pageData, $key): void {
+            $collection->setDefaultQueryParameters([$key => $this->iriConverter->getIriFromResource($pageData)]);
+        });
+    }
+
+    /**
+     * @Then the collection's default query parameters should hold the IRI of the page :reference under :key
+     */
+    public function theCollectionShouldHoldTheIriOfThePage(string $reference, string $key): void
+    {
+        $collections = $this->manager->getRepository(Collection::class)->findAll();
+        if (1 !== \count($collections)) {
+            throw new \RuntimeException(\sprintf('Expected 1 collection, found %d.', \count($collections)));
+        }
+        $expected = $this->iriConverter->getIriFromResource($this->findPage($reference));
+        $actual = $collections[0]->getDefaultQueryParameters()[$key] ?? null;
+        if ($expected !== $actual) {
+            throw new \RuntimeException(\sprintf('The collection holds %s under "%s", expected the IRI of the page "%s", %s.', json_encode($actual), $key, $reference, $expected));
+        }
+    }
+
+    /**
+     * @Given the site has a page :reference with no route that is reachable without one
+     */
+    public function theSiteHasAPageReachableWithoutARoute(string $reference): void
+    {
+        $cwa = $this->builder();
+        $cwa->layout('main', 'Primary');
+        $cwa->page($reference, 'Primary', layout: 'main')->title(ucfirst($reference))->withoutRoute()->reachableWithoutRoute();
+    }
+
+    /**
      * @Given the site has an uploadable component with the file :filename
      */
     public function theSiteHasAnUploadableComponentWithTheFile(string $filename): void
@@ -150,6 +259,18 @@ final class FixtureContext implements Context
         $component = new DummyUploadableAndPublishable();
         $component->setPublishedAt(new \DateTime('2020-01-01 00:00:00'));
         $component->file = new File($this->assetPath($filename));
+        $this->homePageGroup()->add($component);
+    }
+
+    /**
+     * @Given the site has an uploadable component whose file is stored as :storedPath with the content of :filename
+     */
+    public function theSiteHasAnUploadableComponentWhoseFileIsStoredAs(string $storedPath, string $filename): void
+    {
+        $this->filesystemProvider->getFilesystem('local')->write($storedPath, (string) file_get_contents($this->assetPath($filename)));
+        $component = new DummyUploadableAndPublishable();
+        $component->setPublishedAt(new \DateTime('2020-01-01 00:00:00'));
+        $component->setFilename($storedPath);
         $this->homePageGroup()->add($component);
     }
 
@@ -183,6 +304,27 @@ final class FixtureContext implements Context
         $cwa->component($tabs)->group($group)->add($panel);
         $cwa->afterRoutes(static function () use ($childBuilder, $parentPage): void {
             $childBuilder->getPage()->setParentPage($parentPage);
+        });
+    }
+
+    /**
+     * @Given the site has a component :owner whose own group :group holds a component :child on a page nested under page data with no route and on a page nested under the page :parent
+     */
+    public function theSiteHasAComponentWithAnOwnGroupUnderRoutelessPageDataAndAPage(string $owner, string $group, string $child, string $parent): void
+    {
+        $tabs = new DummyComponent();
+        $tabs->uiComponent = $owner;
+        $panel = new DummyComponent();
+        $panel->uiComponent = $child;
+        $cwa = $this->templatePage();
+        $cwa->component($tabs)->group($group)->add($panel);
+        $pageData = new PageData();
+        $pageData->setTitle('Loose');
+        $cwa->pageData($pageData, template: 'template')->withoutRoute()->nested(static function (CwaFixtureBuilder $cwa) use ($tabs): void {
+            $cwa->page('first', 'Primary', layout: 'main', route: '/first', routeName: 'first')->group('main')->add($tabs);
+        });
+        $cwa->page($parent, 'Primary', layout: 'main', route: '/' . $parent, routeName: $parent)->nested(static function (CwaFixtureBuilder $cwa) use ($tabs, $parent): void {
+            $cwa->page('second', 'Primary', layout: 'main', route: '/' . $parent . '/second', routeName: 'second')->group('main')->add($tabs);
         });
     }
 
@@ -344,18 +486,20 @@ final class FixtureContext implements Context
      * @When the site is generated as fixtures
      * @When the site is generated as fixtures to the file :fileName
      */
-    public function theSiteIsGeneratedAsFixtures(string $fileName = 'GeneratedScaffold.php'): void
+    public function theSiteIsGeneratedAsFixtures(string $fileName = 'GeneratedScaffold.php', array $options = []): void
     {
         $this->builder()->flush();
         $this->manager->flush();
         $this->manager->clear();
 
-        $this->outputDirectory = sys_get_temp_dir() . '/cwa-generated-fixtures-' . bin2hex(random_bytes(6));
-        mkdir($this->outputDirectory);
+        $this->outputDirectory ??= sys_get_temp_dir() . '/cwa-generated-fixtures-' . bin2hex(random_bytes(6));
+        if (!is_dir($this->outputDirectory)) {
+            mkdir($this->outputDirectory);
+        }
         $this->generatedFile = $this->outputDirectory . '/' . $fileName;
 
         $tester = new CommandTester($this->generateFixturesCommand);
-        $status = $tester->execute(['--output' => $this->generatedFile], ['interactive' => false]);
+        $status = $tester->execute(['--output' => $this->generatedFile] + $options, ['interactive' => false]);
         $this->commandOutput = $tester->getDisplay();
         $this->manager->clear();
 
@@ -433,6 +577,7 @@ final class FixtureContext implements Context
 
     private function loadScaffold(AbstractCwaScaffold $scaffold): void
     {
+        $this->loadedAt = new \DateTimeImmutable();
         try {
             $scaffold->load($this->manager);
         } catch (\Throwable $exception) {
@@ -490,6 +635,41 @@ final class FixtureContext implements Context
         }
         if ($component->getComponentPositions()->isEmpty()) {
             throw new \RuntimeException(\sprintf('The component "%s" is not placed in any group.', $reference));
+        }
+    }
+
+    /**
+     * @Then the component :reference should be published and in no position
+     */
+    public function theComponentShouldBePublishedAndInNoPosition(string $reference): void
+    {
+        $component = $this->findPublishable($reference);
+        if (null === $component->getPublishedAt() || $component->getPublishedAt() > new \DateTime()) {
+            throw new \RuntimeException(\sprintf('The component "%s" is not published.', $reference));
+        }
+        if (!$component->getComponentPositions()->isEmpty()) {
+            throw new \RuntimeException(\sprintf('The component "%s" is placed in a group.', $reference));
+        }
+    }
+
+    /**
+     * @Then the component :reference should be placed in a group
+     */
+    public function theComponentShouldBePlaced(string $reference): void
+    {
+        if ($this->findPublishable($reference)->getComponentPositions()->isEmpty()) {
+            throw new \RuntimeException(\sprintf('The component "%s" is not placed in any group.', $reference));
+        }
+    }
+
+    /**
+     * @Then the page :page should be reachable without a route
+     */
+    public function thePageShouldBeReachableWithoutARoute(string $page): void
+    {
+        $found = $this->findPage($page);
+        if (null !== $found->getRoute() || !$found->isReachableWithoutRoute) {
+            throw new \RuntimeException(\sprintf('The page "%s" is not a routeless page reachable without a route.', $page));
         }
     }
 
@@ -810,6 +990,7 @@ final class FixtureContext implements Context
      */
     public function theScaffoldIsLoaded(): void
     {
+        $this->sharedScaffoldComponents = [];
         $cwa = $this->newBuilder();
         $this->pageDataBuilders = [];
         $this->pageBuilders = [];
@@ -1070,6 +1251,465 @@ final class FixtureContext implements Context
         }
     }
 
+    /**
+     * @Given the site is loaded from the scaffold :file
+     */
+    public function theSiteIsLoadedFromTheScaffold(string $file): void
+    {
+        $path = (string) realpath(__DIR__ . '/../fixtures/' . $file);
+        $code = (string) file_get_contents($path);
+        $namespace = 'App\\DataFixtures\\Documented' . bin2hex(random_bytes(6));
+        $code = preg_replace('/^namespace App\\\\DataFixtures;$/m', 'namespace ' . $namespace . ';', $code, 1, $count);
+        if (1 !== $count) {
+            throw new \RuntimeException(\sprintf('The scaffold %s does not declare the namespace App\\DataFixtures.', $file));
+        }
+        $code = str_replace('__DIR__', var_export(\dirname($path), true), $code);
+        $this->outputDirectory ??= sys_get_temp_dir() . '/cwa-generated-fixtures-' . bin2hex(random_bytes(6));
+        if (!is_dir($this->outputDirectory)) {
+            mkdir($this->outputDirectory);
+        }
+        $loadable = $this->outputDirectory . '/Loadable' . bin2hex(random_bytes(6)) . '.php';
+        file_put_contents($loadable, $code);
+        require $loadable;
+
+        $class = $namespace . '\\' . pathinfo($path, \PATHINFO_FILENAME);
+        $scaffold = new $class($this->newBuilder());
+        (new ORMExecutor($this->manager, new ORMPurger()))->execute([$scaffold]);
+        $this->manager->clear();
+    }
+
+    /**
+     * @When the site is generated as fixtures with the option :option
+     */
+    public function theSiteIsGeneratedAsFixturesWithTheOption(string $option): void
+    {
+        $this->theSiteIsGeneratedAsFixtures('GeneratedScaffold.php', [$option => true]);
+    }
+
+    /**
+     * @When the site is generated as fixtures with the option :option and reloaded
+     */
+    public function theSiteIsGeneratedAsFixturesWithTheOptionAndReloaded(string $option): void
+    {
+        $this->theSiteIsGeneratedAsFixturesWithTheOption($option);
+        $this->theGeneratedFixturesShouldBeValidPhp();
+        $this->theDatabaseIsPurgedAndTheGeneratedFixturesAreLoaded();
+    }
+
+    /**
+     * @Then the generated fixtures should not contain :text
+     */
+    public function theGeneratedFixturesShouldNotContain(string $text): void
+    {
+        if (str_contains((string) file_get_contents($this->generatedFile), $text)) {
+            throw new \RuntimeException(\sprintf("The generated fixtures contain \"%s\":\n%s", $text, file_get_contents($this->generatedFile)));
+        }
+    }
+
+    /**
+     * @When the site is generated as fixtures again
+     */
+    public function theSiteIsGeneratedAsFixturesAgain(): void
+    {
+        $this->previousGeneration = (string) file_get_contents($this->generatedFile);
+        $this->previousAssets = $this->listFiles($this->outputDirectory . '/assets');
+        if (is_dir($this->outputDirectory . '/assets')) {
+            $this->removeDirectory($this->outputDirectory . '/assets');
+        }
+        $this->theSiteIsGeneratedAsFixtures(basename($this->generatedFile));
+    }
+
+    /**
+     * @Then the generated fixtures and their assets should be identical to the previous generation
+     */
+    public function theGeneratedFixturesAndAssetsShouldBeIdenticalToThePreviousGeneration(): void
+    {
+        $actual = (string) file_get_contents($this->generatedFile);
+        if ($this->previousGeneration !== $actual) {
+            $previous = $this->outputDirectory . '/previous-generation.php';
+            file_put_contents($previous, (string) $this->previousGeneration);
+            exec(\sprintf('diff -u %s %s 2>&1', escapeshellarg($previous), escapeshellarg($this->generatedFile)), $diff);
+
+            throw new \RuntimeException(\sprintf("The generated fixtures differ from the previous generation:\n%s", implode("\n", $diff)));
+        }
+        $assets = $this->listFiles($this->outputDirectory . '/assets');
+        if ($this->previousAssets !== $assets) {
+            throw new \RuntimeException(\sprintf('The exported assets are %s, the previous generation exported %s.', json_encode($assets), json_encode($this->previousAssets)));
+        }
+    }
+
+    /**
+     * @Then the exported assets should be :names
+     */
+    public function theExportedAssetsShouldBe(string $names): void
+    {
+        $actual = array_keys($this->listFiles($this->outputDirectory . '/assets'));
+        $expected = array_map('trim', explode(',', $names));
+        if ($expected !== $actual) {
+            throw new \RuntimeException(\sprintf('The exported assets are %s, expected %s.', json_encode($actual), json_encode($expected)));
+        }
+    }
+
+    /**
+     * @Then the generated fixtures should be identical to :file
+     */
+    public function theGeneratedFixturesShouldBeIdenticalTo(string $file): void
+    {
+        $expected = __DIR__ . '/../fixtures/' . $file;
+        if (file_get_contents($expected) === file_get_contents($this->generatedFile)) {
+            return;
+        }
+        exec(\sprintf('diff -u %s %s 2>&1', escapeshellarg($expected), escapeshellarg($this->generatedFile)), $diff);
+
+        throw new \RuntimeException(\sprintf("The generated fixtures differ from %s:\n%s", $file, implode("\n", $diff)));
+    }
+
+    /**
+     * @Then the exported assets should be identical to :directory
+     */
+    public function theExportedAssetsShouldBeIdenticalTo(string $directory): void
+    {
+        $expected = $this->listFiles(__DIR__ . '/../fixtures/' . $directory);
+        $actual = $this->listFiles($this->outputDirectory . '/assets');
+        if ($expected !== $actual) {
+            throw new \RuntimeException(\sprintf('The exported assets are %s, expected %s.', json_encode(array_keys($actual)), json_encode(array_keys($expected))));
+        }
+    }
+
+    /**
+     * @Given the site has an HTML component for each long HTML sample
+     */
+    public function theSiteHasAnHtmlComponentForEachLongHtmlSample(): void
+    {
+        $group = $this->homePageGroup();
+        foreach (self::htmlSamples() as $label => $html) {
+            $component = new DummyHtmlContent();
+            $component->uiComponent = $label;
+            $component->html = $html;
+            $group->add($component);
+        }
+    }
+
+    /**
+     * @Then every HTML component should hold exactly its sample
+     */
+    public function everyHtmlComponentShouldHoldExactlyItsSample(): void
+    {
+        foreach (self::htmlSamples() as $label => $html) {
+            $components = $this->manager->getRepository(DummyHtmlContent::class)->findBy(['uiComponent' => $label]);
+            if (1 !== \count($components)) {
+                throw new \RuntimeException(\sprintf('Expected 1 HTML component "%s", found %d.', $label, \count($components)));
+            }
+            if ($html !== $components[0]->html) {
+                throw new \RuntimeException(\sprintf("The HTML component \"%s\" holds:\n%s\nexpected:\n%s", $label, var_export($components[0]->html, true), var_export($html, true)));
+            }
+        }
+    }
+
+    /**
+     * @Then no line of the generated fixtures should be longer than :count characters
+     */
+    public function noLineOfTheGeneratedFixturesShouldBeLongerThan(int $count): void
+    {
+        foreach (explode("\n", (string) file_get_contents($this->generatedFile)) as $number => $line) {
+            if (\strlen($line) > $count) {
+                throw new \RuntimeException(\sprintf('Line %d of the generated fixtures is %d characters long.', $number + 1, \strlen($line)));
+            }
+        }
+    }
+
+    /**
+     * @Given the site has a published component :reference published at :date
+     */
+    public function theSiteHasAComponentPublishedAt(string $reference, string $date): void
+    {
+        $component = new DummyPublishableComponent();
+        $component->reference = $reference;
+        $component->setPublishedAt(new \DateTime($date));
+        $this->homePageGroup()->add($component);
+    }
+
+    /**
+     * @Then the component :reference should be published at :date
+     */
+    public function theComponentShouldBePublishedAt(string $reference, string $date): void
+    {
+        $actual = $this->findPublishable($reference)->getPublishedAt()?->format(\DATE_ATOM);
+        $expected = (new \DateTimeImmutable($date))->format(\DATE_ATOM);
+        if ($expected !== $actual) {
+            throw new \RuntimeException(\sprintf('The component "%s" is published at %s, expected %s.', $reference, var_export($actual, true), $expected));
+        }
+    }
+
+    /**
+     * @Then the component :reference should have been published when it was loaded
+     */
+    public function theComponentShouldHaveBeenPublishedWhenItWasLoaded(string $reference): void
+    {
+        $publishedAt = $this->findPublishable($reference)->getPublishedAt();
+        $earliest = $this->loadedAt?->modify('-1 second');
+        $latest = new \DateTimeImmutable('+1 second');
+        if (null === $publishedAt || null === $earliest || $publishedAt < $earliest || $publishedAt > $latest) {
+            throw new \RuntimeException(\sprintf('The component "%s" is published at %s, not when it was loaded at %s.', $reference, $publishedAt?->format(\DATE_ATOM) ?? 'null', $this->loadedAt?->format(\DATE_ATOM) ?? 'never'));
+        }
+    }
+
+    /**
+     * @Given the site has a navigation link :label in the layout group :group and in the group :pageGroup of the page :page nested under the page :parent
+     */
+    public function theSiteHasANavigationLinkInALayoutAndANestedPage(string $label, string $group, string $pageGroup, string $page, string $parent): void
+    {
+        $cwa = $this->builder();
+        $link = new DummyNavigationLink();
+        $link->label = $label;
+        $cwa->layout('main', 'Primary')->group($group)->add($link);
+        $cwa->page($parent, 'Primary', layout: 'main', route: '/' . $parent, routeName: $parent)->nested(static function (CwaFixtureBuilder $nested) use ($page, $parent, $pageGroup, $link): void {
+            $nested->page($page, 'Primary', layout: 'main', route: '/' . $parent . '/' . $page, routeName: $page)->group($pageGroup)->add($link);
+        });
+    }
+
+    /**
+     * @Then there should be :count navigation link(s) labelled :label in :positions position(s)
+     */
+    public function thereShouldBeNavigationLinksLabelledInPositions(int $count, string $label, int $positions): void
+    {
+        $links = $this->manager->getRepository(DummyNavigationLink::class)->findBy(['label' => $label]);
+        $found = array_sum(array_map(static fn (DummyNavigationLink $link) => \count($link->getComponentPositions()), $links));
+        if ($count !== \count($links) || $positions !== $found) {
+            throw new \RuntimeException(\sprintf('Expected %d navigation links labelled "%s" in %d positions, found %d in %d.', $count, $label, $positions, \count($links), $found));
+        }
+    }
+
+    /**
+     * @Given the site has a page :grandchild at the route :path under the page :child at the route :childPath under the page :parent at the route :parentPath
+     */
+    public function theSiteHasAGrandchildPage(string $grandchild, string $path, string $child, string $childPath, string $parent, string $parentPath): void
+    {
+        $cwa = $this->builder();
+        $cwa->layout('main', 'Primary');
+        $cwa->flush();
+        $layout = $this->manager->getRepository(Layout::class)->findOneBy(['reference' => 'main']);
+
+        $previous = null;
+        foreach ([$parent => $parentPath, $child => $childPath, $grandchild => $path] as $reference => $routePath) {
+            $page = $this->newPage($reference, $layout);
+            $page->setTitle(ucfirst($reference));
+            $page->setParentPage($previous);
+            $route = new Route();
+            $route->setPath($routePath);
+            $route->setName($reference);
+            $route->setPage($page);
+            $this->timestampedDataPersister->persistTimestampedFields($route, true);
+            $this->manager->persist($route);
+            $previous = $page;
+        }
+        $this->manager->flush();
+    }
+
+    /**
+     * @Given the site has a page :reference at the route :path with a derived route name
+     */
+    public function theSiteHasAPageWithADerivedRouteName(string $reference, string $path): void
+    {
+        $cwa = $this->builder();
+        $cwa->layout('main', 'Primary');
+        $cwa->page($reference, 'Primary', layout: 'main', route: $path)->title(ucfirst($reference));
+    }
+
+    /**
+     * @Given the site has a navigation link :label to the route :path
+     */
+    public function theSiteHasANavigationLinkToTheRoute(string $label, string $path): void
+    {
+        $cwa = $this->builder();
+        $cwa->flush();
+        $this->manager->flush();
+
+        $link = new DummyNavigationLink();
+        $link->label = $label;
+        $link->route = $this->findRoute($path);
+        $cwa->layout('main', 'Primary')->group('top')->add($link);
+    }
+
+    /**
+     * @Then the navigation link :label should point at the route :path
+     */
+    public function theNavigationLinkLabelledShouldPointAtTheRoute(string $label, string $path): void
+    {
+        $links = $this->manager->getRepository(DummyNavigationLink::class)->findBy(['label' => $label]);
+        $actual = array_map(static fn (DummyNavigationLink $link) => $link->route?->getPath(), $links);
+        if ([$path] !== $actual) {
+            throw new \RuntimeException(\sprintf('The navigation links labelled "%s" point at %s, expected ["%s"].', $label, json_encode($actual), $path));
+        }
+    }
+
+    /**
+     * @Given the site has a component :name related to a component :related in the group :group of the page :page
+     */
+    public function theSiteHasARelatedComponentInTheSameGroup(string $name, string $related, string $group, string $page): void
+    {
+        $cwa = $this->builder();
+        $cwa->layout('main', 'Primary');
+        $target = new DummyComponent();
+        $target->uiComponent = $related;
+        $component = new DummyComponentWithRelated();
+        $component->name = $name;
+        $component->related = $target;
+        $cwa->page($page, 'Primary', layout: 'main', route: '/' . $page, routeName: $page)->group($group)->add($component)->add($target);
+    }
+
+    /**
+     * @Given the site has a component :name in the layout :layout related to a component :related on the page :page
+     */
+    public function theSiteHasARelatedComponentAcrossMethods(string $name, string $layout, string $related, string $page): void
+    {
+        $cwa = $this->builder();
+        $target = new DummyComponent();
+        $target->uiComponent = $related;
+        $component = new DummyComponentWithRelated();
+        $component->name = $name;
+        $component->related = $target;
+        $cwa->layout($layout, 'Primary')->group('top')->add($component);
+        $cwa->page($page, 'Primary', layout: $layout, route: '/' . $page, routeName: $page)->group('primary')->add($target);
+    }
+
+    /**
+     * @Then the component :name should be related to the component :related
+     */
+    public function theComponentShouldBeRelatedToTheComponent(string $name, string $related): void
+    {
+        $components = $this->manager->getRepository(DummyComponentWithRelated::class)->findBy(['name' => $name]);
+        $actual = array_map(static fn (DummyComponentWithRelated $component) => $component->related?->uiComponent, $components);
+        if ([$related] !== $actual) {
+            throw new \RuntimeException(\sprintf('The components named "%s" are related to %s, expected ["%s"].', $name, json_encode($actual), $related));
+        }
+    }
+
+    /**
+     * @Given the site has a PageDataWithRoute titled :title at the route :path whose related route is :relatedPath
+     */
+    public function theSiteHasAPageDataWithRoute(string $title, string $path, string $relatedPath): void
+    {
+        $cwa = $this->templatePage();
+        $cwa->flush();
+        $this->manager->flush();
+
+        $pageData = new PageDataWithRoute();
+        $pageData->setTitle($title);
+        $pageData->relatedRoute = $this->findRoute($relatedPath);
+        $cwa->pageData($pageData, template: 'template', route: $path);
+    }
+
+    /**
+     * @Then the PageDataWithRoute :title should have the related route :path
+     */
+    public function thePageDataWithRouteShouldHaveTheRelatedRoute(string $title, string $path): void
+    {
+        $actual = $this->manager->getRepository(PageDataWithRoute::class)->findOneBy(['title' => $title])?->relatedRoute?->getPath();
+        if ($path !== $actual) {
+            throw new \RuntimeException(\sprintf('The page data "%s" has the related route %s, expected "%s".', $title, var_export($actual, true), $path));
+        }
+    }
+
+    /**
+     * @Given the site has a published component :reference with a draft :draftReference that owns a group :group
+     */
+    public function theSiteHasAPublishedComponentWithADraftOwningAGroup(string $reference, string $draftReference, string $group): void
+    {
+        $cwa = $this->builder();
+        $published = new DummyPublishableComponent();
+        $published->reference = $reference;
+        $published->setPublishedAt(new \DateTime('2020-01-01 00:00:00'));
+        $this->homePageGroup()->add($published);
+
+        $draft = new DummyPublishableComponent();
+        $draft->reference = $draftReference;
+        $draft->setPublishedResource($published);
+        $this->addLabelledComponents($cwa->component($draft)->group($group), 'Panel');
+    }
+
+    /**
+     * @Given the scaffold has, nested under the page :parent, a page :page at the route :path with a group :group holding a published component :reference with a draft :draftReference
+     */
+    public function theScaffoldHasANestedPageWithAPublishedComponentAndADraft(string $parent, string $page, string $path, string $group, string $reference, string $draftReference): void
+    {
+        $this->nestedUnderPage[$parent][] = static function (CwaFixtureBuilder $nested) use ($page, $path, $group, $reference, $draftReference): void {
+            $published = new DummyPublishableComponent();
+            $published->reference = $reference;
+            $nested->publish($published);
+
+            $draft = new DummyPublishableComponent();
+            $draft->reference = $draftReference;
+            $nested->component($published)->draft($draft);
+
+            $nested->page($page, 'Primary', layout: 'main', route: $path, routeName: $page)
+                ->group($group)
+                ->add($published);
+        };
+    }
+
+    /**
+     * @Given the scaffold has a layout :layout with a group :group holding a navigation link :label to the route named :routeName
+     */
+    public function theScaffoldHasALayoutWithANavigationLink(string $layout, string $group, string $label, string $routeName): void
+    {
+        $this->scaffold[] = static function (CwaFixtureBuilder $cwa) use ($layout, $group, $label, $routeName): void {
+            $link = new DummyNavigationLink();
+            $link->label = $label;
+            $cwa->component($link)->linkRoute('route', $routeName);
+            $cwa->layout($layout, 'Primary')->group($group)->add($link);
+        };
+    }
+
+    /**
+     * @Given the scaffold has, nested under the page :parent, a page :page at the route :path whose group :group holds the shared component :owner with its own group :ownGroup holding the components :labels
+     */
+    public function theScaffoldHasANestedPageHoldingASharedComponent(string $parent, string $page, string $path, string $group, string $owner, string $ownGroup, string $labels): void
+    {
+        $this->nestedUnderPage[$parent][] = function (CwaFixtureBuilder $nested) use ($page, $path, $group, $owner, $ownGroup, $labels): void {
+            if (!isset($this->sharedScaffoldComponents[$owner])) {
+                $component = new DummyComponent();
+                $component->uiComponent = $owner;
+                $this->addLabelledComponents($nested->component($component)->group($ownGroup), $labels);
+                $this->sharedScaffoldComponents[$owner] = $component;
+            }
+            $nested->page($page, 'Primary', layout: 'main', route: $path, routeName: $page)
+                ->group($group)
+                ->add($this->sharedScaffoldComponents[$owner]);
+        };
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function htmlSamples(): array
+    {
+        return [
+            'pre' => "<p>Some introduction text that is long enough to need more than one piece.</p><pre><code>first line\n    second line\n</code></pre>\n",
+            'paragraph' => '<p>' . str_repeat('word ', 1000) . '</p>',
+            'upper-case' => str_repeat('<P>An upper-case paragraph that keeps on going.</P>', 4),
+            'quotes' => str_repeat('<p class="note">It\'s a \\path\\ with "quotes" and a \' quote.</p>', 5),
+            'blocks' => str_repeat('<p>' . str_repeat('Some words in a paragraph. ', 37) . '</p>', 6),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function listFiles(string $directory): array
+    {
+        $files = [];
+        if (!is_dir($directory)) {
+            return $files;
+        }
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS)) as $file) {
+            $files[substr($file->getPathname(), \strlen($directory) + 1)] = (string) md5_file($file->getPathname());
+        }
+        ksort($files);
+
+        return $files;
+    }
+
     private function addLabelledComponents(GroupBuilder $group, string $labels): void
     {
         foreach (array_map('trim', explode(',', $labels)) as $label) {
@@ -1135,6 +1775,9 @@ final class FixtureContext implements Context
             $this->iriConverter,
             $this->uploadableFileManager,
             $this->uploadableAttributeReader,
+            null,
+            null,
+            $this->publishableAttributeReader,
         ))->withManager($this->manager);
     }
 

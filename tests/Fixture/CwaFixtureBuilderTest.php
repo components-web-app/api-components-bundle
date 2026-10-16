@@ -12,9 +12,14 @@
 namespace Silverback\ApiComponentsBundle\Tests\Fixture;
 
 use ApiPlatform\Metadata\IriConverterInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\Mapping\ClassMetadata;
 use Doctrine\Persistence\ObjectManager;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
+use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
@@ -23,11 +28,19 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Fixture\Builder\ComponentBuilder;
+use Silverback\ApiComponentsBundle\Fixture\Builder\PageBuilder;
+use Silverback\ApiComponentsBundle\Fixture\Builder\PageDataBuilder;
 use Silverback\ApiComponentsBundle\Fixture\CwaFixtureBuilder;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\Tests\Command\Fixture\PageDataWithFilters;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyNavigationLink;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithRoute;
 use Symfony\Component\HttpFoundation\File\File;
 
 class CwaFixtureBuilderTest extends TestCase
@@ -1494,13 +1507,16 @@ class CwaFixtureBuilderTest extends TestCase
         }
     }
 
-    public function test_auto_route_page_with_null_route_name_does_not_register_named_route(): void
+    public function test_an_auto_route_of_a_page_is_registered_only_under_its_own_name(): void
     {
-        $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
+        $builder = $this->makeBuilder($this->collectingEm(), $this->autoRouteGenerator());
         $builder->layout('main', 'Primary');
-        $builder->page('home', 'Template', layout: 'main');
+        $page = $builder->page('home', 'Template', layout: 'main')->title('Home');
         $builder->flush();
 
+        $route = $page->getRoute();
+        $this->assertNotNull($route);
+        $this->assertSame($route, $builder->getRoute((string) $route->getName()));
         $this->expectException(\LogicException::class);
         $builder->getRoute('any-name');
     }
@@ -1537,14 +1553,17 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertNotEmpty($routes, 'Auto-generated Route for PageData must be explicitly persisted via ObjectManager');
     }
 
-    public function test_auto_route_pagedata_with_null_route_name_does_not_register_named_route(): void
+    public function test_an_auto_route_of_page_data_is_registered_only_under_its_own_name(): void
     {
-        $pageData = new class extends AbstractPageData {};
+        $pageData = self::titled(new class extends AbstractPageData {});
 
-        $builder = $this->makeBuilder(routeGenerator: $this->autoRouteGenerator());
+        $builder = $this->makeBuilder($this->collectingEm(), $this->autoRouteGenerator());
         $builder->pageData($pageData);
         $builder->flush();
 
+        $route = $pageData->getRoute();
+        $this->assertNotNull($route);
+        $this->assertSame($route, $builder->getRoute((string) $route->getName()));
         $this->expectException(\LogicException::class);
         $builder->getRoute('anything');
     }
@@ -1932,7 +1951,7 @@ class CwaFixtureBuilderTest extends TestCase
         };
         $mainEntity->related = $associated;
 
-        $metadata = $this->createStub(\Doctrine\Persistence\Mapping\ClassMetadata::class);
+        $metadata = $this->createStub(ClassMetadata::class);
         $metadata->method('getAssociationNames')->willReturn(['related']);
         $metadata->method('isAssociationInverseSide')->willReturnCallback(
             static fn (string $name) => false
@@ -1962,7 +1981,7 @@ class CwaFixtureBuilderTest extends TestCase
         };
         $mainEntity->inverseRelation = $inverseSideEntity;
 
-        $metadata = $this->createStub(\Doctrine\Persistence\Mapping\ClassMetadata::class);
+        $metadata = $this->createStub(ClassMetadata::class);
         $metadata->method('getAssociationNames')->willReturn(['inverseRelation']);
         $metadata->method('isAssociationInverseSide')->willReturnCallback(
             static fn (string $name) => true
@@ -1994,7 +2013,7 @@ class CwaFixtureBuilderTest extends TestCase
         };
         $mainEntity->items = [$item1, $item2];
 
-        $metadata = $this->createStub(\Doctrine\Persistence\Mapping\ClassMetadata::class);
+        $metadata = $this->createStub(ClassMetadata::class);
         $metadata->method('getAssociationNames')->willReturn(['items']);
         $metadata->method('isAssociationInverseSide')->willReturnCallback(
             static fn (string $name) => false
@@ -2023,7 +2042,7 @@ class CwaFixtureBuilderTest extends TestCase
             public ?object $maybeNull = null;
         };
 
-        $metadata = $this->createStub(\Doctrine\Persistence\Mapping\ClassMetadata::class);
+        $metadata = $this->createStub(ClassMetadata::class);
         $metadata->method('getAssociationNames')->willReturn(['maybeNull']);
         $metadata->method('isAssociationInverseSide')->willReturn(false);
 
@@ -2049,7 +2068,7 @@ class CwaFixtureBuilderTest extends TestCase
             public string $uninitializedProp;
         };
 
-        $metadata = $this->createStub(\Doctrine\Persistence\Mapping\ClassMetadata::class);
+        $metadata = $this->createStub(ClassMetadata::class);
         $metadata->method('getAssociationNames')->willReturn(['uninitializedProp']);
         $metadata->method('isAssociationInverseSide')->willReturn(false);
 
@@ -2077,7 +2096,7 @@ class CwaFixtureBuilderTest extends TestCase
         };
         $mainEntity->initializedProp = $associated;
 
-        $metadata = $this->createStub(\Doctrine\Persistence\Mapping\ClassMetadata::class);
+        $metadata = $this->createStub(ClassMetadata::class);
         $metadata->method('getAssociationNames')->willReturn(['initializedProp']);
         $metadata->method('isAssociationInverseSide')->willReturn(false);
 
@@ -2228,7 +2247,7 @@ class CwaFixtureBuilderTest extends TestCase
             }
         };
 
-        $metadata = $this->createStub(\Doctrine\Persistence\Mapping\ClassMetadata::class);
+        $metadata = $this->createStub(ClassMetadata::class);
         $metadata->method('getAssociationNames')->willReturn(['parentDeclaredProp']);
         $metadata->method('isAssociationInverseSide')->willReturn(false);
 
@@ -2516,12 +2535,15 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->flush();
     }
 
-    public function test_redirect_to_an_unknown_route_name_throws(): void
+    public function test_redirect_to_an_unknown_route_name_throws_naming_the_redirect_and_the_routes_of_the_load(): void
     {
         $builder = $this->makeBuilder($this->collectingEm());
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about');
         $builder->redirect('/old', to: 'missing');
 
         $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('The redirect "/old" leads to the route name "missing", but no route in this load or the database has that name. Routes in this load: about.');
         $builder->flush();
     }
 
@@ -2597,5 +2619,669 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->flush();
 
         $this->assertNull($page->getRoute());
+    }
+
+    private function publishingBuilder(ObjectManager $em, ?RouteGeneratorInterface $routeGenerator = null): CwaFixtureBuilder
+    {
+        return (new CwaFixtureBuilder(
+            $this->createStub(TimestampedDataPersister::class),
+            $routeGenerator ?? $this->createStub(RouteGeneratorInterface::class),
+            $this->createStub(IriConverterInterface::class),
+            null,
+            null,
+            null,
+            null,
+            new PublishableAttributeReader($this->createStub(ManagerRegistry::class)),
+        ))->withManager($em);
+    }
+
+    /**
+     * @param list<array{object, int}> $persistedAt
+     */
+    private function timedEm(array &$persistedAt, int &$flushCount, string $publishedAtType = 'datetime'): ObjectManager
+    {
+        $metadata = $this->createStub(ClassMetadata::class);
+        $metadata->method('getAssociationNames')->willReturn([]);
+        $metadata->method('getTypeOfField')->willReturn($publishedAtType);
+        $em = $this->createStub(ObjectManager::class);
+        $em->method('getClassMetadata')->willReturn($metadata);
+        $em->method('persist')->willReturnCallback(
+            static function (object $e) use (&$persistedAt, &$flushCount): void { $persistedAt[] = [$e, $flushCount]; }
+        );
+        $em->method('flush')->willReturnCallback(
+            static function () use (&$flushCount): void { ++$flushCount; }
+        );
+
+        return $em;
+    }
+
+    /**
+     * @param list<array{object, int}> $persistedAt
+     */
+    private static function flushCountWhenPersisted(array $persistedAt, object $entity): ?int
+    {
+        foreach ($persistedAt as [$persisted, $flushCount]) {
+            if ($persisted === $entity) {
+                return $flushCount;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param list<array{object, int}> $persistedAt
+     */
+    private static function flushCountWhenPositioned(array $persistedAt, object $component): ?int
+    {
+        foreach ($persistedAt as [$persisted, $flushCount]) {
+            if ($persisted instanceof ComponentPosition && $persisted->component === $component) {
+                return $flushCount;
+            }
+        }
+
+        return null;
+    }
+
+    public function test_a_nested_closure_inside_a_nested_closure_creates_the_grandchild_in_one_flush(): void
+    {
+        $persisted = [];
+        $flushCount = 0;
+        $builder = $this->makeBuilder($this->collectingEm($persisted, $flushCount));
+        $builder->layout('main', 'Primary');
+        $grandchild = null;
+        $builder->page('parent', 'Primary', layout: 'main', route: '/parent')->nested(static function (CwaFixtureBuilder $cwa) use (&$grandchild): void {
+            $cwa->page('child', 'Primary', layout: 'main', route: '/parent/child')->nested(static function (CwaFixtureBuilder $cwa) use (&$grandchild): void {
+                $grandchild = $cwa->page('grandchild', 'Primary', layout: 'main', route: '/parent/child/grandchild');
+            });
+        });
+        $builder->flush();
+
+        $this->assertNotNull($grandchild);
+        $this->assertContains($grandchild->getPage(), $persisted);
+        $this->assertSame('child', $grandchild->getPage()->getParentPage()?->reference);
+        $this->assertSame('/parent/child/grandchild', $grandchild->getRoute()?->getPath());
+        $this->assertSame(3, $flushCount);
+    }
+
+    public function test_publish_sets_the_publishable_date_now_and_returns_the_resource(): void
+    {
+        $metadata = $this->createStub(ClassMetadata::class);
+        $metadata->method('getTypeOfField')->willReturn('datetime');
+        $em = $this->createMock(ObjectManager::class);
+        $em->method('getClassMetadata')->willReturn($metadata);
+        $em->expects($this->never())->method('persist');
+        $em->expects($this->never())->method('flush');
+        $builder = $this->publishingBuilder($em);
+        $component = new DummyPublishableComponent();
+
+        $before = new \DateTimeImmutable();
+        $returned = $builder->publish($component);
+        $after = new \DateTimeImmutable();
+
+        $this->assertSame($component, $returned);
+        $this->assertInstanceOf(\DateTime::class, $component->getPublishedAt());
+        $this->assertGreaterThanOrEqual($before, $component->getPublishedAt());
+        $this->assertLessThanOrEqual($after, $component->getPublishedAt());
+    }
+
+    /**
+     * @return iterable<string, array{string, \DateTimeInterface, class-string<\DateTimeInterface>}>
+     */
+    public static function publishedAtMappings(): iterable
+    {
+        yield 'datetime' => ['datetime', new \DateTimeImmutable('2099-01-15T09:00:00+00:00'), \DateTime::class];
+        yield 'datetime_immutable' => ['datetime_immutable', new \DateTime('2099-01-15T09:00:00+00:00'), \DateTimeImmutable::class];
+    }
+
+    #[DataProvider('publishedAtMappings')]
+    public function test_publish_at_sets_the_given_date_in_the_class_the_mapping_uses(string $type, \DateTimeInterface $at, string $expectedClass): void
+    {
+        $persistedAt = [];
+        $flushCount = 0;
+        $builder = $this->publishingBuilder($this->timedEm($persistedAt, $flushCount, $type));
+        $component = new DummyPublishableComponent();
+
+        $builder->publish($component, at: $at);
+
+        $this->assertInstanceOf($expectedClass, $component->getPublishedAt());
+        $this->assertSame('2099-01-15T09:00:00+00:00', $component->getPublishedAt()->format(\DATE_ATOM));
+        $this->assertSame([], $persistedAt);
+    }
+
+    public function test_publish_on_a_non_publishable_object_throws(): void
+    {
+        $persistedAt = [];
+        $flushCount = 0;
+        $builder = $this->publishingBuilder($this->timedEm($persistedAt, $flushCount));
+
+        $this->expectException(\LogicException::class);
+        $builder->publish(new DummyComponent());
+    }
+
+    public function test_a_route_link_resolves_before_after_routes_callbacks_run(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $link = new DummyNavigationLink();
+        $seen = false;
+
+        $builder->layout('main', 'Primary')->group('nav')->add($link);
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $builder->component($link)->linkRoute('route', 'about');
+        $builder->afterRoutes(static function () use ($link, &$seen): void {
+            $seen = $link->route;
+        });
+        $builder->flush();
+
+        $this->assertSame($builder->getRoute('about'), $seen);
+        $this->assertSame($builder->getRoute('about'), $link->route);
+    }
+
+    public function test_a_route_link_on_page_data_resolves_before_after_routes_callbacks_run(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $pageData = new PageDataWithRoute();
+        $pageData->setTitle('Event');
+        $seen = false;
+
+        $this->assertInstanceOf(PageDataBuilder::class, $builder->pageData($pageData, route: '/event')->linkRoute('relatedRoute', 'about'));
+        $builder->afterRoutes(static function () use ($pageData, &$seen): void {
+            $seen = $pageData->relatedRoute;
+        });
+        $builder->flush();
+
+        $this->assertSame($builder->getRoute('about'), $seen);
+        $this->assertSame($builder->getRoute('about'), $pageData->relatedRoute);
+    }
+
+    public function test_a_route_link_declared_in_an_after_routes_callback_is_applied(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $link = new DummyNavigationLink();
+        $builder->layout('main', 'Primary')->group('nav')->add($link);
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $builder->afterRoutes(static function (CwaFixtureBuilder $cwa) use ($link): void {
+            $cwa->component($link)->linkRoute('route', 'about');
+        });
+        $builder->flush();
+
+        $this->assertSame($builder->getRoute('about'), $link->route);
+    }
+
+    public function test_a_route_link_declared_in_an_on_routes_created_callback_is_applied(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $pageData = new PageDataWithRoute();
+        $pageData->setTitle('Event');
+        $pageDataBuilder = $builder->pageData($pageData, route: '/event');
+        $pageDataBuilder->onRoutesCreated(static function () use ($pageDataBuilder): void {
+            $pageDataBuilder->linkRoute('relatedRoute', 'about');
+        });
+        $builder->flush();
+
+        $this->assertSame($builder->getRoute('about'), $pageData->relatedRoute);
+    }
+
+    public function test_a_route_link_declared_in_an_after_routes_callback_to_an_unknown_route_name_throws(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $link = new DummyNavigationLink();
+        $builder->layout('main', 'Primary')->group('nav')->add($link);
+        $builder->afterRoutes(static function (CwaFixtureBuilder $cwa) use ($link): void {
+            $cwa->component($link)->linkRoute('route', 'missing');
+        });
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage(DummyNavigationLink::class . '::$route links to the route name "missing"');
+        $builder->flush();
+    }
+
+    public function test_a_route_link_is_applied_once_when_links_are_resolved_again(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $link = new DummyNavigationLink();
+        $builder->layout('main', 'Primary')->group('nav')->add($link);
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $builder->page('team', 'Primary', layout: 'main', route: '/team', routeName: 'team');
+        $builder->component($link)->linkRoute('route', 'about');
+        $builder->afterRoutes(static function (CwaFixtureBuilder $cwa) use ($link): void {
+            $link->route = $cwa->getRoute('team');
+        });
+        $builder->flush();
+
+        $this->assertSame($builder->getRoute('team'), $link->route);
+    }
+
+    public function test_a_route_link_adds_no_flush(): void
+    {
+        $counts = [];
+        foreach ([false, true] as $withLink) {
+            $flushCount = 0;
+            $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+            $link = new DummyNavigationLink();
+            $builder->layout('main', 'Primary')->group('nav')->add($link);
+            $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+            if ($withLink) {
+                $builder->component($link)->linkRoute('route', 'about');
+            }
+            $builder->flush();
+            $counts[] = $flushCount;
+        }
+
+        $this->assertSame($counts[0], $counts[1]);
+    }
+
+    public function test_a_route_link_to_an_unknown_route_name_throws(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $link = new DummyNavigationLink();
+        $builder->layout('main', 'Primary')->group('nav')->add($link);
+        $builder->component($link)->linkRoute('route', 'missing');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage(DummyNavigationLink::class . '::$route links to the route name "missing", but no route in this load or the database has that name. Routes in this load: none.');
+        $builder->flush();
+    }
+
+    public function test_a_route_link_to_a_property_that_cannot_hold_a_route_throws_naming_link_route(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $link = new DummyNavigationLink();
+        $builder->layout('main', 'Primary')->group('nav')->add($link);
+        $builder->page('about', 'Primary', layout: 'main', route: '/about');
+        $builder->component($link)->linkRoute('target', 'about');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('linkRoute(): ' . DummyNavigationLink::class . ' has no writable property "target" that can hold a Route.');
+        $builder->flush();
+    }
+
+    public function test_an_iri_link_writes_the_iri_of_a_page_into_a_key_of_an_array_field_before_after_routes_callbacks_run(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), iriConverter: $this->referenceIriConverter());
+        $collection = new Collection();
+        $collection->setDefaultQueryParameters(['pagination' => false, 'parentPage' => null]);
+        $seen = null;
+
+        $builder->layout('main', 'Primary')->group('nav')->add($collection);
+        $builder->page('blog', 'Primary', layout: 'main', route: '/blog');
+        $this->assertInstanceOf(ComponentBuilder::class, $builder->component($collection)->linkIri('defaultQueryParameters', key: 'parentPage', page: 'blog'));
+        $builder->afterRoutes(static function () use ($collection, &$seen): void {
+            $seen = $collection->getDefaultQueryParameters();
+        });
+        $builder->flush();
+
+        $this->assertSame(['pagination' => false, 'parentPage' => '/_/pages/blog'], $seen);
+        $this->assertSame(['pagination' => false, 'parentPage' => '/_/pages/blog'], $collection->getDefaultQueryParameters());
+    }
+
+    public function test_an_iri_link_with_no_key_writes_the_iri_as_the_whole_value(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), iriConverter: $this->referenceIriConverter());
+        $collection = new Collection();
+        $builder->layout('main', 'Primary')->group('nav')->add($collection);
+        $builder->component($collection)->linkIri('resourceIri', layout: 'main');
+        $builder->flush();
+
+        $this->assertSame('/_/layouts/main', $collection->getResourceIri());
+    }
+
+    public function test_an_iri_link_follows_a_key_path_and_creates_the_keys_it_needs(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), iriConverter: $this->referenceIriConverter());
+        $collection = new Collection();
+        $collection->setDefaultQueryParameters(['filters' => [['page' => null], 'kept']]);
+        $empty = new Collection();
+        $builder->layout('main', 'Primary')->group('nav')->add($collection)->add($empty);
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $builder->component($collection)->linkIri('defaultQueryParameters', key: ['filters', 0, 'page'], route: 'about');
+        $builder->component($empty)->linkIri('defaultQueryParameters', key: ['filters', 'route'], route: 'about');
+        $builder->flush();
+
+        $this->assertSame(['filters' => [['page' => '/_/routes/about'], 'kept']], $collection->getDefaultQueryParameters());
+        $this->assertSame(['filters' => ['route' => '/_/routes/about']], $empty->getDefaultQueryParameters());
+    }
+
+    public function test_an_iri_link_to_page_data_writes_the_iri_of_the_page_data_at_that_route(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), iriConverter: $this->referenceIriConverter());
+        $builder->layout('main', 'Primary');
+        $event = new PageData();
+        $event->setTitle('Event');
+        $builder->pageData($event, route: '/event', routeName: 'event');
+        $listing = new PageDataWithFilters();
+        $listing->setTitle('Listing');
+
+        $this->assertInstanceOf(PageDataBuilder::class, $builder->pageData($listing, route: '/listing')->linkIri('filters', key: 'event', pageData: 'event'));
+        $builder->flush();
+
+        $this->assertSame(['event' => '/page_data/Event'], $listing->filters);
+    }
+
+    public function test_an_iri_link_to_page_data_finds_it_by_a_generated_route_that_does_not_point_back_at_it(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), $this->autoRouteGenerator(), $this->referenceIriConverter());
+        $builder->layout('main', 'Primary');
+        $other = new PageData();
+        $other->setTitle('Other');
+        $builder->pageData($other, routeName: 'other');
+        $event = new PageData();
+        $event->setTitle('Event');
+        $builder->pageData($event, routeName: 'event');
+        $collection = new Collection();
+        $builder->component($collection)->linkIri('resourceIri', pageData: 'event');
+        $builder->flush();
+
+        $this->assertNull($event->getRoute()?->getPageData());
+        $this->assertSame('/page_data/Event', $collection->getResourceIri());
+    }
+
+    public function test_an_iri_link_written_to_a_component_already_persisted_is_flushed(): void
+    {
+        $counts = [];
+        foreach ([false, true] as $withLink) {
+            $flushCount = 0;
+            $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount), iriConverter: $this->referenceIriConverter());
+            $collection = new Collection();
+            $builder->layout('main', 'Primary');
+            $builder->page('blog', 'Primary', layout: 'main', route: '/blog');
+            $builder->component($collection)->group('items');
+            if ($withLink) {
+                $builder->component($collection)->linkIri('resourceIri', page: 'blog');
+            }
+            $builder->flush();
+            $counts[] = $flushCount;
+        }
+
+        $this->assertSame($counts[0] + 1, $counts[1]);
+    }
+
+    public function test_an_iri_link_to_a_property_of_another_type_throws_naming_link_iri(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), iriConverter: $this->referenceIriConverter());
+        $link = new DummyNavigationLink();
+        $builder->layout('main', 'Primary')->group('nav')->add($link);
+        $builder->page('blog', 'Primary', layout: 'main', route: '/blog');
+        $builder->component($link)->linkIri('route', page: 'blog');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('linkIri(): ' . DummyNavigationLink::class . ' has no writable property "route" that can hold an IRI.');
+        $builder->flush();
+    }
+
+    public function test_an_iri_link_declared_in_an_after_routes_callback_is_applied_once(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), iriConverter: $this->referenceIriConverter());
+        $collection = new Collection();
+        $builder->layout('main', 'Primary')->group('nav')->add($collection);
+        $builder->page('blog', 'Primary', layout: 'main', route: '/blog');
+        $builder->page('news', 'Primary', layout: 'main', route: '/news');
+        $builder->component($collection)->linkIri('resourceIri', page: 'blog');
+        $builder->afterRoutes(static function (CwaFixtureBuilder $cwa) use ($collection): void {
+            $collection->setResourceIri('/edited');
+            $cwa->component($collection)->linkIri('defaultQueryParameters', key: 'parentPage', page: 'news');
+        });
+        $builder->flush();
+
+        $this->assertSame('/edited', $collection->getResourceIri());
+        $this->assertSame(['parentPage' => '/_/pages/news'], $collection->getDefaultQueryParameters());
+    }
+
+    public function test_an_iri_link_adds_no_flush(): void
+    {
+        $counts = [];
+        foreach ([false, true] as $withLink) {
+            $flushCount = 0;
+            $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount), iriConverter: $this->referenceIriConverter());
+            $collection = new Collection();
+            $builder->layout('main', 'Primary')->group('nav')->add($collection);
+            $builder->page('blog', 'Primary', layout: 'main', route: '/blog');
+            if ($withLink) {
+                $builder->component($collection)->linkIri('defaultQueryParameters', key: 'parentPage', page: 'blog');
+            }
+            $builder->flush();
+            $counts[] = $flushCount;
+        }
+
+        $this->assertSame($counts[0], $counts[1]);
+    }
+
+    public static function unknownIriTargets(): iterable
+    {
+        yield 'a page' => [['page' => 'missing'], 'links to the page "missing", but no page in this load or the database has that reference.'];
+        yield 'a layout' => [['layout' => 'missing'], 'links to the layout "missing", but no layout in this load or the database has that reference.'];
+        yield 'a route' => [['route' => 'missing'], 'links to the route name "missing", but no route in this load or the database has that name.'];
+        yield 'page data' => [['pageData' => 'missing'], 'links to the route name "missing", but no route in this load or the database has that name.'];
+    }
+
+    /**
+     * @param array<string, string> $target
+     */
+    #[DataProvider('unknownIriTargets')]
+    public function test_an_iri_link_to_something_that_is_not_there_throws(array $target, string $message): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), iriConverter: $this->referenceIriConverter());
+        $collection = new Collection();
+        $builder->layout('main', 'Primary')->group('nav')->add($collection);
+        $builder->component($collection)->linkIri('defaultQueryParameters', 'parentPage', ...$target);
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage(Collection::class . '::$defaultQueryParameters["parentPage"] ' . $message);
+        $builder->flush();
+    }
+
+    public function test_an_iri_link_to_a_route_with_no_page_data_throws(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), iriConverter: $this->referenceIriConverter());
+        $collection = new Collection();
+        $builder->layout('main', 'Primary')->group('nav')->add($collection);
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $builder->component($collection)->linkIri('resourceIri', pageData: 'about');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage(Collection::class . '::$resourceIri links to the page data at the route "about", but that route has no page data.');
+        $builder->flush();
+    }
+
+    public function test_an_iri_link_into_a_value_that_is_not_an_array_throws_naming_link_iri(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), iriConverter: $this->referenceIriConverter());
+        $collection = new Collection();
+        $collection->setDefaultQueryParameters(['filters' => 'flat']);
+        $builder->layout('main', 'Primary')->group('nav')->add($collection);
+        $builder->page('blog', 'Primary', layout: 'main', route: '/blog');
+        $builder->component($collection)->linkIri('defaultQueryParameters', key: ['filters', 'page'], page: 'blog');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('linkIri(): ' . Collection::class . '::$defaultQueryParameters["filters"] is not an array, so it has no key "page".');
+        $builder->flush();
+    }
+
+    public function test_an_iri_link_to_a_property_that_cannot_hold_it_throws_naming_link_iri(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), iriConverter: $this->referenceIriConverter());
+        $link = new DummyNavigationLink();
+        $builder->layout('main', 'Primary')->group('nav')->add($link);
+        $builder->page('blog', 'Primary', layout: 'main', route: '/blog');
+        $builder->component($link)->linkIri('target', page: 'blog');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('linkIri(): ' . DummyNavigationLink::class . ' has no writable property "target" that can hold an IRI.');
+        $builder->flush();
+    }
+
+    private function referenceIriConverter(): IriConverterInterface
+    {
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturnCallback(static fn (object|string $resource): string => match (true) {
+            $resource instanceof Page => '/_/pages/' . $resource->reference,
+            $resource instanceof Layout => '/_/layouts/' . $resource->reference,
+            $resource instanceof Route => '/_/routes/' . $resource->getName(),
+            $resource instanceof AbstractPageData => '/page_data/' . $resource->getTitle(),
+            default => '/_/collection',
+        });
+
+        return $iriConverter;
+    }
+
+    public function test_get_route_before_flush_hints_at_flush(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Named route "about" not found. Did you call flush() before getRoute()?');
+        $builder->getRoute('about');
+    }
+
+    public function test_a_groupless_component_builder_is_persisted_with_the_positions(): void
+    {
+        $persistedAt = [];
+        $flushCount = 0;
+        $builder = $this->publishingBuilder($this->timedEm($persistedAt, $flushCount));
+        $placed = new DummyComponent();
+        $groupless = new DummyComponent();
+
+        $builder->layout('main', 'Primary')->group('nav')->add($placed);
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $builder->component($groupless)->uiComponent('Loose');
+        $builder->flush();
+
+        $this->assertNotNull(self::flushCountWhenPositioned($persistedAt, $placed));
+        $this->assertSame(self::flushCountWhenPositioned($persistedAt, $placed), self::flushCountWhenPersisted($persistedAt, $groupless));
+    }
+
+    public function test_a_draft_is_linked_at_once_and_persisted_with_the_positions_without_an_extra_flush(): void
+    {
+        $counts = [];
+        foreach ([false, true] as $withDraft) {
+            $persistedAt = [];
+            $flushCount = 0;
+            $builder = $this->publishingBuilder($this->timedEm($persistedAt, $flushCount));
+            $published = new DummyPublishableComponent();
+            $builder->layout('main', 'Primary')->group('nav')->add($published);
+            $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+            if ($withDraft) {
+                $draft = new DummyPublishableComponent();
+                $this->assertSame($builder->component($published), $builder->component($published)->draft($draft));
+                $this->assertSame($published, $draft->getPublishedResource());
+                $this->assertSame([$draft], $builder->component($published)->getDrafts());
+            }
+            $builder->flush();
+            $counts[] = $flushCount;
+        }
+
+        $this->assertSame($counts[0], $counts[1]);
+        $this->assertSame(self::flushCountWhenPositioned($persistedAt, $published), self::flushCountWhenPersisted($persistedAt, $draft));
+    }
+
+    public function test_a_draft_of_a_non_publishable_component_throws(): void
+    {
+        $persistedAt = [];
+        $flushCount = 0;
+        $builder = $this->publishingBuilder($this->timedEm($persistedAt, $flushCount));
+
+        $this->expectException(\LogicException::class);
+        $builder->component(new DummyComponent())->draft(new DummyComponent());
+    }
+
+    public function test_an_explicit_route_without_a_route_name_is_addressable_by_its_derived_name(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $builder->layout('main', 'Primary');
+        $page = $builder->page('about', 'Primary', layout: 'main', route: '/about/us');
+        $builder->flush();
+
+        $this->assertSame($page->getRoute(), $builder->getRoute('about-us'));
+    }
+
+    public function test_a_generated_route_is_addressable_by_its_name(): void
+    {
+        $generator = $this->createStub(RouteGeneratorInterface::class);
+        $generator->method('create')->willReturnCallback(static function (object $entity): Route {
+            $route = (new Route())->setPath('/about-us')->setName('about-us');
+            $entity->setRoute($route);
+
+            return $route;
+        });
+        $builder = $this->makeBuilder($this->collectingEm(), $generator);
+        $builder->layout('main', 'Primary');
+        $page = $builder->page('about', 'Primary', layout: 'main')->title('About us');
+        $builder->flush();
+
+        $this->assertSame($page->getRoute(), $builder->getRoute('about-us'));
+    }
+
+    public function test_a_redirect_to_a_route_named_only_by_derivation_is_created(): void
+    {
+        $persisted = [];
+        $builder = $this->makeBuilder($this->collectingEm($persisted));
+        $builder->layout('main', 'Primary');
+        $page = $builder->page('about', 'Primary', layout: 'main', route: '/about');
+        $builder->redirect('/old-about', to: 'about');
+        $builder->flush();
+
+        $redirects = array_values(array_filter($persisted, static fn ($e) => $e instanceof Route && null !== $e->getRedirect()));
+        $this->assertCount(1, $redirects);
+        $this->assertSame($page->getRoute(), $redirects[0]->getRedirect());
+    }
+
+    public function test_each_nested_call_adds_a_closure_and_every_child_is_created(): void
+    {
+        foreach (['page', 'pageData'] as $parentType) {
+            $flushCount = 0;
+            $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+            $builder->layout('main', 'Primary');
+            $parent = 'page' === $parentType
+                ? $builder->page('about', 'Primary', layout: 'main', route: '/about')
+                : $builder->pageData(self::titled(new class extends AbstractPageData {}), route: '/about');
+            $parent
+                ->nested(static fn (CwaFixtureBuilder $cwa) => $cwa->page('team', 'Primary', layout: 'main', route: '/about/team'))
+                ->nested(static fn (CwaFixtureBuilder $cwa) => $cwa->page('careers', 'Primary', layout: 'main', route: '/about/careers'));
+            $builder->flush();
+
+            $this->assertSame('/about/team', $builder->getRoute('about-team')->getPath(), $parentType);
+            $this->assertSame('/about/careers', $builder->getRoute('about-careers')->getPath(), $parentType);
+            $this->assertCount(2, $parent->getNestedClosures(), $parentType);
+        }
+    }
+
+    public function test_page_nested_returns_the_builder(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $builder->layout('main', 'Primary');
+        $page = $builder->page('about', 'Primary', layout: 'main', route: '/about');
+
+        $this->assertSame($page, $page->nested(static function (): void {}));
+    }
+
+    public function test_a_nested_page_declared_by_a_first_class_callable_of_the_scaffold_is_created_under_its_parent(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $scaffold = new class {
+            public ?PageBuilder $child = null;
+
+            public function aboutPage(CwaFixtureBuilder $cwa): void
+            {
+                $cwa->layout('main', 'Primary');
+                $cwa->page('about', 'Primary', layout: 'main', route: '/about')
+                    ->nested($this->aboutTeamPage(...));
+            }
+
+            private function aboutTeamPage(CwaFixtureBuilder $cwa): void
+            {
+                $this->child = $cwa->page('about-team', 'Primary', layout: 'main', route: '/about/team', routeName: 'team');
+            }
+        };
+
+        $scaffold->aboutPage($builder);
+        $builder->flush();
+
+        $this->assertNotNull($scaffold->child);
+        $this->assertSame('about', $scaffold->child->getPage()->getParentPage()?->reference);
+        $this->assertSame($scaffold->child->getRoute(), $builder->getRoute('team'));
     }
 }
