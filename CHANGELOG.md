@@ -13,6 +13,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - `PUT /_/component_groups/{id}/order` with `{"componentPositions": [iri, …]}` reorders a group in one locked request, and `GET` on the same path returns `{componentGroup, sortValues: {iri: int}}` for the positions the group lists ([#480](https://github.com/components-web-app/api-components-bundle/pull/480))
 
 ### Changed
+- `CwaFixtureBuilder` gives positions sort values from 0 in steps of 1, as the API does, instead of from 10 in steps of 10 ([#479](https://github.com/components-web-app/api-components-bundle/pull/479))
 - Positions sharing a `sortValue` are ordered by id. Purges and Mercure updates from a placement or reorder are sent after its transaction commits ([#480](https://github.com/components-web-app/api-components-bundle/pull/480))
 
 ## [2.0.0-alpha.23](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.22...2.0.0-alpha.23) - 2026-10-16
