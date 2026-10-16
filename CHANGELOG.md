@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.23](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.22...2.0.0-alpha.23) - 2026-10-16
+
 ### Breaking
 - `UploadedDataUriFile`'s constructor no longer takes `$error` and `$test`: a decoded data URI is always a valid upload ([#459](https://github.com/components-web-app/api-components-bundle/pull/459))
 - `OrphanedFileDetector` takes the `PublishableAttributeReader` (`$publishableAttributeReader`) ([#459](https://github.com/components-web-app/api-components-bundle/pull/459))
