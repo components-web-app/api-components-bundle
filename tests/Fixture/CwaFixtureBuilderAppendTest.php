@@ -287,6 +287,42 @@ class CwaFixtureBuilderAppendTest extends TestCase
         self::assertSame('/contact-us', $cwa->getRoute('contact')->getPath());
     }
 
+    public function test_a_kept_page_builder_as_a_target_resolves_to_its_existing_route(): void
+    {
+        $route = $this->route('/about', 'about-1');
+        $this->existingPage('about', $route);
+        $cwa = $this->builder();
+
+        $link = new DummyNavigationLink();
+        $cwa->layout('main', 'Primary')->group('nav')->add($link);
+        $about = $cwa->page('about', 'Primary', layout: 'main')->title('About');
+        $cwa->component($link)->linkRoute('route', page: $about);
+        $cwa->redirect('/old-about', to: $about);
+        $cwa->flush();
+
+        self::assertSame($route, $link->route);
+        $redirects = array_values(array_filter($this->persistedOf(Route::class), static fn (Route $created) => null !== $created->getRedirect()));
+        self::assertCount(1, $redirects);
+        self::assertSame($route, $redirects[0]->getRedirect());
+    }
+
+    public function test_a_page_builder_whose_path_is_in_use_resolves_to_the_route_at_that_path(): void
+    {
+        $route = $this->route('/about', 'about-us');
+        $this->existing(Route::class, ['path' => '/about'], $route);
+        $cwa = $this->builder();
+
+        $cwa->layout('main', 'Primary');
+        $about = $cwa->page('about', 'Primary', layout: 'main', route: '/about');
+        $cwa->redirect('/old-about', to: $about);
+        $cwa->flush();
+
+        self::assertNull($about->getRoute());
+        $redirects = array_values(array_filter($this->persistedOf(Route::class), static fn (Route $created) => null !== $created->getRedirect()));
+        self::assertCount(1, $redirects);
+        self::assertSame($route, $redirects[0]->getRedirect());
+    }
+
     public function test_a_kept_page_whose_route_has_another_name_is_also_addressable_by_the_name_derived_from_its_path(): void
     {
         $route = $this->route('/about', 'about-1');
