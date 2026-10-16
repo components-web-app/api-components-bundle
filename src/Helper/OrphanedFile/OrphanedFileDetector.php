@@ -209,8 +209,7 @@ class OrphanedFileDetector
                 $hasPath->add($queryBuilder->expr()->isNotNull('e.' . $field->property));
             }
             $queryBuilder->where($hasPath);
-            $publishable = $this->publishableAttributeReader->isConfigured($class);
-            if ($publishable) {
+            if ($this->publishableAttributeReader->isConfigured($class)) {
                 $queryBuilder->addSelect(\sprintf('e.%s AS publishedAt', $this->publishableAttributeReader->getConfiguration($class)->fieldName));
             }
             if (\count($metadata->subClasses)) {
@@ -221,7 +220,7 @@ class OrphanedFileDetector
                 foreach ($fields as $fileProperty => $field) {
                     $path = $row['path' . $index++];
                     if (\is_string($path) && '' !== $path) {
-                        $references[] = ['class' => $class, 'id' => $row['id'], 'field' => $fileProperty, 'adapter' => $field->adapter, 'path' => $path, 'published' => $publishable && null !== $row['publishedAt']];
+                        $references[] = ['class' => $class, 'id' => $row['id'], 'field' => $fileProperty, 'adapter' => $field->adapter, 'path' => $path, 'published' => null !== ($row['publishedAt'] ?? null)];
                     }
                 }
             }

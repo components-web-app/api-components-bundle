@@ -38,7 +38,7 @@ final class PublishableAttributeReader extends AttributeReader
     {
         $validationGroups = $this->getConfiguration($class)->validationGroups;
         if (!empty($validationGroups)) {
-            return array_values($validationGroups);
+            return $validationGroups;
         }
 
         return [(new \ReflectionClass($class))->getShortName() . ':published'];

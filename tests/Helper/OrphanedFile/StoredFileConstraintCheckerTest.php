@@ -96,7 +96,7 @@ class StoredFileConstraintCheckerTest extends TestCase
             ['The image width is too big (500px). Allowed maximum width is 10px.', 'The image height is too big (715px). Allowed maximum height is 10px.'],
             $checker->violations($file, [$inBoth, $publishedOnly], ['Default', 'X:published'])
         );
-        self::assertSame(['The image width is too big (500px). Allowed maximum width is 10px.'], $checker->violations($file, [$inBoth, $publishedOnly]));
+        self::assertSame(['The image width is too big (500px). Allowed maximum width is 10px.'], $checker->violations($file, [$publishedOnly, $inBoth]));
         self::assertSame(['The image height is too big (715px). Allowed maximum height is 10px.'], $checker->violations($file, [$publishedOnly], ['Default', 'X:published']));
     }
 

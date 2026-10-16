@@ -18,6 +18,9 @@ final class StoredFile
     public const string SVG_MIME_TYPE = 'image/svg+xml';
     private const string SVG_NUMBER = '-?[0-9]*\.?[0-9]+(?:e[+-]?[0-9]+)?';
     private const string SVG_LENGTH = self::SVG_NUMBER . '(?i:px|in|cm|mm|pt|pc|q)?';
+    private const string SVG_WIDTH = '/<svg[^<>]+width="(?<width>' . self::SVG_LENGTH . ')"[^<>]*>/';
+    private const string SVG_HEIGHT = '/<svg[^<>]+height="(?<height>' . self::SVG_LENGTH . ')"[^<>]*>/';
+    private const string SVG_VIEW_BOX = '/<svg[^<>]+viewBox="' . self::SVG_NUMBER . ' ' . self::SVG_NUMBER . ' (?<width>' . self::SVG_NUMBER . ') (?<height>' . self::SVG_NUMBER . ')"[^<>]*>/';
 
     private ?string $mimeType = null;
     private ?int $size = null;
@@ -112,13 +115,13 @@ final class StoredFile
      */
     private function svgDimensions(string $content): ?array
     {
-        if (preg_match('/<svg[^<>]+width="(?<width>' . self::SVG_LENGTH . ')"[^<>]*>/', $content, $widthMatches)) {
+        if (preg_match(self::SVG_WIDTH, $content, $widthMatches)) {
             $width = self::svgLengthToPixels($widthMatches['width']);
         }
-        if (preg_match('/<svg[^<>]+height="(?<height>' . self::SVG_LENGTH . ')"[^<>]*>/', $content, $heightMatches)) {
+        if (preg_match(self::SVG_HEIGHT, $content, $heightMatches)) {
             $height = self::svgLengthToPixels($heightMatches['height']);
         }
-        if (preg_match('/<svg[^<>]+viewBox="' . self::SVG_NUMBER . ' ' . self::SVG_NUMBER . ' (?<width>' . self::SVG_NUMBER . ') (?<height>' . self::SVG_NUMBER . ')"[^<>]*>/', $content, $viewBoxMatches)) {
+        if (preg_match(self::SVG_VIEW_BOX, $content, $viewBoxMatches)) {
             $width ??= self::svgLengthToPixels($viewBoxMatches['width']);
             $height ??= self::svgLengthToPixels($viewBoxMatches['height']);
         }

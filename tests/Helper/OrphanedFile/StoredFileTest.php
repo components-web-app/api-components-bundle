@@ -110,12 +110,16 @@ class StoredFileTest extends TestCase
         yield 'unitless integer' => ['12', 12];
         yield 'unitless integral decimal' => ['12.0', 12];
         yield 'unitless decimal' => ['12.5', 12.5];
+        yield 'unitless decimal within rounding of an integer' => ['12.000000000001', 12.000000000001];
         yield 'exponent' => ['1.2e1', 12];
         yield 'pixels' => ['12px', 12];
         yield 'decimal pixels' => ['12.5PX', 12.5];
         yield 'inches' => ['2in', 192];
+        yield 'upper case inches' => ['2IN', 192];
         yield 'centimetres' => ['2.54cm', 96];
         yield 'millimetres' => ['210mm', 210 * 96 / 25.4];
+        yield 'millimetres converting to just under an integer' => ['25.4mm', 96];
+        yield 'millimetres converting to just over an integer' => ['76.2mm', 288];
         yield 'points' => ['72pt', 96];
         yield 'picas' => ['2pc', 32];
         yield 'quarter millimetres' => ['101.6Q', 96];
