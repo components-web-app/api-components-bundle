@@ -907,8 +907,13 @@ class CwaFixtureBuilder implements ResetInterface
             if (null === $routeName || self::CREATED !== $decision) {
                 continue;
             }
-            $entity = 'page' === $spec['type'] ? $builder->getPage() : $builder->getPageData();
-            $label = $entity instanceof Page ? \sprintf('the page "%s"', $entity->reference) : \sprintf('the page data "%s"', $entity->getTitle() ?? $entity::class);
+            if ('page' === $spec['type']) {
+                $entity = $builder->getPage();
+                $label = \sprintf('the page "%s"', $entity->reference);
+            } else {
+                $entity = $builder->getPageData();
+                $label = \sprintf('the page data "%s"', $entity->getTitle() ?? $entity::class);
+            }
             $route = $entity->getRoute();
             if (null === $route) {
                 if (null !== $spec['route']) {
@@ -990,9 +995,9 @@ class CwaFixtureBuilder implements ResetInterface
         }
 
         $this->resolveRouteLinks();
-        $this->applyRouteRedirects();
 
         if ($hasChanges) {
+            $this->applyRouteRedirects();
             $this->manager->flush();
             $this->hasPendingLinks = false;
         }
