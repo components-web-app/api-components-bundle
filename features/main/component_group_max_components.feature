@@ -131,8 +131,8 @@ Feature: A maximum number of components in a component group
     Given there is a ComponentGroup with 1 components
     And the ComponentGroup "component_group" has the maxComponents 1
     When I send a "POST" request to "/component/dummy_components" with data:
-      | componentPositions                                                         |
-      | json_decode([{"componentGroup": "resource[component_group]", "sortValue": 1}]) |
+      | componentPositions                                             |
+      | json_decode([{"componentGroup": "resource[component_group]"}]) |
     Then the response status code should be 422
     And the JSON node "violations[0].propertyPath" should be equal to "componentPositions[0].componentGroup"
     And the JSON node "violations[0].message" should be equal to "The component group `collection` is full: it holds at most 1 component."
@@ -143,8 +143,8 @@ Feature: A maximum number of components in a component group
     Given there is a ComponentGroup with 1 components
     And the ComponentGroup "component_group" has the maxComponents 2
     When I send a "POST" request to "/component/dummy_components" with data:
-      | componentPositions                                                         |
-      | json_decode([{"componentGroup": "resource[component_group]", "sortValue": 1}]) |
+      | componentPositions                                             |
+      | json_decode([{"componentGroup": "resource[component_group]"}]) |
     Then the response status code should be 201
     And there should be 2 ComponentPosition resources
 
@@ -188,13 +188,13 @@ Feature: A maximum number of components in a component group
     And the ComponentGroup "component_group" has the maxComponents 2
     And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the resource "position_0" with data:
-      | sortValue |
-      | 1         |
+      | after                |
+      | resource[position_1] |
     Then the response status code should be 200
     And the ComponentPosition sort values should be:
       | position   | sortValue |
-      | position_0 | 1         |
-      | position_1 | 0         |
+      | position_1 | 1         |
+      | position_0 | 2         |
 
   @loginUser
   Scenario: Lowering the maximum below the components a group holds keeps them all
@@ -226,6 +226,6 @@ Feature: A maximum number of components in a component group
     And the ComponentGroup "component_group" has the maxComponents 1
     And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the resource "position_2" with data:
-      | sortValue |
-      | 0         |
+      | before               |
+      | resource[position_0] |
     Then the response status code should be 200

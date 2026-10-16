@@ -400,6 +400,69 @@ class JsonContext implements Context
         }
     }
 
+    /**
+     * @Then the JSON node :node should list the resources :names in that order
+     */
+    public function theJsonNodeShouldListTheResourcesInThatOrder(string $node, string $names): void
+    {
+        $expected = array_map(fn (string $name) => $this->restContext->resources[trim($name)], explode(',', $names));
+        $actual = $this->inspector->evaluate($this->getJson(), $node);
+        if ($expected !== $actual) {
+            throw new \Exception(\sprintf("The node '%s' lists %s, expected %s", $node, json_encode($actual), json_encode($expected)));
+        }
+    }
+
+    /**
+     * @Then the order response should list the sort values :values
+     */
+    public function theOrderResponseShouldListTheSortValues(string $values): void
+    {
+        $expected = [];
+        foreach (preg_split('/\s+/', trim($values), -1, \PREG_SPLIT_NO_EMPTY) as $token) {
+            if (!preg_match('/^([A-Za-z]+)(\d+)$/', $token, $matches)) {
+                throw new \InvalidArgumentException(\sprintf('"%s" is not a position: use a name followed by its sortValue, e.g. A10', $token));
+            }
+            $expected[] = [$this->restContext->resourceIriPrefix . $this->restContext->resources[$matches[1]], (int) $matches[2]];
+        }
+        $sortValues = json_decode($this->getContent(), false, 512, \JSON_THROW_ON_ERROR)->sortValues ?? null;
+        if (!$sortValues instanceof \stdClass) {
+            throw new \Exception(\sprintf('The response has no sortValues object: %s', $this->getContent()));
+        }
+        $actual = [];
+        foreach ((array) $sortValues as $iri => $sortValue) {
+            $actual[] = [$iri, $sortValue];
+        }
+        if ($expected !== $actual) {
+            throw new \Exception(\sprintf('The order response lists %s, expected %s', json_encode($actual), json_encode($expected)));
+        }
+    }
+
+    /**
+     * @Then the order response should be the order of the ComponentGroup :group
+     */
+    public function theOrderResponseShouldBeTheOrderOfTheComponentGroup(string $group): void
+    {
+        $json = $this->getJsonAsArray();
+        $groupIri = $this->restContext->resources[$group];
+        if (($json['@id'] ?? null) !== $groupIri . '/order' || ($json['componentGroup'] ?? null) !== $groupIri) {
+            throw new \Exception(\sprintf('Expected the order of %s, got %s', $groupIri, $this->getContent()));
+        }
+    }
+
+    /**
+     * @Then the order response should equal a fresh read of the order of the ComponentGroup :group
+     */
+    public function theOrderResponseShouldEqualAFreshReadOfTheOrder(string $group): void
+    {
+        $written = $this->getJsonAsArray();
+        $this->jsonContext->getSession()->getDriver()->getClient()->request('GET', $this->restContext->resources[$group] . '/order', [], [], ['HTTP_ACCEPT' => 'application/ld+json']);
+        $read = $this->getJsonAsArray();
+        unset($written['_metadata'], $read['_metadata']);
+        if ($written !== $read) {
+            throw new \Exception(\sprintf('The reorder returned %s but a fresh read returns %s', json_encode($written), json_encode($read)));
+        }
+    }
+
     private function getJson(): Json
     {
         return new Json($this->getContent());

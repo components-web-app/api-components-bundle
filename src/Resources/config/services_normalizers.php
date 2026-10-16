@@ -30,6 +30,7 @@ use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\CollectionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentGroupNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentGroupOrderNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentPositionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\DataUriNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\LayoutManifestNormalizer;
@@ -100,6 +101,13 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(ComponentGroupNormalizer::class, 'silverback.api_components.serializer.normalizer.component_group');
 
     $services
+        ->set('silverback.api_components.serializer.normalizer.component_group_order')
+        ->class(ComponentGroupOrderNormalizer::class)
+        ->autoconfigure(false)
+        ->tag('serializer.normalizer', ['priority' => -498]);
+    $services->alias(ComponentGroupOrderNormalizer::class, 'silverback.api_components.serializer.normalizer.component_group_order');
+
+    $services
         ->set('silverback.api_components.serializer.normalizer.layout_manifest')
         ->class(LayoutManifestNormalizer::class)
         ->autoconfigure(false)
@@ -112,7 +120,6 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->args([
             new Reference(PageDataProvider::class),
-            new Reference('silverback.helper.component_position_sort_value'),
             new Reference(RequestStack::class),
             new Reference(PublishableStatusChecker::class),
             new Reference(ManagerRegistry::class),

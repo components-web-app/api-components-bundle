@@ -28,15 +28,21 @@ final class ListedComponentPositions
      */
     public function of(ComponentGroup $group): array
     {
-        $allowed = $group->allowedComponents;
         $listed = [];
         foreach ($group->componentPositions as $position) {
-            if (null === $allowed || !$position->component || \in_array($this->collectionIri($position->component::class), $allowed, true)) {
+            if ($this->isListed($group, $position)) {
                 $listed[] = $position;
             }
         }
 
         return $listed;
+    }
+
+    public function isListed(ComponentGroup $group, ComponentPosition $position): bool
+    {
+        $allowed = $group->allowedComponents;
+
+        return null === $allowed || !$position->component || \in_array($this->collectionIri($position->component::class), $allowed, true);
     }
 
     private function collectionIri(string $class): ?string

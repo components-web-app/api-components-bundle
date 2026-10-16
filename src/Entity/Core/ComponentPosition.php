@@ -13,7 +13,6 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
@@ -28,7 +27,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity]
 #[ORM\Table(name: 'component_position')]
 #[Silverback\Timestamped]
-#[ApiResource(mercure: true, order: ['sortValue' => 'ASC'])]
+#[ApiResource(mercure: true, order: ['sortValue' => 'ASC', 'id' => 'ASC'])]
 #[AcbAssert\ComponentPosition]
 #[Assert\Expression(
     '!(this.component == null & this.pageDataProperty == null)',
@@ -65,17 +64,27 @@ class ComponentPosition
     public ?string $pageDataClass = null;
 
     #[ORM\Column(name: 'sort_value', type: 'integer')]
-    #[Assert\NotNull]
-    #[Groups(['ComponentPosition:read', 'ComponentPosition:write', 'AbstractComponent:cwa_resource:write'])]
+    #[Groups(['ComponentPosition:read'])]
     public ?int $sortValue = null;
 
-    /**
-     * @return ComponentPosition[]|Collection|null
-     */
     #[ApiProperty(readable: false)]
-    public function getSortCollection(): ?Collection
+    #[Groups(['ComponentPosition:write', 'AbstractComponent:cwa_resource:write'])]
+    public ?string $after = null;
+
+    #[ApiProperty(readable: false)]
+    #[Groups(['ComponentPosition:write', 'AbstractComponent:cwa_resource:write'])]
+    public ?string $before = null;
+
+    private bool $sortValueSent = false;
+
+    public function markSortValueSent(): void
     {
-        return $this->componentGroup ? $this->componentGroup->componentPositions : null;
+        $this->sortValueSent = true;
+    }
+
+    public function wasSortValueSent(): bool
+    {
+        return $this->sortValueSent;
     }
 
     public function setComponentGroup(ComponentGroup $componentGroup): self

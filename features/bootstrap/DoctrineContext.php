@@ -706,6 +706,121 @@ final class DoctrineContext implements Context
         }
     }
 
+    /**
+     * @Given /^there is a ComponentGroup with the positions "([^"]*)"$/
+     */
+    public function thereIsAComponentGroupWithThePositions(string $positions): void
+    {
+        $this->createComponentGroupWithThePositions($positions, '');
+    }
+
+    /**
+     * @Given /^there is another ComponentGroup with the positions "([^"]*)"$/
+     */
+    public function thereIsAnotherComponentGroupWithThePositions(string $positions): void
+    {
+        $this->createComponentGroupWithThePositions($positions, 'other_');
+    }
+
+    private function createComponentGroupWithThePositions(string $positions, string $prefix): void
+    {
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = $prefix . 'collection';
+        $componentGroup->location = $prefix . 'collection';
+        $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+        $this->manager->persist($componentGroup);
+
+        $created = [];
+        foreach ($this->parsePositions($positions) as [$name, $sortValue]) {
+            $component = new DummyComponent();
+            $this->manager->persist($component);
+            $position = new ComponentPosition();
+            $position->sortValue = $sortValue;
+            $position->componentGroup = $componentGroup;
+            $position->component = $component;
+            $this->timestampedHelper->persistTimestampedFields($position, true);
+            $this->manager->persist($position);
+            $created[] = [$name, $position];
+        }
+        $this->manager->flush();
+
+        $byValue = [];
+        foreach ($created as [$name, $position]) {
+            $byValue[$position->sortValue][] = $position;
+        }
+        foreach ($byValue as $sortValue => $tied) {
+            usort($tied, static fn (ComponentPosition $a, ComponentPosition $b) => strcmp((string) $a->getId(), (string) $b->getId()));
+            $byValue[$sortValue] = $tied;
+        }
+        foreach ($created as [$name, $position]) {
+            $position = array_shift($byValue[$position->sortValue]);
+            $this->restContext->resources[$name] = $this->iriConverter->getIriFromResource($position);
+            $this->restContext->resources[$name . '_component'] = $this->iriConverter->getIriFromResource($position->component);
+        }
+        $this->restContext->resources[$prefix . 'component_group'] = $this->iriConverter->getIriFromResource($componentGroup);
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given the ComponentPosition :name has been deleted
+     */
+    public function theComponentPositionHasBeenDeleted(string $name): void
+    {
+        $position = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+        $this->manager->remove($position);
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
+     * @Given the ComponentPosition :name holds a RestrictedComponent
+     */
+    public function theComponentPositionHoldsARestrictedComponent(string $name): void
+    {
+        /** @var ComponentPosition $position */
+        $position = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+        $component = new RestrictedComponent();
+        $this->manager->persist($component);
+        $position->component = $component;
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
+     * @Then the ComponentGroup :group should hold the positions :positions
+     */
+    public function theComponentGroupShouldHoldThePositions(string $group, string $positions): void
+    {
+        $this->manager->clear();
+        $componentGroup = $this->iriConverter->getResourceFromIri($this->restContext->resources[$group]);
+        $names = array_flip(array_filter($this->restContext->resources, static fn ($value) => \is_string($value)));
+        $actual = [];
+        foreach ($this->manager->getRepository(ComponentPosition::class)->findBy(['componentGroup' => $componentGroup], ['sortValue' => 'ASC', 'id' => 'ASC']) as $position) {
+            $iri = $this->iriConverter->getIriFromResource($position);
+            $actual[] = ($names[$iri] ?? $iri) . $position->sortValue;
+        }
+        $expected = array_map(static fn (array $position) => $position[0] . $position[1], $this->parsePositions($positions));
+        if ($expected !== $actual) {
+            throw new ExpectationException(\sprintf('Expected the positions "%s" but the group holds "%s"', implode(' ', $expected), implode(' ', $actual)), $this->minkContext->getSession()->getDriver());
+        }
+    }
+
+    /**
+     * @return list<array{string, int}>
+     */
+    private function parsePositions(string $positions): array
+    {
+        $parsed = [];
+        foreach (preg_split('/\s+/', trim($positions), -1, \PREG_SPLIT_NO_EMPTY) as $token) {
+            if (!preg_match('/^([A-Za-z]+)(\d+)$/', $token, $matches)) {
+                throw new \InvalidArgumentException(\sprintf('"%s" is not a position: use a name followed by its sortValue, e.g. A10', $token));
+            }
+            $parsed[] = [$matches[1], (int) $matches[2]];
+        }
+
+        return $parsed;
+    }
+
     private function createComponentGroupWithComponents(int $count, ?string $id, string $collectionReference, string $prefix = ''): ComponentGroup
     {
         $componentGroup = new ComponentGroup();

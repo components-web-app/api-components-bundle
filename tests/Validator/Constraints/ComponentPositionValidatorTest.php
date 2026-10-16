@@ -11,14 +11,17 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Validator\Constraints;
 
+use ApiPlatform\Metadata\Exception\ItemNotFoundException;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Silverback\ApiComponentsBundle\AttributeReader\ExplicitAllowOnlyAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionIriResolver;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
 use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
@@ -39,11 +42,17 @@ class ComponentPositionValidatorTest extends ConstraintValidatorTestCase
         RestrictedComponent::class => '/component/restricted_components',
     ];
 
+    /** @var array<string, object> */
+    private array $resources = [];
+
     protected function createValidator(): ConstraintValidatorInterface
     {
         $iriConverter = $this->createStub(IriConverterInterface::class);
         $iriConverter->method('getIriFromResource')->willReturnCallback(
             static fn (object|string $resource, int $referenceType = 1, ?Operation $operation = null): string => self::IRIS[\is_string($resource) ? $resource : $resource::class],
+        );
+        $iriConverter->method('getResourceFromIri')->willReturnCallback(
+            fn (string $iri): object => $this->resources[$iri] ?? throw new ItemNotFoundException('Item not found'),
         );
 
         return new ComponentPositionValidator(
@@ -51,7 +60,155 @@ class ComponentPositionValidatorTest extends ConstraintValidatorTestCase
             new PageDataMetadataProvider($this->createStub(ResourceNameCollectionFactoryInterface::class), $this->createStub(PageDataMetadataFactoryInterface::class)),
             new ExplicitAllowOnlyAttributeReader($this->createStub(ManagerRegistry::class)),
             new ListedComponentPositions($iriConverter),
+            new ComponentPositionIriResolver($iriConverter),
         );
+    }
+
+    public function test_an_anchor_in_the_group_is_allowed(): void
+    {
+        $group = $this->groupHolding(1);
+        $this->resources['/a'] = $group->componentPositions->first();
+        $position = $this->newPosition($group);
+        $position->after = '/a';
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->assertNoViolation();
+    }
+
+    public function test_a_before_anchor_in_the_group_is_allowed(): void
+    {
+        $group = $this->groupHolding(1);
+        $this->resources['/a'] = $group->componentPositions->first();
+        $position = $this->newPosition($group);
+        $position->before = '/a';
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->assertNoViolation();
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function anchors(): iterable
+    {
+        yield 'after' => ['after'];
+        yield 'before' => ['before'];
+    }
+
+    #[DataProvider('anchors')]
+    public function test_an_anchor_in_another_group_is_refused(string $anchor): void
+    {
+        $group = $this->groupHolding(0);
+        $this->resources['/x'] = $this->groupHolding(1)->componentPositions->first();
+        $position = $this->newPosition($group);
+        $position->{$anchor} = '/x';
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->buildViolation('The position `{{ iri }}` is not in the component group `{{ reference }}`.')
+            ->atPath('property.path.' . $anchor)
+            ->setParameter('{{ iri }}', '/x')
+            ->setParameter('{{ reference }}', 'header')
+            ->assertRaised();
+    }
+
+    #[DataProvider('anchors')]
+    public function test_an_anchor_that_does_not_exist_is_refused(string $anchor): void
+    {
+        $position = $this->newPosition($this->groupHolding(1));
+        $position->{$anchor} = '/deleted';
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->buildViolation('The position `{{ iri }}` is not in the component group `{{ reference }}`.')
+            ->atPath('property.path.' . $anchor)
+            ->setParameter('{{ iri }}', '/deleted')
+            ->setParameter('{{ reference }}', 'header')
+            ->assertRaised();
+    }
+
+    public function test_an_anchor_that_is_not_a_position_is_refused(): void
+    {
+        $position = $this->newPosition($this->groupHolding(1));
+        $this->resources['/component'] = new DummyComponent();
+        $position->after = '/component';
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->assertSame(1, $this->context->getViolations()->count());
+        $this->assertSame('property.path.after', $this->context->getViolations()->get(0)->getPropertyPath());
+    }
+
+    #[DataProvider('anchors')]
+    public function test_an_anchor_with_a_sort_value_is_refused(string $anchor): void
+    {
+        $group = $this->groupHolding(1);
+        $this->resources['/a'] = $group->componentPositions->first();
+        $position = $this->newPosition($group);
+        $position->{$anchor} = '/a';
+        $position->markSortValueSent();
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->buildViolation('Send an anchor or a sortValue, not both: the server chooses the sortValue.')
+            ->atPath('property.path.' . $anchor)
+            ->assertRaised();
+    }
+
+    public function test_a_sort_value_with_no_anchor_is_ignored(): void
+    {
+        $position = $this->newPosition($this->groupHolding(1));
+        $position->markSortValueSent();
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->assertNoViolation();
+    }
+
+    public function test_both_anchors_are_refused_on_before(): void
+    {
+        $group = $this->groupHolding(2);
+        $this->resources['/a'] = $group->componentPositions->first();
+        $this->resources['/b'] = $group->componentPositions->last();
+        $position = $this->newPosition($group);
+        $position->after = '/a';
+        $position->before = '/b';
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->buildViolation('Send either after or before, not both.')
+            ->atPath('property.path.before')
+            ->assertRaised();
+    }
+
+    public function test_a_position_cannot_be_its_own_anchor(): void
+    {
+        $group = $this->groupHolding(1);
+        $position = $group->componentPositions->first();
+        $this->resources['/a'] = $position;
+        $position->after = '/a';
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->buildViolation('A position cannot be placed relative to itself.')
+            ->atPath('property.path.after')
+            ->assertRaised();
+    }
+
+    public function test_an_anchor_is_checked_with_the_group_full(): void
+    {
+        $group = $this->groupHolding(1);
+        $group->maxComponents = 1;
+        $this->resources['/a'] = $group->componentPositions->first();
+        $position = $this->newPosition($group);
+        $position->after = '/a';
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->assertSame(1, $this->context->getViolations()->count());
+        $this->assertSame('property.path.componentGroup', $this->context->getViolations()->get(0)->getPropertyPath());
     }
 
     public function test_a_position_with_no_group_is_not_checked(): void

@@ -100,6 +100,96 @@ class PropagateUpdatesListenerTest extends TestCase
         $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
     }
 
+    public function test_a_flush_while_held_propagates_only_when_released_after_a_commit(): void
+    {
+        $propagator = $this->createMock(ResourceChangedPropagatorInterface::class);
+        $propagator->expects(self::atLeastOnce())->method('add');
+        $propagator->expects(self::never())->method('reset');
+        $listener = $this->listener($this->emptyPositions(), $this->emptyCollections(), $propagator);
+
+        $listener->hold();
+        $listener->onFlush(new OnFlushEventArgs($this->entityManager([new PageData()], ['title' => ['old', 'new']])));
+        $propagator->expects(self::once())->method('propagate');
+        $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
+        $listener->release($this->entityManager([], []), true);
+    }
+
+    public function test_a_held_flush_is_not_propagated_before_the_release(): void
+    {
+        $propagator = $this->createMock(ResourceChangedPropagatorInterface::class);
+        $propagator->expects(self::never())->method('propagate');
+        $listener = $this->listener($this->emptyPositions(), $this->emptyCollections(), $propagator);
+
+        $listener->hold();
+        $listener->onFlush(new OnFlushEventArgs($this->entityManager([new PageData()], ['title' => ['old', 'new']])));
+        $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
+    }
+
+    public function test_a_release_after_a_rollback_discards_what_was_collected(): void
+    {
+        $positionRepository = $this->createMock(ComponentPositionRepository::class);
+        $positionRepository->expects(self::never())->method('findByPageDataProperties');
+        $propagator = $this->createMock(ResourceChangedPropagatorInterface::class);
+        $propagator->expects(self::once())->method('reset');
+        $listener = $this->listener($positionRepository, $this->emptyCollections(), $propagator);
+
+        $listener->hold();
+        $listener->onFlush(new OnFlushEventArgs($this->entityManager([new PageData()], ['title' => ['old', 'new']])));
+        $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
+        $listener->release($this->entityManager([], []), false);
+        $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
+    }
+
+    public function test_a_nested_hold_propagates_at_the_outermost_release(): void
+    {
+        $propagator = $this->createMock(ResourceChangedPropagatorInterface::class);
+        $propagator->expects(self::never())->method('propagate');
+        $listener = $this->listener($this->emptyPositions(), $this->emptyCollections(), $propagator);
+
+        $listener->hold();
+        $listener->hold();
+        $listener->onFlush(new OnFlushEventArgs($this->entityManager([new PageData()], ['title' => ['old', 'new']])));
+        $listener->release($this->entityManager([], []), true);
+        $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
+    }
+
+    public function test_a_reset_ends_a_hold(): void
+    {
+        $propagator = $this->createMock(ResourceChangedPropagatorInterface::class);
+        $propagator->expects(self::once())->method('propagate');
+        $listener = $this->listener($this->emptyPositions(), $this->emptyCollections(), $propagator);
+
+        $listener->hold();
+        $listener->reset();
+        $listener->onFlush(new OnFlushEventArgs($this->entityManager([new PageData()], ['title' => ['old', 'new']])));
+        $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
+    }
+
+    public function test_a_release_with_no_hold_propagates(): void
+    {
+        $propagator = $this->createMock(ResourceChangedPropagatorInterface::class);
+        $propagator->expects(self::once())->method('propagate');
+        $listener = $this->listener($this->emptyPositions(), $this->emptyCollections(), $propagator);
+
+        $listener->release($this->entityManager([], []), true);
+    }
+
+    private function emptyPositions(): ComponentPositionRepository
+    {
+        $positionRepository = $this->createStub(ComponentPositionRepository::class);
+        $positionRepository->method('findByPageDataProperties')->willReturn([]);
+
+        return $positionRepository;
+    }
+
+    private function emptyCollections(): EntityRepository
+    {
+        $collectionRepository = $this->createStub(EntityRepository::class);
+        $collectionRepository->method('findBy')->willReturn([]);
+
+        return $collectionRepository;
+    }
+
     private function listener(ComponentPositionRepository $positionRepository, EntityRepository $collectionRepository, ?ResourceChangedPropagatorInterface $propagator = null, ?FixtureLoadListener $fixtureLoad = null): PropagateUpdatesListener
     {
         $registry = $this->createStub(ManagerRegistry::class);
