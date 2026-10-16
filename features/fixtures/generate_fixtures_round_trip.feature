@@ -74,6 +74,15 @@ Feature: A site generated as fixtures reloads as the same site
     When the site is generated as fixtures again
     Then the generated fixtures and their assets should be identical to the previous generation
 
+  Scenario: Identical uploads under different stored names are exported as one asset and both come back
+    Given the site has an uploadable component whose file is stored as "components/logo-0a1b2c3d.png" with the content of "image.png"
+    And the site has an uploadable component whose file is stored as "components/phpGPCPOl" with the content of "image.png"
+    When the site is generated as fixtures and reloaded
+    Then the exported assets should be "logo.png"
+    And every uploadable component should have a stored file with the same content as "image.png"
+    When the site is generated as fixtures again
+    Then the generated fixtures and their assets should be identical to the previous generation
+
   Scenario: A group owned by a component keeps its components
     Given the site has a component "Tabs" whose own group "panels" holds a component "Panel"
     When the site is generated as fixtures and reloaded

@@ -25,6 +25,8 @@ final class StoredFileExporter implements StoredFileExport
 {
     /** @var array<string, true> */
     private array $names = [];
+    /** @var array<string, string> */
+    private array $namesByHash = [];
 
     public function __construct(
         private readonly FilesystemProvider $filesystemProvider,
@@ -43,6 +45,10 @@ final class StoredFileExporter implements StoredFileExport
     public function export(string $adapter, string $storedPath): string
     {
         $contents = $this->filesystemProvider->getFilesystem($adapter)->read($storedPath);
+        $hash = hash('sha256', $contents);
+        if (isset($this->namesByHash[$hash])) {
+            return $this->namesByHash[$hash];
+        }
         if (!is_dir($this->directory)) {
             mkdir($this->directory, 0777, true);
         }
@@ -58,6 +64,7 @@ final class StoredFileExporter implements StoredFileExport
             $name = $stem . '-' . $i . $suffix;
         }
         $this->names[$name] = true;
+        $this->namesByHash[$hash] = $name;
         rename($file, $this->directory . '/' . $name);
 
         return $name;
