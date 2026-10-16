@@ -990,9 +990,7 @@ class CwaFixtureBuilder implements ResetInterface
         }
 
         $this->resolveRouteLinks();
-        if ($this->applyRouteRedirects()) {
-            $this->hasPendingLinks = true;
-        }
+        $this->applyRouteRedirects();
 
         if ($hasChanges) {
             $this->manager->flush();

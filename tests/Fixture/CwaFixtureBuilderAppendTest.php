@@ -934,9 +934,11 @@ class CwaFixtureBuilderAppendTest extends TestCase
         $cwa->layout('main', 'Primary');
         $contact = $cwa->page('contact', 'Primary', layout: 'main', route: '/about', routeName: 'contact')->redirectTo('graphs');
         $cwa->page('graphs', 'Primary', layout: 'main', route: '/graphs', routeName: 'graphs');
+        $cwa->page('resources', 'Primary', layout: 'main', route: '/resources', routeName: 'resources')->redirectTo('graphs');
         $cwa->flush();
 
         self::assertNull($about->getRedirect());
+        self::assertSame($cwa->getRoute('graphs'), $cwa->getRoute('resources')->getRedirect());
         self::assertNull($contact->getPage()->getRoute());
         self::assertSame($about, $cwa->getRoute('contact'));
     }
