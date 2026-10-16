@@ -10,6 +10,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Added
 - `#[UploadedImage]`, an `Assert\Image` for upload fields that skips the image checks for an SVG (`allowSvg: false` refuses one), takes its `maxPixels` from the new `uploadable.image_max_pixels` (default 30,000,000) when it sets none, and says the limit with an approximate width x height; the orphaned files report checks it the same way ([#456](https://github.com/components-web-app/api-components-bundle/pull/456))
+- `CwaFixtureBuilder` takes a `PageBuilder` or `PageDataBuilder` as a route target: `linkRoute(property, page:)`, `redirect(path, to:)` and `linkIri()`'s `route:`, `page:` and `pageData:` ([#474](https://github.com/components-web-app/api-components-bundle/pull/474))
 
 ### Fixed
 - A base64 or data-URI upload to a field with a `File` or `Image` constraint was refused with "The file could not be uploaded." instead of being validated ([#459](https://github.com/components-web-app/api-components-bundle/pull/459))
