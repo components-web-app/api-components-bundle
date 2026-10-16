@@ -45,6 +45,7 @@ use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\DeduplicateFileInfoCommand;
+use Silverback\ApiComponentsBundle\Command\DeleteStoredFilesCommand;
 use Silverback\ApiComponentsBundle\Command\FormCachePurgeCommand;
 use Silverback\ApiComponentsBundle\Command\GenerateFixturesCommand;
 use Silverback\ApiComponentsBundle\Command\PrefixPageUiComponentsCommand;
@@ -1715,6 +1716,14 @@ return static function (ContainerConfigurator $configurator) {
         ]);
 
     $services->alias(PruneFixtureAssetsCommand::class, 'silverback.api_components.command.prune_fixture_assets');
+
+    $services->set('silverback.api_components.command.delete_stored_files', DeleteStoredFilesCommand::class)
+        ->tag('console.command')
+        ->args([
+            new Reference(FilesystemProvider::class),
+        ]);
+
+    $services->alias(DeleteStoredFilesCommand::class, 'silverback.api_components.command.delete_stored_files');
 
     $services
         ->set(UserStateProvider::class)

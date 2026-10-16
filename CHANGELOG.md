@@ -11,6 +11,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ### Added
 - `after`/`before` (a position IRI) on a component position created on its own, embedded in a component write, or patched into or within a group: it goes right after or before that position, and an anchor that is not a position of the group is a 422 on that field ([#480](https://github.com/components-web-app/api-components-bundle/pull/480))
 - `PATCH /_/component_groups/{id}/order` (`application/merge-patch+json`) with `{"componentPositions": [iri, …]}` reorders a group in one request (positions left out follow their predecessor), and it and `GET` on the same path return `{componentGroup, componentPositions: [iri, …], sortValues: {iri: int}}` for every position the group lists, in order ([#480](https://github.com/components-web-app/api-components-bundle/pull/480))
+- `silverback:api-components:delete-stored-files <filesystem> [<path>]` deletes every stored file under a path of a filesystem (`--all` for the whole filesystem, `--dry-run`); `--only-if-value` with `--matching` runs it only when a caller-supplied value, such as the adapter's path prefix, matches a pattern ([#478](https://github.com/components-web-app/api-components-bundle/pull/478))
 
 ### Changed
 - `CwaFixtureBuilder` gives positions sort values from 0 in steps of 1, as the API does, instead of from 10 in steps of 10 ([#479](https://github.com/components-web-app/api-components-bundle/pull/479))
