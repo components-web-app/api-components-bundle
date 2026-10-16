@@ -27,6 +27,9 @@ class HubStub implements HubInterface
 {
     private static bool $unreachable = false;
 
+    /** @var list<Update> */
+    private static array $published = [];
+
     public function __construct(private readonly TokenFactoryInterface $factory)
     {
     }
@@ -36,11 +39,25 @@ class HubStub implements HubInterface
         self::$unreachable = $unreachable;
     }
 
+    /**
+     * @return list<Update>
+     */
+    public static function getPublished(): array
+    {
+        return self::$published;
+    }
+
+    public static function clearPublished(): void
+    {
+        self::$published = [];
+    }
+
     public function publish(Update $update): string
     {
         if (self::$unreachable) {
             throw new RuntimeException('Failed to send an update.', 0, new TransportException('Could not resolve host: example.com'));
         }
+        self::$published[] = $update;
 
         $postData = [
             'topic' => $update->getTopics(),

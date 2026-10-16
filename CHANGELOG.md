@@ -16,6 +16,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - The orphaned files scan reads an SVG's size as Symfony's `Image` constraint does (`viewBox` fallback, length units), also when file info is cached ([#459](https://github.com/components-web-app/api-components-bundle/pull/459))
 - The orphaned files scan checks a row with a publication date against its field's publish-group constraints too (`{ShortName}:published` or the class's `validationGroups`), as publishing does ([#459](https://github.com/components-web-app/api-components-bundle/pull/459))
 - A `#[Timestamped]` entity a scaffold saved only through `$cwa->persist()`, or that a page data or component field held, was inserted with no `createdAt`/`modifiedAt`, failing the load on a NOT NULL column ([#463](https://github.com/components-web-app/api-components-bundle/pull/463))
+- `doctrine:fixtures:load` generated every imagine variant of every loaded image in one process (5.5 GB for 710 images), because each flush serialized the new resources for Mercure; a fixture load now propagates no update, flushes the HTTP cache once at the end, and says to run `silverback:api-components:imagine:generate` ([#465](https://github.com/components-web-app/api-components-bundle/pull/465))
 
 ### Tooling
 - Codecov waits for both coverage uploads (`phpunit` and `behat`) before posting its statuses and comment, so `codecov/project` no longer fails on partial coverage mid-run ([#473](https://github.com/components-web-app/api-components-bundle/pull/473))

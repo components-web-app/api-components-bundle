@@ -22,10 +22,16 @@ use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
+use Silverback\ApiComponentsBundle\EventListener\Console\FixtureLoadListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\Console\Event\ConsoleTerminateEvent;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Contracts\Service\ResetInterface;
 
 class PropagateUpdatesListenerTest extends TestCase
@@ -58,7 +64,43 @@ class PropagateUpdatesListenerTest extends TestCase
         $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
     }
 
-    private function listener(ComponentPositionRepository $positionRepository, EntityRepository $collectionRepository): PropagateUpdatesListener
+    public function test_while_fixtures_load_a_flush_collects_and_propagates_nothing(): void
+    {
+        $positionRepository = $this->createMock(ComponentPositionRepository::class);
+        $positionRepository->expects(self::never())->method('findByPageDataProperties');
+        $collectionRepository = $this->createMock(EntityRepository::class);
+        $collectionRepository->expects(self::never())->method('findBy');
+        $propagator = $this->createMock(ResourceChangedPropagatorInterface::class);
+        $propagator->expects(self::never())->method('add');
+        $propagator->expects(self::never())->method('propagate');
+        $fixtureLoad = new FixtureLoadListener();
+        $fixtureLoad->onConsoleCommand(new ConsoleCommandEvent(new Command('doctrine:fixtures:load'), new ArrayInput([]), new NullOutput()));
+        $listener = $this->listener($positionRepository, $collectionRepository, $propagator, $fixtureLoad);
+
+        $listener->onFlush(new OnFlushEventArgs($this->entityManager([new PageData()], ['title' => ['old', 'new']])));
+        $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
+    }
+
+    public function test_after_the_fixture_load_terminates_a_flush_propagates_again(): void
+    {
+        $positionRepository = $this->createStub(ComponentPositionRepository::class);
+        $positionRepository->method('findByPageDataProperties')->willReturn([]);
+        $collectionRepository = $this->createStub(EntityRepository::class);
+        $collectionRepository->method('findBy')->willReturn([]);
+        $propagator = $this->createMock(ResourceChangedPropagatorInterface::class);
+        $propagator->expects(self::atLeastOnce())->method('add');
+        $propagator->expects(self::once())->method('propagate');
+        $fixtureLoad = new FixtureLoadListener();
+        $command = new Command('doctrine:fixtures:load');
+        $fixtureLoad->onConsoleCommand(new ConsoleCommandEvent($command, new ArrayInput([]), new NullOutput()));
+        $fixtureLoad->onConsoleTerminate(new ConsoleTerminateEvent($command, new ArrayInput([]), new NullOutput(), Command::SUCCESS));
+        $listener = $this->listener($positionRepository, $collectionRepository, $propagator, $fixtureLoad);
+
+        $listener->onFlush(new OnFlushEventArgs($this->entityManager([new PageData()], ['title' => ['old', 'new']])));
+        $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
+    }
+
+    private function listener(ComponentPositionRepository $positionRepository, EntityRepository $collectionRepository, ?ResourceChangedPropagatorInterface $propagator = null, ?FixtureLoadListener $fixtureLoad = null): PropagateUpdatesListener
     {
         $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getRepository')->willReturn($collectionRepository);
@@ -72,10 +114,12 @@ class PropagateUpdatesListenerTest extends TestCase
         return new PropagateUpdatesListener(
             $iriConverter,
             $registry,
-            [$this->createStub(ResourceChangedPropagatorInterface::class)],
+            [$propagator ?? $this->createStub(ResourceChangedPropagatorInterface::class)],
             $resourceClassResolver,
             $pageDataProvider,
             $positionRepository,
+            null,
+            $fixtureLoad,
         );
     }
 

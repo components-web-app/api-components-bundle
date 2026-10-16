@@ -31,6 +31,7 @@ use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\EventListener\Console\FixtureLoadListener;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -56,6 +57,7 @@ class PropagateUpdatesListener implements ResetInterface
         private readonly PageDataProvider $pageDataProvider,
         private readonly ComponentPositionRepository $positionRepository,
         private readonly ?CwaCollectorData $collectorData = null,
+        private readonly ?FixtureLoadListener $fixtureLoad = null,
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->collectionRepository = $entityManager->getRepository(Collection::class);
@@ -64,6 +66,10 @@ class PropagateUpdatesListener implements ResetInterface
 
     public function onFlush(OnFlushEventArgs $eventArgs): void
     {
+        if ($this->fixtureLoad?->isLoadingFixtures()) {
+            return;
+        }
+
         $em = $eventArgs->getObjectManager();
         $uow = $em->getUnitOfWork();
 
@@ -95,6 +101,10 @@ class PropagateUpdatesListener implements ResetInterface
 
     public function postFlush(PostFlushEventArgs $eventArgs): void
     {
+        if ($this->fixtureLoad?->isLoadingFixtures()) {
+            return;
+        }
+
         $this->refreshUpdatedEntities($eventArgs->getObjectManager());
         $this->collectDynamicComponentPositionResources();
         $this->collectRelatedCollectionComponentResources();

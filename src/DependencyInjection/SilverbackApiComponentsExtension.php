@@ -20,6 +20,7 @@ use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
+use Silverback\ApiComponentsBundle\EventListener\Console\FixtureLoadListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\FormSuccessEventListenerInterface;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\HttpCacheFlushFailedException;
@@ -182,6 +183,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $imagineEnabled = $container->getParameter('api_components.imagine_enabled');
         $definition = $container->findDefinition(UploadableAttributeReader::class);
         $definition->setArgument('$imagineBundleEnabled', $imagineEnabled);
+        $container->findDefinition(FixtureLoadListener::class)->setArgument('$imagineEnabled', $imagineEnabled);
 
         if ($imagineEnabled) {
             $container->register('silverback.api_components.imagine.filter_generator', ImagineFilterGenerator::class)
