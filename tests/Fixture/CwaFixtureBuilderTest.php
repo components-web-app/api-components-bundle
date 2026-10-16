@@ -434,7 +434,7 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertTrue($groups[0]->pages->contains($pages[0]));
     }
 
-    public function test_group_add_creates_component_positions_with_auto_sort(): void
+    public function test_group_add_creates_component_positions_sorted_from_zero_in_steps_of_one(): void
     {
         $persisted = [];
         $em = $this->collectingEm($persisted);
@@ -453,9 +453,9 @@ class CwaFixtureBuilderTest extends TestCase
         $positions = array_values(array_filter($persisted, static fn ($e) => $e instanceof ComponentPosition));
         $this->assertCount(2, $positions);
         $this->assertSame($component1, $positions[0]->component);
-        $this->assertSame(10, $positions[0]->sortValue);
+        $this->assertSame(0, $positions[0]->sortValue);
         $this->assertSame($component2, $positions[1]->component);
-        $this->assertSame(20, $positions[1]->sortValue);
+        $this->assertSame(1, $positions[1]->sortValue);
     }
 
     public function test_uploadable_component_with_file_is_persisted_via_file_manager(): void
@@ -503,7 +503,7 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->flush();
     }
 
-    public function test_group_page_data_position_creates_positions_with_property(): void
+    public function test_group_page_data_position_creates_positions_with_property_sorted_from_zero(): void
     {
         $persisted = [];
         $em = $this->collectingEm($persisted);
@@ -521,10 +521,10 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertNull($positions[0]->component);
         $this->assertSame('image', $positions[0]->pageDataProperty);
         $this->assertSame('App\Entity\BlogArticleData', $positions[0]->pageDataClass);
-        $this->assertSame(10, $positions[0]->sortValue);
+        $this->assertSame(0, $positions[0]->sortValue);
         $this->assertSame('htmlContent', $positions[1]->pageDataProperty);
         $this->assertSame('App\Entity\BlogArticleData', $positions[1]->pageDataClass);
-        $this->assertSame(20, $positions[1]->sortValue);
+        $this->assertSame(1, $positions[1]->sortValue);
     }
 
     public function test_pagedata_links_to_template_page(): void
