@@ -20,7 +20,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\UploadableTrait;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[Silverback\Publishable]
+#[Silverback\Publishable(validationGroups: ['publish_files', 'publish_images'])]
 #[Silverback\Uploadable]
 #[ApiResource]
 #[ORM\Entity]
@@ -31,6 +31,7 @@ class DummyUploadableWithPublishedConstraints extends AbstractComponent
 
     #[Silverback\UploadableField(adapter: 'local')]
     #[Assert\File(mimeTypes: ['image/png'])]
-    #[Assert\Image(maxPixels: 300_000, groups: ['DummyUploadableWithPublishedConstraints:published'])]
+    #[Assert\File(maxSize: '1M', groups: ['publish_files'])]
+    #[Assert\Image(maxPixels: 300_000, groups: ['publish_images'])]
     public ?File $file = null;
 }

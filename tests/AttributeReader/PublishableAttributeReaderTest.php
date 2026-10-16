@@ -16,6 +16,7 @@ use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableAndPublishable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableRequiredOnPublishCustomGroup;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadableWithPublishedConstraints;
 
 class PublishableAttributeReaderTest extends TestCase
 {
@@ -33,5 +34,6 @@ class PublishableAttributeReaderTest extends TestCase
 
         self::assertSame(['custom_publish_group'], $reader->getPublishedValidationGroups(DummyUploadableRequiredOnPublishCustomGroup::class));
         self::assertSame(['custom_publish_group'], $reader->getPublishedValidationGroups(new DummyUploadableRequiredOnPublishCustomGroup()));
+        self::assertSame(['publish_files', 'publish_images'], $reader->getPublishedValidationGroups(DummyUploadableWithPublishedConstraints::class));
     }
 }
