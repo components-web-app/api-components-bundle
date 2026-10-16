@@ -11,6 +11,8 @@
 
 namespace Silverback\ApiComponentsBundle\Fixture\Generator;
 
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetManifest;
+
 final readonly class GeneratedScaffold
 {
     /**
@@ -20,6 +22,7 @@ final readonly class GeneratedScaffold
         public string $code,
         public array $notReproduced,
         public int $assetCount,
+        public ?FixtureAssetManifest $assetManifest = null,
     ) {
     }
 }

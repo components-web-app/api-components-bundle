@@ -18,7 +18,7 @@ use Silverback\ApiComponentsBundle\Fixture\Generator\Code\PhpValueExporter;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Code\VariableNamer;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Site\EntityStateReader;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Site\SiteSnapshot;
-use Silverback\ApiComponentsBundle\Fixture\Generator\StoredFileExporter;
+use Silverback\ApiComponentsBundle\Fixture\Generator\StoredFileExport;
 
 /**
  * @internal
@@ -29,7 +29,7 @@ final readonly class ScaffoldPlanner
         private ManagerRegistry $registry,
         private IriConverterInterface $iriConverter,
         private EntityStateReader $stateReader,
-        private StoredFileExporter $storedFileExporter,
+        private StoredFileExport $storedFileExporter,
         private ImportCollector $imports,
         private PhpValueExporter $exporter,
         private \DateTimeImmutable $now,

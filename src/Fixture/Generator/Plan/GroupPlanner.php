@@ -83,6 +83,9 @@ final class GroupPlanner
         if ([] !== $allowed) {
             $arguments[] = 'allow: [' . implode(', ', $allowed) . ']';
         }
+        if (null !== $group->maxComponents) {
+            $arguments[] = 'max: ' . $group->maxComponents;
+        }
 
         return new GroupPlan($name, $arguments);
     }

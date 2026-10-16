@@ -23,6 +23,14 @@ final class StoredFileName
         return self::stem($originalName) . self::extension($originalName, $mimeType);
     }
 
+    public static function fromStoredPath(string $storedPath, ?string $mimeType): string
+    {
+        $basename = pathinfo($storedPath, \PATHINFO_BASENAME);
+        $extension = pathinfo($basename, \PATHINFO_EXTENSION);
+
+        return self::withoutToken(self::stripToken(pathinfo($basename, \PATHINFO_FILENAME)) . ('' === $extension ? '' : '.' . $extension), $mimeType);
+    }
+
     public static function stripToken(string $stem): string
     {
         return (string) preg_replace('/-[0-9a-f]{8}$/', '', $stem);

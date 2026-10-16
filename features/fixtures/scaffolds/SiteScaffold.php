@@ -21,6 +21,7 @@ class SiteScaffold extends AbstractCwaScaffold
         $this->mainLayout($cwa);
         $this->homePage($cwa);
         $this->aboutPage($cwa);
+        $this->eventsPage($cwa);
         $this->conferencePage($cwa);
         $this->cwaConferencePageData($cwa);
         $this->redirects($cwa);
@@ -51,7 +52,7 @@ class SiteScaffold extends AbstractCwaScaffold
         $cwa->component($this->contactUsDummyNavigationLink)->linkRoute('route', routeName: 'about');
 
         $cwa->layout('main', uiComponent: 'Primary')
-            ->group('header', allow: [DummyNavigationLink::class])
+            ->group('header', allow: [DummyNavigationLink::class], max: 5)
             ->add($homeDummyNavigationLink)
             ->add($aboutDummyNavigationLink)
             ->add($ourTeamDummyNavigationLink)
@@ -130,6 +131,13 @@ class SiteScaffold extends AbstractCwaScaffold
             ->group('primary')
             ->add($aboutTeamPrimaryDummyHtmlContent)
             ->add($this->contactUsDummyNavigationLink);
+    }
+
+    private function eventsPage(CwaFixtureBuilder $cwa): void
+    {
+        $cwa->page('events', uiComponent: 'Primary', layout: 'main', route: '/events')
+            ->title('Events')
+            ->redirectTo(routeName: 'cwa-conference');
     }
 
     private function conferencePage(CwaFixtureBuilder $cwa): void

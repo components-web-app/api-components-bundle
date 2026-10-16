@@ -16,6 +16,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetStoreFactory;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
@@ -61,8 +62,51 @@ class Configuration implements ConfigurationInterface
         $this->addOrphanedFilesNode($rootNode);
         $this->addImagineNode($rootNode);
         $this->addUploadableNode($rootNode);
+        $this->addFixturesNode($rootNode);
 
         return $treeBuilder;
+    }
+
+    private function addFixturesNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('fixtures')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('assets')
+                            ->info('Where generate-fixtures stores uploaded files by content hash and where a scaffold loads them from. Unset, generate-fixtures writes readable copies beside the scaffold.')
+                            ->canBeEnabled()
+                            ->children()
+                                ->scalarNode('store')
+                                    ->info('local (a folder) or flysystem (one of the application\'s filesystem adapters).')
+                                    ->defaultValue(FixtureAssetStoreFactory::LOCAL)
+                                    ->validate()
+                                        ->ifTrue(static fn (mixed $store): bool => !\in_array($store, [FixtureAssetStoreFactory::LOCAL, FixtureAssetStoreFactory::FLYSYSTEM], true) && !str_contains((string) $store, '%'))
+                                        ->thenInvalid(\sprintf('The fixture asset store %%s is not one of "%s" or "%s".', FixtureAssetStoreFactory::LOCAL, FixtureAssetStoreFactory::FLYSYSTEM))
+                                    ->end()
+                                ->end()
+                                ->scalarNode('path')
+                                    ->info('The local store\'s folder. Null is an assets folder beside the scaffold class.')
+                                    ->defaultNull()
+                                ->end()
+                                ->scalarNode('adapter')
+                                    ->info('The flysystem store\'s filesystem adapter alias.')
+                                    ->defaultNull()
+                                ->end()
+                                ->scalarNode('prefix')
+                                    ->info('The flysystem store\'s folder within the adapter.')
+                                    ->defaultValue('')
+                                ->end()
+                            ->end()
+                            ->validate()
+                                ->ifTrue(static fn (array $assets): bool => FixtureAssetStoreFactory::FLYSYSTEM === $assets['store'] && \in_array($assets['adapter'], [null, ''], true))
+                                ->thenInvalid('The flysystem fixture asset store needs an adapter.')
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
     }
 
     private function addHttpCacheNode(ArrayNodeDefinition $rootNode): void

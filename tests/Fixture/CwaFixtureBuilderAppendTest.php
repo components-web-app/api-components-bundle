@@ -950,6 +950,58 @@ class CwaFixtureBuilderAppendTest extends TestCase
         self::assertSame([], $this->persistedOf(PageDataWithRoute::class));
     }
 
+    public function test_the_route_of_a_kept_page_is_not_given_the_scaffold_redirect(): void
+    {
+        $home = $this->route('/', 'home');
+        $this->existingPage('home', $home);
+        $cwa = $this->builder();
+
+        $cwa->layout('main', 'Primary');
+        $cwa->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home')->redirectTo('missing');
+        $cwa->page('graphs', 'Primary', layout: 'main', route: '/graphs', routeName: 'graphs');
+        $cwa->flush();
+
+        self::assertNull($home->getRedirect());
+        self::assertSame($home, $cwa->getRoute('home'));
+    }
+
+    public function test_an_existing_route_at_the_path_of_a_new_page_is_not_given_the_scaffold_redirect(): void
+    {
+        $about = $this->route('/about', 'about');
+        $this->existingPage('about', $about);
+        $this->existing(Route::class, ['path' => '/about'], $about);
+        $cwa = $this->builder();
+
+        $cwa->layout('main', 'Primary');
+        $contact = $cwa->page('contact', 'Primary', layout: 'main', route: '/about', routeName: 'contact')->redirectTo('graphs');
+        $cwa->page('graphs', 'Primary', layout: 'main', route: '/graphs', routeName: 'graphs');
+        $cwa->page('resources', 'Primary', layout: 'main', route: '/resources', routeName: 'resources')->redirectTo('graphs');
+        $cwa->flush();
+
+        self::assertNull($about->getRedirect());
+        self::assertSame($cwa->getRoute('graphs'), $cwa->getRoute('resources')->getRedirect());
+        self::assertNull($contact->getPage()->getRoute());
+        self::assertSame($about, $cwa->getRoute('contact'));
+    }
+
+    public function test_the_route_of_kept_page_data_is_not_given_the_scaffold_redirect(): void
+    {
+        $route = $this->route('/event', 'event');
+        $existing = new PageData();
+        $existing->setRoute($route);
+        $route->setPageData($existing);
+        $this->existing(Route::class, ['path' => '/event'], $route);
+        $cwa = $this->builder();
+
+        $pageData = new PageData();
+        $pageData->setTitle('Event');
+        $cwa->pageData($pageData, route: '/event')->redirectTo('missing');
+        $cwa->flush();
+
+        self::assertNull($route->getRedirect());
+        self::assertSame([], $this->persistedOf(PageData::class));
+    }
+
     public function test_an_iri_link_to_a_page_or_layout_only_in_the_database_links_to_it(): void
     {
         $this->existingPage('blog');

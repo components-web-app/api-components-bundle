@@ -12,12 +12,17 @@
 namespace Silverback\ApiComponentsBundle\Tests\Fixture;
 
 use ApiPlatform\Metadata\IriConverterInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata as OrmClassMetadata;
+use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\ClassMetadata;
+use Doctrine\Persistence\Mapping\RuntimeReflectionService;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
@@ -39,7 +44,10 @@ use Silverback\ApiComponentsBundle\Tests\Command\Fixture\PageDataWithFilters;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyNavigationLink;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestamped;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestampedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithParentTypedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithRoute;
 use Symfony\Component\HttpFoundation\File\File;
 
@@ -2406,6 +2414,32 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame(['/_/some_components'], $groups[0]->allowedComponents);
     }
 
+    public function test_a_group_takes_its_maximum_number_of_components_from_every_owner_kind(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturnCallback(
+            static fn ($resource) => \is_string($resource) ? '/_/some_components' : '/_/owners/' . spl_object_id($resource)
+        );
+
+        $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
+        $builder->layout('main', 'Primary')->group('nav', max: 1);
+        $builder->page('home', 'Primary', layout: 'main', route: '/')->group('primary', max: 2);
+        $builder->component(new class extends AbstractComponent {})->group('items', max: 3);
+        $builder->layout('other', 'Primary')->group('footer');
+        $builder->flush();
+
+        $limits = [];
+        foreach ($persisted as $entity) {
+            if ($entity instanceof ComponentGroup) {
+                $limits[strstr((string) $entity->reference, '_', true)] = $entity->maxComponents;
+            }
+        }
+        ksort($limits);
+        $this->assertSame(['footer' => null, 'items' => 3, 'nav' => 1, 'primary' => 2], $limits);
+    }
+
     public function test_page_live_at_is_set_on_an_explicit_route(): void
     {
         $persisted = [];
@@ -2884,6 +2918,176 @@ class CwaFixtureBuilderTest extends TestCase
 
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage(DummyNavigationLink::class . '::$route links to the route name "missing", but no route in this load or the database has that name. Routes in this load: none.');
+        $builder->flush();
+    }
+
+    public function test_a_page_route_redirect_resolves_before_after_routes_callbacks_run(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $seen = false;
+
+        $builder->layout('main', 'Primary');
+        $home = $builder->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home');
+        $builder->page('graphs', 'Primary', layout: 'main', route: '/graphs');
+        $this->assertSame($home, $home->redirectTo('graphs'));
+        $builder->afterRoutes(static function (CwaFixtureBuilder $cwa) use (&$seen): void {
+            $seen = $cwa->getRoute('home')->getRedirect();
+        });
+        $builder->flush();
+
+        $this->assertSame($builder->getRoute('graphs'), $seen);
+        $this->assertSame($home->getPage(), $builder->getRoute('home')->getPage());
+        $this->assertNull($builder->getRoute('graphs')->getRedirect());
+    }
+
+    public function test_a_page_data_route_redirect_resolves_before_after_routes_callbacks_run(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $pageData = new PageData();
+        $pageData->setTitle('Event');
+        $seen = false;
+
+        $pageDataBuilder = $builder->pageData($pageData, route: '/event');
+        $this->assertSame($pageDataBuilder, $pageDataBuilder->redirectTo('about'));
+        $builder->afterRoutes(static function () use ($pageData, &$seen): void {
+            $seen = $pageData->getRoute()?->getRedirect();
+        });
+        $builder->flush();
+
+        $this->assertSame($builder->getRoute('about'), $seen);
+    }
+
+    public function test_a_page_route_redirect_to_a_redirect_of_the_same_load_and_to_a_generated_route_resolves(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm(), $this->autoRouteGenerator());
+        $builder->layout('main', 'Primary');
+        $generated = $builder->page('graphs', 'Primary', layout: 'main')->title('Graphs');
+        $builder->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home')->redirectTo('old');
+        $builder->page('resources', 'Primary', layout: 'main', route: '/resources')->redirectTo((string) spl_object_id($generated->getPage()));
+        $builder->redirect('/old', to: 'resources', name: 'old');
+        $builder->flush();
+
+        $this->assertSame($builder->getRoute('old'), $builder->getRoute('home')->getRedirect());
+        $this->assertSame($generated->getRoute(), $builder->getRoute('resources')->getRedirect());
+    }
+
+    public function test_a_page_route_redirect_declared_in_an_after_routes_callback_is_applied_and_flushed(): void
+    {
+        $flushCount = 0;
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+        $builder->layout('main', 'Primary');
+        $home = $builder->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home');
+        $builder->page('graphs', 'Primary', layout: 'main', route: '/graphs', routeName: 'graphs');
+        $builder->flush();
+        $flushesBefore = $flushCount;
+
+        $builder->afterRoutes(static function () use ($home): void {
+            $home->redirectTo('graphs');
+        });
+        $builder->flush();
+
+        $this->assertSame($builder->getRoute('graphs'), $builder->getRoute('home')->getRedirect());
+        $this->assertSame($flushesBefore + 1, $flushCount);
+    }
+
+    public function test_a_page_route_redirect_declared_after_a_flush_is_applied_and_flushed_by_the_next_flush(): void
+    {
+        $flushCount = 0;
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+        $builder->layout('main', 'Primary');
+        $home = $builder->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home');
+        $builder->page('graphs', 'Primary', layout: 'main', route: '/graphs', routeName: 'graphs');
+        $builder->flush();
+        $flushesBefore = $flushCount;
+
+        $home->redirectTo('graphs');
+        $builder->flush();
+
+        $this->assertSame($builder->getRoute('graphs'), $builder->getRoute('home')->getRedirect());
+        $this->assertSame($flushesBefore + 1, $flushCount);
+    }
+
+    public function test_a_page_route_redirect_is_applied_once_when_links_are_resolved_again(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $builder->layout('main', 'Primary');
+        $builder->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home')->redirectTo('graphs');
+        $builder->page('graphs', 'Primary', layout: 'main', route: '/graphs', routeName: 'graphs');
+        $builder->afterRoutes(static function (CwaFixtureBuilder $cwa): void {
+            $cwa->getRoute('home')->setRedirect(null);
+        });
+        $builder->flush();
+        $builder->flush();
+
+        $this->assertNull($builder->getRoute('home')->getRedirect());
+    }
+
+    public function test_a_page_route_redirect_adds_no_flush(): void
+    {
+        $counts = [];
+        foreach ([false, true] as $withRedirect) {
+            $flushCount = 0;
+            $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount));
+            $builder->layout('main', 'Primary');
+            $home = $builder->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home');
+            $builder->page('graphs', 'Primary', layout: 'main', route: '/graphs', routeName: 'graphs');
+            if ($withRedirect) {
+                $home->redirectTo('graphs');
+            }
+            $builder->flush();
+            $counts[] = $flushCount;
+        }
+
+        $this->assertSame([2, 2], $counts);
+    }
+
+    public function test_a_page_route_redirect_to_an_unknown_route_name_throws_naming_the_page(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $builder->layout('main', 'Primary');
+        $builder->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home')->redirectTo('missing');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('The route of the page "home" redirects to the route name "missing", but no route in this load or the database has that name. Routes in this load: home.');
+        $builder->flush();
+    }
+
+    public function test_a_page_data_route_redirect_to_an_unknown_route_name_throws_naming_the_page_data(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $pageData = new PageData();
+        $pageData->setTitle('Event');
+        $builder->pageData($pageData, route: '/event')->redirectTo('missing');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('The route of the page data "Event" redirects to the route name "missing"');
+        $builder->flush();
+    }
+
+    public function test_a_redirect_on_a_page_with_no_route_throws_naming_the_page(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $builder->page('template', 'Primary', layout: 'main', isTemplate: true)->redirectTo('about');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('redirectTo(): the page "template" has no route to redirect to "about".');
+        $builder->flush();
+    }
+
+    public function test_a_redirect_on_untitled_page_data_with_no_route_throws_naming_its_class(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $builder->layout('main', 'Primary');
+        $builder->page('about', 'Primary', layout: 'main', route: '/about', routeName: 'about');
+        $builder->page('article', 'Primary', layout: 'main', isTemplate: true);
+        $builder->pageData(new PageData(), template: 'article')->redirectTo('about');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('redirectTo(): the page data "' . PageData::class . '" has no route to redirect to "about".');
         $builder->flush();
     }
 
@@ -3431,5 +3635,122 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertNotNull($scaffold->child);
         $this->assertSame('about', $scaffold->child->getPage()->getParentPage()?->reference);
         $this->assertSame($scaffold->child->getRoute(), $builder->getRoute('team'));
+    }
+
+    private function timestampingPersister(): TimestampedDataPersister
+    {
+        $entityManager = $this->createStub(EntityManagerInterface::class);
+        $entityManager->method('getClassMetadata')->willReturnCallback(static function (string $class): OrmClassMetadata {
+            $metadata = new OrmClassMetadata($class);
+            $metadata->initializeReflection(new RuntimeReflectionService());
+            $metadata->mapField(['fieldName' => 'createdAt', 'type' => 'datetime_immutable']);
+            $metadata->mapField(['fieldName' => 'modifiedAt', 'type' => 'datetime']);
+            $metadata->wakeupReflection(new RuntimeReflectionService());
+
+            return $metadata;
+        });
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn($entityManager);
+        $reader = new TimestampedAttributeReader($registry);
+
+        return new TimestampedDataPersister($registry, $reader);
+    }
+
+    /**
+     * @param array<class-string, list<string>> $associations
+     */
+    private function associatingEm(array $associations, int &$flushCount, ?UnitOfWork $unitOfWork = null, bool $contains = false): EntityManagerInterface
+    {
+        $em = $this->createStub(EntityManagerInterface::class);
+        $em->method('getClassMetadata')->willReturnCallback(function (string $class) use ($associations): OrmClassMetadata {
+            $metadata = $this->createStub(OrmClassMetadata::class);
+            $metadata->method('getAssociationNames')->willReturn($associations[$class] ?? []);
+            $metadata->method('isAssociationInverseSide')->willReturn(false);
+
+            return $metadata;
+        });
+        $em->method('flush')->willReturnCallback(static function () use (&$flushCount): void { ++$flushCount; });
+        $em->method('contains')->willReturn($contains);
+        $em->method('getUnitOfWork')->willReturn($unitOfWork ?? $this->createStub(UnitOfWork::class));
+
+        return $em;
+    }
+
+    public function test_an_entity_given_only_to_persist_is_timestamped(): void
+    {
+        $flushCount = 0;
+        $entity = new DummyTimestamped();
+
+        $builder = $this->makeBuilder($this->collectingEm(flushCount: $flushCount), timestampedPersister: $this->timestampingPersister());
+        $builder->persist($entity);
+        $builder->flush();
+
+        $this->assertInstanceOf(\DateTimeImmutable::class, $entity->createdAt);
+        $this->assertInstanceOf(\DateTime::class, $entity->modifiedAt);
+        $this->assertSame(1, $flushCount);
+    }
+
+    public function test_a_component_reached_only_through_a_page_data_field_is_timestamped(): void
+    {
+        $flushCount = 0;
+        $component = new DummyTimestampedComponent();
+        $pageData = new PageDataWithParentTypedComponent();
+        $pageData->component = $component;
+
+        $builder = $this->makeBuilder(
+            $this->associatingEm([PageDataWithParentTypedComponent::class => ['component']], $flushCount),
+            timestampedPersister: $this->timestampingPersister(),
+        );
+        $builder->pageData(self::titled($pageData), route: '/timestamped');
+        $builder->flush();
+
+        $this->assertInstanceOf(\DateTimeImmutable::class, $component->createdAt);
+        $this->assertInstanceOf(\DateTime::class, $component->modifiedAt);
+        $this->assertInstanceOf(\DateTimeImmutable::class, $pageData->createdAt);
+        $this->assertSame(2, $flushCount);
+    }
+
+    public function test_an_entity_a_cascade_already_scheduled_for_insert_is_timestamped(): void
+    {
+        $flushCount = 0;
+        $entity = new DummyTimestamped();
+        $unitOfWork = $this->createStub(UnitOfWork::class);
+        $unitOfWork->method('isScheduledForInsert')->willReturn(true);
+
+        $builder = $this->makeBuilder($this->associatingEm([], $flushCount, $unitOfWork, contains: true), timestampedPersister: $this->timestampingPersister());
+        $builder->persist($entity);
+        $builder->flush();
+
+        $this->assertInstanceOf(\DateTimeImmutable::class, $entity->createdAt);
+        $this->assertInstanceOf(\DateTime::class, $entity->modifiedAt);
+    }
+
+    public function test_a_managed_entity_already_in_the_database_keeps_its_timestamps(): void
+    {
+        $flushCount = 0;
+        $createdAt = new \DateTimeImmutable('2001-02-03 04:05:06');
+        $modifiedAt = new \DateTime('2002-03-04 05:06:07');
+        $entity = new DummyTimestamped();
+        $entity->createdAt = $createdAt;
+        $entity->modifiedAt = $modifiedAt;
+
+        $builder = $this->makeBuilder($this->associatingEm([], $flushCount, contains: true), timestampedPersister: $this->timestampingPersister());
+        $builder->persist($entity);
+        $builder->flush();
+
+        $this->assertSame($createdAt, $entity->createdAt);
+        $this->assertSame($modifiedAt, $entity->modifiedAt);
+    }
+
+    public function test_an_entity_that_is_not_timestamped_is_not_given_timestamps(): void
+    {
+        $calls = [];
+        $component = new DummyComponent();
+
+        $builder = $this->makeBuilder($this->collectingEm(), timestampedPersister: $this->recordingTimestampedPersister($calls, isConfigured: false));
+        $builder->persist($component);
+        $builder->flush();
+
+        $this->assertSame([], $calls);
     }
 }

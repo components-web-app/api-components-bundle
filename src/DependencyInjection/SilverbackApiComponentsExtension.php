@@ -20,6 +20,7 @@ use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Event\FormSuccessEvent;
+use Silverback\ApiComponentsBundle\EventListener\Console\FixtureLoadListener;
 use Silverback\ApiComponentsBundle\EventListener\Form\FormSuccessEventListenerInterface;
 use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\HttpCacheFlushFailedException;
@@ -38,6 +39,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Fixture\AbstractCwaScaffold;
+use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetStoreFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
 use Silverback\ApiComponentsBundle\Form\FormTypeInterface;
 use Silverback\ApiComponentsBundle\Form\Type\User\ChangePasswordType;
@@ -171,6 +173,13 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $container->findDefinition(UploadedImageValidator::class)->setArgument('$defaultMaxPixels', $config['uploadable']['image_max_pixels']);
         $container->findDefinition(StoredFileConstraintChecker::class)->setArgument('$defaultMaxPixels', $config['uploadable']['image_max_pixels']);
 
+        $definition = $container->findDefinition(FixtureAssetStoreFactory::class);
+        $definition->setArgument('$enabled', $config['fixtures']['assets']['enabled']);
+        $definition->setArgument('$store', $config['fixtures']['assets']['store']);
+        $definition->setArgument('$path', $config['fixtures']['assets']['path']);
+        $definition->setArgument('$adapter', $config['fixtures']['assets']['adapter']);
+        $definition->setArgument('$prefix', $config['fixtures']['assets']['prefix']);
+
         $definition = $container->findDefinition(OrphanedFileDetector::class);
         $definition->setArgument('$minimumAge', $config['orphaned_files']['minimum_age']);
         $definition->setArgument('$excludedPaths', $config['orphaned_files']['excluded_paths']);
@@ -182,6 +191,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $imagineEnabled = $container->getParameter('api_components.imagine_enabled');
         $definition = $container->findDefinition(UploadableAttributeReader::class);
         $definition->setArgument('$imagineBundleEnabled', $imagineEnabled);
+        $container->findDefinition(FixtureLoadListener::class)->setArgument('$imagineEnabled', $imagineEnabled);
 
         if ($imagineEnabled) {
             $container->register('silverback.api_components.imagine.filter_generator', ImagineFilterGenerator::class)

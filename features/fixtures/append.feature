@@ -210,3 +210,19 @@ Feature: Loading a scaffold into a database that already has one
       | ComponentGroup | 1 |
     And there should be 1 component labelled "Tabs"
     And there should be 1 component labelled "Panel"
+
+  Scenario: A page's route redirect is created with the page, and a redirect added later leaves the existing route alone
+    Given the scaffold has a layout "main" with a group "top" holding the components "Logo"
+    And the scaffold has a page "graphs" using the layout "main" at the route "/graphs" with a group "primary" holding the components "Chart"
+    And the scaffold has a page "resources" using the layout "main" at the route "/resources" with a group "primary" holding the components "List"
+    And the scaffold's page "resources" redirects to the route "graphs"
+    When the scaffold is loaded
+    Then the Route "/resources" should redirect to "/graphs"
+    When the scaffold has a page "home" using the layout "main" at the route "/" with a group "primary" holding the components "Hero"
+    And the scaffold is loaded again without purging
+    And the scaffold's page "graphs" redirects to the route "home"
+    And the database contents are recorded
+    And the scaffold is loaded again without purging
+    Then the database contents should be unchanged
+    And the Route "/graphs" should not redirect
+    And the Route "/resources" should redirect to "/graphs"

@@ -51,10 +51,10 @@ class ComponentBuilder
         return $this;
     }
 
-    public function group(string $name, array $allow = [], ?\Closure $configure = null, ?string $locationReference = null): GroupBuilder
+    public function group(string $name, array $allow = [], ?\Closure $configure = null, ?string $locationReference = null, ?int $max = null): GroupBuilder
     {
         if (!isset($this->groupBuilders[$name])) {
-            $this->groupBuilders[$name] = new GroupBuilder($name, $allow, $locationReference);
+            $this->groupBuilders[$name] = new GroupBuilder($name, $allow, $locationReference, $max);
         }
         if (null !== $configure) {
             $configure($this->groupBuilders[$name]);

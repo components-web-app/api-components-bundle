@@ -43,6 +43,17 @@ Feature: Component positions
       | resource[dummy_component]       | resource[component_group]  | 201    |                                  |
 
   @loginUser
+  Scenario: A component created straight into a component group must be one the group allows
+    Given there is a ComponentGroup with 0 components
+    And the ComponentGroup has the allowedComponent "/component/restricted_components"
+    When I send a "POST" request to "/component/dummy_components" with data:
+      | componentPositions                                                         |
+      | json_decode([{"componentGroup": "resource[component_group]", "sortValue": 0}]) |
+    Then the response status code should be 422
+    And the JSON node "violations[0].propertyPath" should be equal to "componentPositions[0]"
+    And there should be 0 ComponentPosition resources
+
+  @loginUser
   Scenario: ComponentPosition sortValue auto-increments
     Given there is a ComponentGroup with 1 components
     When I send a "POST" request to "/_/component_positions" with data:

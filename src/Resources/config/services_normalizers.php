@@ -92,7 +92,10 @@ return static function (ContainerConfigurator $configurator) {
         ->set('silverback.api_components.serializer.normalizer.component_group')
         ->class(ComponentGroupNormalizer::class)
         ->autoconfigure(false)
-        ->args([new Reference('api_platform.iri_converter')])
+        ->args([
+            new Reference('api_platform.iri_converter'),
+            new Reference('silverback.api_components.helper.listed_component_positions'),
+        ])
         ->tag('serializer.normalizer', ['priority' => -498]);
     $services->alias(ComponentGroupNormalizer::class, 'silverback.api_components.serializer.normalizer.component_group');
 

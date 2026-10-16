@@ -16,7 +16,7 @@ use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -34,8 +34,10 @@ class ComponentGroupNormalizer implements NormalizerInterface, NormalizerAwareIn
 
     private const ALREADY_CALLED = 'COMPONENT_GROUP_NORMALIZER_ALREADY_CALLED';
 
-    public function __construct(private readonly IriConverterInterface $iriConverter)
-    {
+    public function __construct(
+        private readonly IriConverterInterface $iriConverter,
+        private readonly ListedComponentPositions $listedComponentPositions,
+    ) {
     }
 
     public function supportsNormalization($data, $format = null, array $context = []): bool
@@ -50,24 +52,8 @@ class ComponentGroupNormalizer implements NormalizerInterface, NormalizerAwareIn
         $context[self::ALREADY_CALLED] = true;
 
         /** @var ComponentGroup $object */
-        $allowed = $object->allowedComponents;
         $original = $object->componentPositions;
-
-        $object->componentPositions = new ArrayCollection(array_values($original->filter(
-            function (ComponentPosition $position) use ($allowed): bool {
-                if (!$position->component) {
-                    return true;
-                }
-                $class = $position->component::class;
-                $iri = $this->iriConverter->getIriFromResource(
-                    $class,
-                    UrlGeneratorInterface::ABS_PATH,
-                    (new GetCollection())->withClass($class),
-                );
-
-                return \in_array($iri, $allowed, true);
-            }
-        )->toArray()));
+        $object->componentPositions = new ArrayCollection($this->listedComponentPositions->of($object));
 
         $result = $this->normalizer->normalize($object, $format, $context);
         $object->componentPositions = $original;

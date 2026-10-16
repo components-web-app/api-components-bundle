@@ -210,6 +210,51 @@ class MethodPlannerTest extends TestCase
         ], $this->report->all());
     }
 
+    public function test_a_page_or_page_data_whose_route_redirects_within_the_site_redirects_to_that_route_by_name_after_its_go_live_date(): void
+    {
+        $graphs = $this->route('/graphs', 'graphs');
+        $legacy = $this->route('/old-graphs', 'legacy');
+        $legacy->setRedirect($graphs);
+        $home = $this->route('/', 'home');
+        $home->setRedirect($graphs);
+        $home->setLiveAt(null);
+        $event = new PageData();
+        $event->setTitle('Event');
+        $eventRoute = $this->route('/event', 'event');
+        $eventRoute->setPageData($event);
+        $eventRoute->setRedirect($legacy);
+        $site = new SiteSnapshot(pages: [$this->page('home', null, $home), $this->page('graphs', null, $graphs)], pageData: [$event], routes: [$home, $graphs, $eventRoute], redirects: [$legacy]);
+
+        $methods = $this->methods($site);
+
+        self::assertSame(['liveAt(null)', "redirectTo(routeName: 'graphs')"], $methods[0]->calls);
+        self::assertSame([], $methods[1]->calls);
+        self::assertSame(["redirectTo(routeName: 'legacy')"], $methods[2]->calls);
+        self::assertSame([], $this->report->all());
+    }
+
+    public function test_a_page_or_page_data_whose_route_redirects_outside_the_site_is_reported_and_not_redirected(): void
+    {
+        $nowhere = $this->route('/nowhere', 'nowhere');
+        $home = $this->route('/', 'home');
+        $home->setRedirect($nowhere);
+        $event = new PageData();
+        $event->setTitle('Event');
+        $eventRoute = $this->route('/event', 'event');
+        $eventRoute->setPageData($event);
+        $eventRoute->setRedirect($nowhere);
+        $site = new SiteSnapshot(pages: [$this->page('home', null, $home)], pageData: [$event], routes: [$home, $eventRoute]);
+
+        $methods = $this->methods($site);
+
+        self::assertSame([], $methods[0]->calls);
+        self::assertSame([], $methods[1]->calls);
+        self::assertSame([
+            'The route "/" of /_/pages/home redirects to "/nowhere", which is not part of the site.',
+            \sprintf('The route "/event" of /_/resources/%d redirects to "/nowhere", which is not part of the site.', spl_object_id($event)),
+        ], $this->report->all());
+    }
+
     /**
      * @return list<MethodPlan>
      */

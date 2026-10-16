@@ -23,6 +23,7 @@ class PageDataBuilder
     private bool $hasLiveAt = false;
     private ?\DateTimeImmutable $liveAt = null;
     private bool $withoutRoute = false;
+    private ?string $redirectTo = null;
     private ?AbstractPageData $existingPageData = null;
 
     /** @var list<array{string, string|PageBuilder|PageDataBuilder}> */
@@ -64,6 +65,24 @@ class PageDataBuilder
     public function getLiveAt(): ?\DateTimeImmutable
     {
         return $this->liveAt;
+    }
+
+    public function redirectTo(string $routeName): self
+    {
+        $this->redirectTo = $routeName;
+
+        return $this;
+    }
+
+    /**
+     * @internal
+     */
+    public function takeRedirectTo(): ?string
+    {
+        $routeName = $this->redirectTo;
+        $this->redirectTo = null;
+
+        return $routeName;
     }
 
     public function linkRoute(string $property, ?string $routeName = null, PageBuilder|self|null $page = null): self

@@ -108,6 +108,7 @@ final readonly class MethodPlanner
             $method->calls[] = 'reachableWithoutRoute()';
         }
         $this->addLiveAt($method, $page->getRoute());
+        $this->addRedirect($method, $page);
         $this->addChildren($method, $page);
 
         return $method;
@@ -128,6 +129,7 @@ final readonly class MethodPlanner
             $method->calls[] = 'withoutRoute()';
         }
         $this->addLiveAt($method, $pageData->getRoute());
+        $this->addRedirect($method, $pageData);
         $this->addChildren($method, $pageData);
 
         return $method;
@@ -186,6 +188,20 @@ final readonly class MethodPlanner
         if (null === $liveAt || $this->keepTimestamps || $liveAt > $this->now) {
             $method->calls[] = 'liveAt(' . $this->export(null === $liveAt ? null : \DateTimeImmutable::createFromInterface($liveAt)) . ')';
         }
+    }
+
+    private function addRedirect(MethodPlan $method, AbstractPage $page): void
+    {
+        $route = $page->getRoute();
+        if (null === $route || null === ($target = $route->getRedirect())) {
+            return;
+        }
+        if (!$this->site->contains($target)) {
+            $this->report->add(\sprintf('The route "%s" of %s redirects to "%s", which is not part of the site.', $route->getPath(), $this->report->describe($page), $target->getPath()));
+
+            return;
+        }
+        $method->calls[] = 'redirectTo(routeName: ' . $this->export($target->getName()) . ')';
     }
 
     private function addChildren(MethodPlan $method, AbstractPage $parent): void
