@@ -34,7 +34,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'component_group')]
 #[Silverback\Timestamped]
 #[ApiResource(
-    requirements: ['id' => '.+'],
+    requirements: ['id' => '(?!.+/order$).+'],
     normalizationContext: ['groups' => ['ComponentGroup:read']],
     denormalizationContext: ['groups' => ['ComponentGroup:write']],
     mercure: true,
@@ -71,7 +71,7 @@ class ComponentGroup
     public Collection $components;
 
     #[ORM\OneToMany(targetEntity: ComponentPosition::class, mappedBy: 'componentGroup', orphanRemoval: true)]
-    #[ORM\OrderBy(['sortValue' => 'ASC'])]
+    #[ORM\OrderBy(['sortValue' => 'ASC', 'id' => 'ASC'])]
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write', 'Route:manifest:read'])]
     public Collection $componentPositions;
 

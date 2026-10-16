@@ -112,7 +112,6 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->args([
             new Reference(PageDataProvider::class),
-            new Reference('silverback.helper.component_position_sort_value'),
             new Reference(RequestStack::class),
             new Reference(PublishableStatusChecker::class),
             new Reference(ManagerRegistry::class),

@@ -47,8 +47,8 @@ Feature: Component positions
     Given there is a ComponentGroup with 0 components
     And the ComponentGroup has the allowedComponent "/component/restricted_components"
     When I send a "POST" request to "/component/dummy_components" with data:
-      | componentPositions                                                         |
-      | json_decode([{"componentGroup": "resource[component_group]", "sortValue": 0}]) |
+      | componentPositions                                             |
+      | json_decode([{"componentGroup": "resource[component_group]"}]) |
     Then the response status code should be 422
     And the JSON node "violations[0].propertyPath" should be equal to "componentPositions[0]"
     And there should be 0 ComponentPosition resources
@@ -64,137 +64,92 @@ Feature: Component positions
     And the JSON should be valid according to the schema file "component_position.schema.json"
 
   @loginUser
-  Scenario: ComponentPosition sortValue will be updated on subsequent pre-existing component positions
+  Scenario: A position inserted after another moves along the positions it runs into
     Given there is a ComponentGroup with 3 components
     When I send a "POST" request to "/_/component_positions" with data:
-      | componentGroup                  | component              | sortValue   |
-      | resource[component_group]  | resource[component_0]  | 1           |
+      | componentGroup            | component             | after                |
+      | resource[component_group] | resource[component_0] | resource[position_0] |
     Then the response status code should be 201
     And the JSON node "sortValue" should be equal to the number 1
-    And I add "Content-Type" header equal to "application/ld+json"
-    And I add "Accept" header equal to "application/ld+json"
-    And I send a "GET" request to the resource "position_0"
-    And the response status code should be 200
     And the JSON should be valid according to the schema file "component_position.schema.json"
-    And the JSON node "sortValue" should be equal to the number 0
-    And I add "Content-Type" header equal to "application/ld+json"
-    And I add "Accept" header equal to "application/ld+json"
-    And I send a "GET" request to the resource "position_1"
-    And the response status code should be 200
-    And the JSON node "sortValue" should be equal to the number 2
-    And I add "Content-Type" header equal to "application/ld+json"
-    And I add "Accept" header equal to "application/ld+json"
-    And I send a "GET" request to the resource "position_2"
-    And the response status code should be 200
-    And the JSON node "sortValue" should be equal to the number 3
+    And the ComponentPosition sort values should be:
+      | position   | sortValue |
+      | position_0 | 0         |
+      | position_1 | 2         |
+      | position_2 | 3         |
 
   @loginUser
-  Scenario: ComponentPosition sortValue will be updated on subsequent pre-existing component positions
+  Scenario: A position moved after a later one keeps every value that still fits
     Given there is a ComponentGroup with 4 components
     And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the resource "position_2" with data:
-      | componentGroup                  | component              | sortValue   |
-      | resource[component_group]  | resource[component_0]  | 3           |
+      | componentGroup            | component             | after                |
+      | resource[component_group] | resource[component_0] | resource[position_3] |
     Then the response status code should be 200
-    And the JSON node "sortValue" should be equal to the number 3
-
-    And I add "Content-Type" header equal to "application/ld+json"
-    And I add "Accept" header equal to "application/ld+json"
-    And I send a "GET" request to the resource "position_0"
-    And the response status code should be 200
+    And the JSON node "sortValue" should be equal to the number 4
     And the JSON should be valid according to the schema file "component_position.schema.json"
-    And the JSON node "sortValue" should be equal to the number 0
-
-    And I add "Content-Type" header equal to "application/ld+json"
-    And I add "Accept" header equal to "application/ld+json"
-    And I send a "GET" request to the resource "position_1"
-    And the response status code should be 200
-    And the JSON node "sortValue" should be equal to the number 1
-
-    And I add "Content-Type" header equal to "application/ld+json"
-    And I add "Accept" header equal to "application/ld+json"
-    And I send a "GET" request to the resource "position_3"
-    And the response status code should be 200
-    And the JSON node "sortValue" should be equal to the number 2
+    And the ComponentPosition sort values should be:
+      | position   | sortValue |
+      | position_0 | 0         |
+      | position_1 | 1         |
+      | position_3 | 3         |
+      | position_2 | 4         |
 
   @loginUser
-  Scenario: ComponentPosition sortValue will be updated on subsequent pre-existing component positions
+  Scenario: A position moved before an earlier one keeps every value that still fits
     Given there is a ComponentGroup with 4 components
     And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the resource "position_2" with data:
-      | componentGroup                  | component              | sortValue   |
-      | resource[component_group]  | resource[component_0]  | 1           |
+      | componentGroup            | component             | before               |
+      | resource[component_group] | resource[component_0] | resource[position_1] |
     Then the response status code should be 200
-    And the JSON node "sortValue" should be equal to the number 1
-
-    And I add "Content-Type" header equal to "application/ld+json"
-    And I add "Accept" header equal to "application/ld+json"
-    And I send a "GET" request to the resource "position_0"
-    And the response status code should be 200
-    And the JSON should be valid according to the schema file "component_position.schema.json"
-    And the JSON node "sortValue" should be equal to the number 0
-
-    And I add "Content-Type" header equal to "application/ld+json"
-    And I add "Accept" header equal to "application/ld+json"
-    And I send a "GET" request to the resource "position_1"
-    And the response status code should be 200
     And the JSON node "sortValue" should be equal to the number 2
-
-    And I add "Content-Type" header equal to "application/ld+json"
-    And I add "Accept" header equal to "application/ld+json"
-    And I send a "GET" request to the resource "position_3"
-    And the response status code should be 200
-    And the JSON node "sortValue" should be equal to the number 3
+    And the ComponentPosition sort values should be:
+      | position   | sortValue |
+      | position_0 | 0         |
+      | position_2 | 2         |
+      | position_1 | 3         |
+      | position_3 | 4         |
 
   @loginUser
-  Scenario: Inserting a ComponentPosition at a sortValue with no collision does not shift existing positions
+  Scenario: Inserting a ComponentPosition with no anchor does not shift existing positions
     Given there is a ComponentGroup with 3 components
     When I send a "POST" request to "/_/component_positions" with data:
-      | componentGroup            | component             | sortValue |
-      | resource[component_group] | resource[component_0] | 5         |
+      | componentGroup            | component             |
+      | resource[component_group] | resource[component_0] |
     Then the response status code should be 201
-    And the JSON node "sortValue" should be equal to the number 5
-    And I add "Content-Type" header equal to "application/ld+json"
-    And I add "Accept" header equal to "application/ld+json"
-    And I send a "GET" request to the resource "position_0"
-    And the response status code should be 200
-    And the JSON node "sortValue" should be equal to the number 0
-    And I add "Content-Type" header equal to "application/ld+json"
-    And I add "Accept" header equal to "application/ld+json"
-    And I send a "GET" request to the resource "position_1"
-    And the response status code should be 200
-    And the JSON node "sortValue" should be equal to the number 1
-    And I add "Content-Type" header equal to "application/ld+json"
-    And I add "Accept" header equal to "application/ld+json"
-    And I send a "GET" request to the resource "position_2"
-    And the response status code should be 200
-    And the JSON node "sortValue" should be equal to the number 2
+    And the JSON node "sortValue" should be equal to the number 3
+    And the ComponentPosition sort values should be:
+      | position   | sortValue |
+      | position_0 | 0         |
+      | position_1 | 1         |
+      | position_2 | 2         |
 
   @loginUser
-  Scenario: Moving a ComponentPosition that collides with no other position changes only the positions in the moved range
+  Scenario: Moving a ComponentPosition changes only the positions whose values no longer fit
     Given there is a ComponentGroup with 5 components
     And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the resource "position_1" with data:
-      | sortValue |
-      | 3         |
+      | after                |
+      | resource[position_3] |
     Then the response status code should be 200
     And the ComponentPosition sort values should be:
       | position   | sortValue |
       | position_0 | 0         |
-      | position_1 | 3         |
-      | position_2 | 1         |
-      | position_3 | 2         |
-      | position_4 | 4         |
-    And Mercure updates should have been published for exactly the ComponentPositions "position_1, position_2, position_3"
+      | position_2 | 2         |
+      | position_3 | 3         |
+      | position_1 | 4         |
+      | position_4 | 5         |
+    And Mercure updates should have been published for exactly the ComponentPositions "position_1, position_4"
 
   @loginUser
-  Scenario: Moving a ComponentPosition into another group at an occupied sortValue resolves to unique sort values
+  Scenario: Moving a ComponentPosition into another group after an anchor resolves to unique sort values
     Given there is a ComponentGroup with 3 components
     And there is another ComponentGroup with 2 components
     And I add "Content-Type" header equal to "application/merge-patch+json"
     When I send a "PATCH" request to the resource "other_position_0" with data:
-      | componentGroup            | sortValue |
-      | resource[component_group] | 1         |
+      | componentGroup            | after                |
+      | resource[component_group] | resource[position_0] |
     Then the response status code should be 200
     And the JSON node "sortValue" should be equal to the number 1
     And the ComponentPosition sort values should be:
@@ -206,19 +161,13 @@ Feature: Component positions
 
   @loginUser
   Scenario: Moving a ComponentPosition within a group that already holds a duplicate sortValue resolves to unique sort values
-    Given there is a ComponentGroup with 4 components
-    And the ComponentPosition "position_2" has the sortValue 1
+    Given there is a ComponentGroup with the positions "A0 B1 C1 D3"
     And I add "Content-Type" header equal to "application/merge-patch+json"
-    When I send a "PATCH" request to the resource "position_0" with data:
-      | sortValue |
-      | 3         |
+    When I send a "PATCH" request to the resource "A" with data:
+      | after       |
+      | resource[D] |
     Then the response status code should be 200
-    And the ComponentPosition sort values should be:
-      | position   | sortValue |
-      | position_1 | 0         |
-      | position_2 | 1         |
-      | position_3 | 2         |
-      | position_0 | 3         |
+    And the ComponentGroup "component_group" should hold the positions "B1 C2 D3 A4"
 
   @loginUser
   Scenario: Cannot create a dynamic position with pageDataProperty but no pageDataClass

@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\CollectionSerializeStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionPlacementStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionRemovalStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\FormSerializeStateProcessor;
@@ -108,6 +109,12 @@ class StateDecoratorServicesTest extends TestCase
             UploadableWriteStateProcessor::class,
             'api_platform.state_processor.locator',
             20,
+        ];
+        yield 'position placement innermost on the write, so the group is locked only around the persist' => [
+            'silverback.api_components.api_platform.state_processor.component_position_placement',
+            ComponentPositionPlacementStateProcessor::class,
+            'api_platform.state_processor.locator',
+            60,
         ];
         yield 'upload outermost on the read, so the read resource has passed every access check' => [
             'silverback.api_components.api_platform.state_provider.upload',

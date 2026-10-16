@@ -19,9 +19,7 @@ Feature: API Platform's default exception statuses survive the bundle's own mapp
 
   @loginAdmin
   Scenario: An application's more specific mapping still wins over API Platform's default
-    Given there is a ComponentGroup with 0 components
-    And there is a DummyComponent
-    When I send a "POST" request to "/_/component_positions" with data:
-      | componentGroup            | component                 | sortValue    |
-      | resource[component_group] | resource[dummy_component] | not-a-number |
+    When I send a "POST" request to "/_/component_groups" with data:
+      | reference | location | maxComponents |
+      | header    | header   | not-a-number  |
     Then the response status code should be 422

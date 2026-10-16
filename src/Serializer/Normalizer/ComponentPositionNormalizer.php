@@ -22,7 +22,6 @@ use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
-use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -31,7 +30,6 @@ use Symfony\Component\PropertyAccess\Exception\NoSuchIndexException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\Exception\UnexpectedTypeException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -40,8 +38,6 @@ use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
- * When creating a new component position the sort value should be set if not already explicitly set in the request.
- *
  * @author Daniel West <daniel@silverback.is>
  */
 class ComponentPositionNormalizer implements DenormalizerInterface, DenormalizerAwareInterface, NormalizerInterface, NormalizerAwareInterface
@@ -53,7 +49,6 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
 
     public function __construct(
         private readonly PageDataProvider $pageDataProvider,
-        private readonly ComponentPositionSortValueHelper $componentPositionSortValueHelper,
         private readonly RequestStack $requestStack,
         private readonly PublishableStatusChecker $publishableStatusChecker,
         private readonly ManagerRegistry $registry,
@@ -72,13 +67,12 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
     {
         $context[self::ALREADY_CALLED] = true;
 
-        $originalObject = $context[AbstractNormalizer::OBJECT_TO_POPULATE] ?? null;
-        $originalSortValue = $originalObject ? $originalObject->sortValue : null;
-
         /** @var ComponentPosition $object */
         $object = $this->denormalizer->denormalize($data, $type, $format, $context);
 
-        $this->componentPositionSortValueHelper->calculateSortValue($object, $originalSortValue);
+        if (\is_array($data) && \array_key_exists('sortValue', $data)) {
+            $object->markSortValueSent();
+        }
 
         return $object;
     }
@@ -103,8 +97,7 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
             $resourceMetadata->setIsDynamicPosition(true);
             try {
                 $resourceMetadata->setPageDataPath($this->pageDataProvider->getOriginalRequestPath());
-            } catch (UnprocessableEntityHttpException $e) {
-                // the path header may not exist
+            } catch (UnprocessableEntityHttpException) {
             }
         } else {
             $resourceMetadata->setIsDynamicPosition(false);
@@ -185,14 +178,12 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
             return $object;
         }
 
-        // optional to have the page data component found
         if (!$component) {
             $this->collectorData?->recordPageDataResolution($property, null, 'no_component');
 
             return $object;
         }
 
-        // it must be a component if it is found though
         if (!$component instanceof AbstractComponent) {
             throw new InvalidArgumentException(\sprintf('The page data property %s is not a component', $property));
         }
@@ -221,7 +212,6 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
             }
         }
 
-        // populate the position
         $object->setComponent($component);
         $this->collectorData?->recordPageDataResolution($property, $component::class, null);
 

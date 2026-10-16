@@ -163,6 +163,20 @@ class RestContext implements Context
     }
 
     /**
+     * @When I send the order :names for the ComponentGroup :group
+     */
+    public function iSendTheOrderForTheComponentGroup(string $names, string $group): void
+    {
+        $iris = array_map(fn (string $name) => isset($this->resources[trim($name)]) ? $this->resourceIriPrefix . $this->resources[trim($name)] : trim($name), explode(',', $names));
+        $groupIri = $this->resources[$group];
+        if (!str_starts_with($groupIri, $this->resourceIriPrefix . '/')) {
+            $groupIri = $this->resourceIriPrefix . $groupIri;
+        }
+        $this->restContext->iAddHeaderEqualTo('Content-Type', 'application/merge-patch+json');
+        $this->restContext->iSendARequestToWithBody('PATCH', $groupIri . '/order', new PyStringNode([json_encode(['componentPositions' => $iris], \JSON_THROW_ON_ERROR)], 0));
+    }
+
+    /**
      * @Given I send a :method request to :url with data:
      */
     public function iSendARequestToWithData($method, $url, TableNode $tableNode): void
@@ -259,9 +273,7 @@ class RestContext implements Context
                         $value = $this->castBase64FileToSimpleString($matches[1]);
                     }
 
-                    if (preg_match('/(?:^|"| )(resource\[([^\[\]]+)\])(?:$|"| )/', $value, $matches)) {
-                        $value = str_replace($matches[1], $this->castResourceToIri($matches[2]), $value);
-                    }
+                    $value = preg_replace_callback('/(?<=^|"| )resource\[([^\[\]]+)\](?=$|"| )/', fn (array $matches) => $this->castResourceToIri($matches[1]), $value);
 
                     if (preg_match('/^(\d+)$/', $value, $matches)) {
                         $value = $this->castNumber($matches[1]);

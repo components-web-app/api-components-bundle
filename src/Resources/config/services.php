@@ -55,6 +55,8 @@ use Silverback\ApiComponentsBundle\Command\UserCreateCommand;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataCollector\CwaDataCollector;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\CollectionSerializeStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentGroupOrderStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionPlacementStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionRemovalStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\FormSerializeStateProcessor;
@@ -63,6 +65,7 @@ use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectSta
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UploadableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupOrderStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentUsageStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DenyAccessStateProvider;
@@ -138,7 +141,8 @@ use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
-use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionSortValueHelper;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionIriResolver;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionOrderer;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
 use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
@@ -386,9 +390,40 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(CollectionSerializeStateProcessor::class, 'silverback.api_components.api_platform.state_processor.collection_serialize');
 
     $services
-        ->set('silverback.helper.component_position_sort_value')
-        ->class(ComponentPositionSortValueHelper::class);
-    $services->alias(ComponentPositionSortValueHelper::class, 'silverback.helper.component_position_sort_value');
+        ->set('silverback.api_components.helper.component_position_orderer')
+        ->class(ComponentPositionOrderer::class);
+    $services->alias(ComponentPositionOrderer::class, 'silverback.api_components.helper.component_position_orderer');
+
+    $services
+        ->set('silverback.api_components.helper.component_position_iri_resolver')
+        ->class(ComponentPositionIriResolver::class)
+        ->args([new Reference(IriConverterInterface::class)]);
+    $services->alias(ComponentPositionIriResolver::class, 'silverback.api_components.helper.component_position_iri_resolver');
+
+    $services
+        ->set(ComponentGroupOrderStateProvider::class)
+        ->args([
+            new Reference('silverback.doctrine.repository.component_group'),
+            new Reference('silverback.api_components.helper.listed_component_positions'),
+            new Reference('silverback.api_components.helper.component_position_orderer'),
+            new Reference(IriConverterInterface::class),
+        ])
+        ->autoconfigure(false)
+        ->tag('api_platform.state_provider');
+    $services->alias('silverback.api_components.api_platform.state_provider.component_group_order', ComponentGroupOrderStateProvider::class);
+
+    $services
+        ->set(ComponentGroupOrderStateProcessor::class)
+        ->args([
+            new Reference('silverback.doctrine.repository.component_group'),
+            new Reference('silverback.api_components.helper.component_position_orderer'),
+            new Reference('silverback.api_components.helper.component_position_iri_resolver'),
+            new Reference(ComponentGroupOrderStateProvider::class),
+            new Reference(ManagerRegistry::class),
+        ])
+        ->autoconfigure(false)
+        ->tag('api_platform.state_processor');
+    $services->alias('silverback.api_components.api_platform.state_processor.component_group_order', ComponentGroupOrderStateProcessor::class);
 
     $services
         ->set('silverback.api_components.validator.component_position')
@@ -398,6 +433,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('silverback.metadata_provider.page_data'),
             new Reference(ExplicitAllowOnlyAttributeReader::class),
             new Reference('silverback.api_components.helper.listed_component_positions'),
+            new Reference('silverback.api_components.helper.component_position_iri_resolver'),
         ])
         ->tag('validator.constraint_validator');
     $services->alias(ComponentPositionValidator::class, 'silverback.api_components.validator.component_position');
@@ -2022,6 +2058,19 @@ return static function (ContainerConfigurator $configurator) {
             ]
         );
     $services->alias(ComponentPositionRemovalStateProcessor::class, 'silverback.api_components.api_platform.state_processor.component_position_removal');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_processor.component_position_placement')
+        ->class(ComponentPositionPlacementStateProcessor::class)
+        ->decorate('api_platform.state_processor.locator', null, 60)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.state_processor.component_position_placement.inner'),
+                new Reference('silverback.api_components.helper.component_position_orderer'),
+                new Reference('silverback.api_components.helper.component_position_iri_resolver'),
+            ]
+        );
+    $services->alias(ComponentPositionPlacementStateProcessor::class, 'silverback.api_components.api_platform.state_processor.component_position_placement');
 
     $services
         ->set('silverback.api_components.event_listener.api.cache_headers')

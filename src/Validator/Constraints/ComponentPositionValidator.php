@@ -17,6 +17,7 @@ use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Silverback\ApiComponentsBundle\AttributeReader\ExplicitAllowOnlyAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionIriResolver;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
 use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPosition as ComponentPositionConstraint;
@@ -33,6 +34,7 @@ class ComponentPositionValidator extends ConstraintValidator
         private readonly PageDataMetadataProvider $pageDataMetadataProvider,
         private readonly ExplicitAllowOnlyAttributeReader $explicitAllowOnlyReader,
         private readonly ListedComponentPositions $listedComponentPositions,
+        private readonly ComponentPositionIriResolver $positionIriResolver,
     ) {
     }
 
@@ -48,6 +50,7 @@ class ComponentPositionValidator extends ConstraintValidator
         }
 
         $this->validateMaxComponents($componentPosition, $constraint, $collection);
+        $this->validateAnchors($componentPosition, $constraint, $collection);
 
         $component = $componentPosition->component;
         if ($component) {
@@ -80,6 +83,48 @@ class ComponentPositionValidator extends ConstraintValidator
             ->setParameter('{{ limit }}', (string) $limit)
             ->setPlural($limit)
             ->addViolation();
+    }
+
+    private function validateAnchors(ComponentPosition $componentPosition, ComponentPositionConstraint $constraint, ComponentGroup $collection): void
+    {
+        if (null !== $componentPosition->after && null !== $componentPosition->before) {
+            $this->context->buildViolation($constraint->bothAnchorsMessage)
+                ->atPath('before')
+                ->addViolation();
+
+            return;
+        }
+
+        foreach (['after' => $componentPosition->after, 'before' => $componentPosition->before] as $path => $iri) {
+            if (null === $iri) {
+                continue;
+            }
+
+            if ($componentPosition->wasSortValueSent()) {
+                $this->context->buildViolation($constraint->anchorWithSortValueMessage)
+                    ->atPath($path)
+                    ->addViolation();
+
+                continue;
+            }
+
+            $anchor = $this->positionIriResolver->resolve($iri);
+            if ($anchor === $componentPosition) {
+                $this->context->buildViolation($constraint->selfAnchorMessage)
+                    ->atPath($path)
+                    ->addViolation();
+
+                continue;
+            }
+
+            if (!$anchor || $anchor->componentGroup !== $collection) {
+                $this->context->buildViolation($constraint->anchorNotInGroupMessage)
+                    ->atPath($path)
+                    ->setParameter('{{ iri }}', $iri)
+                    ->setParameter('{{ reference }}', (string) $collection->reference)
+                    ->addViolation();
+            }
+        }
     }
 
     private function validateDirectComponent(ComponentPosition $componentPosition, ComponentPositionConstraint $constraint, object $component, object $collection): void

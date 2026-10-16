@@ -35,17 +35,9 @@ Feature: Components
   @loginUser
   Scenario: I can create a component and the ComponentPosition at the same time
     Given there is a ComponentGroup with 3 components and the ID "41c57f7a-9f69-11ea-8188-acde48001122"
-    When I send a "POST" request to "/component/dummy_components" with body:
-    """
-    {
-      "componentPositions": [
-        {
-          "componentGroup": "/_/component_groups/41c57f7a-9f69-11ea-8188-acde48001122",
-          "sortValue": 1
-        }
-      ]
-    }
-    """
+    When I send a "POST" request to "/component/dummy_components" with data:
+      | componentPositions                                                                                                         |
+      | json_decode([{"componentGroup": "/_/component_groups/41c57f7a-9f69-11ea-8188-acde48001122", "after": "resource[position_0]"}]) |
     Then the response status code should be 201
     And the JSON should be valid according to the schema file "component.schema.json"
     And I save the JSON node "@id" as the resource "new_component"
