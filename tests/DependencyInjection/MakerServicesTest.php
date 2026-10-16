@@ -16,6 +16,7 @@ use Doctrine\Migrations\DependencyFactory;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Maker\MakeApiComponent;
 use Silverback\ApiComponentsBundle\Maker\MakeCwaScaffold;
 use Silverback\ApiComponentsBundle\Maker\MakePageData;
@@ -41,12 +42,14 @@ class MakerServicesTest extends TestCase
         $container = new ContainerBuilder();
         $container->register(IriConverterInterface::class)->setSynthetic(true)->setPublic(true);
         $container->register(ManagerRegistry::class)->setSynthetic(true)->setPublic(true);
+        $container->register(PublishableAttributeReader::class)->setSynthetic(true)->setPublic(true);
 
         (new PhpFileLoader($container, new FileLocator(\dirname(__DIR__, 2) . '/src/Resources/config')))->load('services_maker.php');
         $container->compile();
 
         $container->set(IriConverterInterface::class, $this->createStub(IriConverterInterface::class));
         $container->set(ManagerRegistry::class, $this->createStub(ManagerRegistry::class));
+        $container->set(PublishableAttributeReader::class, new PublishableAttributeReader($this->createStub(ManagerRegistry::class)));
 
         self::assertTrue($container->getDefinition($serviceId)->hasTag('maker.command'));
         self::assertInstanceOf($class, $container->get($serviceId));
@@ -81,6 +84,7 @@ class MakerServicesTest extends TestCase
         $container = new ContainerBuilder();
         $container->register(IriConverterInterface::class)->setSynthetic(true)->setPublic(true);
         $container->register(ManagerRegistry::class)->setSynthetic(true)->setPublic(true);
+        $container->register(PublishableAttributeReader::class)->setSynthetic(true)->setPublic(true);
         (new PhpFileLoader($container, new FileLocator(\dirname(__DIR__, 2) . '/src/Resources/config')))->load('services_maker.php');
 
         return $container;
@@ -90,5 +94,6 @@ class MakerServicesTest extends TestCase
     {
         $container->set(IriConverterInterface::class, $this->createStub(IriConverterInterface::class));
         $container->set(ManagerRegistry::class, $this->createStub(ManagerRegistry::class));
+        $container->set(PublishableAttributeReader::class, new PublishableAttributeReader($this->createStub(ManagerRegistry::class)));
     }
 }

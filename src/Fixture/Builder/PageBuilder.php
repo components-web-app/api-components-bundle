@@ -18,7 +18,8 @@ class PageBuilder
 {
     /** @var array<string, GroupBuilder> */
     private array $groupBuilders = [];
-    private ?\Closure $nestedClosure = null;
+    /** @var list<\Closure> */
+    private array $nestedClosures = [];
     private bool $hasLiveAt = false;
     private bool $withoutRoute = false;
     private ?\DateTimeImmutable $liveAt = null;
@@ -28,14 +29,17 @@ class PageBuilder
     {
     }
 
-    public function nested(\Closure $configure): void
+    public function nested(\Closure $configure): self
     {
-        $this->nestedClosure = $configure;
+        $this->nestedClosures[] = $configure;
+
+        return $this;
     }
 
-    public function getNestedClosure(): ?\Closure
+    /** @return list<\Closure> */
+    public function getNestedClosures(): array
     {
-        return $this->nestedClosure;
+        return $this->nestedClosures;
     }
 
     public function title(string $title): self
@@ -55,6 +59,13 @@ class PageBuilder
     public function uiClassNames(string ...$classes): self
     {
         $this->page->uiClassNames = $classes;
+
+        return $this;
+    }
+
+    public function reachableWithoutRoute(bool $reachable = true): self
+    {
+        $this->page->isReachableWithoutRoute = $reachable;
 
         return $this;
     }

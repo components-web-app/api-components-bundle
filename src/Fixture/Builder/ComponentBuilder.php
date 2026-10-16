@@ -18,8 +18,22 @@ class ComponentBuilder
     /** @var array<string, GroupBuilder> */
     private array $groupBuilders = [];
 
-    public function __construct(private readonly AbstractComponent $component)
-    {
+    /** @var list<array{string, string}> */
+    private array $routeLinks = [];
+
+    /** @var list<IriLink> */
+    private array $iriLinks = [];
+
+    /** @var list<AbstractComponent> */
+    private array $drafts = [];
+
+    /**
+     * @param (\Closure(AbstractComponent, AbstractComponent): void)|null $linkDraft
+     */
+    public function __construct(
+        private readonly AbstractComponent $component,
+        private readonly ?\Closure $linkDraft = null,
+    ) {
     }
 
     public function uiComponent(string $suffix): self
@@ -47,6 +61,52 @@ class ComponentBuilder
         }
 
         return $this->groupBuilders[$name];
+    }
+
+    public function linkRoute(string $property, string $routeName): self
+    {
+        $this->routeLinks[] = [$property, $routeName];
+
+        return $this;
+    }
+
+    public function draft(AbstractComponent $draft): self
+    {
+        if (null === $this->linkDraft) {
+            throw new \LogicException(\sprintf('%s is not publishable, so it cannot have a draft.', $this->component::class));
+        }
+        ($this->linkDraft)($this->component, $draft);
+        $this->drafts[] = $draft;
+
+        return $this;
+    }
+
+    /** @return list<array{string, string}> */
+    public function getRouteLinks(): array
+    {
+        return $this->routeLinks;
+    }
+
+    /**
+     * @param string|int|array<string|int>|null $key
+     */
+    public function linkIri(string $property, string|int|array|null $key = null, ?string $page = null, ?string $layout = null, ?string $pageData = null, ?string $route = null): self
+    {
+        $this->iriLinks[] = IriLink::to($property, $key, $page, $layout, $pageData, $route);
+
+        return $this;
+    }
+
+    /** @return list<IriLink> */
+    public function getIriLinks(): array
+    {
+        return $this->iriLinks;
+    }
+
+    /** @return list<AbstractComponent> */
+    public function getDrafts(): array
+    {
+        return $this->drafts;
     }
 
     public function getComponent(): AbstractComponent

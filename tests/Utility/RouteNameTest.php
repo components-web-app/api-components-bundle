@@ -33,6 +33,21 @@ class RouteNameTest extends TestCase
         self::assertSame($expected, RouteName::withSuffix($name, $suffix));
     }
 
+    public static function paths(): iterable
+    {
+        yield 'the root path' => ['/', 'root'];
+        yield 'an empty path' => ['', 'root'];
+        yield 'a top-level path' => ['/about', 'about'];
+        yield 'a nested path joins its segments with hyphens' => ['/about/team', 'about-team'];
+        yield 'a trailing separator is dropped' => ['/about/', 'about'];
+    }
+
+    #[DataProvider('paths')]
+    public function test_a_name_derived_from_a_path_is_its_segments_joined_by_hyphens(string $path, string $expected): void
+    {
+        self::assertSame($expected, RouteName::fromPath($path));
+    }
+
     public function test_the_maximum_length_is_the_name_column_length(): void
     {
         self::assertSame(255, RouteName::MAX_LENGTH);

@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Resources\config;
 
 use ApiPlatform\Metadata\IriConverterInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Maker\MakeApiComponent;
 use Silverback\ApiComponentsBundle\Maker\MakeCwaScaffold;
 use Silverback\ApiComponentsBundle\Maker\MakePageData;
@@ -37,6 +38,7 @@ return static function (ContainerConfigurator $container): void {
     $services->alias(MakePageData::class, 'silverback.api_components.maker.make_page_data');
 
     $services->set('silverback.api_components.maker.make_cwa_scaffold', MakeCwaScaffold::class)
+        ->args([new Reference(PublishableAttributeReader::class)])
         ->tag('maker.command')
         ->public();
 

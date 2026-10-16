@@ -23,9 +23,10 @@ final class CwaFixtureSummary implements \Stringable
     public const string ROUTE = 'route';
     public const string GROUP = 'group';
     public const string COMPONENT = 'component';
+    public const string POSITION = 'position';
     public const string ENTITY = 'entity';
 
-    private const array TYPES = [self::PAGE, self::PAGE_DATA, self::LAYOUT, self::ROUTE, self::GROUP, self::COMPONENT, self::ENTITY];
+    private const array TYPES = [self::PAGE, self::PAGE_DATA, self::LAYOUT, self::ROUTE, self::GROUP, self::COMPONENT, self::POSITION, self::ENTITY];
 
     private const array PLURALS = [
         self::PAGE => 'pages',
@@ -34,15 +35,16 @@ final class CwaFixtureSummary implements \Stringable
         self::ROUTE => 'routes',
         self::GROUP => 'groups',
         self::COMPONENT => 'components',
+        self::POSITION => 'positions',
         self::ENTITY => 'entities',
     ];
 
     /** @var array<string, array<string, array<string, int>>> */
     private array $counts = [self::CREATED => [], self::KEPT => [], self::SKIPPED => []];
 
-    public function record(string $outcome, string $type, string $reason = ''): void
+    public function record(string $outcome, string $type, string $reason = '', int $count = 1): void
     {
-        $this->counts[$outcome][$type][$reason] = ($this->counts[$outcome][$type][$reason] ?? 0) + 1;
+        $this->counts[$outcome][$type][$reason] = ($this->counts[$outcome][$type][$reason] ?? 0) + $count;
     }
 
     public function count(string $outcome, string $type, ?string $reason = null): int

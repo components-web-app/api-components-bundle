@@ -123,6 +123,7 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\UserFactory;
 use Silverback\ApiComponentsBundle\Fixture\CwaFixtureBuilder;
+use Silverback\ApiComponentsBundle\Fixture\Generator\ScaffoldGenerator;
 use Silverback\ApiComponentsBundle\Fixture\Placeholder\HtmlContentPlaceholder;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemFactory;
 use Silverback\ApiComponentsBundle\Flysystem\FilesystemProvider;
@@ -1639,12 +1640,7 @@ return static function (ContainerConfigurator $configurator) {
     $services->set('silverback.api_components.command.generate_fixtures', GenerateFixturesCommand::class)
         ->tag('console.command')
         ->args([
-            new Reference(ManagerRegistry::class),
-            new Reference(IriConverterInterface::class),
-            new Reference(UploadableAttributeReader::class),
-            new Reference(PublishableAttributeReader::class),
-            new Reference(TimestampedAttributeReader::class),
-            new Reference(FilesystemProvider::class),
+            new Reference('silverback.api_components.fixture.scaffold_generator'),
         ]);
 
     $services->alias(GenerateFixturesCommand::class, 'silverback.api_components.command.generate_fixtures');
@@ -2111,9 +2107,24 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(UploadableAttributeReader::class),
             new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             new Reference('silverback.api_components.event_listener.console.console_output'),
+            new Reference(PublishableAttributeReader::class),
         ])
         ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(CwaFixtureBuilder::class, 'silverback.api_components.fixture.cwa_fixture_builder');
+
+    $services
+        ->set('silverback.api_components.fixture.scaffold_generator')
+        ->class(ScaffoldGenerator::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference(ManagerRegistry::class),
+            new Reference(IriConverterInterface::class),
+            new Reference(UploadableAttributeReader::class),
+            new Reference(PublishableAttributeReader::class),
+            new Reference(TimestampedAttributeReader::class),
+            new Reference(FilesystemProvider::class),
+        ]);
+    $services->alias(ScaffoldGenerator::class, 'silverback.api_components.fixture.scaffold_generator');
 
     $services
         ->set('silverback.api_components.event_listener.console.console_output')

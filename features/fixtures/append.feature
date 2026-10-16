@@ -12,7 +12,7 @@ Feature: Loading a scaffold into a database that already has one
     And the database contents are recorded
     And the scaffold is loaded again without purging
     Then the database contents should be unchanged
-    And the last load summary should be "CWA scaffold: kept 2 pages, 1 page data, 1 layout, 2 groups"
+    And the last load summary should be "CWA scaffold: kept 2 pages, 1 page data, 1 layout, 2 groups; skipped 3 positions (group kept)"
 
   Scenario: A page added to the scaffold is created and an editor's change to existing content survives
     Given the scaffold has a layout "main" with a group "top" holding the components "Logo"
@@ -30,7 +30,7 @@ Feature: Loading a scaffold into a database that already has one
       | Component         | 1 |
     And there should be 1 component labelled "Edited hero"
     And there should be 0 components labelled "Hero"
-    And the last load summary should be "CWA scaffold: created 1 page, 1 route, 1 group, 1 component; kept 1 page, 1 layout, 2 groups"
+    And the last load summary should be "CWA scaffold: created 1 page, 1 route, 1 group, 1 component; kept 1 page, 1 layout, 2 groups; skipped 2 positions (group kept)"
 
   Scenario: A new page that uses an existing layout is attached to it
     Given the scaffold has a layout "main" with a group "top" holding the components "Logo"
@@ -61,7 +61,7 @@ Feature: Loading a scaffold into a database that already has one
     Then the group "sidebar" of the page "home" should hold the components "Aside"
     And the group "primary" of the page "home" should hold the components "Hero"
     And there should be 0 components labelled "Extra"
-    And the last load summary should be "CWA scaffold: created 1 group, 1 component; kept 1 page, 1 layout, 2 groups"
+    And the last load summary should be "CWA scaffold: created 1 group, 1 component; kept 1 page, 1 layout, 2 groups; skipped 3 positions (group kept)"
 
   Scenario: A nested page whose component owns an existing group is kept, and the group stays linked to the component
     Given the scaffold has a layout "main" with a group "top" holding the components "Logo"
@@ -73,7 +73,7 @@ Feature: Loading a scaffold into a database that already has one
     And the scaffold is loaded again without purging
     Then the database contents should be unchanged
     And the component "Tabs" should own a group "panels" holding the component "Panel"
-    And the last load summary should be "CWA scaffold: kept 2 pages, 1 layout, 3 groups"
+    And the last load summary should be "CWA scaffold: kept 2 pages, 1 layout, 3 groups; skipped 3 positions (group kept)"
 
   Scenario: A component declared in a nested closure is saved with its link to an existing group when nothing else in the load is new
     Given the scaffold has a layout "main" with a group "panels" at the location reference "shared-panels" holding the components "Panel"
@@ -86,7 +86,7 @@ Feature: Loading a scaffold into a database that already has one
       | Component | 1 |
     And the component group "panels_shared-panels" should belong to the components "Accordion"
     And there should be 0 components labelled "Section"
-    And the last load summary should be "CWA scaffold: created 1 component; kept 1 page, 1 layout, 2 groups"
+    And the last load summary should be "CWA scaffold: created 1 component; kept 1 page, 1 layout, 2 groups; skipped 3 positions (group kept)"
 
   Scenario: Page data with a generated route is kept rather than given a suffixed route
     Given the scaffold has a layout "main" with a group "top" holding the components "Logo"
@@ -99,7 +99,7 @@ Feature: Loading a scaffold into a database that already has one
     Then the database contents should be unchanged
     And there should be 1 PageData titled "Programme"
     And there should be a route "/conference/programme"
-    And the last load summary should be "CWA scaffold: kept 1 page, 2 page data, 1 layout, 1 group"
+    And the last load summary should be "CWA scaffold: kept 1 page, 2 page data, 1 layout, 1 group; skipped 1 position (group kept)"
 
   Scenario: Page data with no route is created with its template and skipped once the template exists
     Given the scaffold has a layout "main" with a group "top" holding the components "Logo"
@@ -124,6 +124,16 @@ Feature: Loading a scaffold into a database that already has one
     And the generated fixtures are loaded without purging
     Then the database contents should be unchanged
     And the last load summary should not contain "created"
+
+  Scenario: A generated scaffold whose shared component with its own group is first used under skipped page data loads without purging
+    Given the site has a component "Tabs" whose own group "panels" holds a component "Panel" on a page nested under page data with no route and on a page nested under the page "parent"
+    When the site is generated as fixtures
+    And the database contents are recorded
+    And the generated fixtures are loaded without purging
+    Then the database contents should be unchanged
+    And the last load summary should contain "skipped 1 page data (unidentifiable)"
+    When the database is purged and the generated fixtures are loaded
+    Then the component "Tabs" should own a group "panels" holding the component "Panel"
 
   Scenario: A redirect whose derived name belongs to a route created in the same load gets a unique name
     Given the scaffold has a layout "main" with a group "top" holding the components "Logo"
@@ -164,3 +174,39 @@ Feature: Loading a scaffold into a database that already has one
     And there should be 1 component labelled "Logo"
     And the command output should contain "CWA scaffold: created 1 page, 1 layout, 1 route, 2 groups, 2 components"
     And the command output should contain "CWA scaffold: created 1 page, 2 routes, 1 group, 1 component; kept 1 layout"
+
+  Scenario: A draft whose published component sits in a kept nested group is skipped, not duplicated
+    Given the scaffold has a layout "main" with a group "top" holding the components "Logo"
+    And the scaffold has a page "parent" using the layout "main" at the route "/parent" with a group "primary" holding the components "Hero"
+    And the scaffold has, nested under the page "parent", a page "child" at the route "/parent/child" with a group "main" holding a published component "card" with a draft "card-draft"
+    When the scaffold is loaded
+    Then the component "card" should be published and placed in a group
+    And the component "card-draft" should be an unpublished draft of "card"
+    When the database contents are recorded
+    And the scaffold is loaded again without purging
+    Then the database contents should be unchanged
+    And the last load summary should contain "(linked to skipped content)"
+
+  Scenario: A route link on a component in a kept group neither throws nor writes
+    Given the scaffold has a layout "main" with a group "nav" holding a navigation link "Home" to the route named "home"
+    And the scaffold has a page "home" using the layout "main" at the route "/" with a group "primary" holding the components "Hero"
+    When the scaffold is loaded
+    Then the navigation link "Home" should point at the route "/"
+    When the database contents are recorded
+    And the scaffold is loaded again without purging
+    Then the database contents should be unchanged
+
+  Scenario: A group-owning component shared by two nested pages is not duplicated when one page's group is kept
+    Given the scaffold has a layout "main" with a group "top" holding the components "Logo"
+    And the scaffold has a page "parent" using the layout "main" at the route "/parent" with a group "primary" holding the components "Hero"
+    And the scaffold has, nested under the page "parent", a page "one" at the route "/parent/one" whose group "main" holds the shared component "Tabs" with its own group "panels" holding the components "Panel"
+    When the scaffold is loaded
+    And the database contents are recorded
+    And the scaffold has, nested under the page "parent", a page "two" at the route "/parent/two" whose group "main" holds the shared component "Tabs" with its own group "panels" holding the components "Panel"
+    And the scaffold is loaded again without purging
+    Then the database should have gained only:
+      | Page           | 1 |
+      | Route          | 1 |
+      | ComponentGroup | 1 |
+    And there should be 1 component labelled "Tabs"
+    And there should be 1 component labelled "Panel"
