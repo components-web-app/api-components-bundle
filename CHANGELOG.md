@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Changed
+- `CwaFixtureBuilder` gives positions sort values from 0 in steps of 1, as the API does, instead of from 10 in steps of 10 (PRLINK)
+
 ## [2.0.0-alpha.23](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.22...2.0.0-alpha.23) - 2026-10-16
 
 ### Breaking
