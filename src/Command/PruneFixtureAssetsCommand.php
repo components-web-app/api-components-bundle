@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Command;
 
+use League\Flysystem\FilesystemException;
 use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetManifest;
 use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetStoreFactory;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -61,7 +62,20 @@ class PruneFixtureAssetsCommand extends Command
         }
 
         $dryRun = (bool) $input->getOption('dry-run');
-        $pruned = $assetStore->prune(array_merge(...$kept), $dryRun);
+        $deleted = [];
+        try {
+            $pruned = $assetStore->prune(array_merge(...$kept), $dryRun, static function (string $hash) use (&$deleted): void {
+                $deleted[] = $hash;
+            });
+        } catch (FilesystemException $exception) {
+            $output->writeln(\sprintf('<error>The fixture asset store %s could not be pruned: %s</error>', $assetStore->description, $exception->getMessage()));
+            $output->writeln(\sprintf('Deleted %d asset(s) before the failure.', \count($deleted)));
+            foreach ($deleted as $hash) {
+                $output->writeln('  - ' . $hash);
+            }
+
+            return Command::FAILURE;
+        }
         $output->writeln(\sprintf('<info>%s %d asset(s) that no kept manifest names from the fixture asset store %s.</info>', $dryRun ? 'Would delete' : 'Deleted', \count($pruned), $assetStore->description));
         foreach ($pruned as $hash) {
             $output->writeln('  - ' . $hash, $dryRun ? OutputInterface::VERBOSITY_NORMAL : OutputInterface::VERBOSITY_VERBOSE);
