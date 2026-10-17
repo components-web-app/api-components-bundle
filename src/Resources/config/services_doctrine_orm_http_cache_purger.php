@@ -23,8 +23,11 @@ use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCacheFlusher;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Silverback\ApiComponentsBundle\HttpCache\ManifestKeyResolver;
+use Silverback\ApiComponentsBundle\HttpCache\Warm\HttpCacheWarmDispatcher;
 use Silverback\ApiComponentsBundle\HttpCache\Warm\HttpCacheWarmer;
 use Silverback\ApiComponentsBundle\HttpCache\Warm\PublicRoutePaths;
+use Silverback\ApiComponentsBundle\Message\WarmHttpCacheMessage;
+use Silverback\ApiComponentsBundle\MessageHandler\WarmHttpCacheHandler;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -134,9 +137,32 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(WarmHttpCacheCommand::class, 'silverback.api_components.command.warm_http_cache');
 
     $services
+        ->set('silverback.api_components.http_cache.warm_dispatcher')
+        ->class(HttpCacheWarmDispatcher::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference('messenger.default_bus', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+            new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ]);
+    $services->alias(HttpCacheWarmDispatcher::class, 'silverback.api_components.http_cache.warm_dispatcher');
+
+    $services
+        ->set('silverback.api_components.message_handler.warm_http_cache')
+        ->class(WarmHttpCacheHandler::class)
+        ->autoconfigure(false)
+        ->args([
+            '$publicRoutePaths' => new Reference('silverback.api_components.http_cache.public_route_paths'),
+            '$httpCacheWarmer' => new Reference('silverback.api_components.http_cache.warmer'),
+            '$logger' => new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ])
+        ->tag('messenger.message_handler', ['handles' => WarmHttpCacheMessage::class]);
+    $services->alias(WarmHttpCacheHandler::class, 'silverback.api_components.message_handler.warm_http_cache');
+
+    $services
         ->set(HttpCachePurgeStateProcessor::class)
         ->args([
             new Reference('silverback.api_components.http_cache.flusher'),
+            new Reference('silverback.api_components.http_cache.purger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ])
         ->autoconfigure(false)
         ->tag('api_platform.state_processor');
