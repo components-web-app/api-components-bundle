@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.25](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.24...2.0.0-alpha.25) - 2026-10-17
+
 ### Added
 - `POST /_/http_cache/purge` takes an optional body `{"paths": [...], "tags": [...]}` (either or both) and purges only those tags, as `purge-http-cache --path/--tag` does; only a request with no body flushes, and any other body is a 422 ([#487](https://github.com/components-web-app/api-components-bundle/pull/487))
 - `http_cache.warm_after_flush` (off by default): after a successful full flush, dispatch a bounded warm of the public routes for `gzip` and `br` as `WarmHttpCacheMessage`s on `messenger.default_bus`; route the message to an async transport ([#487](https://github.com/components-web-app/api-components-bundle/pull/487))
