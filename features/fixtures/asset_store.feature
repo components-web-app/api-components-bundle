@@ -70,6 +70,19 @@ Feature: Generated fixtures keep their uploaded files in a content-addressed ass
     When the database is purged and the generated fixtures "SecondScaffold.php" are loaded
     Then the uploadable component should have a stored file with the same content as "test_file.txt"
 
+  Scenario: An asset one scaffold no longer uses stays in a local folder while another scaffold there lists it
+    Given fixture assets are configured to be stored in a local folder
+    And the site has an uploadable component with the file "image.png"
+    When the site is generated as fixtures to the file "FirstScaffold.php"
+    And the site is generated as fixtures to the file "SecondScaffold.php"
+    And the uploadable component's file is replaced with "test_file.txt"
+    And the site is generated as fixtures to the file "FirstScaffold.php"
+    Then the command output should not contain "deleted from the fixture asset store"
+    When the database is purged and the generated fixtures "SecondScaffold.php" are loaded
+    Then the uploadable component should have a stored file with the same content as "image.png"
+    When the database is purged and the generated fixtures "FirstScaffold.php" are loaded
+    Then the uploadable component should have a stored file with the same content as "test_file.txt"
+
   Scenario: An asset the same scaffold no longer uses is deleted from its local folder
     Given fixture assets are configured to be stored in a local folder
     And the site has an uploadable component with the file "image.png"

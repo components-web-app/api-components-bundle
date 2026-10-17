@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- `generate-fixtures` into a local fixture asset store keeps an asset its previous manifest listed while another manifest in the same directory still lists it, and deletes nothing when such a manifest is invalid ([#489](https://github.com/components-web-app/api-components-bundle/issues/489))
+
 ## [2.0.0-alpha.25](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.24...2.0.0-alpha.25) - 2026-10-17
 
 ### Added
