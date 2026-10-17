@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\HttpCache;
 use ApiPlatform\HttpCache\PurgerInterface;
 use ApiPlatform\HttpCache\SouinPurger;
 use Silverback\ApiComponentsBundle\Exception\HttpCacheFlushFailedException;
+use Silverback\ApiComponentsBundle\HttpCache\Warm\HttpCacheWarmDispatcher;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -25,6 +26,7 @@ class HttpCacheFlusher
     public function __construct(
         private readonly ?PurgerInterface $purger,
         private readonly array $invalidationClients = [],
+        private readonly ?HttpCacheWarmDispatcher $warmDispatcher = null,
     ) {
     }
 
@@ -50,5 +52,7 @@ class HttpCacheFlusher
                 throw new HttpCacheFlushFailedException(\sprintf('Failed to flush the HTTP cache at %s: the cache responded with %d', $flushUrl, $statusCode));
             }
         }
+
+        $this->warmDispatcher?->dispatch();
     }
 }

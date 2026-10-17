@@ -16,9 +16,13 @@ use ApiPlatform\HttpCache\VarnishXKeyPurger;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Exception\HttpCacheFlushFailedException;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCacheFlusher;
+use Silverback\ApiComponentsBundle\HttpCache\Warm\HttpCacheWarmDispatcher;
+use Silverback\ApiComponentsBundle\Message\WarmHttpCacheMessage;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpClient\ScopingHttpClient;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class HttpCacheFlusherTest extends TestCase
 {
@@ -156,6 +160,61 @@ class HttpCacheFlusherTest extends TestCase
         $this->expectExceptionMessage('Connection refused');
 
         $flusher->flush();
+    }
+
+    public function test_a_successful_flush_dispatches_the_warm_after_every_invalidation_url_is_flushed(): void
+    {
+        $dispatched = [];
+        $flusher = new HttpCacheFlusher(new SouinPurger([]), [
+            $this->invalidationClient(self::SOUIN_URL),
+            $this->invalidationClient('http://other-cache:2019/souin-api/souin'),
+        ], new HttpCacheWarmDispatcher($this->bus($dispatched)));
+
+        $flusher->flush();
+
+        self::assertCount(2, $this->requests);
+        self::assertEquals([new WarmHttpCacheMessage('gzip'), new WarmHttpCacheMessage('br')], $dispatched);
+    }
+
+    public function test_a_failed_flush_dispatches_no_warm(): void
+    {
+        $dispatched = [];
+        $flusher = new HttpCacheFlusher(new SouinPurger([]), [
+            $this->invalidationClient(self::SOUIN_URL, [], new MockResponse('', ['http_code' => 500])),
+        ], new HttpCacheWarmDispatcher($this->bus($dispatched)));
+
+        try {
+            $flusher->flush();
+            self::fail('The flush should have failed');
+        } catch (HttpCacheFlushFailedException) {
+        }
+
+        self::assertSame([], $dispatched);
+    }
+
+    public function test_a_flush_that_cannot_run_dispatches_no_warm(): void
+    {
+        $dispatched = [];
+        $flusher = new HttpCacheFlusher(new VarnishXKeyPurger([]), [$this->invalidationClient(self::SOUIN_URL)], new HttpCacheWarmDispatcher($this->bus($dispatched)));
+
+        $flusher->flush();
+
+        self::assertSame([], $dispatched);
+    }
+
+    /**
+     * @param list<object> $dispatched
+     */
+    private function bus(array &$dispatched): MessageBusInterface
+    {
+        $bus = $this->createStub(MessageBusInterface::class);
+        $bus->method('dispatch')->willReturnCallback(static function (object $message) use (&$dispatched): Envelope {
+            $dispatched[] = $message;
+
+            return new Envelope($message);
+        });
+
+        return $bus;
     }
 
     /**

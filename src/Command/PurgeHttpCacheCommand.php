@@ -21,7 +21,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(name: 'silverback:api-components:purge-http-cache', description: 'Flushes every cached response, API and rendered HTML together, from the HTTP cache, or with --tag or --path purges only those tags')]
+#[AsCommand(name: 'silverback:api-components:purge-http-cache', description: 'Purges one page with --path or given tags with --tag; with no option, flushes every cached response, API and rendered HTML together, so every page is rendered cold: a last resort')]
 class PurgeHttpCacheCommand extends Command
 {
     public function __construct(
