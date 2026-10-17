@@ -179,7 +179,7 @@ class WarmHttpCacheCommandTest extends TestCase
             $this->respondWithPage($path);
         }
 
-        (new CommandTester($this->command()))->execute(['--base-url' => 'http://php.local:8080', '--concurrency' => '1', '--accept-encoding' => 'br']);
+        (new CommandTester($this->command('base64_decode')))->execute(['--base-url' => 'http://php.local:8080', '--concurrency' => '1', '--accept-encoding' => 'br']);
 
         self::assertSame('http://php.local:8080/_api/_/routes//a', $this->requests[0]['url']);
         self::assertSame('http://php.local:8080/_api/_/resource_manifest//a', $this->requests[1]['url']);
@@ -223,6 +223,18 @@ class WarmHttpCacheCommandTest extends TestCase
         self::assertStringContainsString('Stopped after the maximum time of 15 seconds, before every route was warmed', $tester->getDisplay());
     }
 
+    public function test_brotli_without_the_brotli_extension_is_refused_before_anything_is_requested(): void
+    {
+        $this->persistRoute('/');
+
+        $tester = new CommandTester($this->command('missing_brotli_uncompress'));
+
+        self::assertSame(Command::INVALID, $tester->execute(['--accept-encoding' => 'gzip, br']));
+        self::assertSame([], $this->requests);
+        self::assertStringContainsString('--accept-encoding asks for br, but the brotli PHP extension is not installed, so the warm could not follow a route to its manifest and components', $tester->getDisplay());
+        self::assertStringNotContainsString('Warmed', $tester->getDisplay());
+    }
+
     /**
      * @param array<string, mixed> $input
      */
@@ -254,7 +266,7 @@ class WarmHttpCacheCommandTest extends TestCase
         yield 'relative base url' => [['--base-url' => 'localhost'], '--base-url must be an http or https URL'];
     }
 
-    private function command(): WarmHttpCacheCommand
+    private function command(string $brotliUncompress = 'brotli_uncompress'): WarmHttpCacheCommand
     {
         $accessChecker = $this->createStub(ResourceAccessCheckerInterface::class);
         $accessChecker->method('isGranted')->willReturn(false);
@@ -271,7 +283,7 @@ class WarmHttpCacheCommandTest extends TestCase
         $iriConverter = $this->createStub(IriConverterInterface::class);
         $iriConverter->method('getIriFromResource')->willReturnCallback(static fn (Route $route) => '/_api/_/routes/' . $route->getPath());
 
-        return new WarmHttpCacheCommand($paths, new HttpCacheWarmer($client, $iriConverter, $this->clock));
+        return new WarmHttpCacheCommand($paths, new HttpCacheWarmer($client, $iriConverter, $this->clock, $brotliUncompress));
     }
 
     private function respondWithPage(string $path): void
