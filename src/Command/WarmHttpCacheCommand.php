@@ -53,6 +53,8 @@ class WarmHttpCacheCommand extends Command
         $concurrency = $input->getOption('concurrency');
         $maxTime = $input->getOption('max-time');
         $timeout = $input->getOption('timeout');
+        $acceptEncoding = $input->getOption('accept-encoding');
+        $acceptEncoding = 'none' === strtolower($acceptEncoding) ? null : $acceptEncoding;
 
         $errors = [];
         if (!preg_match('{\Ahttps?://[^/]}i', $baseUrl)) {
@@ -75,6 +77,9 @@ class WarmHttpCacheCommand extends Command
         if (!$this->isPositiveNumber($timeout)) {
             $errors[] = '--timeout must be a number of seconds greater than 0';
         }
+        if (!$this->httpCacheWarmer->canDecode($acceptEncoding)) {
+            $errors[] = '--accept-encoding asks for br, but the brotli PHP extension is not installed, so the warm could not follow a route to its manifest and components';
+        }
         if ($errors) {
             foreach ($errors as $error) {
                 $output->writeln(\sprintf('<error>%s</error>', $error));
@@ -91,14 +96,13 @@ class WarmHttpCacheCommand extends Command
             return Command::SUCCESS;
         }
 
-        $acceptEncoding = $input->getOption('accept-encoding');
         $result = $this->httpCacheWarmer->warm(
             $paths,
             $baseUrl,
             (int) $concurrency,
             null === $maxTime ? null : (float) $maxTime,
             (float) $timeout,
-            'none' === strtolower($acceptEncoding) ? null : $acceptEncoding,
+            $acceptEncoding,
         );
 
         $this->writeSummary($output, \count($paths), $result, $maxTime);

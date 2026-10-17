@@ -72,7 +72,7 @@ class WarmHttpCacheHandlerTest extends TestCase
         $this->persistRoute('/');
         $this->persistRoute('/draft', null);
 
-        $result = ($this->handler())(new WarmHttpCacheMessage('br'));
+        $result = ($this->handler(brotliUncompress: 'base64_decode'))(new WarmHttpCacheMessage('br'));
 
         self::assertSame([
             'http://cache.test/_/routes//',
@@ -111,6 +111,16 @@ class WarmHttpCacheHandlerTest extends TestCase
         self::assertTrue($this->logs->hasRecordThatContains('stopped after the maximum time of 1 seconds, before every route was warmed', Level::Info));
     }
 
+    public function test_a_brotli_warm_without_the_brotli_extension_requests_nothing_and_logs_an_error(): void
+    {
+        $this->persistRoute('/');
+
+        self::assertNull(($this->handler(brotliUncompress: 'missing_brotli_uncompress'))(new WarmHttpCacheMessage('br')));
+        self::assertSame([], $this->requests);
+        self::assertTrue($this->logs->hasRecordThatContains('The HTTP cache was not warmed with Accept-Encoding br after the flush: the brotli PHP extension is not installed, so the warm could not follow a route to its manifest and components', Level::Error));
+        self::assertCount(1, $this->logs->getRecords());
+    }
+
     public function test_with_no_public_route_nothing_is_requested(): void
     {
         $this->persistRoute('/draft', null);
@@ -120,7 +130,7 @@ class WarmHttpCacheHandlerTest extends TestCase
         self::assertTrue($this->logs->hasRecordThatContains('There is no public route to warm after the HTTP cache flush', Level::Info));
     }
 
-    private function handler(?int $limit = null, float $maxTime = 60.0, float $timeout = 30.0, float $secondsPerRequest = 0.0): WarmHttpCacheHandler
+    private function handler(?int $limit = null, float $maxTime = 60.0, float $timeout = 30.0, float $secondsPerRequest = 0.0, string $brotliUncompress = 'brotli_uncompress'): WarmHttpCacheHandler
     {
         $accessChecker = $this->createStub(ResourceAccessCheckerInterface::class);
         $accessChecker->method('isGranted')->willReturn(false);
@@ -139,7 +149,7 @@ class WarmHttpCacheHandlerTest extends TestCase
 
         return new WarmHttpCacheHandler(
             $paths,
-            new HttpCacheWarmer($client, $iriConverter, $this->clock),
+            new HttpCacheWarmer($client, $iriConverter, $this->clock, $brotliUncompress),
             'http://cache.test',
             1,
             $maxTime,

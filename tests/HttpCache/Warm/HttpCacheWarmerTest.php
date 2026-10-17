@@ -327,7 +327,7 @@ class HttpCacheWarmerTest extends TestCase
         ], array_column($this->requests, 'url'));
     }
 
-    public function test_a_route_or_manifest_that_cannot_be_decoded_is_not_followed(): void
+    public function test_a_route_that_cannot_be_decoded_is_not_followed_and_counts_as_failed_with_the_reason(): void
     {
         $this->responses['/_api/_/routes//compressed'] = new MockResponse('{}', ['response_headers' => ['Content-Encoding' => 'compress']]);
         $this->responses['/_api/_/routes//text'] = new MockResponse('not json');
@@ -344,7 +344,69 @@ class HttpCacheWarmerTest extends TestCase
             'http://localhost/_api/_/routes//manifest',
             'http://localhost/_api/_/resource_manifest//manifest',
         ], array_column($this->requests, 'url'));
+        self::assertSame(3, $result->countFailed());
+        self::assertSame([
+            'The response body could not be decoded from Content-Encoding "compress"',
+            'The response body is not a JSON object',
+            'The response body is not a JSON object',
+            null,
+            null,
+        ], array_map(static fn ($request) => $request->error, $result->getRequests()));
+        self::assertSame([200, 200, 200, 200, 200], array_map(static fn ($request) => $request->status, $result->getRequests()));
+    }
+
+    public function test_a_manifest_that_cannot_be_decoded_counts_as_failed(): void
+    {
+        $this->route('/a');
+        $this->responses['/_api/_/resource_manifest//a'] = new MockResponse('not json');
+
+        $result = $this->warm(['/a'], concurrency: 1);
+
+        self::assertSame(['http://localhost/_api/_/routes//a', 'http://localhost/_api/_/resource_manifest//a'], array_column($this->requests, 'url'));
+        self::assertSame(1, $result->countFailed());
+        self::assertSame('The response body is not a JSON object', $result->getRequests()[1]->error);
+    }
+
+    public function test_a_brotli_body_without_the_brotli_extension_counts_as_failed(): void
+    {
+        $this->responses['/_api/_/routes//a'] = new MockResponse(base64_encode('{}'), ['response_headers' => ['Content-Encoding' => 'br']]);
+
+        $result = $this->warm(['/a'], acceptEncoding: 'br', brotliUncompress: 'missing_brotli_uncompress');
+
+        self::assertSame(['http://localhost/_api/_/routes//a'], array_column($this->requests, 'url'));
+        self::assertSame(1, $result->countFailed());
+        self::assertSame('The response body could not be decoded from Content-Encoding "br"', $result->getRequests()[0]->error);
+    }
+
+    public function test_a_brotli_body_is_decoded_with_the_brotli_function(): void
+    {
+        $this->responses['/_api/_/routes//a'] = new MockResponse(base64_encode('{}'), ['response_headers' => ['Content-Encoding' => 'BR']]);
+        $this->responses['/_api/_/resource_manifest//a'] = new MockResponse(base64_encode(json_encode(['resource_iris' => [$this->node('/_api/_/routes//a', [$this->node('/_api/_/pages/p1')])]])), ['response_headers' => ['Content-Encoding' => 'br']]);
+
+        $result = $this->warm(['/a'], concurrency: 1, acceptEncoding: 'br', brotliUncompress: 'base64_decode');
+
+        self::assertSame([
+            'http://localhost/_api/_/routes//a',
+            'http://localhost/_api/_/resource_manifest//a',
+            'http://localhost/_api/_/pages/p1',
+        ], array_column($this->requests, 'url'));
         self::assertSame(0, $result->countFailed());
+    }
+
+    public function test_it_can_decode_every_encoding_it_asks_for_unless_brotli_is_asked_for_without_the_extension(): void
+    {
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $client = new MockHttpClient();
+        $withoutBrotli = new HttpCacheWarmer($client, $iriConverter, $this->clock, 'missing_brotli_uncompress');
+        $withBrotli = new HttpCacheWarmer($client, $iriConverter, $this->clock, 'base64_decode');
+
+        foreach ([null, 'gzip', 'GZIP', 'identity', 'gzip, deflate', 'brotli'] as $acceptEncoding) {
+            self::assertTrue($withoutBrotli->canDecode($acceptEncoding), (string) $acceptEncoding);
+        }
+        foreach (['br', 'BR', 'gzip, br', 'gzip,br;q=0.5', ' br '] as $acceptEncoding) {
+            self::assertFalse($withoutBrotli->canDecode($acceptEncoding), $acceptEncoding);
+            self::assertTrue($withBrotli->canDecode($acceptEncoding), $acceptEncoding);
+        }
     }
 
     public function test_the_request_carries_the_timeout_as_its_maximum_duration(): void
@@ -389,7 +451,7 @@ class HttpCacheWarmerTest extends TestCase
     /**
      * @param list<string> $paths
      */
-    private function warm(array $paths, string $baseUrl = 'http://localhost', int $concurrency = 2, ?float $maxTime = null, ?string $acceptEncoding = 'gzip'): HttpCacheWarmResult
+    private function warm(array $paths, string $baseUrl = 'http://localhost', int $concurrency = 2, ?float $maxTime = null, ?string $acceptEncoding = 'gzip', string $brotliUncompress = 'brotli_uncompress'): HttpCacheWarmResult
     {
         $client = new MockHttpClient(function (string $method, string $url, array $options): MockResponse {
             $headers = [];
@@ -411,7 +473,7 @@ class HttpCacheWarmerTest extends TestCase
         $iriConverter = $this->createStub(IriConverterInterface::class);
         $iriConverter->method('getIriFromResource')->willReturnCallback(static fn (Route $route) => '/_api/_/routes/' . $route->getPath());
 
-        return (new HttpCacheWarmer($client, $iriConverter, $this->clock))->warm($paths, $baseUrl, $concurrency, $maxTime, 30.0, $acceptEncoding);
+        return (new HttpCacheWarmer($client, $iriConverter, $this->clock, $brotliUncompress))->warm($paths, $baseUrl, $concurrency, $maxTime, 30.0, $acceptEncoding);
     }
 
     private function route(string $path): void
