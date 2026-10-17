@@ -838,12 +838,16 @@ class GenerateFixturesCommandTest extends TestCase
         self::assertStringContainsString('2 stored file(s) in the fixture asset store ' . $this->outputDirectory . '/assets, listed in ' . $this->outputDirectory . '/GeneratedScaffold.assets.json', $this->display);
     }
 
-    public function test_generating_into_a_local_asset_store_deletes_the_assets_its_manifest_no_longer_names(): void
+    public function test_generating_into_a_local_asset_store_deletes_the_assets_its_previous_manifest_named_and_the_new_one_does_not(): void
     {
         $this->twoUploads('first', 'second');
         mkdir($this->outputDirectory . '/assets');
         file_put_contents($this->outputDirectory . '/assets/' . hash('sha256', 'stale'), 'stale');
         file_put_contents($this->outputDirectory . '/assets/README.md', 'notes');
+        $previous = new FixtureAssetManifest();
+        $previous->add(hash('sha256', 'stale'), 'stale.txt', 'text/plain', 5, DummyUploadableAndPublishable::class . '::file');
+        $previous->add(hash('sha256', 'first'), 'image.txt', 'text/plain', 5, DummyUploadableAndPublishable::class . '::file');
+        file_put_contents($this->outputDirectory . '/GeneratedScaffold.assets.json', $previous->toJson());
 
         $this->generate(['--assets-store' => 'local']);
 
@@ -851,6 +855,37 @@ class GenerateFixturesCommandTest extends TestCase
         self::assertFileExists($this->outputDirectory . '/assets/' . hash('sha256', 'first'));
         self::assertFileExists($this->outputDirectory . '/assets/README.md');
         self::assertStringContainsString('1 asset(s) no longer in the manifest deleted from the fixture asset store', $this->display);
+    }
+
+    public function test_generating_into_a_local_asset_store_keeps_the_assets_another_scaffold_in_the_same_folder_lists(): void
+    {
+        $this->twoUploads('first', 'second');
+        mkdir($this->outputDirectory . '/assets');
+        file_put_contents($this->outputDirectory . '/assets/' . hash('sha256', 'other'), 'other');
+        $other = new FixtureAssetManifest();
+        $other->add(hash('sha256', 'other'), 'other.txt', 'text/plain', 5, DummyUploadableAndPublishable::class . '::file');
+        file_put_contents($this->outputDirectory . '/OtherScaffold.assets.json', $other->toJson());
+
+        $this->generate(['--assets-store' => 'local']);
+
+        self::assertSame('other', file_get_contents($this->outputDirectory . '/assets/' . hash('sha256', 'other')));
+        self::assertFileExists($this->outputDirectory . '/assets/' . hash('sha256', 'first'));
+        self::assertStringNotContainsString('deleted from the fixture asset store', $this->display);
+    }
+
+    public function test_an_unreadable_previous_manifest_prunes_nothing_and_is_replaced(): void
+    {
+        $this->twoUploads('first', 'second');
+        mkdir($this->outputDirectory . '/assets');
+        file_put_contents($this->outputDirectory . '/assets/' . hash('sha256', 'stale'), 'stale');
+        file_put_contents($this->outputDirectory . '/GeneratedScaffold.assets.json', 'not json');
+
+        $this->generate(['--assets-store' => 'local']);
+
+        self::assertFileExists($this->outputDirectory . '/assets/' . hash('sha256', 'stale'));
+        self::assertEqualsCanonicalizing([hash('sha256', 'first'), hash('sha256', 'second')], FixtureAssetManifest::fromFile($this->outputDirectory . '/GeneratedScaffold.assets.json')->hashes());
+        self::assertStringContainsString('is not valid', $this->display);
+        self::assertStringContainsString('so no asset was deleted from the fixture asset store', $this->display);
     }
 
     public function test_a_second_generation_writes_the_same_manifest_and_assets(): void

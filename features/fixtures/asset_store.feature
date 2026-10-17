@@ -58,3 +58,25 @@ Feature: Generated fixtures keep their uploaded files in a content-addressed ass
     When the site is generated as fixtures with the option "--assets-store" set to "local" and reloaded
     Then the fixture asset store should hold exactly the 1 asset the manifest lists, each under its content hash
     And every uploadable component should have a stored file with the same content as "image.png"
+
+  Scenario: Two scaffolds sharing a local folder keep each other's assets when either is generated
+    Given fixture assets are configured to be stored in a local folder
+    And the site has an uploadable component with the file "image.png"
+    When the site is generated as fixtures to the file "FirstScaffold.php"
+    And the uploadable component's file is replaced with "test_file.txt"
+    And the site is generated as fixtures to the file "SecondScaffold.php"
+    And the database is purged and the generated fixtures "FirstScaffold.php" are loaded
+    Then the uploadable component should have a stored file with the same content as "image.png"
+    When the database is purged and the generated fixtures "SecondScaffold.php" are loaded
+    Then the uploadable component should have a stored file with the same content as "test_file.txt"
+
+  Scenario: An asset the same scaffold no longer uses is deleted from its local folder
+    Given fixture assets are configured to be stored in a local folder
+    And the site has an uploadable component with the file "image.png"
+    When the site is generated as fixtures
+    And the uploadable component's file is replaced with "test_file.txt"
+    And the site is generated as fixtures
+    Then the fixture asset store should hold exactly the 1 asset the manifest lists, each under its content hash
+    And the command output should contain "1 asset(s) no longer in the manifest deleted from the fixture asset store"
+    When the database is purged and the generated fixtures are loaded
+    Then the uploadable component should have a stored file with the same content as "test_file.txt"

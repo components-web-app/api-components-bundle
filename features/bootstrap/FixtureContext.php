@@ -601,6 +601,30 @@ final class FixtureContext implements Context
     }
 
     /**
+     * @When the database is purged and the generated fixtures :fileName are loaded
+     */
+    public function theDatabaseIsPurgedAndTheGeneratedFixturesInTheFileAreLoaded(string $fileName): void
+    {
+        $this->generatedFile = $this->outputDirectory . '/' . $fileName;
+        $this->theDatabaseIsPurgedAndTheGeneratedFixturesAreLoaded();
+    }
+
+    /**
+     * @When the uploadable component's file is replaced with :filename
+     */
+    public function theUploadableComponentsFileIsReplacedWith(string $filename): void
+    {
+        $components = $this->manager->getRepository(DummyUploadableAndPublishable::class)->findAll();
+        if (1 !== \count($components)) {
+            throw new \RuntimeException(\sprintf('Expected 1 uploadable component, found %d.', \count($components)));
+        }
+        $components[0]->file = new File($this->assetPath($filename));
+        $this->uploadableFileManager->persistFiles($components[0]);
+        $this->manager->flush();
+        $this->manager->clear();
+    }
+
+    /**
      * @When the generated fixtures are loaded without purging
      */
     public function theGeneratedFixturesAreLoadedWithoutPurging(): void

@@ -97,6 +97,25 @@ final readonly class FixtureAssetStore
         return $unreferenced;
     }
 
+    /**
+     * @param list<string> $previous
+     * @param list<string> $kept
+     *
+     * @throws FilesystemException
+     *
+     * @return list<string>
+     */
+    public function pruneDropped(array $previous, array $kept): array
+    {
+        $dropped = array_values(array_filter(array_diff($previous, $kept), fn (string $hash): bool => $this->has($hash)));
+        sort($dropped);
+        foreach ($dropped as $hash) {
+            $this->filesystem->delete($this->path($hash));
+        }
+
+        return $dropped;
+    }
+
     private function path(string $hash): string
     {
         return '' === $this->prefix ? $hash : $this->prefix . '/' . $hash;
