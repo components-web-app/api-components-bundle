@@ -151,6 +151,17 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition = $container->getDefinition('silverback.api_components.http_cache.purger');
         $definition->setArgument('$purgeRenderedHtmlClasses', $config['http_cache']['purge_rendered_html_classes']);
 
+        $warmAfterFlush = $config['http_cache']['warm_after_flush'];
+        $definition = $container->getDefinition('silverback.api_components.message_handler.warm_http_cache');
+        $definition->setArgument('$baseUrl', $warmAfterFlush['base_url']);
+        $definition->setArgument('$concurrency', $warmAfterFlush['concurrency']);
+        $definition->setArgument('$maxTime', $warmAfterFlush['max_time']);
+        $definition->setArgument('$timeout', $warmAfterFlush['timeout']);
+        $definition->setArgument('$limit', $warmAfterFlush['limit']);
+        if ($warmAfterFlush['enabled']) {
+            $container->getDefinition('silverback.api_components.http_cache.flusher')->setArgument('$warmDispatcher', new Reference('silverback.api_components.http_cache.warm_dispatcher'));
+        }
+
         $definition = $container->findDefinition(MetadataNormalizer::class);
         $definition->setArgument('$metadataKey', $config['metadata_key']);
 

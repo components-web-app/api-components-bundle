@@ -185,6 +185,32 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         return $definition->getArgument($argument);
     }
 
+    public function test_by_default_a_flush_dispatches_no_warm(): void
+    {
+        [$container] = $this->load(self::minimalConfig());
+
+        self::assertArrayNotHasKey('$warmDispatcher', $container->findDefinition('silverback.api_components.http_cache.flusher')->getArguments());
+    }
+
+    public function test_an_enabled_warm_after_flush_reaches_the_flusher_and_the_handler(): void
+    {
+        $config = self::minimalConfig();
+        $config['http_cache']['warm_after_flush'] = ['base_url' => 'https://cache.test', 'max_time' => 15, 'concurrency' => 3, 'timeout' => 9, 'limit' => 50];
+
+        [$container, $errors] = $this->load($config);
+
+        self::assertSame([], $errors);
+        $dispatcher = $this->argument($container, 'silverback.api_components.http_cache.flusher', '$warmDispatcher');
+        self::assertInstanceOf(Reference::class, $dispatcher);
+        self::assertSame('silverback.api_components.http_cache.warm_dispatcher', (string) $dispatcher);
+        $handler = 'silverback.api_components.message_handler.warm_http_cache';
+        self::assertSame('https://cache.test', $this->argument($container, $handler, '$baseUrl'));
+        self::assertSame(15.0, $this->argument($container, $handler, '$maxTime'));
+        self::assertSame(3, $this->argument($container, $handler, '$concurrency'));
+        self::assertSame(9.0, $this->argument($container, $handler, '$timeout'));
+        self::assertSame(50, $this->argument($container, $handler, '$limit'));
+    }
+
     public function test_with_imagine_enabled_both_filter_callers_generate_through_the_memory_guard(): void
     {
         [$container] = $this->load(self::minimalConfig(), true);

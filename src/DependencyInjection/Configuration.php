@@ -20,6 +20,7 @@ use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetStoreFactory;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
+use Silverback\ApiComponentsBundle\Message\WarmHttpCacheMessage;
 use Silverback\ApiComponentsBundle\Utility\EmailRecipientList;
 use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImage;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
@@ -141,6 +142,42 @@ class Configuration implements ConfigurationInterface
                             ->defaultValue([
                                 SiteConfigParameter::class,
                             ])
+                        ->end()
+                        ->arrayNode('warm_after_flush')
+                            ->info('After a successful flush of the whole HTTP cache (the purge endpoint with no body, `purge-http-cache` with no options, a fixture load), dispatch a bounded warm of the public routes, shortest first, once with `Accept-Encoding: gzip` and once with `br`, as `' . WarmHttpCacheMessage::class . '` messages on `messenger.default_bus`. Route that message to an async transport: without one the warm runs inside the request or command that flushed.')
+                            ->canBeEnabled()
+                            ->children()
+                                ->scalarNode('base_url')
+                                    ->info('The URL of the HTTP cache in front of the API, as `warm-http-cache --base-url`.')
+                                    ->defaultValue('http://localhost')
+                                    ->validate()
+                                        ->ifTrue(static fn (mixed $value): bool => !\is_string($value) || !preg_match('{\Ahttps?://[^/]}i', $value))
+                                        ->thenInvalid('The warm base URL must be an http or https URL, got %s.')
+                                    ->end()
+                                ->end()
+                                ->floatNode('max_time')
+                                    ->beforeNormalization()->ifTrue(static fn (mixed $value): bool => \is_int($value))->then(static fn (int $value): float => (float) $value)->end()
+                                    ->info('Seconds after which each warm stops starting requests.')
+                                    ->min(0.001)
+                                    ->defaultValue(60.0)
+                                ->end()
+                                ->integerNode('concurrency')
+                                    ->info('The most warm requests in flight at once.')
+                                    ->min(1)
+                                    ->defaultValue(2)
+                                ->end()
+                                ->floatNode('timeout')
+                                    ->beforeNormalization()->ifTrue(static fn (mixed $value): bool => \is_int($value))->then(static fn (int $value): float => (float) $value)->end()
+                                    ->info('The most seconds one warm request may take.')
+                                    ->min(0.001)
+                                    ->defaultValue(30.0)
+                                ->end()
+                                ->integerNode('limit')
+                                    ->info('Warm at most this many routes, shortest paths first; null warms every public route until the maximum time.')
+                                    ->min(1)
+                                    ->defaultNull()
+                                ->end()
+                            ->end()
                         ->end()
                     ->end()
                 ->end()

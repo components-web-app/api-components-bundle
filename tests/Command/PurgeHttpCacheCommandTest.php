@@ -39,6 +39,13 @@ class PurgeHttpCacheCommandTest extends TestCase
         self::assertSame(self::SERVICE_ID, (string) $container->getAlias(PurgeHttpCacheCommand::class));
     }
 
+    public function test_the_description_presents_the_full_flush_as_a_last_resort_and_points_at_the_scoped_options(): void
+    {
+        $command = new PurgeHttpCacheCommand($this->createStub(HttpCacheFlusher::class));
+
+        self::assertSame('Purges one page with --path or given tags with --tag; with no option, flushes every cached response, API and rendered HTML together, so every page is rendered cold: a last resort', $command->getDescription());
+    }
+
     public function test_the_command_flushes_the_http_cache(): void
     {
         $container = $this->loadContainer();

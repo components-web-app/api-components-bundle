@@ -4,6 +4,13 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Added
+- `POST /_/http_cache/purge` takes an optional body `{"paths": [...], "tags": [...]}` (either or both) and purges only those tags, as `purge-http-cache --path/--tag` does; only a request with no body flushes, and any other body is a 422 ([#487](https://github.com/components-web-app/api-components-bundle/pull/487))
+- `http_cache.warm_after_flush` (off by default): after a successful full flush, dispatch a bounded warm of the public routes for `gzip` and `br` as `WarmHttpCacheMessage`s on `messenger.default_bus`; route the message to an async transport ([#487](https://github.com/components-web-app/api-components-bundle/pull/487))
+
+### Changed
+- `purge-http-cache`'s description presents the full flush as a last resort and points at `--path` and `--tag` ([#487](https://github.com/components-web-app/api-components-bundle/pull/487))
+
 ### Fixed
 - `redirectTo()` on a scaffold page or page data refuses a redirect to the page's own route, naming the page and the route ([#485](https://github.com/components-web-app/api-components-bundle/pull/485))
 - `prune-fixture-assets` reports a storage error from listing or deleting, with the assets it had already deleted, and exits 1 instead of crashing ([#485](https://github.com/components-web-app/api-components-bundle/pull/485))
