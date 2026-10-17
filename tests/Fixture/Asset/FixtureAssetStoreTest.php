@@ -84,6 +84,38 @@ class FixtureAssetStoreTest extends TestCase
         self::assertTrue($this->filesystem->fileExists('fixtures/README.md'));
     }
 
+    public function test_pruning_dropped_assets_deletes_only_what_the_previous_manifest_listed_and_the_new_one_does_not(): void
+    {
+        $this->filesystem->write('fixtures/' . self::A, 'a');
+        $this->filesystem->write('fixtures/' . self::B, 'b');
+        $this->filesystem->write('fixtures/' . self::C, 'c');
+        $store = new FixtureAssetStore($this->filesystem, 'fixtures', true, 'local');
+
+        self::assertSame([self::A], $store->pruneDropped([self::B, self::A], [self::B]));
+
+        self::assertSame([self::B, self::C], $store->hashes());
+    }
+
+    public function test_pruning_dropped_assets_skips_a_listed_asset_the_store_no_longer_holds(): void
+    {
+        $this->filesystem->write('fixtures/' . self::B, 'b');
+        $store = new FixtureAssetStore($this->filesystem, 'fixtures', true, 'local');
+
+        self::assertSame([], $store->pruneDropped([self::A, self::B], [self::B]));
+
+        self::assertSame([self::B], $store->hashes());
+    }
+
+    public function test_pruning_dropped_assets_with_no_previous_manifest_deletes_nothing(): void
+    {
+        $this->filesystem->write('fixtures/' . self::A, 'a');
+        $store = new FixtureAssetStore($this->filesystem, 'fixtures', true, 'local');
+
+        self::assertSame([], $store->pruneDropped([], [self::B]));
+
+        self::assertSame([self::A], $store->hashes());
+    }
+
     public function test_a_dry_run_lists_what_pruning_would_delete_and_deletes_nothing(): void
     {
         $this->filesystem->write('fixtures/' . self::A, 'a');
