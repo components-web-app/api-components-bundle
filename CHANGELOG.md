@@ -5,7 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Fixed
-- `generate-fixtures` into a local fixture asset store deletes only the assets the same scaffold's previous manifest listed and the new one does not, so scaffolds sharing a folder no longer delete each other's assets ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+- `generate-fixtures` into a local fixture asset store deletes only the assets the same scaffold's previous manifest listed and the new one does not, so scaffolds sharing a folder no longer delete each other's assets ([#486](https://github.com/components-web-app/api-components-bundle/pull/486))
 
 ## [2.0.0-alpha.24](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.23...2.0.0-alpha.24) - 2026-10-17
 
