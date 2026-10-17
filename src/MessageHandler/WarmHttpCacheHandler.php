@@ -33,6 +33,12 @@ final readonly class WarmHttpCacheHandler
 
     public function __invoke(WarmHttpCacheMessage $message): ?HttpCacheWarmResult
     {
+        if (!$this->httpCacheWarmer->canDecode($message->acceptEncoding)) {
+            $this->logger?->error(\sprintf('The HTTP cache was not warmed with Accept-Encoding %s after the flush: the brotli PHP extension is not installed, so the warm could not follow a route to its manifest and components', $message->acceptEncoding));
+
+            return null;
+        }
+
         $paths = $this->publicRoutePaths->find($this->limit);
         if ([] === $paths) {
             $this->logger?->info('There is no public route to warm after the HTTP cache flush');

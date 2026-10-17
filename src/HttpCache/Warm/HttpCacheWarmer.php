@@ -33,7 +33,23 @@ final class HttpCacheWarmer
         private readonly HttpClientInterface $httpClient,
         private readonly IriConverterInterface $iriConverter,
         private readonly ClockInterface $clock,
+        private readonly string $brotliUncompress = 'brotli_uncompress',
     ) {
+    }
+
+    public function canDecode(?string $acceptEncoding): bool
+    {
+        if (\is_callable($this->brotliUncompress)) {
+            return true;
+        }
+
+        foreach (explode(',', strtolower($acceptEncoding ?? '')) as $coding) {
+            if ('br' === trim(explode(';', $coding, 2)[0])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -122,15 +138,21 @@ final class HttpCacheWarmer
         }
 
         $item = $response->getInfo('user_data');
-        if (self::KIND_ROUTE === $item['kind']) {
+        if (self::KIND_RESOURCE === $item['kind']) {
+            return $request;
+        }
+
+        try {
             $data = $this->decode($response);
-            if (null !== $data && empty($data['redirectPath'])) {
-                $enqueue(['kind' => self::KIND_MANIFEST, 'iri' => ModuleRequestHeaders::manifestIri($item['apiPrefix'], $item['path'])] + $item);
-            }
+        } catch (\UnexpectedValueException $exception) {
+            return new HttpCacheWarmRequest($request->url, $request->status, $request->duration, $request->hit, $exception->getMessage());
+        }
+
+        if (self::KIND_ROUTE === $item['kind'] && empty($data['redirectPath'])) {
+            $enqueue(['kind' => self::KIND_MANIFEST, 'iri' => ModuleRequestHeaders::manifestIri($item['apiPrefix'], $item['path'])] + $item);
         }
 
         if (self::KIND_MANIFEST === $item['kind']) {
-            $data = $this->decode($response);
             foreach ($this->manifestRequests($data['resource_iris'] ?? null, $item['apiPrefix'], $item['path']) as [$iri, $path]) {
                 $enqueue(['kind' => self::KIND_RESOURCE, 'iri' => $iri, 'path' => $path] + $item);
             }
@@ -228,26 +250,33 @@ final class HttpCacheWarmer
         return $headers;
     }
 
-    private function decode(ResponseInterface $response): ?array
+    /**
+     * @throws \UnexpectedValueException
+     */
+    private function decode(ResponseInterface $response): array
     {
         $body = $response->getContent();
-        $body = match (strtolower($response->getHeaders()['content-encoding'][0] ?? '')) {
+        $encoding = strtolower($response->getHeaders()['content-encoding'][0] ?? '');
+        $body = match ($encoding) {
             '' => $body,
             'gzip' => @gzdecode($body),
-            'br' => \function_exists('brotli_uncompress') ? brotli_uncompress($body) : false,
+            'br' => \is_callable($this->brotliUncompress) ? ($this->brotliUncompress)($body) : false,
             default => false,
         };
         if (!\is_string($body)) {
-            return null;
+            throw new \UnexpectedValueException(\sprintf('The response body could not be decoded from Content-Encoding "%s"', $encoding));
         }
 
         try {
             $data = json_decode($body, true, flags: \JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
-            return null;
+            $data = null;
+        }
+        if (!\is_array($data)) {
+            throw new \UnexpectedValueException('The response body is not a JSON object');
         }
 
-        return \is_array($data) ? $data : null;
+        return $data;
     }
 
     private function isHit(ResponseInterface $response): ?bool
