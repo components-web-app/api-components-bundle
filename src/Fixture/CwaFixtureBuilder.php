@@ -942,7 +942,11 @@ class CwaFixtureBuilder implements ResetInterface
                 }
                 throw new \LogicException(\sprintf('redirectTo(): %s has no route to redirect to "%s".', $label, $routeName));
             }
-            $route->setRedirect($this->routeNamedBy($routeName, \sprintf('The route of %s redirects to', $label)));
+            $target = $this->routeNamedBy($routeName, \sprintf('The route of %s redirects to', $label));
+            if ($target === $route) {
+                throw new \LogicException(\sprintf('redirectTo(): %s cannot redirect its own route "%s" to itself.', $label, $route->getPath()));
+            }
+            $route->setRedirect($target);
             $applied = true;
         }
 

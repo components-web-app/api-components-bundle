@@ -13,6 +13,8 @@ namespace Silverback\ApiComponentsBundle\Tests\Command;
 
 use League\Flysystem\Filesystem;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
+use League\Flysystem\UnableToDeleteFile;
+use League\Flysystem\UnableToListContents;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Command\PruneFixtureAssetsCommand;
 use Silverback\ApiComponentsBundle\Fixture\Asset\FixtureAssetManifest;
@@ -143,6 +145,52 @@ class PruneFixtureAssetsCommandTest extends TestCase
 
         self::assertFileDoesNotExist($this->directory . '/elsewhere/' . hash('sha256', 'stale'));
         self::assertTrue($this->bucket->fileExists('fixtures/' . hash('sha256', 'stale')));
+    }
+
+    public function test_a_store_that_cannot_be_listed_fails_and_deletes_nothing(): void
+    {
+        $this->bucket = new Filesystem(new class extends InMemoryFilesystemAdapter {
+            public function listContents(string $path, bool $deep): iterable
+            {
+                throw UnableToListContents::atLocation($path, $deep, new \RuntimeException('the bucket refused'));
+            }
+        });
+
+        $tester = $this->prune(['manifests' => [$this->current]]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString('The fixture asset store the gcloud filesystem under fixtures could not be pruned: Unable to list contents for \'fixtures\', shallow listing', $tester->getDisplay());
+        self::assertStringContainsString('Deleted 0 asset(s) before the failure.', $tester->getDisplay());
+    }
+
+    public function test_a_delete_that_fails_part_way_reports_the_assets_already_deleted(): void
+    {
+        $this->bucket = new Filesystem(new class extends InMemoryFilesystemAdapter {
+            private int $deletes = 0;
+
+            public function delete(string $path): void
+            {
+                if (2 === ++$this->deletes) {
+                    throw UnableToDeleteFile::atLocation($path, 'the bucket refused');
+                }
+                parent::delete($path);
+            }
+        });
+        $stale = [hash('sha256', 'stale'), hash('sha256', 'stale too'), hash('sha256', 'stale three')];
+        sort($stale);
+        foreach (['current', 'stale', 'stale too', 'stale three'] as $content) {
+            $this->bucket->write('fixtures/' . hash('sha256', $content), $content);
+        }
+
+        $tester = $this->prune(['manifests' => [$this->current]]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString('The fixture asset store the gcloud filesystem under fixtures could not be pruned: Unable to delete file located at: fixtures/' . $stale[1] . '. the bucket refused', $tester->getDisplay());
+        self::assertStringContainsString("Deleted 1 asset(s) before the failure.\n  - " . $stale[0] . "\n", $tester->getDisplay());
+        self::assertFalse($this->bucket->fileExists('fixtures/' . $stale[0]));
+        self::assertTrue($this->bucket->fileExists('fixtures/' . $stale[1]));
+        self::assertTrue($this->bucket->fileExists('fixtures/' . $stale[2]));
+        self::assertTrue($this->bucket->fileExists('fixtures/' . hash('sha256', 'current')));
     }
 
     private function prune(array $input, int $verbosity = OutputInterface::VERBOSITY_NORMAL, ?FixtureAssetStoreFactory $stores = null): CommandTester
