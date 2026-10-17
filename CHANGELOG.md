@@ -4,6 +4,10 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- `redirectTo()` on a scaffold page or page data refuses a redirect to the page's own route, naming the page and the route ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+- `prune-fixture-assets` reports a storage error from listing or deleting, with the assets it had already deleted, and exits 1 instead of crashing ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+
 ## [2.0.0-alpha.24](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.23...2.0.0-alpha.24) - 2026-10-17
 
 ### Breaking

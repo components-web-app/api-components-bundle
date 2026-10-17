@@ -3066,6 +3066,29 @@ class CwaFixtureBuilderTest extends TestCase
         $builder->flush();
     }
 
+    public function test_a_page_route_redirect_to_its_own_route_throws_naming_the_page_and_the_route(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $builder->layout('main', 'Primary');
+        $builder->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home')->redirectTo('home');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('redirectTo(): the page "home" cannot redirect its own route "/" to itself.');
+        $builder->flush();
+    }
+
+    public function test_a_page_data_route_redirect_to_its_own_route_throws_naming_the_page_data_and_the_route(): void
+    {
+        $builder = $this->makeBuilder($this->collectingEm());
+        $pageData = new PageData();
+        $pageData->setTitle('Event');
+        $builder->pageData($pageData, route: '/event', routeName: 'event')->redirectTo('event');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('redirectTo(): the page data "Event" cannot redirect its own route "/event" to itself.');
+        $builder->flush();
+    }
+
     public function test_a_redirect_on_a_page_with_no_route_throws_naming_the_page(): void
     {
         $builder = $this->makeBuilder($this->collectingEm());

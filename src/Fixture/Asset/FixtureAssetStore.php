@@ -77,18 +77,20 @@ final readonly class FixtureAssetStore
     }
 
     /**
-     * @param list<string> $kept
+     * @param list<string>                  $kept
+     * @param (\Closure(string): void)|null $deleted
      *
      * @throws FilesystemException
      *
      * @return list<string>
      */
-    public function prune(array $kept, bool $dryRun = false): array
+    public function prune(array $kept, bool $dryRun = false, ?\Closure $deleted = null): array
     {
         $unreferenced = array_values(array_diff($this->hashes(), $kept));
         if (!$dryRun) {
             foreach ($unreferenced as $hash) {
                 $this->filesystem->delete($this->path($hash));
+                $deleted?->__invoke($hash);
             }
         }
 

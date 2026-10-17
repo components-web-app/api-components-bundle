@@ -84,6 +84,34 @@ class FixtureAssetStoreTest extends TestCase
         self::assertTrue($this->filesystem->fileExists('fixtures/README.md'));
     }
 
+    public function test_pruning_reports_each_asset_once_it_is_deleted(): void
+    {
+        $this->filesystem->write('fixtures/' . self::A, 'a');
+        $this->filesystem->write('fixtures/' . self::B, 'b');
+        $this->filesystem->write('fixtures/' . self::C, 'c');
+        $store = new FixtureAssetStore($this->filesystem, 'fixtures', false, 'gcloud');
+        $reported = [];
+
+        $store->prune([self::B], false, function (string $hash) use (&$reported): void {
+            $reported[] = [$hash, $this->filesystem->fileExists('fixtures/' . $hash)];
+        });
+
+        self::assertSame([[self::A, false], [self::C, false]], $reported);
+    }
+
+    public function test_a_dry_run_reports_nothing_as_deleted(): void
+    {
+        $this->filesystem->write('fixtures/' . self::A, 'a');
+        $store = new FixtureAssetStore($this->filesystem, 'fixtures', false, 'gcloud');
+        $reported = [];
+
+        $store->prune([], true, static function (string $hash) use (&$reported): void {
+            $reported[] = $hash;
+        });
+
+        self::assertSame([], $reported);
+    }
+
     public function test_a_dry_run_lists_what_pruning_would_delete_and_deletes_nothing(): void
     {
         $this->filesystem->write('fixtures/' . self::A, 'a');
