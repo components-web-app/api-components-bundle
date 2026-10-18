@@ -118,7 +118,7 @@ class TimestampedNormalizerTest extends TestCase
         self::assertSame('1970-01-01 00:00:00', $result->createdAt->format('Y-m-d H:i:s'));
     }
 
-    public function test_an_object_to_populate_of_another_type_is_ignored(): void
+    public function test_an_object_to_populate_of_another_type_makes_a_new_resource_with_a_fresh_created_at(): void
     {
         $normalizer = $this->buildNormalizer(static function () {
             $object = new TimestampedNormalizerFixture();
@@ -134,7 +134,7 @@ class TimestampedNormalizerTest extends TestCase
             [AbstractNormalizer::OBJECT_TO_POPULATE => new ArrayCollection()]
         );
 
-        self::assertSame('1970-01-01 00:00:00', $result->createdAt->format('Y-m-d H:i:s'));
+        self::assertEqualsWithDelta(time(), $result->createdAt->getTimestamp(), 5);
     }
 
     public function test_it_supports_a_timestamped_type_once_only(): void

@@ -56,7 +56,7 @@ class TimestampedNormalizer implements DenormalizerInterface, DenormalizerAwareI
         $context[self::ALREADY_CALLED][] = $type;
 
         $objectToPopulate = $context[AbstractNormalizer::OBJECT_TO_POPULATE] ?? null;
-        $isNew = null === $objectToPopulate;
+        $isNew = !$objectToPopulate instanceof $type;
 
         $persistedCreatedAt = $objectToPopulate instanceof $type ? $this->getCreatedAt($objectToPopulate) : null;
 

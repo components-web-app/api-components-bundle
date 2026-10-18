@@ -311,7 +311,7 @@ class ComponentPlacerTest extends TestCase
         ], $this->report->all());
     }
 
-    public function test_a_draft_in_its_own_position_is_paired_with_its_published_component(): void
+    public function test_a_draft_in_a_position_of_its_own_is_placed_as_its_published_component_and_reported(): void
     {
         $published = new DummyPublishableComponent();
         $draft = $this->draftOf($published);
@@ -322,13 +322,16 @@ class ComponentPlacerTest extends TestCase
         $placer->describeAll();
 
         [$publishedPlan, $draftPlan] = $placer->plans();
-        self::assertNull($publishedPlan->draft);
-        self::assertSame($publishedPlan, $draftPlan->published);
-        self::assertSame([[$publishedPlan, $draftPlan]], $placer->draftPairs());
-        self::assertSame(1, $draftPlan->uses);
+        self::assertSame($published, $publishedPlan->component);
+        self::assertSame(2, $publishedPlan->uses);
+        self::assertSame([$publishedPlan, $publishedPlan], $method->groups[0]->items);
+        self::assertSame($draftPlan, $publishedPlan->draft);
+        self::assertSame(0, $draftPlan->uses);
+        self::assertSame([], $placer->draftPairs());
+        self::assertSame(['A position holds a draft of a published component, which is generated as the published component a write would store (1 entity).'], $this->report->all());
     }
 
-    public function test_a_placed_draft_whose_published_component_is_in_no_position_brings_the_published_component_with_it(): void
+    public function test_a_draft_placed_without_its_published_component_places_the_published_component(): void
     {
         $published = new DummyPublishableComponent();
         $published->reference = 'Welcome';
@@ -341,16 +344,57 @@ class ComponentPlacerTest extends TestCase
         $placer->placeIn($method);
         $placer->describeAll();
 
-        [$draftPlan, $publishedPlan] = $placer->plans();
+        [$publishedPlan, $draftPlan] = $placer->plans();
         self::assertSame($published, $publishedPlan->component);
-        self::assertSame($publishedPlan, $draftPlan->published);
-        self::assertNull($publishedPlan->draft);
-        self::assertSame([[$publishedPlan, $draftPlan]], $placer->draftPairs());
-        self::assertSame(1, $draftPlan->uses);
-        self::assertSame(0, $publishedPlan->uses);
-        self::assertSame($method, $publishedPlan->scope);
+        self::assertSame([$publishedPlan], $method->groups[0]->items);
+        self::assertSame(1, $publishedPlan->uses);
         self::assertSame(['Welcome'], $publishedPlan->phrases);
         self::assertTrue($publishedPlan->publishNow);
+        self::assertSame($draftPlan, $publishedPlan->draft);
+        self::assertSame(0, $draftPlan->uses);
+        self::assertSame([], $placer->draftPairs());
+        self::assertSame(['A position holds a draft of a published component, which is generated as the published component a write would store (1 entity).'], $this->report->all());
+    }
+
+    public function test_a_page_data_property_holding_a_draft_is_assigned_its_published_component_and_reported(): void
+    {
+        $published = new DummyPublishableComponent();
+        $draft = $this->draftOf($published);
+        $first = new PageDataWithComponent();
+        $first->publishableComponent = $draft;
+        $second = new PageDataWithComponent();
+        $second->publishableComponent = $draft;
+        $placer = $this->placer();
+        $method = new MethodPlan(MethodKind::PageData, 'pageData', $first);
+
+        $placer->placeIn($method);
+        $placer->placeIn(new MethodPlan(MethodKind::PageData, 'otherPageData', $second));
+
+        $plan = $placer->plans()[0];
+        self::assertSame($published, $plan->component);
+        self::assertSame(2, $plan->uses);
+        self::assertEquals([new Assignment('publishableComponent', $plan)], $method->entityAssignments);
+        self::assertSame(['The page data property ' . PageDataWithComponent::class . '::$publishableComponent holds a draft of a published component, which is generated as the published component a write would store (2 page data).'], $this->report->all());
+    }
+
+    public function test_a_draft_related_to_a_placed_component_is_paired_with_its_published_component(): void
+    {
+        $published = new DummyPublishableComponent();
+        $draft = $this->draftOf($published);
+        $card = new DummyComponentWithRelated();
+        $card->related = $draft;
+        $placer = $this->placer();
+        $method = $this->methodFor($this->layoutWith($card, $published));
+
+        $placer->placeIn($method);
+        $placer->describeAll();
+
+        [$cardPlan, $publishedPlan, $draftPlan] = $placer->plans();
+        self::assertSame($card, $cardPlan->component);
+        self::assertSame($draft, $draftPlan->component);
+        self::assertNull($publishedPlan->draft);
+        self::assertSame($publishedPlan, $draftPlan->published);
+        self::assertSame([[$publishedPlan, $draftPlan]], $placer->draftPairs());
         self::assertSame([], $this->report->all());
     }
 

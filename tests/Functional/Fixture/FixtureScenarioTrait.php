@@ -160,6 +160,24 @@ trait FixtureScenarioTrait
         $this->siteBuilder()->persist($published);
     }
 
+    protected function siteHasAPageDataHoldingADraftOfAPublishedComponent(string $title, string $reference, string $draftReference): void
+    {
+        $cwa = $this->templatePage();
+        $published = self::newPublishedComponent($reference, '2020-01-01 00:00:00');
+        $pageData = new PageDataWithComponent();
+        $pageData->setTitle($title);
+        $pageData->publishableComponent = self::newDraftOf($published, $draftReference);
+        $cwa->pageData($pageData, template: 'template', route: '/' . strtolower($title));
+    }
+
+    protected function siteIsFlushed(): void
+    {
+        $manager = self::getEntityManager();
+        $this->siteBuilder()->flush();
+        $manager->flush();
+        $manager->clear();
+    }
+
     protected function siteHasAPublishedComponentWithADraftOwningAGroup(string $reference, string $draftReference, string $group): void
     {
         $cwa = $this->siteBuilder();
@@ -933,6 +951,20 @@ trait FixtureScenarioTrait
         $component = $this->findPublishable($reference);
         self::assertTrue(null !== $component->getPublishedAt() && $component->getPublishedAt() <= new \DateTime(), \sprintf('The component "%s" is not published.', $reference));
         self::assertTrue($component->getComponentPositions()->isEmpty(), \sprintf('The component "%s" is placed in a group.', $reference));
+    }
+
+    protected function assertComponentHoldsPositions(string $reference, int $count): void
+    {
+        $manager = self::getEntityManager();
+        $manager->clear();
+        self::assertSame($count, $manager->getRepository(ComponentPosition::class)->count(['component' => $this->findPublishable($reference)]), \sprintf('The component "%s" is not in %d positions.', $reference, $count));
+    }
+
+    protected function assertPageDataWithComponentHoldsThePublishableComponent(string $title, string $reference): void
+    {
+        $manager = self::getEntityManager();
+        $manager->clear();
+        self::assertSame($reference, $manager->getRepository(PageDataWithComponent::class)->findOneBy(['title' => $title])?->publishableComponent?->reference);
     }
 
     protected function assertComponentIsPlaced(string $reference): void

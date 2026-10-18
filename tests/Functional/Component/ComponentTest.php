@@ -77,6 +77,22 @@ final class ComponentTest extends FunctionalTestCase
         self::assertJsonNodeSame('sortValue', 1);
     }
 
+    public function test_a_component_update_can_add_a_component_position(): void
+    {
+        $client = static::createClient();
+        self::loginAsUser($client);
+        $group = self::createGroupWithComponentIris(0);
+        $component = self::createDummyComponent();
+
+        self::requestJsonLd($client, 'PATCH', $component, ['componentPositions' => [['componentGroup' => $group['group']]]]);
+
+        self::assertResponseStatusCodeSame(200);
+        $position = self::jsonNode('componentPositions[0]');
+        self::requestJsonLd($client, 'GET', $position);
+        self::assertJsonNodeSame('componentGroup', $group['group']);
+        self::assertJsonNodeSame('component', $component);
+    }
+
     public function test_i_can_delete_a_component(): void
     {
         $client = static::createClient();
