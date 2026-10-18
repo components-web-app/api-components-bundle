@@ -20,7 +20,7 @@ trait JsonTrait
 {
     protected static function jsonSchemaDirectory(): string
     {
-        return \dirname(__DIR__, 3) . '/features/assets/schema';
+        return \dirname(__DIR__) . '/assets/schema';
     }
 
     /**

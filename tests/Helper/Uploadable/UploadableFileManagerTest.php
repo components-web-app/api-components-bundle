@@ -303,7 +303,7 @@ class UploadableFileManagerTest extends TestCase
     {
         $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
         $object = new _LeakTestUploadable();
-        $object->file = new UploadedFile(__DIR__ . '/../../../features/assets/files/image.png', 'file', null, null, true);
+        $object->file = new UploadedFile(__DIR__ . '/../../Functional/assets/files/image.png', 'file', null, null, true);
 
         $this->createFileManager($filesystem)->persistFiles($object);
 
@@ -325,7 +325,7 @@ class UploadableFileManagerTest extends TestCase
     public function test_a_file_given_without_a_client_name_is_stored_with_the_extension_of_its_content(): void
     {
         $source = sys_get_temp_dir() . '/acb-' . bin2hex(random_bytes(4)) . '.jpg';
-        copy(__DIR__ . '/../../../features/assets/files/image.png', $source);
+        copy(__DIR__ . '/../../Functional/assets/files/image.png', $source);
         try {
             $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
             $object = new _LeakTestUploadable();
@@ -356,7 +356,7 @@ class UploadableFileManagerTest extends TestCase
     {
         [$filesystem, $adapter, $factory] = $this->googleCloudStorage();
         $object = new _LeakTestUploadable();
-        $dataUri = new DataUriFile('data:image/png;base64,' . base64_encode((string) file_get_contents(__DIR__ . '/../../../features/assets/files/image.png')));
+        $dataUri = new DataUriFile('data:image/png;base64,' . base64_encode((string) file_get_contents(__DIR__ . '/../../Functional/assets/files/image.png')));
         $object->file = new UploadedDataUriFile($dataUri, '6a3f5e2c-1b4d-4e8f-9a0b-1c2d3e4f5a6b.png');
 
         $this->createFileManager($filesystem, $factory)->persistFiles($object);
@@ -390,7 +390,7 @@ class UploadableFileManagerTest extends TestCase
     public function test_variants_generated_after_an_upload_use_the_fields_imagine_cache_control(): void
     {
         $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
-        $filesystem->write('photo-1a2b3c4d.png', (string) file_get_contents(__DIR__ . '/../../../features/assets/files/image.png'));
+        $filesystem->write('photo-1a2b3c4d.png', (string) file_get_contents(__DIR__ . '/../../Functional/assets/files/image.png'));
         $object = new _ImagineCacheControlUploadable();
         $object->filename = 'photo-1a2b3c4d.png';
 
@@ -424,7 +424,7 @@ class UploadableFileManagerTest extends TestCase
     private function upload(string $asset, string $clientName): UploadedFile
     {
         $temporaryUpload = tempnam(sys_get_temp_dir(), 'php');
-        copy(__DIR__ . '/../../../features/assets/files/' . $asset, $temporaryUpload);
+        copy(__DIR__ . '/../../Functional/assets/files/' . $asset, $temporaryUpload);
 
         return new UploadedFile($temporaryUpload, $clientName, null, null, true);
     }
@@ -432,7 +432,7 @@ class UploadableFileManagerTest extends TestCase
     private function storeUpload(string $asset, string $clientName): string
     {
         $temporaryUpload = tempnam(sys_get_temp_dir(), 'php');
-        copy(__DIR__ . '/../../../features/assets/files/' . $asset, $temporaryUpload);
+        copy(__DIR__ . '/../../Functional/assets/files/' . $asset, $temporaryUpload);
         try {
             $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
             $object = new _LeakTestUploadable();

@@ -47,7 +47,7 @@ class GenerateFixturesCommandTest extends TestCase
 {
     use GeneratorSiteTrait;
 
-    private const string DOCUMENTED_SCAFFOLD = __DIR__ . '/../../features/fixtures/scaffolds/SiteScaffold.php';
+    private const string DOCUMENTED_SCAFFOLD = __DIR__ . '/../Functional/Fixture/scaffolds/SiteScaffold.php';
 
     private string $outputDirectory;
     private string $outputFile;

@@ -23,7 +23,7 @@ $header = <<<'HEADER'
 $finder = PhpCsFixer\Finder::create()
     ->in(__DIR__)
     ->exclude('tests/Functional/app/var')
-    ->exclude('features/fixtures/scaffolds')
+    ->exclude('tests/Functional/Fixture/scaffolds')
     ->append([
         'tests/Functional/app/bin/console',
     ]);

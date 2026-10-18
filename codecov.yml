@@ -7,6 +7,5 @@ comment:
 
 ignore:
   - "tests/"
-  - "features/"
   - "src/Resources/config"
   - ".php-cs-fixer.dist.php"

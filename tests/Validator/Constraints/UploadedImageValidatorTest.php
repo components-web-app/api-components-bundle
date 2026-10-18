@@ -25,7 +25,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UploadedImageValidatorTest extends TestCase
 {
-    private const string ASSETS = __DIR__ . '/../../../features/assets/files/';
+    private const string ASSETS = __DIR__ . '/../../Functional/assets/files/';
 
     public function test_an_image_over_the_pixel_limit_is_told_the_limit_and_an_approximate_size(): void
     {
