@@ -21,28 +21,29 @@ final class EmailLinkHostTest extends FunctionalTestCase
 {
     use UserTrait;
 
-    /**
-     * @param array<string, string> $headers
-     */
-    #[DataProvider('refusedPasswordResetHeaders')]
-    public function test_a_password_reset_request_with_a_header_that_is_not_allowed_is_refused_and_no_email_is_sent(array $headers): void
+    public function test_an_origin_header_that_is_not_allowed_is_refused_and_no_email_is_sent(): void
     {
-        $client = static::createClient();
-        self::createMyUsername();
-
-        self::requestJsonLd($client, 'GET', '/password/reset/request/my_username', null, $headers);
-
-        self::assertResponseStatusCodeSame(400);
-        self::assertNoEmailSent();
+        self::assertPasswordResetRequestIsRefused(['origin' => 'https://evil.example']);
     }
 
-    public static function refusedPasswordResetHeaders(): iterable
+    public function test_a_referer_header_that_is_not_allowed_is_refused_and_no_email_is_sent(): void
     {
-        yield 'An Origin header that is not allowed is refused and no email is sent' => [['origin' => 'https://evil.example']];
-        yield 'A Referer header that is not allowed is refused and no email is sent' => [['referer' => 'https://evil.example/anything?x=1']];
-        yield 'An Origin header that is not allowed is refused even when the Referer is allowed' => [['referer' => 'http://www.website.com', 'origin' => 'https://evil.example:8443']];
-        yield 'The port is part of the origin, so an allowed host on another port is refused' => [['origin' => 'http://www.website.com:8080']];
-        yield 'An allowed origin is matched against the whole origin, not a substring of it' => [['origin' => 'http://www.website.com.evil.example']];
+        self::assertPasswordResetRequestIsRefused(['referer' => 'https://evil.example/anything?x=1']);
+    }
+
+    public function test_an_origin_header_that_is_not_allowed_is_refused_even_when_the_referer_is_allowed(): void
+    {
+        self::assertPasswordResetRequestIsRefused(['referer' => 'http://www.website.com', 'origin' => 'https://evil.example:8443']);
+    }
+
+    public function test_the_port_is_part_of_the_origin_so_an_allowed_host_on_another_port_is_refused(): void
+    {
+        self::assertPasswordResetRequestIsRefused(['origin' => 'http://www.website.com:8080']);
+    }
+
+    public function test_an_allowed_origin_is_matched_against_the_whole_origin_not_a_substring_of_it(): void
+    {
+        self::assertPasswordResetRequestIsRefused(['origin' => 'http://www.website.com.evil.example']);
     }
 
     public function test_an_allowed_origin_with_a_port_is_used_with_its_port(): void
@@ -257,5 +258,19 @@ final class EmailLinkHostTest extends FunctionalTestCase
     private static function createMyUsername(string $emailAddress = 'test.user@example.com'): User
     {
         return self::createUserWithRole('my_username', self::generatedSecret(), 'ROLE_USER', $emailAddress);
+    }
+
+    /**
+     * @param array<string, string> $headers
+     */
+    private static function assertPasswordResetRequestIsRefused(array $headers): void
+    {
+        $client = static::createClient();
+        self::createMyUsername();
+
+        self::requestJsonLd($client, 'GET', '/password/reset/request/my_username', null, $headers);
+
+        self::assertResponseStatusCodeSame(400);
+        self::assertNoEmailSent();
     }
 }

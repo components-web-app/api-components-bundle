@@ -180,11 +180,65 @@ final class FormTest extends FunctionalTestCase
         self::assertJsonNodeExists('formView.children[1].prototype');
     }
 
+    public function test_i_can_send_a_valid_field_for_validation_of_one_of_the_children_in_a_collection_type(): void
+    {
+        self::patchNestedForm(['children' => [new \stdClass(), ['name' => 'John Smith']]], 200);
+    }
+
+    public function test_i_can_send_null_children_in_place_of_an_empty_object_and_validation_will_still_pass_only_for_the_submitted_fields(): void
+    {
+        self::patchNestedForm(['children' => [null, ['name' => 'John Smith']]], 200);
+    }
+
+    public function test_i_can_send_an_invalid_field_for_validation_of_one_of_the_children_in_a_collection_type(): void
+    {
+        self::patchNestedForm(['children' => [new \stdClass(), ['name' => '']]], 422);
+    }
+
+    public function test_i_can_validate_a_valid_field_that_is_a_collection_type_with_a_simple_field(): void
+    {
+        self::patchNestedForm(['text_children' => ['hello']], 200);
+    }
+
+    public function test_i_can_validate_a_valid_field_that_is_a_collection_type_with_multiple_simple_field(): void
+    {
+        self::patchNestedForm(['text_children' => ['hello', 'another']], 200);
+    }
+
+    public function test_i_can_validate_an_invalid_field_that_is_a_collection_type_with_a_simple_field(): void
+    {
+        self::patchNestedForm(['text_children' => ['1']], 422);
+    }
+
+    public function test_validate_repeated_field_valid(): void
+    {
+        self::patchRepeatedForm('something', 200);
+    }
+
+    public function test_validate_repeated_field_invalid(): void
+    {
+        self::patchRepeatedForm('no_same', 422);
+    }
+
+    public function test_each_text_children_should_have_a_minimum_length_of_1_post_invalid_form(): void
+    {
+        self::postNestedForm(['children' => [['name' => 'A name']], 'text_children' => ['1']], 422);
+    }
+
+    public function test_children_is_required_post_an_invalid_form(): void
+    {
+        self::postNestedForm(['children' => [], 'text_children' => ['with minimum length']], 422);
+    }
+
+    public function test_post_a_valid_form(): void
+    {
+        self::postNestedForm(['children' => [['name' => 'A name']], 'text_children' => ['with minimum length']], 201);
+    }
+
     /**
      * @param array<string, mixed> $nested
      */
-    #[DataProvider('nestedPatches')]
-    public function test_a_patch_to_a_nested_form_validates_only_the_submitted_fields(array $nested, int $status): void
+    private static function patchNestedForm(array $nested, int $status): void
     {
         $client = static::createClient();
         $formIri = self::createForm(NestedType::class);
@@ -196,18 +250,7 @@ final class FormTest extends FunctionalTestCase
         self::assertFormResponse();
     }
 
-    public static function nestedPatches(): iterable
-    {
-        yield 'I can send a valid field for validation of one of the children in a CollectionType' => [['children' => [new \stdClass(), ['name' => 'John Smith']]], 200];
-        yield 'I can send null children in place of an empty object and validation will still pass only for the submitted fields' => [['children' => [null, ['name' => 'John Smith']]], 200];
-        yield 'I can send an invalid field for validation of one of the children in a CollectionType' => [['children' => [new \stdClass(), ['name' => '']]], 422];
-        yield 'I can validate a valid field that is a collection type with a simple field' => [['text_children' => ['hello']], 200];
-        yield 'I can validate a valid field that is a collection type with multiple simple field' => [['text_children' => ['hello', 'another']], 200];
-        yield 'I can validate an invalid field that is a collection type with a simple field' => [['text_children' => ['1']], 422];
-    }
-
-    #[DataProvider('repeatedFieldPatches')]
-    public function test_validate_repeated_field(string $second, int $status): void
+    private static function patchRepeatedForm(string $second, int $status): void
     {
         $client = static::createClient();
         $formIri = self::createForm(TestRepeatedType::class);
@@ -219,17 +262,10 @@ final class FormTest extends FunctionalTestCase
         self::assertFormResponse();
     }
 
-    public static function repeatedFieldPatches(): iterable
-    {
-        yield 'valid' => ['something', 200];
-        yield 'invalid' => ['no_same', 422];
-    }
-
     /**
      * @param array<string, mixed> $nested
      */
-    #[DataProvider('nestedPosts')]
-    public function test_a_post_to_a_nested_form_validates_the_collection_lengths(array $nested, int $status): void
+    private static function postNestedForm(array $nested, int $status): void
     {
         $client = static::createClient();
         $formIri = self::createForm(NestedType::class);
@@ -239,13 +275,6 @@ final class FormTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame($status);
         self::assertJsonLdResponse();
         self::assertJsonMatchesSchemaFile('form.schema.json');
-    }
-
-    public static function nestedPosts(): iterable
-    {
-        yield 'Each text_children should have a minimum length of 1 - post invalid form' => [['children' => [['name' => 'A name']], 'text_children' => ['1']], 422];
-        yield 'Children is required - post an invalid form' => [['children' => [], 'text_children' => ['with minimum length']], 422];
-        yield 'Post a valid form' => [['children' => [['name' => 'A name']], 'text_children' => ['with minimum length']], 201];
     }
 
     private static function assertJsonLdResponse(): void
