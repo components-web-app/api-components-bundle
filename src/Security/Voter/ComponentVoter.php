@@ -70,8 +70,7 @@ class ComponentVoter extends Voter
 
         $subject = $this->getPublishedSubject($subject);
 
-        $pagesGenerator = $this->getComponentPages($subject);
-        $pages = iterator_to_array($pagesGenerator, false);
+        $pages = $this->getComponentPages($subject);
 
         $routeVoteResult = $this->voteByRoute($pages);
         if ($routeVoteResult) {
@@ -152,7 +151,6 @@ class ComponentVoter extends Voter
 
     private function getPublishedSubject($subject)
     {
-        // is a draft publishable. If a published version is available we should be checking the published version to see if it is in an accessible location
         $publishableAttributeReader = $this->publishableStatusChecker->getAttributeReader();
         if ($publishableAttributeReader->isConfigured($subject) && !$this->publishableStatusChecker->isActivePublishedAt($subject)) {
             $configuration = $publishableAttributeReader->getConfiguration($subject);
@@ -195,7 +193,6 @@ class ComponentVoter extends Voter
 
             return true;
         } catch (\Exception $e) {
-            // unsupported format requested
             if ($e instanceof NotEncodableValueException) {
                 return false;
             }
@@ -209,22 +206,31 @@ class ComponentVoter extends Voter
         }
     }
 
-    private function getComponentPages(AbstractComponent $component): \Traversable
+    /**
+     * @return list<object>
+     */
+    private function getComponentPages(AbstractComponent $component): array
     {
-        $componentPositions = $component->getComponentPositions();
-        if (!\count($componentPositions)) {
-            return;
+        $pages = [];
+        $visitedGroups = new \SplObjectStorage();
+        $queue = [$component];
+
+        while ($queue) {
+            foreach (array_shift($queue)->getComponentPositions() as $componentPosition) {
+                $componentGroup = $componentPosition->componentGroup;
+                if ($visitedGroups->offsetExists($componentGroup)) {
+                    continue;
+                }
+                $visitedGroups->offsetSet($componentGroup);
+
+                foreach ($componentGroup->layouts as $layout) {
+                    array_push($pages, ...$layout->pages);
+                }
+                array_push($pages, ...$componentGroup->pages);
+                array_push($queue, ...$componentGroup->components);
+            }
         }
 
-        foreach ($componentPositions as $componentPosition) {
-            $componentGroup = $componentPosition->componentGroup;
-            foreach ($componentGroup->layouts as $layout) {
-                yield from $layout->pages;
-            }
-            foreach ($componentGroup->components as $parentComponent) {
-                yield from $this->getComponentPages($parentComponent);
-            }
-            yield from $componentGroup->pages;
-        }
+        return $pages;
     }
 }

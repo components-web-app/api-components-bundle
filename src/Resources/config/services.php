@@ -141,6 +141,7 @@ use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentCycleDetector;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionIriResolver;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionOrderer;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
@@ -209,6 +210,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
+use Silverback\ApiComponentsBundle\Validator\Constraints\AcyclicComponentGroupOwnersValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\AddedComponentPositionsValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPositionValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
@@ -396,6 +398,15 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(ComponentPositionOrderer::class, 'silverback.api_components.helper.component_position_orderer');
 
     $services
+        ->set('silverback.api_components.helper.component_cycle_detector')
+        ->class(ComponentCycleDetector::class)
+        ->args([
+            new Reference(ManagerRegistry::class),
+            new Reference(PublishableAttributeReader::class),
+        ]);
+    $services->alias(ComponentCycleDetector::class, 'silverback.api_components.helper.component_cycle_detector');
+
+    $services
         ->set('silverback.api_components.helper.component_position_iri_resolver')
         ->class(ComponentPositionIriResolver::class)
         ->args([new Reference(IriConverterInterface::class)]);
@@ -435,6 +446,8 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ExplicitAllowOnlyAttributeReader::class),
             new Reference('silverback.api_components.helper.listed_component_positions'),
             new Reference('silverback.api_components.helper.component_position_iri_resolver'),
+            new Reference('silverback.api_components.helper.component_cycle_detector'),
+            new Reference(ManagerRegistry::class),
         ])
         ->tag('validator.constraint_validator');
     $services->alias(ComponentPositionValidator::class, 'silverback.api_components.validator.component_position');
@@ -444,6 +457,13 @@ return static function (ContainerConfigurator $configurator) {
         ->class(ListedComponentPositions::class)
         ->args([new Reference(IriConverterInterface::class)]);
     $services->alias(ListedComponentPositions::class, 'silverback.api_components.helper.listed_component_positions');
+
+    $services
+        ->set('silverback.api_components.validator.acyclic_component_group_owners')
+        ->class(AcyclicComponentGroupOwnersValidator::class)
+        ->args([new Reference('silverback.api_components.helper.component_cycle_detector')])
+        ->tag('validator.constraint_validator');
+    $services->alias(AcyclicComponentGroupOwnersValidator::class, 'silverback.api_components.validator.acyclic_component_group_owners');
 
     $services
         ->set('silverback.api_components.validator.added_component_positions')

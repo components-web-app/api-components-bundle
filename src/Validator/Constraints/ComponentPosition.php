@@ -28,6 +28,7 @@ class ComponentPosition extends Constraint
     public string $anchorNotInGroupMessage = 'The position `{{ iri }}` is not in the component group `{{ reference }}`.';
     public string $anchorWithSortValueMessage = 'Send an anchor or a sortValue, not both: the server chooses the sortValue.';
     public string $bothAnchorsMessage = 'Send either after or before, not both.';
+    public string $cycleMessage = 'The component cannot be placed in the component group `{{ reference }}`: the group is inside the component.';
     public string $selfAnchorMessage = 'A position cannot be placed relative to itself.';
     public string $invalidPageDataPropertyMessage = '`{{ property }}` is not a component-typed property on `{{ class }}`';
 

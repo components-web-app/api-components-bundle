@@ -19,6 +19,7 @@ use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
+use Silverback\ApiComponentsBundle\Validator\Constraints as AcbAssert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -68,6 +69,7 @@ class ComponentGroup
 
     #[ORM\ManyToMany(targetEntity: AbstractComponent::class, mappedBy: 'componentGroups')]
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write'])]
+    #[AcbAssert\AcyclicComponentGroupOwners]
     public Collection $components;
 
     #[ORM\OneToMany(targetEntity: ComponentPosition::class, mappedBy: 'componentGroup', orphanRemoval: true)]

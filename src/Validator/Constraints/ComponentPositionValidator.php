@@ -14,9 +14,13 @@ namespace Silverback\ApiComponentsBundle\Validator\Constraints;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AttributeReader\ExplicitAllowOnlyAttributeReader;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentCycleDetector;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionIriResolver;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
 use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
@@ -35,6 +39,8 @@ class ComponentPositionValidator extends ConstraintValidator
         private readonly ExplicitAllowOnlyAttributeReader $explicitAllowOnlyReader,
         private readonly ListedComponentPositions $listedComponentPositions,
         private readonly ComponentPositionIriResolver $positionIriResolver,
+        private readonly ComponentCycleDetector $cycleDetector,
+        private readonly ManagerRegistry $registry,
     ) {
     }
 
@@ -55,6 +61,7 @@ class ComponentPositionValidator extends ConstraintValidator
         $component = $componentPosition->component;
         if ($component) {
             $this->validateDirectComponent($componentPosition, $constraint, $component, $collection);
+            $this->validateNoCycle($componentPosition, $constraint, $component, $collection);
 
             return;
         }
@@ -83,6 +90,32 @@ class ComponentPositionValidator extends ConstraintValidator
             ->setParameter('{{ limit }}', (string) $limit)
             ->setPlural($limit)
             ->addViolation();
+    }
+
+    private function validateNoCycle(ComponentPosition $componentPosition, ComponentPositionConstraint $constraint, AbstractComponent $component, ComponentGroup $collection): void
+    {
+        if (!$this->isPlacementWritten($componentPosition) || !$this->cycleDetector->isPlacementCyclic($component, $collection)) {
+            return;
+        }
+
+        $this->context->buildViolation($constraint->cycleMessage)
+            ->atPath('component')
+            ->setParameter('{{ reference }}', (string) $collection->reference)
+            ->addViolation();
+    }
+
+    private function isPlacementWritten(ComponentPosition $componentPosition): bool
+    {
+        $manager = $this->registry->getManagerForClass(ComponentPosition::class);
+        if (!$manager instanceof EntityManagerInterface) {
+            return true;
+        }
+
+        $original = $manager->getUnitOfWork()->getOriginalEntityData($componentPosition);
+
+        return !$original
+            || ($original['component'] ?? null) !== $componentPosition->component
+            || ($original['componentGroup'] ?? null) !== $componentPosition->componentGroup;
     }
 
     private function validateAnchors(ComponentPosition $componentPosition, ComponentPositionConstraint $constraint, ComponentGroup $collection): void
