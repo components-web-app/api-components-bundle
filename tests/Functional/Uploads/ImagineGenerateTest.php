@@ -28,7 +28,7 @@ final class ImagineGenerateTest extends FunctionalTestCase
     {
         self::givenAnUploadableWithImagineFilters();
 
-        $tester = self::runCommand(self::COMMAND, [], OutputInterface::VERBOSITY_VERBOSE);
+        $tester = self::runConsoleCommand(self::COMMAND, [], OutputInterface::VERBOSITY_VERBOSE);
 
         self::assertExitedWith(0, $tester);
         self::assertStringContainsString('  generated: thumbnail ', $tester->getDisplay());
@@ -38,7 +38,7 @@ final class ImagineGenerateTest extends FunctionalTestCase
         self::assertSame(1, self::countFileInfoRows('square_thumbnail'));
         self::assertSame(1, self::countFileInfoRows('webp_thumbnail'));
 
-        $tester = self::runCommand(self::COMMAND);
+        $tester = self::runConsoleCommand(self::COMMAND);
 
         self::assertExitedWith(0, $tester);
         self::assertStringContainsString('Generated: 0', $tester->getDisplay());
@@ -50,13 +50,13 @@ final class ImagineGenerateTest extends FunctionalTestCase
     {
         self::givenAnUploadableWithImagineFilters();
 
-        $tester = self::runCommand(self::COMMAND, ['--limit' => '1']);
+        $tester = self::runConsoleCommand(self::COMMAND, ['--limit' => '1']);
 
         self::assertExitedWith(3, $tester);
         self::assertStringContainsString('Generated: 1', $tester->getDisplay());
         self::assertStringContainsString('Stopped after 1 variant (--limit); variants are still missing, so run the command again.', $tester->getDisplay());
 
-        $tester = self::runCommand(self::COMMAND);
+        $tester = self::runConsoleCommand(self::COMMAND);
 
         self::assertExitedWith(0, $tester);
         self::assertStringContainsString('Generated: 2', $tester->getDisplay());
@@ -67,13 +67,13 @@ final class ImagineGenerateTest extends FunctionalTestCase
     {
         self::givenAnUploadableWithImagineFilters();
 
-        $tester = self::runCommand(self::COMMAND, ['--dry-run' => true]);
+        $tester = self::runConsoleCommand(self::COMMAND, ['--dry-run' => true]);
 
         self::assertExitedWith(0, $tester);
         self::assertStringContainsString('To generate: 3', $tester->getDisplay());
         self::assertSame(0, self::countFileInfoRows('thumbnail'));
 
-        $tester = self::runCommand(self::COMMAND, ['--dry-run' => true]);
+        $tester = self::runConsoleCommand(self::COMMAND, ['--dry-run' => true]);
 
         self::assertStringContainsString('To generate: 3', $tester->getDisplay());
     }
@@ -82,7 +82,7 @@ final class ImagineGenerateTest extends FunctionalTestCase
     {
         self::givenAnUploadableWithImagineFilters();
 
-        $tester = self::runCommand(self::COMMAND, ['--filter' => ['thumbnail']]);
+        $tester = self::runConsoleCommand(self::COMMAND, ['--filter' => ['thumbnail']]);
 
         self::assertExitedWith(0, $tester);
         self::assertStringContainsString('Generated: 1', $tester->getDisplay());
@@ -94,7 +94,7 @@ final class ImagineGenerateTest extends FunctionalTestCase
     {
         self::givenAnUploadableWithImagineFilters();
 
-        $tester = self::runCommand(self::COMMAND, ['--filter' => ['thumbnial']]);
+        $tester = self::runConsoleCommand(self::COMMAND, ['--filter' => ['thumbnial']]);
 
         self::assertExitedWith(2, $tester);
         self::assertStringContainsString('is not a configured imagine filter.', $tester->getDisplay());

@@ -1347,7 +1347,7 @@ trait FixtureScenarioTrait
 
     private static function fixturesDirectory(): string
     {
-        return \dirname(__DIR__, 3) . '/features/fixtures';
+        return __DIR__;
     }
 
     private static function newLabelledComponent(string $label): DummyComponent

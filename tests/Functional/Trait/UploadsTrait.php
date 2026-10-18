@@ -34,7 +34,7 @@ trait UploadsTrait
 
     protected static function assetPath(string $name = 'image.png'): string
     {
-        return \dirname(__DIR__, 3) . '/features/assets/files/' . $name;
+        return \dirname(__DIR__) . '/assets/files/' . $name;
     }
 
     protected static function assetFile(string $name = 'image.png'): File

@@ -23,7 +23,7 @@ final class ConsoleTraitTest extends FunctionalTestCase
 
     public function test_a_command_runs_on_the_test_kernel_without_interaction(): void
     {
-        $tester = self::runCommand('silverback:api-components:user:create', ['username' => 'console_user', 'email' => 'console@example.com', 'password' => 'password']);
+        $tester = self::runConsoleCommand('silverback:api-components:user:create', ['username' => 'console_user', 'email' => 'console@example.com', 'password' => 'password']);
 
         self::assertSame(Command::SUCCESS, $tester->getStatusCode(), $tester->getDisplay());
         self::assertSame(1, self::countEntities(User::class));
@@ -32,7 +32,7 @@ final class ConsoleTraitTest extends FunctionalTestCase
 
     public function test_a_command_can_run_verbosely(): void
     {
-        $tester = self::runCommand('silverback:api-components:scan-orphaned', ['--no-notify' => true], OutputInterface::VERBOSITY_VERBOSE);
+        $tester = self::runConsoleCommand('silverback:api-components:scan-orphaned', ['--no-notify' => true], OutputInterface::VERBOSITY_VERBOSE);
 
         self::assertSame(Command::SUCCESS, $tester->getStatusCode(), $tester->getDisplay());
         self::assertSame(OutputInterface::VERBOSITY_VERBOSE, $tester->getOutput()->getVerbosity());

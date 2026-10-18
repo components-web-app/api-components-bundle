@@ -184,8 +184,8 @@ jobs:
           name: infection-logs-php${{ matrix.php }}
           path: build/logs/infection*
 
-  behat:
-    name: Behat (Symfony ${{ matrix.symfony }}) (API Platform ${{ matrix.api-platform }}) (PHP ${{ matrix.php }})${{ matrix.symfony-listeners == '1' && ' (use_symfony_listeners)' || '' }}
+  functional:
+    name: Functional (Symfony ${{ matrix.symfony }}) (API Platform ${{ matrix.api-platform }}) (PHP ${{ matrix.php }})${{ matrix.symfony-listeners == '1' && ' (use_symfony_listeners)' || '' }}
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.experimental }}
     strategy:
@@ -203,12 +203,6 @@ jobs:
         symfony-listeners:
           - ''
         include:
-          - php: '8.5'
-            symfony: '7.4'
-            api-platform: '^5.0'
-            experimental: false
-            symfony-listeners: ''
-            coverage: true
           - php: '8.5'
             symfony: '7.4'
             api-platform: '^4.4'
@@ -231,7 +225,7 @@ jobs:
           php-version: ${{ matrix.php }}
           tools: pecl, composer
           extensions: intl, bcmath, curl, openssl, mbstring, pdo_sqlite, exif, xsl, gd
-          coverage: pcov
+          coverage: none
           ini-values: memory_limit=-1
       - name: Get Composer Cache Directory
         id: composer-cache
@@ -251,58 +245,19 @@ jobs:
           composer update --no-progress --ansi
       - name: Clear test app cache
         run: tests/Functional/app/bin/console cache:clear --ansi
-      - name: Enable code coverage
-        if: matrix.coverage
-        run: echo "COVERAGE=1" >> $GITHUB_ENV
       - name: Run PHPUnit functional tests
         env:
           SYMFONY_DEPRECATIONS_HELPER: disabled=1
         run: |
           mkdir -p build/logs/functional
           vendor/bin/simple-phpunit --testsuite functional --log-junit build/logs/functional/junit.xml
-      - name: Run Behat tests
-        run: |
-          mkdir -p build/logs/behat
-          if [ "$COVERAGE" = '1' ]; then
-            php -d memory_limit=-1 -d pcov.enabled=1 -d error_reporting="E_ALL & ~E_NOTICE & ~E_DEPRECATED" bin/behat-parallel --junit=build/logs/behat/junit -- --profile=default-coverage --colors --tags='~@wip'
-          else
-            php -d memory_limit=-1 -d error_reporting="E_ALL & ~E_NOTICE & ~E_DEPRECATED" bin/behat-parallel --junit=build/logs/behat/junit -- --profile=default --colors --tags='~@wip'
-          fi
-      - name: Verify code coverage report is not empty
-        if: matrix.coverage
-        run: |
-          report=build/logs/behat/clover.xml
-          if [ ! -s "$report" ]; then
-            echo "::error::Behat coverage report $report is missing or empty"
-            exit 1
-          fi
-          php -r '
-            $metrics = simplexml_load_file($argv[1])->project->metrics;
-            $covered = (int) $metrics["coveredstatements"];
-            $total = (int) $metrics["statements"];
-            printf("Behat coverage: %d/%d covered statements across %d files%s", $covered, $total, (int) $metrics["files"], PHP_EOL);
-            if ($covered < 1000) {
-                fwrite(STDERR, "::error::Behat coverage report contains too few covered statements - the coverage pipeline is broken" . PHP_EOL);
-                exit(1);
-            }
-          ' "$report"
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: behat-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}-api-platform${{ matrix.api-platform }}-listeners${{ matrix.symfony-listeners }}
-          path: |
-            build/logs/behat
-            build/logs/functional
-            tests/Functional/app/var/shard-*/behat.log
+          name: functional-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}-api-platform${{ matrix.api-platform }}-listeners${{ matrix.symfony-listeners }}
+          path: build/logs/functional
         continue-on-error: true
-      - name: Upload coverage results to Codecov
-        if: matrix.coverage
-        uses: codecov/codecov-action@v4
-        with:
-          flags: behat
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
 
   phpunit-lowest-deps:
     name: PHPUnit (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }}) (lowest dependencies)
@@ -357,68 +312,6 @@ jobs:
         with:
           name: phpunit-logs-php${{ matrix.php }}-lowest-deps
           path: build/logs/phpunit
-        continue-on-error: true
-
-  behat-lowest-deps:
-    name: Behat (Symfony ${{ matrix.symfony }}) (PHP ${{ matrix.php }}) (lowest dependencies)
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        php:
-          - '8.5'
-        symfony:
-          - '^7.4'
-      fail-fast: false
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        env:
-            GD_CONFIGURE_OPTS: --enable-gd=shared,/usr --with-external-gd --with-jpeg --with-freetype
-            GD_LIBS: libjpeg-dev libpng-dev
-            GD_PATH: ext/gd
-        with:
-          php-version: ${{ matrix.php }}
-          tools: pecl, composer
-          extensions: intl, bcmath, curl, openssl, mbstring, pdo_sqlite, exif, xsl, gd
-          coverage: none
-          ini-values: memory_limit=-1
-      -   name: Get Composer Cache Directory
-          id: composer-cache
-          run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-      - name: Restore composer cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-lowest-deps-php${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
-          restore-keys: |
-            composer-lowest-deps-php${{ matrix.php }}-
-        continue-on-error: true
-      - name: Update project dependencies
-        run: composer update --no-progress --ansi --prefer-stable --prefer-lowest
-      - name: Clear test app cache
-        run: tests/Functional/app/bin/console cache:clear --ansi
-      - name: Run PHPUnit functional tests
-        env:
-          SYMFONY_DEPRECATIONS_HELPER: disabled=1
-        run: |
-          mkdir -p build/logs/functional
-          vendor/bin/simple-phpunit --testsuite functional --log-junit build/logs/functional/junit.xml
-      - name: Run Behat tests
-        run: |
-          mkdir -p build/logs/behat
-          php -d memory_limit=-1 -d error_reporting="E_ALL & ~E_NOTICE & ~E_DEPRECATED" bin/behat-parallel --junit=build/logs/behat/junit -- --profile=default --colors --tags='~@wip'
-      - name: Upload test artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: behat-logs-php${{ matrix.php }}-lowest-deps
-          path: |
-            build/logs/behat
-            build/logs/functional
-            tests/Functional/app/var/shard-*/behat.log
         continue-on-error: true
 
   phpunit-symfony-next:
@@ -493,73 +386,4 @@ jobs:
         with:
           name: phpunit-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}
           path: build/logs/phpunit
-        continue-on-error: true
-
-  behat-symfony-next:
-    name: Behat (Symfony NEXT ${{ matrix.symfony }}) (PHP ${{ matrix.php }})
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    strategy:
-      matrix:
-        php:
-          - '8.5'
-        symfony:
-          - '8.2'
-      fail-fast: false
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        env:
-            GD_CONFIGURE_OPTS: --enable-gd=shared,/usr --with-external-gd --with-jpeg --with-freetype
-            GD_LIBS: libjpeg-dev libpng-dev
-            GD_PATH: ext/gd
-        with:
-          php-version: ${{ matrix.php }}
-          tools: pecl, composer
-          extensions: intl, bcmath, curl, openssl, mbstring, pdo_sqlite, exif, xsl, gd
-          coverage: none
-          ini-values: memory_limit=-1
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-      - name: Restore composer cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-${{ github.sha }}
-          restore-keys: |
-            composer-php${{ matrix.php }}-symfony${{ matrix.symfony }}-
-            composer-php${{ matrix.php }}-
-            composer-
-        continue-on-error: true
-      - name: Update project dependencies
-        run: |
-          composer config extra.symfony.require ${{ matrix.symfony }}
-          composer config minimum-stability dev
-          composer config prefer-stable false
-          composer update --no-progress --ansi
-      - name: Clear test app cache
-        run: tests/Functional/app/bin/console cache:clear --ansi
-      - name: Run PHPUnit functional tests
-        env:
-          SYMFONY_DEPRECATIONS_HELPER: disabled=1
-        run: |
-          mkdir -p build/logs/functional
-          vendor/bin/simple-phpunit --testsuite functional --log-junit build/logs/functional/junit.xml
-      - name: Run Behat tests
-        run: |
-          mkdir -p build/logs/behat
-          php -d memory_limit=-1 -d error_reporting="E_ALL & ~E_NOTICE & ~E_DEPRECATED" bin/behat-parallel --junit=build/logs/behat/junit -- --profile=default --colors --tags='~@wip'
-      - name: Upload test artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: behat-logs-php${{ matrix.php }}-symfony${{ matrix.symfony }}
-          path: |
-            build/logs/behat
-            build/logs/functional
-            tests/Functional/app/var/shard-*/behat.log
         continue-on-error: true

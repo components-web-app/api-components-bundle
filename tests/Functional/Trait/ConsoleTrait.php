@@ -21,7 +21,7 @@ trait ConsoleTrait
     /**
      * @param array<string, mixed> $input
      */
-    protected static function runCommand(string $name, array $input = [], int $verbosity = OutputInterface::VERBOSITY_NORMAL): CommandTester
+    protected static function runConsoleCommand(string $name, array $input = [], int $verbosity = OutputInterface::VERBOSITY_NORMAL): CommandTester
     {
         $tester = new CommandTester((new Application(static::$kernel ?? static::bootKernel()))->find($name));
         $tester->execute($input, ['interactive' => false, 'verbosity' => $verbosity]);

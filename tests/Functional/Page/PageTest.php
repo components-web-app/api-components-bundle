@@ -461,7 +461,7 @@ final class PageTest extends FunctionalTestCase
         self::createPageWith('legacy', uiComponent: 'PrimaryPageTemplate');
         self::createPageWith('current', uiComponent: 'CwaPageSecondaryPageTemplate');
 
-        $tester = self::runCommand('silverback:api-components:prefix-page-ui-components');
+        $tester = self::runConsoleCommand('silverback:api-components:prefix-page-ui-components');
 
         self::assertSame(0, $tester->getStatusCode());
         self::assertStringContainsString('Prefixed the uiComponent of 1 page with CwaPage.', $tester->getDisplay());

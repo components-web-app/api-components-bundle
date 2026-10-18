@@ -34,7 +34,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class StoredFileConstraintValidatorTest extends TestCase
 {
-    private const string ASSETS = __DIR__ . '/../../../features/assets/files/';
+    private const string ASSETS = __DIR__ . '/../../Functional/assets/files/';
 
     /**
      * @return iterable<string, array{string, Constraint}>

@@ -44,7 +44,7 @@ use Symfony\Component\Validator\Validation;
 class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
 {
     private const int OLD = 7200;
-    private const string ASSETS = __DIR__ . '/../../../features/assets/files/';
+    private const string ASSETS = __DIR__ . '/../../Functional/assets/files/';
     private const string TOO_MANY_PIXELS = 'The image has too many pixels (357500 pixels). Maximum amount expected is 300000 pixels.';
 
     private Filesystem $local;

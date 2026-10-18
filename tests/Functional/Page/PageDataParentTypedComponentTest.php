@@ -53,7 +53,7 @@ final class PageDataParentTypedComponentTest extends FunctionalTestCase
         self::bootKernel();
         $site = self::createComponentHeldByAParentTypedPageDataProperty();
 
-        $tester = self::runCommand('silverback:api-components:clean-orphaned');
+        $tester = self::runConsoleCommand('silverback:api-components:clean-orphaned');
 
         self::assertSame(0, $tester->getStatusCode());
         self::assertResourceExists(self::iriOf($site['component']));

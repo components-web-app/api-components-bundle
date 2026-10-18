@@ -69,7 +69,7 @@ class StoredFileNameMatcherTest extends OrphanedResourceDatabaseTestCase
     public function test_an_uploaded_file_stored_by_the_file_manager_is_recognised(): void
     {
         $uploadable = new DummyUploadable();
-        $uploadable->file = new UploadedFile(__DIR__ . '/../../../features/assets/files/image.png', 'Team photo.PNG', null, null, true);
+        $uploadable->file = new UploadedFile(__DIR__ . '/../../Functional/assets/files/image.png', 'Team photo.PNG', null, null, true);
         $this->fileManager()->persistFiles($uploadable);
 
         self::assertNotNull($uploadable->getFilename());
@@ -79,7 +79,7 @@ class StoredFileNameMatcherTest extends OrphanedResourceDatabaseTestCase
     public function test_a_prefixed_copy_made_by_the_file_manager_is_recognised(): void
     {
         $original = new DummyUploadableAndPublishable();
-        $original->file = new File(__DIR__ . '/../../../features/assets/files/image.png');
+        $original->file = new File(__DIR__ . '/../../Functional/assets/files/image.png');
         $manager = $this->fileManager();
         $manager->persistFiles($original);
         $copy = $manager->processClonedUploadable($original, new DummyUploadableAndPublishable());
@@ -91,7 +91,7 @@ class StoredFileNameMatcherTest extends OrphanedResourceDatabaseTestCase
 
     public function test_a_data_uri_upload_stored_by_the_file_manager_is_recognised(): void
     {
-        $file = new DataUriFile('data:image/png;base64,' . base64_encode((string) file_get_contents(__DIR__ . '/../../../features/assets/files/image.png')));
+        $file = new DataUriFile('data:image/png;base64,' . base64_encode((string) file_get_contents(__DIR__ . '/../../Functional/assets/files/image.png')));
         $uploadable = new DummyUploadable();
         $uploadable->file = new UploadedDataUriFile($file, Uuid::uuid4() . '.' . $file->getExtension());
         $this->fileManager()->persistFiles($uploadable);
