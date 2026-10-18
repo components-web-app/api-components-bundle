@@ -24,16 +24,20 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\ManagerRegistry;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LogLevel;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
+use Silverback\ApiComponentsBundle\Entity\Core\Page;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Mercure\AnonymousResourceReader;
 use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
 use Silverback\ApiComponentsBundle\Message\PublishMercureUpdatesMessage;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Utility\PublicationDate;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -90,7 +94,7 @@ class MercureResourcePublisherTest extends TestCase
 
         $iriConverter = $this->createStub(IriConverterInterface::class);
         $iriConverter->method('getIriFromResource')->willReturnCallback(
-            static fn (object $object, int $referenceType = UrlGeneratorInterface::ABS_PATH): string => (UrlGeneratorInterface::ABS_URL === $referenceType ? 'https://example.com' : '') . '/_/layouts/' . $object->reference . ($object instanceof DummyPublishableComponent && !PublicationDate::isActive($object->getPublishedAt()) ? '?draft=1' : '')
+            static fn (object $object, int $referenceType = UrlGeneratorInterface::ABS_PATH): string => (UrlGeneratorInterface::ABS_URL === $referenceType ? 'https://example.com' : '') . '/_/layouts/' . ($object->reference ?? 'first') . ($object instanceof DummyPublishableComponent && !PublicationDate::isActive($object->getPublishedAt()) ? '?draft=1' : '')
         );
 
         $resourceClassResolver = $this->createStub(ResourceClassResolverInterface::class);
@@ -120,7 +124,7 @@ class MercureResourcePublisherTest extends TestCase
         $registry->method('getManagerForClass')->willReturn($entityManager);
 
         $serializer = $this->createStub(SerializerInterface::class);
-        $serializer->method('serialize')->willReturnCallback($writerData ?? static fn (object $object): string => '{"@id":"/_/layouts/' . $object->reference . '","admin":true}');
+        $serializer->method('serialize')->willReturnCallback($writerData ?? static fn (object $object): string => '{"@id":"/_/layouts/' . ($object->reference ?? 'first') . '","admin":true}');
 
         $publisher = new MercureResourcePublisher(
             new HubRegistry($hub, ['default' => $hub]),
@@ -380,10 +384,37 @@ class MercureResourcePublisherTest extends TestCase
         self::assertSame('application/ld+json', $this->anonymousRequests[0]->headers->get('Accept'));
     }
 
-    public function test_a_resource_an_anonymous_caller_cannot_read_is_published_as_a_public_delete_before_the_writer_view(): void
+    public function test_a_resource_an_anonymous_caller_cannot_read_and_the_write_did_not_hide_publishes_only_the_writer_view(): void
     {
-        $publisher = $this->buildPublisher($this->recordingHub(), anonymousResponse: static fn (): never => throw new NotFoundHttpException());
+        $publisher = $this->buildPublisher($this->recordingHub(), anonymousResponse: $this->denied());
         $publisher->add($this->layout('first'), 'updated');
+
+        $publisher->propagate();
+
+        self::assertSame([['https://example.com/_/layouts/first?draft=1', '{"@id":"/_/layouts/first","admin":true}', true]], $this->publishedShape());
+    }
+
+    /**
+     * @return iterable<string, array{class-string, \Closure(): object, array<string, array{mixed, mixed}>}>
+     */
+    public static function writesThatHide(): iterable
+    {
+        yield 'a route going live in the future' => [Route::class, static fn (): Route => new Route(), ['liveAt' => [new \DateTimeImmutable('-1 day'), new \DateTimeImmutable('+1 day')]]];
+        yield 'a route made a draft' => [Route::class, static fn (): Route => new Route(), ['liveAt' => [new \DateTimeImmutable('-1 day'), null]]];
+        yield 'a page losing its route' => [Page::class, static fn (): Page => new Page(), ['route' => [new Route(), null]]];
+        yield 'a page moved under another page' => [Page::class, static fn (): Page => new Page(), ['parentPage' => [null, new Page()]]];
+        yield 'page data moved under other page data' => [PageData::class, static fn (): PageData => new PageData(), ['parentPageData' => [new PageData(), null]]];
+    }
+
+    /**
+     * @param class-string                       $class
+     * @param array<string, array{mixed, mixed}> $changeSet
+     */
+    #[DataProvider('writesThatHide')]
+    public function test_a_write_that_hid_a_resource_publishes_a_public_delete_before_the_writer_view(string $class, \Closure $resource, array $changeSet): void
+    {
+        $publisher = $this->buildPublisher($this->recordingHub(), anonymousResponse: $this->denied(), resourceClass: $class, changeSet: $changeSet);
+        $publisher->add($resource(), 'updated');
 
         $publisher->propagate();
 
@@ -391,6 +422,64 @@ class MercureResourcePublisherTest extends TestCase
             ['https://example.com/_/layouts/first', '{"@id":"\\/_\\/layouts\\/first"}', false],
             ['https://example.com/_/layouts/first?draft=1', '{"@id":"/_/layouts/first","admin":true}', true],
         ], $this->publishedShape());
+    }
+
+    /**
+     * @return iterable<string, array{class-string, \Closure(): object, array<string, array{mixed, mixed}>}>
+     */
+    public static function writesThatDidNotHide(): iterable
+    {
+        yield 'a scheduled route rescheduled' => [Route::class, static fn (): Route => new Route(), ['liveAt' => [new \DateTimeImmutable('+1 day'), new \DateTimeImmutable('+2 days')]]];
+        yield 'a draft route scheduled' => [Route::class, static fn (): Route => new Route(), ['liveAt' => [null, new \DateTimeImmutable('+1 day')]]];
+        yield 'a live route moved to an earlier date' => [Route::class, static fn (): Route => new Route(), ['liveAt' => [new \DateTimeImmutable('-1 day'), new \DateTimeImmutable('-2 days')]]];
+        yield 'a route renamed' => [Route::class, static fn (): Route => new Route(), ['path' => ['/a', '/b']]];
+        yield 'a page given a route' => [Page::class, static fn (): Page => new Page(), ['route' => [null, new Route()]]];
+        yield 'a page given another route' => [Page::class, static fn (): Page => new Page(), ['route' => [new Route(), new Route()]]];
+        yield 'a page retitled' => [Page::class, static fn (): Page => new Page(), ['title' => ['a', 'b']]];
+        yield 'a layout moved under a page field it does not have' => [Layout::class, static fn (): Layout => new Layout(), ['parentPage' => [null, new Page()]]];
+    }
+
+    /**
+     * @param class-string                       $class
+     * @param array<string, array{mixed, mixed}> $changeSet
+     */
+    #[DataProvider('writesThatDidNotHide')]
+    public function test_a_write_that_did_not_hide_a_resource_publishes_nothing_publicly_when_it_cannot_be_read(string $class, \Closure $resource, array $changeSet): void
+    {
+        $publisher = $this->buildPublisher($this->recordingHub(), anonymousResponse: $this->denied(), resourceClass: $class, changeSet: $changeSet);
+        $publisher->add($resource(), 'updated');
+
+        $publisher->propagate();
+
+        self::assertSame([['https://example.com/_/layouts/first?draft=1', '{"@id":"/_/layouts/first","admin":true}', true]], $this->publishedShape());
+    }
+
+    public function test_a_resource_still_readable_after_a_write_that_could_hide_it_publishes_its_public_payload(): void
+    {
+        $publisher = $this->buildPublisher($this->recordingHub(), resourceClass: Page::class, changeSet: ['parentPage' => [null, new Page()]]);
+        $publisher->add(new Page(), 'updated');
+
+        $publisher->propagate();
+
+        self::assertSame([
+            ['https://example.com/_/layouts/first', '{"@id":"/_/layouts/first","public":true}', false],
+            ['https://example.com/_/layouts/first?draft=1', '{"@id":"/_/layouts/first","admin":true}', true],
+        ], $this->publishedShape());
+    }
+
+    public function test_a_resource_hidden_by_a_write_that_cannot_be_serialized_for_the_writer_publishes_only_the_delete(): void
+    {
+        $publisher = $this->buildPublisher($this->recordingHub(), anonymousResponse: $this->denied(), writerData: static fn (): never => throw new InvalidArgumentException('No IRI'), resourceClass: Route::class, changeSet: ['liveAt' => [new \DateTimeImmutable('-1 day'), null]]);
+        $publisher->add(new Route(), 'updated');
+
+        $publisher->propagate();
+
+        self::assertSame([['https://example.com/_/layouts/first', '{"@id":"\\/_\\/layouts\\/first"}', false]], $this->publishedShape());
+    }
+
+    private function denied(): \Closure
+    {
+        return static fn (): never => throw new NotFoundHttpException();
     }
 
     public function test_the_writer_view_is_not_published_when_it_is_the_public_payload(): void

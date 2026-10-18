@@ -25,7 +25,7 @@ Feature: A public Mercure update carries only what an anonymous visitor may read
     And the public Mercure update for the resource "position" should equal an anonymous GET of it
 
   @loginAdmin
-  Scenario: An admin editing a page that no route reaches publishes only a delete publicly
+  Scenario: An admin editing a page that no route reaches publishes nothing publicly
     Given there is a valid Page that no route reaches
     And only Mercure updates published from now are recorded
     When I send a "PATCH" request to the resource "page" with body:
@@ -33,13 +33,12 @@ Feature: A public Mercure update carries only what an anonymous visitor may read
       {"title": "A secret title"}
       """
     Then the response status code should be 200
-    And the Mercure updates for the resource "page" should be published publicly and then privately
-    And the public Mercure update for the resource "page" should be a delete
+    And the Mercure update for the resource "page" should be one private update on its draft topic
     And the private Mercure update for the resource "page" should have the JSON node "title" equal to "A secret title"
-    And no public Mercure update should contain "A secret title"
+    And no public Mercure update should contain the IRI of the resource "page"
 
   @loginAdmin
-  Scenario: An admin scheduling a route publishes only a delete publicly
+  Scenario: An admin scheduling a live route publishes only a delete publicly
     Given there is a Route "/scheduled" with a page
     And only Mercure updates published from now are recorded
     When I send a "PATCH" request to the resource "route" with body:
@@ -51,6 +50,31 @@ Feature: A public Mercure update carries only what an anonymous visitor may read
     And the public Mercure update for the resource "route" should be a delete
     And the private Mercure update for the resource "route" should have the JSON node "liveAt" equal to "2999-01-01T00:00:00+00:00"
     And no public Mercure update should contain "2999"
+
+  @loginAdmin
+  Scenario: An admin rescheduling a route that is not live yet publishes nothing publicly
+    Given there is a Route "/scheduled" with a page
+    And the Route "/scheduled" goes live at "2999-01-01 00:00:00"
+    And only Mercure updates published from now are recorded
+    When I send a "PATCH" request to the resource "route" with body:
+      """
+      {"liveAt": "2999-06-01T00:00:00+00:00"}
+      """
+    Then the response status code should be 200
+    And the Mercure update for the resource "route" should be one private update on its draft topic
+    And no public Mercure update should contain the IRI of the resource "route"
+
+  @loginAdmin
+  Scenario: An admin removing the route of a live page publishes a delete of the page publicly
+    Given there is a routed Page "/unrouted" whose group holds a published DummyPublishableComponent
+    And only Mercure updates published from now are recorded
+    When I send a "PATCH" request to the resource "page" with body:
+      """
+      {"route": null}
+      """
+    Then the response status code should be 200
+    And the Mercure updates for the resource "page" should be published publicly and then privately
+    And the public Mercure update for the resource "page" should be a delete
 
   Scenario: A published component moved to a future publication date is deleted from its public topic
     Given there is a routed Page "/mercure" whose group holds a published DummyPublishableComponent

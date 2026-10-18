@@ -26,6 +26,8 @@ use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Silverback\ApiComponentsBundle\Message\PublishMercureUpdatesMessage;
@@ -141,7 +143,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
 
         $id = $this->iriConverter->getIriFromResource($object);
         $iri = $this->iriConverter->getIriFromResource($object, UrlGeneratorInterface::ABS_URL);
-        $objectData = ['id' => $id, 'iri' => $iri, 'mercureOptions' => $this->normalizeMercureOptions($options, $object), 'wasPublished' => false];
+        $objectData = ['id' => $id, 'iri' => $iri, 'mercureOptions' => $this->normalizeMercureOptions($options, $object), 'leftPublic' => false];
 
         if ('deletedObjects' === $property) {
             $this->createdObjects->offsetUnset($object);
@@ -151,7 +153,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
             return;
         }
 
-        $objectData['wasPublished'] = ($this->{$property}[$object]['wasPublished'] ?? false) || $this->wasPublishedBeforeThisWrite($object);
+        $objectData['leftPublic'] = ($this->{$property}[$object]['leftPublic'] ?? false) || $this->leftPublicInThisWrite($object);
         $this->{$property}[$object] = $objectData;
     }
 
@@ -171,21 +173,35 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         return $manager instanceof EntityManagerInterface && null !== $manager->getClassMetadata($this->getObjectClass($object))->getFieldValue($object, $attributeReader->getConfiguration($object)->associationName);
     }
 
-    private function wasPublishedBeforeThisWrite(object $object): bool
+    private function leftPublicInThisWrite(object $object): bool
     {
-        if (!$this->isDraft($object)) {
-            return false;
-        }
-
         $manager = $this->registry->getManagerForClass($this->getObjectClass($object));
         if (!$manager instanceof EntityManagerInterface) {
             return false;
         }
 
-        $fieldName = $this->publishableStatusChecker->getAttributeReader()->getConfiguration($object)->fieldName;
         $changeSet = $manager->getUnitOfWork()->getEntityChangeSet($object);
+        $attributeReader = $this->publishableStatusChecker->getAttributeReader();
+        if ($attributeReader->isConfigured($object) && $this->leftActiveDate($changeSet, $attributeReader->getConfiguration($object)->fieldName)) {
+            return true;
+        }
 
-        return isset($changeSet[$fieldName]) && PublicationDate::isActive($changeSet[$fieldName][0]);
+        if ($object instanceof Route) {
+            return $this->leftActiveDate($changeSet, 'liveAt');
+        }
+
+        if ($object instanceof AbstractPage) {
+            return (isset($changeSet['route']) && null !== $changeSet['route'][0] && null === $changeSet['route'][1])
+                || isset($changeSet['parentPage'])
+                || isset($changeSet['parentPageData']);
+        }
+
+        return false;
+    }
+
+    private function leftActiveDate(array $changeSet, string $fieldName): bool
+    {
+        return isset($changeSet[$fieldName]) && PublicationDate::isActive($changeSet[$fieldName][0]) && !PublicationDate::isActive($changeSet[$fieldName][1]);
     }
 
     private function getObjectMercureOptions(object $object): ?array
@@ -350,7 +366,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         if ($this->isDraft($object)) {
             $writerData = $this->getWriterData($object, $objectData['iri'], $options);
             $updates = [];
-            if ($objectData['wasPublished']) {
+            if ($objectData['leftPublic']) {
                 $updates[] = $this->buildUpdate($this->withoutAdminQuery($topics), json_encode(['@id' => $this->withoutAdminQuery($objectData['id'])], \JSON_THROW_ON_ERROR), $options);
             }
             if (null !== $writerData) {
@@ -361,7 +377,12 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         }
 
         $publicData = $this->anonymousResourceReader->read($objectData['id'], $this->getAcceptedMimeType());
-        $updates = [$this->buildUpdate($topics, $publicData ?? $deleteData, $options)];
+        $updates = [];
+        if (null !== $publicData) {
+            $updates[] = $this->buildUpdate($topics, $publicData, $options);
+        } elseif ($objectData['leftPublic']) {
+            $updates[] = $this->buildUpdate($topics, $deleteData, $options);
+        }
         $writerData = $this->getWriterData($object, $objectData['iri'], $options);
         if (null !== $writerData && (null === $publicData || $this->withoutSerializationIds($writerData) !== $this->withoutSerializationIds($publicData))) {
             $updates[] = $this->buildUpdate($this->withAdminQuery($topics), $writerData, $options, true);
