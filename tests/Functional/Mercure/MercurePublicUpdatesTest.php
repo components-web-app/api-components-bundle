@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Silverback\ApiComponentsBundle\Tests\Functional\Orphan;
+namespace Silverback\ApiComponentsBundle\Tests\Functional\Mercure;
 
 use ApiPlatform\Test\Client;
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;

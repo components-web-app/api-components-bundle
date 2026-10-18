@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Silverback\ApiComponentsBundle\Tests\Functional\Orphan;
+namespace Silverback\ApiComponentsBundle\Tests\Functional\HttpCache;
 
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
