@@ -34,6 +34,8 @@ abstract class FunctionalTestCase extends ApiTestCase
 {
     private const array RESET_ENV = ['EMAIL_LINK_DEFAULT_ORIGIN', 'ORPHANED_RESOURCES_NOTIFY_RECIPIENTS'];
 
+    protected static ?bool $alwaysBootKernel = false;
+
     private static bool $schemaCreated = false;
 
     protected function setUp(): void
