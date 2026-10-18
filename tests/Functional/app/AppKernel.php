@@ -68,9 +68,16 @@ class AppKernel extends Kernel
         };
     }
 
+    private static function processSuffix(): string
+    {
+        $token = preg_replace('/[^A-Za-z0-9]+/', '', (string) getenv('TEST_TOKEN'));
+
+        return '' === $token ? '' : '/paratest-' . $token;
+    }
+
     private function getVarDir(): string
     {
-        return $this->getProjectDir() . '/var';
+        return $this->getProjectDir() . '/var' . self::processSuffix();
     }
 
     protected function getContainerClass(): string

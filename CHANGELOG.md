@@ -5,6 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Tooling
+- Both PHPUnit suites run in parallel with `brianium/paratest`, locally and in every CI test step but the coverage leg (4 processes), each process with its own test app cache and log directory; `simple-phpunit` is no longer used ([#522](https://github.com/components-web-app/api-components-bundle/pull/522))
 - `justinrainbow/json-schema` `^6.4` for the functional tests' schema checks, which now enforce `const`; the boilerplate `$id`s that broke `$ref` resolution are removed from the schema files, and the validation error schema expects API Platform's `ConstraintViolation` type ([#519](https://github.com/components-web-app/api-components-bundle/pull/519))
 
 ## [2.0.0-alpha.30](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.29...2.0.0-alpha.30) - 2026-10-18
