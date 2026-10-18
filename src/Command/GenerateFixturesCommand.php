@@ -76,12 +76,25 @@ class GenerateFixturesCommand extends Command
 
         $manifestPath = FixtureAssetManifest::pathFor($outputDirectory, $className);
         $previousHashes = [];
-        $previousManifestInvalid = false;
-        if (null !== $assetStore && $assetStore->isLocal() && is_file($manifestPath)) {
-            try {
-                $previousHashes = FixtureAssetManifest::fromFile($manifestPath)->hashes();
-            } catch (\RuntimeException) {
-                $previousManifestInvalid = true;
+        $otherHashes = [];
+        $invalidManifest = null;
+        if (null !== $assetStore && $assetStore->isLocal()) {
+            if (is_file($manifestPath)) {
+                try {
+                    $previousHashes = FixtureAssetManifest::fromFile($manifestPath)->hashes();
+                } catch (\RuntimeException) {
+                    $invalidManifest = 'The previous asset manifest is not valid';
+                }
+            }
+            foreach (glob(FixtureAssetManifest::pathFor($outputDirectory, '*')) ?: [] as $otherManifestPath) {
+                if ($otherManifestPath === $manifestPath) {
+                    continue;
+                }
+                try {
+                    $otherHashes = [...$otherHashes, ...FixtureAssetManifest::fromFile($otherManifestPath)->hashes()];
+                } catch (\RuntimeException) {
+                    $invalidManifest ??= \sprintf('The fixture asset manifest %s is not valid', $otherManifestPath);
+                }
             }
         }
 
@@ -93,10 +106,10 @@ class GenerateFixturesCommand extends Command
         if (null !== $assetStore && null !== $scaffold->assetManifest) {
             file_put_contents($manifestPath, $scaffold->assetManifest->toJson());
             $output->writeln(\sprintf('<info>%d stored file(s) in the fixture asset store %s, listed in %s</info>', $scaffold->assetCount, $assetStore->description, $manifestPath));
-            if ($previousManifestInvalid) {
-                $output->writeln('<comment>The previous asset manifest is not valid, so no asset was deleted from the fixture asset store.</comment>');
+            if (null !== $invalidManifest) {
+                $output->writeln(\sprintf('<comment>%s, so no asset was deleted from the fixture asset store.</comment>', $invalidManifest));
             } elseif ($assetStore->isLocal()) {
-                $pruned = $assetStore->pruneDropped($previousHashes, $scaffold->assetManifest->hashes());
+                $pruned = $assetStore->pruneDropped($previousHashes, [...$scaffold->assetManifest->hashes(), ...$otherHashes]);
                 if ([] !== $pruned) {
                     $output->writeln(\sprintf('<info>%d asset(s) no longer in the manifest deleted from the fixture asset store</info>', \count($pruned)));
                 }

@@ -5,6 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Fixed
+- `generate-fixtures` into a local fixture asset store keeps an asset its previous manifest listed while another manifest in the same directory still lists it, and deletes nothing when such a manifest is invalid ([#490](https://github.com/components-web-app/api-components-bundle/pull/490))
 - `warm-http-cache --accept-encoding=br` exits 2 and a `br` warm after a flush logs an error and requests nothing when the brotli PHP extension is missing, and a route or manifest body the warm cannot decode counts as failed with its reason instead of being skipped silently ([#491](https://github.com/components-web-app/api-components-bundle/pull/491))
 
 ## [2.0.0-alpha.25](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.24...2.0.0-alpha.25) - 2026-10-17
