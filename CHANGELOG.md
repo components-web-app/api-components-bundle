@@ -9,6 +9,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Fixed
 - A component position, its `_metadata.staticComponent` and the manifest no longer expose a publishable component that is not published yet to a caller who cannot see drafts (the `component` key is absent); the response still carries the component's cache tag, expires when a scheduled component goes live, and a change to the component's publication date purges and publishes the positions holding it and the manifests placing it ([#493](https://github.com/components-web-app/api-components-bundle/pull/493))
+- Logout, an invalid or expired JWT and a failed `/me` expire the Mercure subscriber cookie instead of issuing a new one; a failed `/me` expires it whenever the request carries it, and sets no Mercure cookie when the request carries none ([#495](https://github.com/components-web-app/api-components-bundle/pull/495))
 
 ## [2.0.0-alpha.26](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.25...2.0.0-alpha.26) - 2026-10-18
 

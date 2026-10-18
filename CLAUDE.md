@@ -221,6 +221,7 @@ Resources are fetched and cached **individually**. Never embed related data outs
 - **One invalid pattern makes the hub reject the whole token** (401), and the Go implementation rejects a group name starting with `_` (`:_format`). Never emit a format group.
 - The token's `aud` defaults to the hub's `public_url`, and the bundle publishes through the internal `url`, so the hub must pin `resource_identifier` to the public URL or every publish is 401.
 - The cookie is `__Secure-mercure_access_token`. symfony/mercure throws when building it for a plain-HTTP `public_url`; a plain-HTTP setup sets a prefix-less `cookie_name` on the hub.
+- **A clear expires the subscriber cookie, never re-issues it.** `MercureAuthorization::getClearAuthorizationCookie()` (logout, an invalid or expired JWT, a failed `/me`) is symfony/mercure's `createClearCookie()` with the bundle's SameSite, so it has the login cookie's name, path, domain and secure flag and reads nothing from the security context: `LogoutEvent` is dispatched before the firewall clears the token, so a cookie built from grants there carries the signed-out user's grants. Afterwards the browser holds no grants, like a visitor who never signed in. **A failed `/me` expires the Mercure cookie whenever the request carries it, with or without the JWT cookie**: the JWT cookie expires with the session, the Mercure cookie does not, so an expired session sends only the Mercure cookie. A failed `/me` carrying neither sets no cookie.
 
 ### Security and users
 

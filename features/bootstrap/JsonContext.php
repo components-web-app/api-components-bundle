@@ -22,6 +22,8 @@ use Behatch\Json\JsonSchema;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWSProvider\JWSProviderInterface;
 use PHPUnit\Framework\Assert;
 use Symfony\Component\HttpFoundation\Cookie;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mercure\Authorization;
 
 class JsonContext implements Context
 {
@@ -30,7 +32,7 @@ class JsonContext implements Context
     private ?RestContext $restContext;
     private JWSProviderInterface $jwsProvider;
 
-    public function __construct(JWSProviderInterface $jwsProvider)
+    public function __construct(JWSProviderInterface $jwsProvider, private readonly Authorization $mercureAuthorization)
     {
         $this->inspector = new JsonInspector('javascript');
         $this->jwsProvider = $jwsProvider;
@@ -133,6 +135,41 @@ class JsonContext implements Context
     public function theMercureCookieShouldContainDraftResources()
     {
         Assert::assertGreaterThan(0, $this->getMercureCookieDraftTopics(), 'The cookie does not allow a user to subscribe to any draft resources');
+    }
+
+    /**
+     * @Given I have a mercure cookie with draft resource topics
+     */
+    public function iHaveAMercureCookieWithDraftResourceTopics(): void
+    {
+        $cookie = $this->mercureAuthorization->createCookie(Request::create('https://example.com/'), ['urlpattern' => ['https://example.com/component/dummy_publishable_components/:id\\?draft=1']]);
+        $this->jsonContext->getSession()->setCookie($cookie->getName(), $cookie->getValue());
+    }
+
+    /**
+     * @Then the response should not have a :name cookie
+     */
+    public function theResponseShouldNotHaveACookie(string $name): void
+    {
+        foreach ($this->jsonContext->getSession()->getResponseHeaders()['set-cookie'] ?? [] as $setCookieHeader) {
+            if (Cookie::fromString($setCookieHeader)->getName() === $name) {
+                throw new \RuntimeException(\sprintf('The response sets the cookie "%s": %s', $name, $setCookieHeader));
+            }
+        }
+    }
+
+    /**
+     * @Then the mercure cookie should be cleared
+     */
+    public function theMercureCookieShouldBeCleared(): void
+    {
+        $cookie = $this->getCookieByName('__Secure-mercure_access_token');
+        if (!$cookie->isCleared()) {
+            throw new \RuntimeException(\sprintf('The mercure cookie is not expired: it expires at %s.', date(\DATE_ATOM, $cookie->getExpiresTime())));
+        }
+        if (!\in_array($cookie->getValue(), [null, '', 'deleted'], true)) {
+            throw new \RuntimeException(\sprintf('The mercure cookie should carry no token, but its value is "%s".', $cookie->getValue()));
+        }
     }
 
     private function getMercureCookieSubscribeTopics(): array

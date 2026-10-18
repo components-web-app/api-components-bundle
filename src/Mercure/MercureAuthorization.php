@@ -60,7 +60,9 @@ class MercureAuthorization
 
     public function getClearAuthorizationCookie(): Cookie
     {
-        return $this->getAuthorizationCookie();
+        return $this->mercureAuthorization
+            ->createClearCookie($this->requestStack->getCurrentRequest(), $this->hubName)
+            ->withSameSite($this->cookieSameSite);
     }
 
     public function getSubscribeTopics(): array

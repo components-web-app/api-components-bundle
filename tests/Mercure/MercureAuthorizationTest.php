@@ -23,6 +23,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\Authorization;
@@ -126,14 +127,63 @@ class MercureAuthorizationTest extends TestCase
         );
     }
 
+    public function test_the_clear_cookie_expires_the_authorization_cookie_and_grants_nothing(): void
+    {
+        $authorization = $this->createAuthorization(
+            [DummyPublishableComponent::class => [new Get(uriTemplate: '/dummy_publishable_components/{id}{._format}', class: DummyPublishableComponent::class, name: 'publishable_get', routePrefix: '/component', mercure: true)]],
+            ['publishable_get' => '/component/dummy_publishable_components/{id}.{_format}'],
+            true,
+            Cookie::SAMESITE_LAX,
+            'mercure.example.com',
+        );
+
+        $authorizationCookie = $authorization->getAuthorizationCookie();
+        $clearCookie = $authorization->getClearAuthorizationCookie();
+
+        self::assertNull($clearCookie->getValue());
+        self::assertTrue($clearCookie->isCleared());
+        self::assertSame(0, $clearCookie->getMaxAge());
+        self::assertSame($authorizationCookie->getName(), $clearCookie->getName());
+        self::assertSame($authorizationCookie->getPath(), $clearCookie->getPath());
+        self::assertSame($authorizationCookie->getDomain(), $clearCookie->getDomain());
+        self::assertSame($authorizationCookie->isSecure(), $clearCookie->isSecure());
+        self::assertSame($authorizationCookie->isHttpOnly(), $clearCookie->isHttpOnly());
+        self::assertSame($authorizationCookie->isPartitioned(), $clearCookie->isPartitioned());
+        self::assertSame(Cookie::SAMESITE_LAX, $clearCookie->getSameSite());
+        self::assertSame('/.well-known/mercure', $clearCookie->getPath());
+        self::assertSame('example.com', $clearCookie->getDomain());
+        self::assertTrue($clearCookie->isSecure());
+    }
+
+    public function test_the_clear_cookie_does_not_read_the_security_context(): void
+    {
+        $publishableStatusChecker = $this->createMock(PublishableStatusChecker::class);
+        $publishableStatusChecker->expects(self::never())->method('isGranted');
+        $resourceNames = $this->createMock(ResourceNameCollectionFactoryInterface::class);
+        $resourceNames->expects(self::never())->method('create');
+
+        $authorization = $this->createAuthorization([], [], true, resourceNames: $resourceNames, publishableStatusChecker: $publishableStatusChecker);
+
+        self::assertTrue($authorization->getClearAuthorizationCookie()->isCleared());
+    }
+
     /**
      * @param array<class-string, list<Get>> $operations
      * @param array<string, string>          $routes
      */
-    private function createAuthorization(array $operations, array $routes, bool $draftsGranted = false): MercureAuthorization
-    {
-        $resourceNames = $this->createStub(ResourceNameCollectionFactoryInterface::class);
-        $resourceNames->method('create')->willReturn(new ResourceNameCollection(array_keys($operations)));
+    private function createAuthorization(
+        array $operations,
+        array $routes,
+        bool $draftsGranted = false,
+        string $cookieSameSite = Cookie::SAMESITE_STRICT,
+        string $hubHost = 'example.com',
+        ?ResourceNameCollectionFactoryInterface $resourceNames = null,
+        ?PublishableStatusChecker $publishableStatusChecker = null,
+    ): MercureAuthorization {
+        if (null === $resourceNames) {
+            $resourceNames = $this->createStub(ResourceNameCollectionFactoryInterface::class);
+            $resourceNames->method('create')->willReturn(new ResourceNameCollection(array_keys($operations)));
+        }
 
         $metadata = $this->createStub(ResourceMetadataCollectionFactoryInterface::class);
         $metadata->method('create')->willReturnCallback(static fn (string $resourceClass): ResourceMetadataCollection => new ResourceMetadataCollection(
@@ -148,14 +198,16 @@ class MercureAuthorizationTest extends TestCase
         $router = $this->createStub(RouterInterface::class);
         $router->method('getRouteCollection')->willReturn($routeCollection);
 
-        $publishableStatusChecker = $this->createStub(PublishableStatusChecker::class);
-        $publishableStatusChecker->method('isGranted')->willReturn($draftsGranted);
+        if (null === $publishableStatusChecker) {
+            $publishableStatusChecker = $this->createStub(PublishableStatusChecker::class);
+            $publishableStatusChecker->method('isGranted')->willReturn($draftsGranted);
+        }
 
         $factory = new DefaultClaimsTokenFactory(
             new LcobucciFactory('ab0a54cf2375ab2368d97166b94e108cab0a54cf2375ab2368d97166b94e108c', protocolVersion: ProtocolVersion::V1),
             ['iss' => 'https://example.com', 'sub' => 'api', 'client_id' => 'api', 'aud' => 'https://example.com/.well-known/mercure'],
         );
-        $hub = new MockHub('https://example.com/.well-known/mercure', new StaticTokenProvider('jwt'), static fn (): string => 'id', $factory, protocolVersion: ProtocolVersion::V1);
+        $hub = new MockHub('https://' . $hubHost . '/.well-known/mercure', new StaticTokenProvider('jwt'), static fn (): string => 'id', $factory, protocolVersion: ProtocolVersion::V1);
         $requestStack = new RequestStack();
         $requestStack->push(Request::create('https://example.com/login'));
 
@@ -168,6 +220,7 @@ class MercureAuthorizationTest extends TestCase
             $requestStack,
             $this->createStub(AuthorizationCheckerInterface::class),
             $router,
+            $cookieSameSite,
         );
     }
 }
