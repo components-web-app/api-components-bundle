@@ -93,7 +93,8 @@ final class ComponentPlacer
                 continue;
             }
             if (PropertyValue::COMPONENT === $value->kind && $value->value instanceof AbstractComponent) {
-                $component = $this->place($value->value, $method, [...$phrases, $value->property]);
+                $held = $this->publishedInsteadOfDraft($value->value, \sprintf('The page data property %s::$%s', $this->stateReader->className($owner), $value->property), $owner);
+                $component = $this->place($held, $method, [...$phrases, $value->property]);
                 $method->entityAssignments[] = new Assignment($value->property, $component, $value->setter);
                 continue;
             }
@@ -164,9 +165,21 @@ final class ComponentPlacer
                 continue;
             }
             if (null !== $position->component) {
-                $groupPlan->items[] = $this->place($position->component, $method, $phrases);
+                $held = $this->publishedInsteadOfDraft($position->component, 'A position', $position);
+                $groupPlan->items[] = $this->place($held, $method, $phrases);
             }
         }
+    }
+
+    private function publishedInsteadOfDraft(AbstractComponent $component, string $holder, object $entity): AbstractComponent
+    {
+        $published = $this->stateReader->publishedOf($component);
+        if (null === $published) {
+            return $component;
+        }
+        $this->report->addForEach($holder . ' holds a draft of a published component, which is generated as the published component a write would store', $entity);
+
+        return $published;
     }
 
     /**
