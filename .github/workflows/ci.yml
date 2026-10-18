@@ -166,7 +166,7 @@ jobs:
         if: matrix.coverage && github.event_name != 'pull_request'
         env:
           STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
-        run: ./infection.phar --coverage=build/logs/phpunit --min-covered-msi=80 --threads=30
+        run: ./infection.phar --coverage=build/logs/phpunit --min-covered-msi=80 --threads=30 --only-covering-test-cases
       - name: Run Infection Mutation Tests on changed lines
         if: matrix.coverage && github.event_name == 'pull_request'
         env:
@@ -176,7 +176,7 @@ jobs:
           git fetch --no-tags $UNSHALLOW origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
           echo "Merge base of origin/$BASE_REF and HEAD: $(git merge-base "origin/$BASE_REF" HEAD)"
           git diff --stat "origin/$BASE_REF...HEAD" -- src
-          ./infection.phar --coverage=build/logs/phpunit --min-covered-msi=80 --threads=30 --git-diff-lines --git-diff-base="origin/$BASE_REF" --ignore-msi-with-no-mutations
+          ./infection.phar --coverage=build/logs/phpunit --min-covered-msi=80 --threads=30 --only-covering-test-cases --git-diff-lines --git-diff-base="origin/$BASE_REF" --ignore-msi-with-no-mutations
       - name: Upload Infection Mutation Logs
         if: always() && matrix.coverage
         uses: actions/upload-artifact@v4

@@ -39,4 +39,17 @@ trait LogRecordsTrait
             \sprintf('Nothing matching "%s" was logged. Logged: %s', $description, implode('; ', array_map(static fn (LogRecord $record): string => $record->level->getName() . ' ' . $record->message, $records))),
         );
     }
+
+    /**
+     * @param callable(LogRecord): bool $matches
+     */
+    protected static function assertNotLogged(string $description, callable $matches): void
+    {
+        $logged = array_filter(static::logRecords(), $matches);
+
+        self::assertEmpty(
+            $logged,
+            \sprintf('Something matching "%s" was logged: %s', $description, implode('; ', array_map(static fn (LogRecord $record): string => $record->level->getName() . ' ' . $record->message, $logged))),
+        );
+    }
 }

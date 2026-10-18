@@ -39,9 +39,14 @@ trait AuthenticationTrait
     protected static function loginAsUser(Client $client): User
     {
         $user = static::createUser(['ROLE_USER']);
-        $client->getKernelBrowser()->setServerParameter('HTTP_AUTHORIZATION', 'Bearer ' . static::createToken($user));
+        static::addBearerToken($client, $user);
 
         return $user;
+    }
+
+    protected static function addBearerToken(Client $client, User $user): void
+    {
+        $client->getKernelBrowser()->setServerParameter('HTTP_AUTHORIZATION', 'Bearer ' . static::createToken($user));
     }
 
     /**
