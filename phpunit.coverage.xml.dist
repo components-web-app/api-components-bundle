@@ -4,7 +4,6 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
     bootstrap="tests/Functional/app/bootstrap.php"
-    cacheDirectory="build/cache/phpunit"
     backupGlobals="false"
     colors="true"
     failOnRisky="true"
