@@ -62,7 +62,7 @@
         "dama/doctrine-test-bundle": "^8.6",
         "doctrine/doctrine-fixtures-bundle": "^4.3",
         "friendsofphp/php-cs-fixer": "^3.95",
-        "justinrainbow/json-schema": "^5.4",
+        "justinrainbow/json-schema": "^6.4",
         "league/flysystem": "^3.36",
         "league/flysystem-memory": "^3.31",
         "monolog/monolog": "^3.12",

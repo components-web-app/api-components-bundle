@@ -18,7 +18,6 @@
   },
   "properties": {
     "@context": {
-      "$id": "#/properties/@context",
       "type": "string",
       "title": "The @context Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -28,7 +27,6 @@
       ]
     },
     "@id": {
-      "$id": "#/properties/@id",
       "type": "string",
       "title": "The @id Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -38,7 +36,6 @@
       ]
     },
     "@type": {
-      "$id": "#/properties/@type",
       "type": "string",
       "title": "The @type Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -48,7 +45,6 @@
       ]
     },
     "modifiedAt": {
-      "$id": "#/properties/modifiedAt",
       "type": "string",
       "title": "The modifiedAt Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -58,7 +54,6 @@
       ]
     },
     "username": {
-      "$id": "#/properties/username",
       "type": "string",
       "title": "The Username Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -68,7 +63,6 @@
       ]
     },
     "emailAddress": {
-      "$id": "#/properties/emailAddress",
       "type": "string",
       "title": "The Emailaddress Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -78,13 +72,11 @@
       ]
     },
     "roles": {
-      "$id": "#/properties/roles",
       "type": "array",
       "title": "The Roles Schema",
       "description": "An explanation about the purpose of this instance.",
       "default": [],
       "items": {
-        "$id": "#/properties/roles/items",
         "type": "string",
         "title": "The Items Schema",
         "description": "An explanation about the purpose of this instance.",
@@ -95,7 +87,6 @@
       }
     },
     "enabled": {
-      "$id": "#/properties/enabled",
       "type": "boolean",
       "title": "The Enabled Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -105,7 +96,6 @@
       ]
     },
     "newEmailAddress": {
-      "$id": "#/properties/newEmailAddress",
       "type": "string",
       "title": "The Newemailaddress Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -115,7 +105,6 @@
       ]
     },
     "createdAt": {
-      "$id": "#/properties/createdAt",
       "type": "string",
       "title": "The createdAt Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -125,7 +114,6 @@
       ]
     },
     "_metadata": {
-      "$id": "#/properties/_metadata",
       "type": "object",
       "title": "The _metadata schema",
       "description": "An explanation about the purpose of this instance.",
@@ -141,7 +129,6 @@
       "additionalProperties": true,
       "properties": {
         "mercureSubscribeTopics": {
-          "$id": "#/properties/_metadata/properties/mercureSubscribeTopics",
           "type": "array",
           "title": "The persisted schema",
           "description": "An explanation about the purpose of this instance.",

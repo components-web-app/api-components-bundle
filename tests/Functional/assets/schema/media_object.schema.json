@@ -1,6 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
-  "$id": "http://example.com/example.json",
   "type": "object",
   "title": "The Root Schema",
   "description": "The root schema comprises the entire JSON document.",
@@ -17,7 +16,6 @@
   ],
   "properties": {
     "@context": {
-      "$id": "#/properties/@context",
       "type": "object",
       "title": "The @context Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -49,7 +47,6 @@
       ],
       "properties": {
         "@vocab": {
-          "$id": "#/properties/@context/properties/@vocab",
           "type": "string",
           "title": "The @vocab Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -59,7 +56,6 @@
           ]
         },
         "hydra": {
-          "$id": "#/properties/@context/properties/hydra",
           "type": "string",
           "title": "The Hydra Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -69,43 +65,36 @@
           ]
         },
         "contentUrl": {
-          "$id": "#/properties/@context/properties/contentUrl",
           "title": "The ContentUrl Schema",
           "description": "An explanation about the purpose of this instance.",
           "$ref": "context_property.schema.json"
         },
         "fileSize": {
-          "$id": "#/properties/@context/properties/fileSize",
           "title": "The FileSize Schema",
           "description": "An explanation about the purpose of this instance.",
           "$ref": "context_property.schema.json"
         },
         "formattedFileSize": {
-          "$id": "#/properties/@context/properties/fileSize",
           "title": "The formattedFileSize Schema",
           "description": "An explanation about the purpose of this instance.",
           "$ref": "context_property.schema.json"
         },
         "mimeType": {
-          "$id": "#/properties/@context/properties/mimeType",
           "title": "The Mimetype Schema",
           "description": "An explanation about the purpose of this instance.",
           "$ref": "context_property.schema.json"
         },
         "width": {
-          "$id": "#/properties/@context/properties/width",
           "title": "The Width Schema",
           "description": "An explanation about the purpose of this instance.",
           "$ref": "context_property.schema.json"
         },
         "height": {
-          "$id": "#/properties/@context/properties/height",
           "title": "The Height Schema",
           "description": "An explanation about the purpose of this instance.",
           "$ref": "context_property.schema.json"
         },
         "imagineFilter": {
-          "$id": "#/properties/@context/properties/imagineFilter",
           "title": "The Imaginefilter Schema",
           "description": "An explanation about the purpose of this instance.",
           "$ref": "context_property.schema.json"
@@ -113,7 +102,6 @@
       }
     },
     "@id": {
-      "$id": "#/properties/@id",
       "type": "string",
       "title": "The @id Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -123,7 +111,6 @@
       ]
     },
     "@type": {
-      "$id": "#/properties/@type",
       "type": "string",
       "title": "The @type Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -133,7 +120,6 @@
       ]
     },
     "contentUrl": {
-      "$id": "#/properties/contentUrl",
       "type": "string",
       "title": "The Contenturl Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -143,7 +129,6 @@
       ]
     },
     "formattedFileSize": {
-      "$id": "#/properties/formattedFileSize",
       "type": "string",
       "title": "The formattedFileSize Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -153,7 +138,6 @@
       ]
     },
     "fileSize": {
-      "$id": "#/properties/fileSize",
       "type": "integer",
       "title": "The Filesize Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -163,7 +147,6 @@
       ]
     },
     "mimeType": {
-      "$id": "#/properties/mimeType",
       "type": "string",
       "title": "The Mimetype Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -173,7 +156,6 @@
       ]
     },
     "width": {
-      "$id": "#/properties/width",
       "type": "integer",
       "title": "The Width Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -183,7 +165,6 @@
       ]
     },
     "height": {
-      "$id": "#/properties/height",
       "type": "integer",
       "title": "The Height Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -193,7 +174,6 @@
       ]
     },
     "imagineFilter": {
-      "$id": "#/properties/imagineFilter",
       "type": "string",
       "title": "The Imaginefilter Schema",
       "description": "An explanation about the purpose of this instance.",

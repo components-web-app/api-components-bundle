@@ -9,15 +9,13 @@
   ],
   "properties": {
     "@type": {
-      "$id": "#/properties/@type",
       "type": "string",
       "title": "The @type Schema",
       "description": "An explanation about the purpose of this instance.",
       "default": "",
-      "const": "ConstraintViolationList"
+      "const": "ConstraintViolation"
     },
     "title": {
-      "$id": "#/properties/title",
       "type": "string",
       "title": "The title Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -27,7 +25,6 @@
       ]
     },
     "description": {
-      "$id": "#/properties/description",
       "type": "string",
       "title": "The description Schema",
       "description": "An explanation about the purpose of this instance.",

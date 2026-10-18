@@ -13,7 +13,6 @@
   ],
   "properties": {
     "vars": {
-      "$id": "#/properties/vars",
       "type": "object",
       "title": "The Vars Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -64,14 +63,12 @@
       ],
       "properties": {
         "errors": {
-          "$id": "#/properties/vars/properties/errors",
           "type": "array",
           "title": "The Errors Schema",
           "description": "An explanation about the purpose of this instance.",
           "default": []
         },
         "action": {
-          "$id": "#/properties/vars/properties/action",
           "type": "string",
           "title": "The Action Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -81,7 +78,6 @@
           ]
         },
         "api_disabled": {
-          "$id": "#/properties/vars/properties/api_disabled",
           "type": "boolean",
           "title": "The api_disabled Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -91,20 +87,17 @@
           ]
         },
         "attr": {
-          "$id": "#/properties/vars/properties/attr",
           "type": [
             "object",
             "array"
           ]
         },
         "block_prefixes": {
-          "$id": "#/properties/vars/properties/block_prefixes",
           "type": "array",
           "title": "The Block_prefixes Schema",
           "description": "An explanation about the purpose of this instance.",
           "default": [],
           "items": {
-            "$id": "#/properties/vars/properties/block_prefixes/items",
             "type": "string",
             "title": "The Items Schema",
             "description": "An explanation about the purpose of this instance.",
@@ -117,7 +110,6 @@
           }
         },
         "disabled": {
-          "$id": "#/properties/vars/properties/disabled",
           "type": "boolean",
           "title": "The Disabled Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -127,7 +119,6 @@
           ]
         },
         "full_name": {
-          "$id": "#/properties/vars/properties/full_name",
           "type": "string",
           "title": "The Full_name Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -137,7 +128,6 @@
           ]
         },
         "id": {
-          "$id": "#/properties/vars/properties/id",
           "type": "string",
           "title": "The Id Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -147,14 +137,12 @@
           ]
         },
         "label_attr": {
-          "$id": "#/properties/vars/properties/label_attr",
           "type": "array",
           "title": "The Label_attr Schema",
           "description": "An explanation about the purpose of this instance.",
           "default": []
         },
         "name": {
-          "$id": "#/properties/vars/properties/name",
           "type": "string",
           "title": "The Name Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -164,7 +152,6 @@
           ]
         },
         "post_app_proxy": {
-          "$id": "#/properties/vars/properties/post_app_proxy",
           "type": "string",
           "title": "The Post_app_proxy Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -174,7 +161,6 @@
           ]
         },
         "realtime_validate_disabled": {
-          "$id": "#/properties/vars/properties/realtime_validate_disabled",
           "type": "boolean",
           "title": "The Realtime_validate_disabled Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -184,7 +170,6 @@
           ]
         },
         "unique_block_prefix": {
-          "$id": "#/properties/vars/properties/unique_block_prefix",
           "type": "string",
           "title": "The Unique_block_prefix Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -194,7 +179,6 @@
           ]
         },
         "required": {
-          "$id": "#/properties/vars/properties/required",
           "type": "boolean",
           "title": "The Required Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -204,7 +188,6 @@
           ]
         },
         "submitted": {
-          "$id": "#/properties/vars/properties/submitted",
           "type": "boolean",
           "title": "The Submitted Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -214,7 +197,6 @@
           ]
         },
         "valid": {
-          "$id": "#/properties/vars/properties/valid",
           "type": "boolean",
           "title": "The Valid Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -224,7 +206,6 @@
           ]
         },
         "value": {
-          "$id": "#/properties/children/items/properties/vars/properties/value",
           "type": [
             "string",
             "array",
@@ -237,7 +218,6 @@
       }
     },
     "children": {
-      "$id": "#/properties/children",
       "type": "array",
       "title": "The Children Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -247,7 +227,6 @@
       }
     },
     "rendered": {
-      "$id": "#/properties/rendered",
       "type": "boolean",
       "title": "The Rendered Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -257,7 +236,6 @@
       ]
     },
     "methodRendered": {
-      "$id": "#/properties/methodRendered",
       "type": "boolean",
       "title": "The Methodrendered Schema",
       "description": "An explanation about the purpose of this instance.",

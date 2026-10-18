@@ -13,7 +13,6 @@
   ],
   "properties": {
     "@context": {
-      "$id": "#/properties/@context",
       "type": "string",
       "title": "The @context Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -23,7 +22,6 @@
       ]
     },
     "@id": {
-      "$id": "#/properties/@id",
       "type": "string",
       "title": "The @id Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -33,7 +31,6 @@
       ]
     },
     "@type": {
-      "$id": "#/properties/@type",
       "type": "string",
       "title": "The @type Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -43,7 +40,6 @@
       ]
     },
     "formType": {
-      "$id": "#/properties/formType",
       "type": "string",
       "title": "The Formtype Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -53,19 +49,16 @@
       ]
     },
     "formView": {
-      "$id": "#/properties/formView",
       "type": "object",
       "$ref": "form_view_root.schema.json"
     },
     "componentPositions": {
-      "$id": "#/properties/componentPositions",
       "type": "array",
       "title": "The Componentlocations Schema",
       "description": "An explanation about the purpose of this instance.",
       "default": []
     },
     "modifiedAt": {
-      "$id": "#/properties/modifiedAt",
       "type": "string",
       "title": "The modifiedAt Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -75,14 +68,12 @@
       ]
     },
     "componentGroups": {
-      "$id": "#/properties/ComponentGroups",
       "type": "array",
       "title": "The ComponentGroups Schema",
       "description": "An explanation about the purpose of this instance.",
       "default": []
     },
     "createdAt": {
-      "$id": "#/properties/createdAt",
       "type": [
         "string",
         "null"
