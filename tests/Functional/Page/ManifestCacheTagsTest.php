@@ -12,17 +12,12 @@
 namespace Silverback\ApiComponentsBundle\Tests\Functional\Page;
 
 use ApiPlatform\Test\Client;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
-use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
-use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\ApiRequestTrait;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\AuthenticationTrait;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\CacheTagsTrait;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\ManifestTrait;
-use Silverback\ApiComponentsBundle\Tests\Functional\Trait\SiteTrait;
 
 final class ManifestCacheTagsTest extends FunctionalTestCase
 {
@@ -30,7 +25,7 @@ final class ManifestCacheTagsTest extends FunctionalTestCase
     use AuthenticationTrait;
     use CacheTagsTrait;
     use ManifestTrait;
-    use SiteTrait;
+    use PageSiteTrait;
 
     public function test_a_manifest_response_carries_a_grouping_key_for_the_page_it_renders_and_none_of_its_members(): void
     {
@@ -129,7 +124,7 @@ final class ManifestCacheTagsTest extends FunctionalTestCase
     {
         $client = self::adminClient();
         $site = self::createRoutedPageWithComponent('/my-route');
-        $layoutGroup = self::usePageWithLayoutHoldingAComponent($site['page']);
+        $layoutGroup = self::usePagesWithLayoutHoldingAComponent([$site['page']])['group'];
         $component = self::createDummyComponent();
 
         self::requestJsonLd($client, 'POST', '/_/component_positions', ['componentGroup' => self::iriOf($layoutGroup), 'component' => self::iriOf($component)]);
@@ -142,7 +137,7 @@ final class ManifestCacheTagsTest extends FunctionalTestCase
     {
         $client = self::adminClient();
         $site = self::createRoutedPageWithComponent('/my-route');
-        $nestedGroup = self::giveComponentAGroupHoldingAComponent($site['component'], 'nested');
+        $nestedGroup = self::giveComponentAGroupHoldingAComponent($site['component'], 'nested')['group'];
         $component = self::createDummyComponent();
 
         self::requestJsonLd($client, 'POST', '/_/component_positions', ['componentGroup' => self::iriOf($nestedGroup), 'component' => self::iriOf($component)]);
@@ -202,39 +197,5 @@ final class ManifestCacheTagsTest extends FunctionalTestCase
         self::loginAsAdmin($client);
 
         return $client;
-    }
-
-    private static function createDummyComponent(): DummyComponent
-    {
-        $component = new DummyComponent();
-        self::persistAndFlush($component);
-
-        return $component;
-    }
-
-    private static function usePageWithLayoutHoldingAComponent(Page $page): ComponentGroup
-    {
-        $layout = self::newLayout('shared-layout');
-        self::persistAndFlush($layout);
-        $group = self::createComponentGroupWithComponents(1, 'layout_top')['group'];
-        $manager = self::getEntityManager();
-        $layout = $manager->find($layout::class, $layout->getId());
-        $layout->addComponentGroup($manager->find(ComponentGroup::class, $group->getId()));
-        $manager->find(Page::class, $page->getId())->layout = $layout;
-        $manager->flush();
-        self::rebootKernel();
-
-        return $group;
-    }
-
-    private static function giveComponentAGroupHoldingAComponent(AbstractComponent $component, string $reference): ComponentGroup
-    {
-        $group = self::createComponentGroupWithComponents(1, $reference)['group'];
-        $manager = self::getEntityManager();
-        $manager->find($component::class, $component->getId())->addComponentGroup($manager->find(ComponentGroup::class, $group->getId()));
-        $manager->flush();
-        self::rebootKernel();
-
-        return $group;
     }
 }
