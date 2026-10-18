@@ -31,8 +31,6 @@ use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
 use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\Tests\Functional\MockClientCallback;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\RejectedDeleteMiddleware;
-use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\UnreachableDatabaseException;
-use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\UnreachableDatabaseMiddleware;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\EventSubscriber\TemplatedEmailMessageEventSubscriber;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub;
@@ -139,9 +137,8 @@ class ProfilerContext implements Context
      *
      * @AfterScenario
      */
-    public function resetDatabaseReachability(): void
+    public function resetRejectedDeletes(): void
     {
-        UnreachableDatabaseMiddleware::setUnreachable(false);
         RejectedDeleteMiddleware::setRejectDeletes(false);
     }
 
@@ -151,31 +148,6 @@ class ProfilerContext implements Context
     public function theDatabaseRejectsDeletes(): void
     {
         RejectedDeleteMiddleware::setRejectDeletes(true);
-    }
-
-    /**
-     * @Given the database is unreachable
-     */
-    public function theDatabaseIsUnreachable(): void
-    {
-        UnreachableDatabaseMiddleware::setUnreachable(true);
-    }
-
-    /**
-     * @Then the unreachable database should have been logged
-     */
-    public function theUnreachableDatabaseShouldHaveBeenLogged(): void
-    {
-        /** @var TestHandler $handler */
-        $handler = $this->driverContainer->get('app.monolog.test_handler');
-        foreach ($handler->getRecords() as $record) {
-            $exception = $record->context['exception'] ?? null;
-            if (Level::Warning === $record->level && $exception instanceof \Throwable && $exception->getPrevious() instanceof UnreachableDatabaseException) {
-                return;
-            }
-        }
-
-        throw new ExpectationException('No unreachable database was logged.', $this->minkContext->getSession()->getDriver());
     }
 
     /**

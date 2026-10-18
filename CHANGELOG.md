@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Tooling
+- PHPUnit functional tests on API Platform's `ApiTestCase` (`tests/Functional`, testsuite `functional`) with an in-memory SQLite database per process and a debug-kernel group; `health.feature` and the HTTP cache and rendered HTML purge operation features ported from Behat; both PHPUnit configs fail on Risky; the functional suite runs on every Behat CI leg and in Infection ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+
 ## [2.0.0-alpha.29](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.28...2.0.0-alpha.29) - 2026-10-18
 
 ### Breaking

@@ -1,7 +1,10 @@
+parameters:
+    env(TEST_DATABASE_PATH): '%kernel.cache_dir%/../../db.sqlite'
+
 doctrine:
     dbal:
         driver: 'pdo_sqlite'
-        path: '%kernel.cache_dir%/../../db.sqlite'
+        path: '%env(resolve:TEST_DATABASE_PATH)%'
         charset: 'UTF8'
     orm:
         naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
