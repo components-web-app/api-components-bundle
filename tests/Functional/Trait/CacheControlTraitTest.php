@@ -61,7 +61,7 @@ final class CacheControlTraitTest extends FunctionalTestCase
         $user = self::createUser(['ROLE_USER'], 'my_username', 'test.user@example.com');
         $manager = self::getEntityManager();
         $managed = $manager->find(User::class, $user->getId());
-        $managed->setNewPasswordConfirmationToken('abc123')->setPasswordRequestedAt(new \DateTime('-1 hour'));
+        $managed->setNewPasswordConfirmationToken(bin2hex(random_bytes(8)))->setPasswordRequestedAt(new \DateTime('-1 hour'));
         $manager->flush();
         self::rebootKernel();
 
