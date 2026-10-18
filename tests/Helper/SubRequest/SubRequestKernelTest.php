@@ -186,6 +186,28 @@ class SubRequestKernelTest extends TestCase
         self::assertCount(1, $stopwatch->getSections()['main']->getEvent(SubRequestKernel::STOPWATCH_EVENT)->getPeriods());
     }
 
+    public function test_a_section_that_cannot_be_closed_is_left_alone(): void
+    {
+        $stopwatch = new Stopwatch();
+        $response = new Response('ok');
+        $kernel = new class($stopwatch, $response) implements HttpKernelInterface {
+            public function __construct(private readonly Stopwatch $stopwatch, private readonly Response $response)
+            {
+            }
+
+            public function handle(Request $request, int $type = self::MAIN_REQUEST, bool $catch = true): Response
+            {
+                $request->attributes->set('_stopwatch_token', 'sub');
+                $this->stopwatch->stop(SubRequestKernel::STOPWATCH_EVENT);
+
+                return $this->response;
+            }
+        };
+
+        self::assertSame($response, (new SubRequestKernel($kernel, $stopwatch))->handle(Request::create('/')));
+        self::assertArrayNotHasKey('sub', $stopwatch->getSections());
+    }
+
     public function test_the_service_definition_and_its_users(): void
     {
         $container = new ContainerBuilder();
