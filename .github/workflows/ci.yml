@@ -94,7 +94,7 @@ jobs:
             experimental: false
             coverage: true
       fail-fast: false
-    timeout-minutes: 20
+    timeout-minutes: ${{ matrix.coverage && 40 || 20 }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
