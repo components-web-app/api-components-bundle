@@ -894,6 +894,46 @@ class GenerateFixturesCommandTest extends TestCase
         self::assertStringContainsString('1 asset(s) no longer in the manifest deleted from the fixture asset store', $this->display);
     }
 
+    public function test_every_asset_listed_by_any_other_manifest_in_the_same_directory_is_kept(): void
+    {
+        $this->twoUploads('first', 'second');
+        mkdir($this->outputDirectory . '/assets');
+        $previous = new FixtureAssetManifest();
+        foreach (['a1', 'a2', 'b1', 'b2', 'stale'] as $content) {
+            file_put_contents($this->outputDirectory . '/assets/' . hash('sha256', $content), $content);
+            $previous->add(hash('sha256', $content), $content . '.txt', 'text/plain', \strlen($content), DummyUploadableAndPublishable::class . '::file');
+        }
+        file_put_contents($this->outputDirectory . '/GeneratedScaffold.assets.json', $previous->toJson());
+        foreach (['AScaffold' => ['a1', 'a2'], 'BScaffold' => ['b1', 'b2']] as $scaffold => $contents) {
+            $other = new FixtureAssetManifest();
+            foreach ($contents as $content) {
+                $other->add(hash('sha256', $content), $content . '.txt', 'text/plain', \strlen($content), DummyUploadableAndPublishable::class . '::file');
+            }
+            file_put_contents($this->outputDirectory . '/' . $scaffold . '.assets.json', $other->toJson());
+        }
+
+        $this->generate(['--assets-store' => 'local']);
+
+        foreach (['a1', 'a2', 'b1', 'b2'] as $content) {
+            self::assertFileExists($this->outputDirectory . '/assets/' . hash('sha256', $content));
+        }
+        self::assertFileDoesNotExist($this->outputDirectory . '/assets/' . hash('sha256', 'stale'));
+        self::assertStringContainsString('1 asset(s) no longer in the manifest deleted from the fixture asset store', $this->display);
+    }
+
+    public function test_the_first_unreadable_manifest_in_the_same_directory_is_the_one_reported(): void
+    {
+        $this->twoUploads('first', 'second');
+        mkdir($this->outputDirectory . '/assets');
+        file_put_contents($this->outputDirectory . '/AScaffold.assets.json', 'not json');
+        file_put_contents($this->outputDirectory . '/BScaffold.assets.json', 'not json');
+
+        $this->generate(['--assets-store' => 'local']);
+
+        self::assertStringContainsString('The fixture asset manifest ' . $this->outputDirectory . '/AScaffold.assets.json is not valid, so no asset was deleted from the fixture asset store.', $this->display);
+        self::assertStringNotContainsString('BScaffold.assets.json', $this->display);
+    }
+
     public function test_an_unreadable_manifest_of_another_scaffold_in_the_same_directory_prunes_nothing(): void
     {
         $this->twoUploads('first', 'second');
