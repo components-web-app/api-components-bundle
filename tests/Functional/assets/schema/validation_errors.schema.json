@@ -1,5 +1,4 @@
 {
-  "$id": "#/properties/violations",
   "type": "array",
   "minItems": 1,
   "title": "The Violations Schema",
@@ -15,7 +14,6 @@
   ],
   "additionalItems": true,
   "items": {
-    "$id": "#/properties/violations/items",
     "type": "object",
     "title": "The Items Schema",
     "description": "An explanation about the purpose of this instance.",
@@ -33,7 +31,6 @@
     ],
     "properties": {
       "propertyPath": {
-        "$id": "#/properties/violations/items/properties/propertyPath",
         "type": "string",
         "title": "The Propertypath Schema",
         "description": "An explanation about the purpose of this instance.",
@@ -43,7 +40,6 @@
         ]
       },
       "message": {
-        "$id": "#/properties/violations/items/properties/message",
         "type": "string",
         "title": "The Message Schema",
         "description": "An explanation about the purpose of this instance.",

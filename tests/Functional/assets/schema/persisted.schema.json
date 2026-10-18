@@ -10,7 +10,6 @@
   ],
   "properties": {
     "@context": {
-      "$id": "#/@context",
       "type": "string",
       "title": "The @context Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -20,7 +19,6 @@
       ]
     },
     "@id": {
-      "$id": "#/@id",
       "type": "string",
       "title": "The @id Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -30,7 +28,6 @@
       ]
     },
     "@type": {
-      "$id": "#/@type",
       "type": "string",
       "title": "The @type Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -40,7 +37,6 @@
       ]
     },
     "_metadata": {
-      "$id": "#/_metadata",
       "type": "object",
       "title": "The _metadata Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -55,7 +51,6 @@
       ],
       "properties": {
         "persisted": {
-          "$id": "#/_metadata",
           "type": "boolean",
           "title": "The persisted Schema",
           "description": "An explanation about the purpose of this instance.",

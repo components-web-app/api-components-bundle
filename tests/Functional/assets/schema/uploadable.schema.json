@@ -12,7 +12,6 @@
   ],
   "properties": {
     "@context": {
-      "$id": "#/properties/@context",
       "type": "string",
       "title": "The @context Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -22,7 +21,6 @@
       ]
     },
     "@id": {
-      "$id": "#/properties/@id",
       "type": "string",
       "title": "The @id Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -32,7 +30,6 @@
       ]
     },
     "@type": {
-      "$id": "#/properties/@type",
       "type": "string",
       "title": "The @type Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -42,7 +39,6 @@
       ]
     },
     "_metadata": {
-      "$id": "#/_metadata",
       "type": "object",
       "title": "The _metadata Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -54,14 +50,12 @@
       ],
       "properties": {
         "mediaObjects": {
-          "$id": "#/properties/mediaObjects",
           "type": "object",
           "required": [
             "file"
           ],
           "patternProperties": {
             "^.*": {
-              "$id": "#/properties/mediaObjects/filename",
               "type": "array",
               "minItems": 1,
               "title": "The media_objects Schema",

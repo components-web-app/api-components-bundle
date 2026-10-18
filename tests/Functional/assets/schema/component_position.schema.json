@@ -5,7 +5,6 @@
     },
     {
       "$schema": "http://json-schema.org/draft-07/schema",
-      "$id": "http://example.com/example.json",
       "type": "object",
       "title": "The root schema",
       "description": "The root schema comprises the entire JSON document.",
@@ -36,7 +35,6 @@
       "additionalProperties": true,
       "properties": {
         "@context": {
-          "$id": "#/properties/@context",
           "type": "string",
           "title": "The @context schema",
           "description": "An explanation about the purpose of this instance.",
@@ -46,7 +44,6 @@
           ]
         },
         "@id": {
-          "$id": "#/properties/@id",
           "type": "string",
           "title": "The @id schema",
           "description": "An explanation about the purpose of this instance.",
@@ -56,7 +53,6 @@
           ]
         },
         "@type": {
-          "$id": "#/properties/@type",
           "type": "string",
           "title": "The @type schema",
           "description": "An explanation about the purpose of this instance.",
@@ -66,7 +62,6 @@
           ]
         },
         "componentGroup": {
-          "$id": "#/properties/ComponentGroup",
           "type": "string",
           "title": "The ComponentGroup schema",
           "description": "An explanation about the purpose of this instance.",
@@ -76,7 +71,6 @@
           ]
         },
         "component": {
-          "$id": "#/properties/component",
           "type": "string",
           "title": "The component schema",
           "description": "An explanation about the purpose of this instance.",
@@ -86,7 +80,6 @@
           ]
         },
         "sortValue": {
-          "$id": "#/properties/sortValue",
           "type": "integer",
           "title": "The sortValue schema",
           "description": "An explanation about the purpose of this instance.",
