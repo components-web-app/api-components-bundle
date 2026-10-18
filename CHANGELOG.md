@@ -9,8 +9,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Tooling
 - PHPUnit functional tests on API Platform's `ApiTestCase` (`tests/Functional`, testsuite `functional`) with an in-memory SQLite database per process and a debug-kernel group; `health.feature` and the HTTP cache and rendered HTML purge operation features ported from Behat; both PHPUnit configs fail on Risky; the functional suite runs on every Behat CI leg and in Infection ([#505](https://github.com/components-web-app/api-components-bundle/pull/505))
-- Behat is removed: every feature is a PHPUnit functional test, CI runs PHPUnit only and Codecov waits for the one coverage upload; the assets and the golden scaffold moved from `features/` to `tests/Functional/assets` and `tests/Functional/Fixture/scaffolds` ([#504](https://github.com/components-web-app/api-components-bundle/issues/504))
-- The test environment resolves Symfony 8.1 on the 8.1 legs, no longer capped at 7.4 by Behat's dependencies; `symfony/yaml` and `symfony/translation` are now direct dev dependencies ([#504](https://github.com/components-web-app/api-components-bundle/issues/504))
+- Behat is removed: every feature is a PHPUnit functional test, CI runs PHPUnit only and Codecov waits for the one coverage upload; the assets and the golden scaffold moved from `features/` to `tests/Functional/assets` and `tests/Functional/Fixture/scaffolds` ([#517](https://github.com/components-web-app/api-components-bundle/pull/517))
+- The test environment resolves Symfony 8.1 on the 8.1 legs, no longer capped at 7.4 by Behat's dependencies; `symfony/yaml` and `symfony/translation` are now direct dev dependencies ([#517](https://github.com/components-web-app/api-components-bundle/pull/517))
 
 ## [2.0.0-alpha.29](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.28...2.0.0-alpha.29) - 2026-10-18
 
