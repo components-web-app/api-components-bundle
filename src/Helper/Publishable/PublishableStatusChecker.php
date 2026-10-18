@@ -51,18 +51,15 @@ class PublishableStatusChecker
 
     public function isActivePublishedAt(object $object): bool
     {
-        if (!$this->attributeReader->isConfigured($object)) {
-            throw new \InvalidArgumentException(\sprintf('Object of class %s does not implement publishable configuration.', $object::class));
-        }
-
-        $this->initializeLazyObject($object);
-
-        $value = $this->getClassMetadata($object)->getFieldValue($object, $this->attributeReader->getConfiguration($object)->fieldName);
-
-        return PublicationDate::isActive($value);
+        return PublicationDate::isActive($this->getPublicationDate($object));
     }
 
     public function hasPublicationDate(object $object): bool
+    {
+        return null !== $this->getPublicationDate($object);
+    }
+
+    public function getPublicationDate(object $object): ?\DateTimeInterface
     {
         if (!$this->attributeReader->isConfigured($object)) {
             throw new \InvalidArgumentException(\sprintf('Object of class %s does not implement publishable configuration.', $object::class));
@@ -70,7 +67,7 @@ class PublishableStatusChecker
 
         $this->initializeLazyObject($object);
 
-        return null !== $this->getClassMetadata($object)->getFieldValue($object, $this->attributeReader->getConfiguration($object)->fieldName);
+        return $this->getClassMetadata($object)->getFieldValue($object, $this->attributeReader->getConfiguration($object)->fieldName);
     }
 
     private function initializeLazyObject(object $object): void

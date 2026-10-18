@@ -560,6 +560,14 @@ class ProfilerContext implements Context
     }
 
     /**
+     * @Then the resource :resource_name should not be purged from the cache
+     */
+    public function theResourceShouldNotBePurgedFromTheCache(string $resourceName): void
+    {
+        $this->theCacheTagShouldNotBePurged($this->restContext->resources[$resourceName]);
+    }
+
+    /**
      * @Then the cache tag :tag should be purged
      */
     public function theCacheTagShouldBePurged(string $tag)

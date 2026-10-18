@@ -21,22 +21,12 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
- * Several resource responses are served from an identical URL but vary by the authenticated
- * session: a draft is returned to a permitted user and the published version to everyone else
- * (Route, ResourceManifest), and ComponentPosition rewrites its component IRI / exposes admin-only
- * groups by role. There is no distinguishing URL and no query marker, so a shared cache cannot tell
- * a public response from a personalised one.
- *
- * This listener makes that decision legible in the response itself: when an affected resource is
- * requested by an authenticated user, its response is marked `private, no-store` so no shared cache
- * (CDN, reverse proxy, or service worker) ever stores it. Anonymous requests are left on API
- * Platform's public cache headers, so the only variant a shared cache retains is the published one —
- * the same rule the edge cache already enforces by excluding cookie-bearing requests.
- *
  * @author Daniel West <daniel@silverback.is>
  */
 final class CacheHeadersEventListener
 {
+    public const string NEXT_PUBLICATION_ATTRIBUTE = '_cwa_next_hidden_publication';
+
     private readonly PublishableAttributeReader $publishableAttributeReader;
 
     /**
@@ -97,6 +87,8 @@ final class CacheHeadersEventListener
             return;
         }
 
+        $this->expireAtNextHiddenPublication($request, $response);
+
         $sharedMaxAge = $response->headers->getCacheControlDirective('s-maxage');
         $maxAge = $response->headers->getCacheControlDirective('max-age');
         if (null === $sharedMaxAge && null === $maxAge) {
@@ -116,6 +108,19 @@ final class CacheHeadersEventListener
         }
         if (null !== $maxAge && (int) $maxAge > $seconds) {
             $response->headers->addCacheControlDirective('max-age', (string) $seconds);
+        }
+    }
+
+    private function expireAtNextHiddenPublication(Request $request, Response $response): void
+    {
+        $publishedAt = $request->attributes->get(self::NEXT_PUBLICATION_ATTRIBUTE);
+        if (!$publishedAt instanceof \DateTimeInterface) {
+            return;
+        }
+
+        $expires = $response->getExpires();
+        if (null === $expires || $expires > $publishedAt) {
+            $response->setExpires($publishedAt);
         }
     }
 

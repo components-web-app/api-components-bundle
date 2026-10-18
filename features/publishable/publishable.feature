@@ -130,6 +130,90 @@ Feature: Access to unpublished/draft resources should be configurable
     Then the response status code should be 200
     And the component position should have the component "publishable_published"
 
+  Scenario: As an anonymous user, when I get a component position holding a published component with a pending draft, the published component should be returned
+    Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"
+    And there is a ComponentPosition with the resource "publishable_published"
+    When I send a "GET" request to the resource "component_position"
+    Then the response status code should be 200
+    And the component position should have the component "publishable_published"
+    And the JSON node "_metadata.staticComponent" should be equal to the IRI of the resource "publishable_published"
+
+  Scenario: As an anonymous user, a component position does not expose a component that was never published, but is tagged with it
+    Given there is a routed Page with a component group and an unpublished component with the path "/my-route"
+    When I send a "GET" request to the resource "position"
+    Then the response status code should be 200
+    And the JSON node "component" should not exist
+    And the JSON node "_metadata.staticComponent" should not exist
+    And the cache tag for the resource "component" should be in the response
+    And the header "Cache-Control" should contain "public"
+
+  Scenario: As an anonymous user, a component position does not expose a scheduled component, and cannot be cached beyond its publication
+    Given there is a routed Page with a component group and an unpublished component set to publish in 60 seconds with the path "/my-route"
+    When I send a "GET" request to the resource "position"
+    Then the response status code should be 200
+    And the JSON node "component" should not exist
+    And the JSON node "_metadata.staticComponent" should not exist
+    And the cache tag for the resource "component" should be in the response
+    And the header "Expires" should match "/GMT$/"
+    And the response shared max age should be at most 60
+
+  @loginAdmin
+  Scenario: As a user with draft access, a component position exposes a component that was never published, and no shared cache stores the response
+    Given there is a routed Page with a component group and an unpublished component with the path "/my-route"
+    When I send a "GET" request to the resource "position"
+    Then the response status code should be 200
+    And the JSON node "component" should be equal to the IRI of the resource "component"
+    And the JSON node "_metadata.staticComponent" should be equal to the IRI of the resource "component"
+    And the header "Cache-Control" should contain "private"
+    And the header "Cache-Control" should contain "no-store"
+
+  @loginAdmin
+  Scenario: Publishing a component that was never published purges and publishes the positions holding it and the manifest of the page placing it
+    Given there is a routed Page with a component group and an unpublished component with the path "/my-route"
+    When I send a "PATCH" request to the resource "component" with body:
+    """
+    {
+        "publishedAt": "now"
+    }
+    """
+    Then the response status code should be 200
+    And the resource "component" should be purged from the cache
+    And the resource "position" should be purged from the cache
+    And the manifest cache tag for the resource "page" should be purged
+    And a Mercure update should have been published for the resource "position"
+
+  @loginAdmin
+  Scenario: Editing the content of a component that was never published purges neither the positions holding it nor the manifest of the page placing it
+    Given there is a routed Page with a component group and an unpublished component with the path "/my-route"
+    When I send a "PATCH" request to the resource "component" with body:
+    """
+    {
+        "reference": "updated"
+    }
+    """
+    Then the response status code should be 200
+    And the resource "component" should be purged from the cache
+    And the resource "position" should not be purged from the cache
+    And the manifest cache tag for the resource "page" should not be purged
+
+  Scenario: As an anonymous user, a dynamic position does not expose a scheduled page data component, and cannot be cached beyond its publication
+    Given there is a PageData resource with a draft component set to publish in 60 seconds in a pageDataProperty position and the route path "/my-route"
+    And I add "path" header equal to "/my-route"
+    When I send a "GET" request to the resource "component_position"
+    Then the response status code should be 200
+    And the JSON node "component" should not exist
+    And the header "Expires" should match "/GMT$/"
+    And the response shared max age should be at most 60
+
+  Scenario: As an anonymous user, the manifest of a page placing a scheduled component cannot be cached beyond its publication
+    Given there is a routed Page with a component group and an unpublished component set to publish in 60 seconds with the path "/my-route"
+    When I send a "GET" request to "/_/resource_manifest//my-route"
+    Then the response status code should be 200
+    And the manifest depth 0 should not contain the IRI of the resource "component"
+    And the manifest depth 0 should contain the IRI of the resource "position"
+    And the header "Expires" should match "/GMT$/"
+    And the response shared max age should be at most 60
+
   @loginUser
   Scenario: As a user with draft access, when I get a published resource with a draft resource available, and published=true query filter, I should have the published resource returned.
     Given there is a published resource with a draft set to publish at "2999-12-31T23:59:59+00:00"

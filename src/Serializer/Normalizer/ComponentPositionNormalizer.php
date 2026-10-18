@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\EventListener\Api\CacheHeadersEventListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
@@ -103,27 +104,58 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
             $resourceMetadata->setIsDynamicPosition(false);
         }
 
+        $componentHidden = false;
         if ($object->component) {
-            $object->component = $this->getPublishableComponent($object->component);
+            $component = $this->getPublishableComponent($object->component);
+            if ($component) {
+                $object->component = $component;
+            } else {
+                $componentHidden = true;
+            }
         }
-        if ($staticComponent) {
-            $resourceMetadata->setStaticComponent($this->iriConverter->getIriFromResource($this->getPublishableComponent($staticComponent)));
+        if ($staticComponent && $visibleStaticComponent = $this->getPublishableComponent($staticComponent)) {
+            $resourceMetadata->setStaticComponent($this->iriConverter->getIriFromResource($visibleStaticComponent));
         }
 
-        return $this->normalizer->normalize($object, $format, $context);
+        $normalized = $this->normalizer->normalize($object, $format, $context);
+        if ($componentHidden && \is_array($normalized)) {
+            unset($normalized['component']);
+        }
+
+        return $normalized;
     }
 
-    private function getPublishableComponent($component)
+    private function getPublishableComponent(AbstractComponent $component): ?AbstractComponent
     {
-        if (
-            $component
-            && $this->publishableStatusChecker->getAttributeReader()->isConfigured($component)
-            && $this->publishableStatusChecker->isGranted($component)
-        ) {
+        if (!$this->publishableStatusChecker->getAttributeReader()->isConfigured($component)) {
+            return $component;
+        }
+
+        if ($this->publishableStatusChecker->isGranted($component)) {
             return $this->normalizePublishableComponent($component);
         }
 
-        return $component;
+        if ($this->publishableStatusChecker->isActivePublishedAt($component)) {
+            return $component;
+        }
+
+        $this->recordHiddenPublication($component);
+
+        return null;
+    }
+
+    private function recordHiddenPublication(AbstractComponent $component): void
+    {
+        $publishedAt = $this->publishableStatusChecker->getPublicationDate($component);
+        $request = $this->requestStack->getMainRequest();
+        if (null === $publishedAt || null === $request) {
+            return;
+        }
+
+        $recorded = $request->attributes->get(CacheHeadersEventListener::NEXT_PUBLICATION_ATTRIBUTE);
+        if (!$recorded instanceof \DateTimeInterface || $publishedAt < $recorded) {
+            $request->attributes->set(CacheHeadersEventListener::NEXT_PUBLICATION_ATTRIBUTE, $publishedAt);
+        }
     }
 
     private function normalizePublishableComponent(AbstractComponent $component)
@@ -194,6 +226,7 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
             && !$this->publishableStatusChecker->isGranted($component)
         ) {
             $this->collectorData?->recordPageDataResolution($property, $component::class, 'not_published');
+            $this->recordHiddenPublication($component);
 
             return $object;
         }
