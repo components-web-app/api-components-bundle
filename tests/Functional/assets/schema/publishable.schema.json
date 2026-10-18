@@ -10,7 +10,6 @@
   ],
   "properties": {
     "@context": {
-      "$id": "#/@context",
       "type": "string",
       "title": "The @context Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -20,7 +19,6 @@
       ]
     },
     "@id": {
-      "$id": "#/@id",
       "type": "string",
       "title": "The @id Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -30,7 +28,6 @@
       ]
     },
     "@type": {
-      "$id": "#/@type",
       "type": "string",
       "title": "The @type Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -40,7 +37,6 @@
       ]
     },
     "publishedAt": {
-      "$id": "#/publishedAt",
       "type": "string",
       "title": "The Modified Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -50,7 +46,6 @@
       ]
     },
     "draftResource": {
-      "$id": "#/draftResource",
       "type": "string",
       "title": "The Modified Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -60,7 +55,6 @@
       ]
     },
     "publishedResource": {
-      "$id": "#/publishedResource",
       "type": "string",
       "title": "The Modified Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -70,7 +64,6 @@
       ]
     },
     "_metadata": {
-      "$id": "#/_metadata",
       "type": "object",
       "title": "The _metadata Schema",
       "description": "An explanation about the purpose of this instance.",
@@ -85,7 +78,6 @@
       ],
       "properties": {
         "publishable": {
-          "$id": "#/_metadata/publishable",
           "type": "object",
           "title": "The _metadata/publishable Schema",
           "description": "An explanation about the purpose of this instance.",
@@ -110,7 +102,6 @@
           },
           "properties": {
             "published": {
-              "$id": "#/_metadata/publishable/published",
               "type": "boolean",
               "title": "The _metadata/publishable/published Schema",
               "description": "An explanation about the purpose of this instance.",
@@ -121,7 +112,6 @@
               ]
             },
             "publishedAt": {
-              "$id": "#/_metadata/publishable/publishedAt",
               "type": "string",
               "title": "The Modified Schema",
               "description": "An explanation about the purpose of this instance.",
