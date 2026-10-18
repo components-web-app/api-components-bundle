@@ -447,6 +447,8 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertNull($this->argument($container, RoutableVoter::class, '$securityStr'));
         self::assertNull($this->argument($container, RoutableResourceMetadataCollectionFactory::class, '$securityStr'));
 
+        self::assertSame('%silverback.api_components.refresh_token.ttl%', $container->findDefinition(MercureAuthorization::class)->getArgument(8));
+        self::assertSame('cookieLifetime', new \ReflectionMethod(MercureAuthorization::class, '__construct')->getParameters()[8]->getName());
         self::assertSame(Cookie::SAMESITE_STRICT, $this->argument($container, MercureAuthorization::class, '$cookieSameSite'));
         self::assertNull($this->argument($container, MercureAuthorization::class, '$hubName'));
         self::assertFalse($this->argument($container, MercureAuthorization::class, '$secureSubscriptions'));

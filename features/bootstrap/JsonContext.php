@@ -172,6 +172,22 @@ class JsonContext implements Context
         }
     }
 
+    /**
+     * @Then the mercure cookie and its token should expire in :seconds seconds
+     */
+    public function theMercureCookieAndItsTokenShouldExpireIn(int $seconds): void
+    {
+        $cookie = $this->getCookieByName('__Secure-mercure_access_token');
+        $expected = time() + $seconds;
+        $tokenExpiry = (int) $this->jwsProvider->load($cookie->getValue())->getPayload()['exp'];
+        if (abs($tokenExpiry - $expected) > 5) {
+            throw new \RuntimeException(\sprintf('The mercure token expires at %s, expected about %s.', date(\DATE_ATOM, $tokenExpiry), date(\DATE_ATOM, $expected)));
+        }
+        if (abs($cookie->getExpiresTime() - $tokenExpiry) > 1) {
+            throw new \RuntimeException(\sprintf('The mercure cookie expires at %s but its token at %s.', date(\DATE_ATOM, $cookie->getExpiresTime()), date(\DATE_ATOM, $tokenExpiry)));
+        }
+    }
+
     private function getMercureCookieSubscribeTopics(): array
     {
         $payload = $this->jwsProvider->load($this->getCookieByName('__Secure-mercure_access_token')->getValue())->getPayload();

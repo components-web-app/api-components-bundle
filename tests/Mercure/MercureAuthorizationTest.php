@@ -148,6 +148,42 @@ class MercureAuthorizationTest extends TestCase
         );
     }
 
+    public function test_the_cookie_and_its_token_expire_after_the_refresh_token_ttl(): void
+    {
+        $authorization = $this->createAuthorization(
+            [Layout::class => [new Get(uriTemplate: '/layouts/{id}', class: Layout::class, name: 'layout_get', mercure: true)]],
+            ['layout_get' => '/layouts/{id}'],
+            cookieLifetime: 86400,
+        );
+
+        $before = time();
+        $cookie = $authorization->getAuthorizationCookie();
+        $after = time();
+
+        $payload = json_decode(base64_decode(strtr(explode('.', (string) $cookie->getValue())[1], '-_', '+/'), true), true);
+        $tokenExpiry = (int) $payload['exp'];
+        self::assertGreaterThanOrEqual($before + 86400, $tokenExpiry);
+        self::assertLessThanOrEqual($after + 86400, $tokenExpiry);
+        self::assertGreaterThanOrEqual($before + 86400, $cookie->getExpiresTime());
+        self::assertLessThanOrEqual($after + 86400, $cookie->getExpiresTime());
+        self::assertLessThanOrEqual(1, abs($cookie->getExpiresTime() - $tokenExpiry));
+    }
+
+    public function test_the_cookie_lifetime_follows_the_configured_ttl(): void
+    {
+        $authorization = $this->createAuthorization(
+            [Layout::class => [new Get(uriTemplate: '/layouts/{id}', class: Layout::class, name: 'layout_get', mercure: true)]],
+            ['layout_get' => '/layouts/{id}'],
+            cookieLifetime: 60,
+        );
+
+        $cookie = $authorization->getAuthorizationCookie();
+
+        self::assertLessThanOrEqual(time() + 60, $cookie->getExpiresTime());
+        self::assertGreaterThanOrEqual(time() + 58, $cookie->getExpiresTime());
+        self::assertSame(Cookie::SAMESITE_STRICT, $cookie->getSameSite());
+    }
+
     public function test_the_clear_cookie_expires_the_authorization_cookie_and_grants_nothing(): void
     {
         $authorization = $this->createAuthorization(
@@ -200,6 +236,7 @@ class MercureAuthorizationTest extends TestCase
         string $hubHost = 'example.com',
         ?ResourceNameCollectionFactoryInterface $resourceNames = null,
         ?PublishableStatusChecker $publishableStatusChecker = null,
+        int $cookieLifetime = 604800,
     ): MercureAuthorization {
         if (null === $resourceNames) {
             $resourceNames = $this->createStub(ResourceNameCollectionFactoryInterface::class);
@@ -241,6 +278,7 @@ class MercureAuthorizationTest extends TestCase
             $requestStack,
             $this->createStub(AuthorizationCheckerInterface::class),
             $router,
+            $cookieLifetime,
             $cookieSameSite,
         );
     }
