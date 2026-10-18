@@ -103,6 +103,23 @@ class ComponentPositionValidatorTest extends ConstraintValidatorTestCase
             ->assertRaised();
     }
 
+    public function test_a_cycle_in_a_group_with_no_reference_is_refused(): void
+    {
+        $container = new DummyComponent();
+        $group = new ComponentGroup();
+        $group->addComponent($container);
+        $position = new ComponentPosition();
+        $position->componentGroup = $group;
+        $position->component = $container;
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->buildViolation('The component cannot be placed in the component group `{{ reference }}`: the group is inside the component.')
+            ->atPath('property.path.component')
+            ->setParameter('{{ reference }}', '')
+            ->assertRaised();
+    }
+
     public function test_a_position_is_checked_for_a_cycle_without_an_entity_manager(): void
     {
         $this->withEntityManager = false;

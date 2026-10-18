@@ -211,37 +211,26 @@ class ComponentVoter extends Voter
      */
     private function getComponentPages(AbstractComponent $component): array
     {
-        $pages = new \SplObjectStorage();
-        $visitedComponents = new \SplObjectStorage();
+        $pages = [];
         $visitedGroups = new \SplObjectStorage();
         $queue = [$component];
 
         while ($queue) {
-            $current = array_shift($queue);
-            if (isset($visitedComponents[$current])) {
-                continue;
-            }
-            $visitedComponents[$current] = true;
-
-            foreach ($current->getComponentPositions() as $componentPosition) {
+            foreach (array_shift($queue)->getComponentPositions() as $componentPosition) {
                 $componentGroup = $componentPosition->componentGroup;
-                if (isset($visitedGroups[$componentGroup])) {
+                if ($visitedGroups->offsetExists($componentGroup)) {
                     continue;
                 }
-                $visitedGroups[$componentGroup] = true;
+                $visitedGroups->offsetSet($componentGroup);
 
                 foreach ($componentGroup->layouts as $layout) {
-                    foreach ($layout->pages as $page) {
-                        $pages[$page] = true;
-                    }
+                    array_push($pages, ...$layout->pages);
                 }
-                foreach ($componentGroup->pages as $page) {
-                    $pages[$page] = true;
-                }
+                array_push($pages, ...$componentGroup->pages);
                 array_push($queue, ...$componentGroup->components);
             }
         }
 
-        return iterator_to_array($pages, false);
+        return $pages;
     }
 }

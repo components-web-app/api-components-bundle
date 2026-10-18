@@ -64,34 +64,25 @@ final class ComponentCycleDetector
     }
 
     /**
-     * @param iterable<ComponentGroup> $groups
+     * @param list<ComponentGroup> $queue
      *
      * @return \Generator<ComponentGroup>
      */
-    private function groupsUpwardFrom(iterable $groups): \Generator
+    private function groupsUpwardFrom(array $queue): \Generator
     {
         $visitedGroups = new \SplObjectStorage();
-        $visitedComponents = new \SplObjectStorage();
-        $queue = [...$groups];
 
         while ($queue) {
             $group = array_shift($queue);
-            if (isset($visitedGroups[$group])) {
+            if ($visitedGroups->offsetExists($group)) {
                 continue;
             }
-            $visitedGroups[$group] = true;
+            $visitedGroups->offsetSet($group);
 
             yield $group;
 
             foreach ($group->components as $owner) {
-                if (isset($visitedComponents[$owner])) {
-                    continue;
-                }
-                $family = $this->family($owner);
-                foreach ($family as $member) {
-                    $visitedComponents[$member] = true;
-                }
-                array_push($queue, ...$this->groupsHolding($family));
+                array_push($queue, ...$this->groupsHolding($this->family($owner)));
             }
         }
     }

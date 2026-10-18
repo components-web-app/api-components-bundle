@@ -53,6 +53,25 @@ class AcyclicComponentGroupOwnersValidatorTest extends ConstraintValidatorTestCa
             ->assertRaised();
     }
 
+    public function test_several_new_owners_inside_the_group_are_refused_once(): void
+    {
+        $group = $this->group('outer');
+        $group->reference = null;
+        $first = new DummyComponent();
+        $second = new DummyComponent();
+        $this->place($group, $first);
+        $this->place($group, $second);
+        $group->addComponent($first);
+        $group->addComponent($second);
+        $this->setObject($group);
+
+        $this->validator->validate($group->components, new AcyclicComponentGroupOwners());
+
+        $this->buildViolation('The component group `{{ reference }}` cannot be owned by a component inside it.')
+            ->setParameter('{{ reference }}', '')
+            ->assertRaised();
+    }
+
     public function test_a_new_owner_outside_the_group_is_allowed(): void
     {
         $group = $this->group('outer');

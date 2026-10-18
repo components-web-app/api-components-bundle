@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Helper\ComponentPosition;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
@@ -112,6 +113,56 @@ class ComponentCycleDetectorTest extends TestCase
         self::assertTrue($this->detector->isPlacementCyclic($ancestor, $shared));
         self::assertTrue($this->detector->isPlacementCyclic($first, $shared));
         self::assertFalse($this->detector->isPlacementCyclic(new DummyComponent(), $shared));
+    }
+
+    public function test_a_group_reached_twice_does_not_stop_the_walk(): void
+    {
+        $first = new DummyComponent();
+        $second = new DummyComponent();
+        $shared = $this->groupOwnedBy($first);
+        $shared->addComponent($second);
+        $both = new ComponentGroup();
+        $this->place($both, $first);
+        $this->place($both, $second);
+        $ancestor = new DummyComponent();
+        $this->place($this->groupOwnedBy($ancestor), $second);
+
+        self::assertTrue($this->detector->isPlacementCyclic($ancestor, $shared));
+    }
+
+    public function test_a_draft_owner_with_no_link_back_from_its_published_component_is_still_itself(): void
+    {
+        $published = new DummyPublishableComponent();
+        $draft = new DummyPublishableComponent();
+        $draft->setPublishedResource($published);
+
+        self::assertTrue($this->detector->isPlacementCyclic($draft, $this->groupOwnedBy($draft)));
+    }
+
+    public function test_a_published_component_with_no_draft_is_walked_through(): void
+    {
+        $published = new DummyPublishableComponent();
+        $container = new DummyComponent();
+        $this->place($this->groupOwnedBy($container), $published);
+        $publishedGroup = $this->groupOwnedBy($published);
+
+        self::assertTrue($this->detector->isPlacementCyclic($container, $publishedGroup));
+        self::assertFalse($this->detector->isOwnershipCyclic($published, new ComponentGroup()));
+    }
+
+    public function test_a_lazy_draft_is_loaded_to_find_its_published_component(): void
+    {
+        [$published, $draft] = $this->persistPublishedWithDraft(new \DateTime('-1 day'), null);
+        $publishedId = $published->getId();
+        $draftId = $draft->getId();
+        $this->entityManager->clear();
+        $lazyPublished = $this->entityManager->getReference(DummyPublishableComponent::class, $publishedId);
+        $lazyDraft = $this->entityManager->getReference(DummyPublishableComponent::class, $draftId);
+        $group = new ComponentGroup();
+        $group->components = new ArrayCollection([$lazyPublished]);
+
+        self::assertTrue($this->entityManager->isUninitializedObject($lazyDraft));
+        self::assertTrue($this->detector->isPlacementCyclic($lazyDraft, $group));
     }
 
     public function test_the_walk_ends_on_a_cycle_already_held(): void

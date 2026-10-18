@@ -91,8 +91,23 @@ class ComponentVoterTest extends TestCase
         $layout->pages = new ArrayCollection([$routedPage]);
         $group = new ComponentGroup();
         $group->layouts = new ArrayCollection([$layout]);
-        $component = new DummyComponent();
+        $component = $this->component([$this->page(null)]);
         $this->place($group, $component);
+
+        self::assertSame(VoterInterface::ACCESS_GRANTED, $this->vote($component, $routedPage));
+    }
+
+    public function test_a_group_reached_twice_does_not_stop_the_walk(): void
+    {
+        $routedPage = $this->page(new Route());
+        $routelessGroup = new ComponentGroup();
+        $routelessGroup->pages = new ArrayCollection([$this->page(null)]);
+        $routedGroup = new ComponentGroup();
+        $routedGroup->pages = new ArrayCollection([$routedPage]);
+        $component = new DummyComponent();
+        $this->place($routelessGroup, $component);
+        $this->place($routelessGroup, $component);
+        $this->place($routedGroup, $component);
 
         self::assertSame(VoterInterface::ACCESS_GRANTED, $this->vote($component, $routedPage));
     }
