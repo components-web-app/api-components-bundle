@@ -6,6 +6,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Tooling
 - `justinrainbow/json-schema` `^6.4` for the functional tests' schema checks, which now enforce `const`; the boilerplate `$id`s that broke `$ref` resolution are removed from the schema files, and the validation error schema expects API Platform's `ConstraintViolation` type ([#519](https://github.com/components-web-app/api-components-bundle/pull/519))
+- Functional tests pin what the module's clone and "Delete from all locations" rely on: a clone is the same component IRI in a new position, validated like any placement, and `GET {component}/usage` counts positions across groups plus page data properties, a published component and its draft as one ([#521](https://github.com/components-web-app/api-components-bundle/pull/521))
 
 ## [2.0.0-alpha.30](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.29...2.0.0-alpha.30) - 2026-10-18
 
