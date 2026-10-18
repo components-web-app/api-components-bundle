@@ -584,6 +584,8 @@ trait FixtureScenarioTrait
     protected function runCommandLine(string $command, string ...$groups): void
     {
         static::rebootKernel();
+        putenv('SHELL_VERBOSITY');
+        unset($_ENV['SHELL_VERBOSITY'], $_SERVER['SHELL_VERBOSITY']);
         $tester = self::runApplication(['command' => $command, '--append' => true, '--group' => $groups, '--no-interaction' => true]);
         $this->commandOutput = $tester->getDisplay();
         self::assertSame(Command::SUCCESS, $tester->getStatusCode(), \sprintf('The command returned %d. Output: %s', $tester->getStatusCode(), $this->commandOutput));
