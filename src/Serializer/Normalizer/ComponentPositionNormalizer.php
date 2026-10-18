@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\EventListener\Api\CacheHeadersEventListener;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Mercure\AnonymousResourceReader;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
@@ -93,36 +94,40 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
         $staticComponent = $object->component;
         $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
 
-        $object = $this->normalizeForPageData($object, $context);
-        if ($object->pageDataProperty) {
-            $resourceMetadata->setIsDynamicPosition(true);
-            try {
-                $resourceMetadata->setPageDataPath($this->pageDataProvider->getOriginalRequestPath());
-            } catch (UnprocessableEntityHttpException) {
-            }
-        } else {
-            $resourceMetadata->setIsDynamicPosition(false);
-        }
-
-        $componentHidden = false;
-        if ($object->component) {
-            $component = $this->getPublishableComponent($object->component);
-            if ($component) {
-                $object->component = $component;
+        try {
+            $object = $this->normalizeForPageData($object, $context);
+            if ($object->pageDataProperty) {
+                $resourceMetadata->setIsDynamicPosition(true);
+                try {
+                    $resourceMetadata->setPageDataPath($this->pageDataProvider->getOriginalRequestPath());
+                } catch (UnprocessableEntityHttpException) {
+                }
             } else {
-                $componentHidden = true;
+                $resourceMetadata->setIsDynamicPosition(false);
             }
-        }
-        if ($staticComponent && $visibleStaticComponent = $this->getPublishableComponent($staticComponent)) {
-            $resourceMetadata->setStaticComponent($this->iriConverter->getIriFromResource($visibleStaticComponent));
-        }
 
-        $normalized = $this->normalizer->normalize($object, $format, $context);
-        if ($componentHidden && \is_array($normalized)) {
-            unset($normalized['component']);
-        }
+            $componentHidden = false;
+            if ($object->component) {
+                $component = $this->getPublishableComponent($object->component);
+                if ($component) {
+                    $object->component = $component;
+                } else {
+                    $componentHidden = true;
+                }
+            }
+            if ($staticComponent && $visibleStaticComponent = $this->getPublishableComponent($staticComponent)) {
+                $resourceMetadata->setStaticComponent($this->iriConverter->getIriFromResource($visibleStaticComponent));
+            }
 
-        return $normalized;
+            $normalized = $this->normalizer->normalize($object, $format, $context);
+            if ($componentHidden && \is_array($normalized)) {
+                unset($normalized['component']);
+            }
+
+            return $normalized;
+        } finally {
+            $object->component = $staticComponent;
+        }
     }
 
     private function getPublishableComponent(AbstractComponent $component): ?AbstractComponent
@@ -146,6 +151,10 @@ class ComponentPositionNormalizer implements DenormalizerInterface, Denormalizer
 
     private function recordHiddenPublication(AbstractComponent $component): void
     {
+        if ($this->requestStack->getCurrentRequest()?->attributes->getBoolean(AnonymousResourceReader::REQUEST_ATTRIBUTE)) {
+            return;
+        }
+
         $publishedAt = $this->publishableStatusChecker->getPublicationDate($component);
         $request = $this->requestStack->getMainRequest();
         if (null === $publishedAt || null === $request) {

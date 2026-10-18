@@ -576,6 +576,101 @@ final class DoctrineContext implements Context
     }
 
     /**
+     * @Given /^there is a routed Page "([^"]+)" whose group holds a published DummyPublishableComponent( with a draft)?$/
+     */
+    public function thereIsARoutedPageWhoseGroupHoldsAPublishedComponent(string $path, string $withDraft = ''): void
+    {
+        $page = new Page();
+        $page->reference = 'mercure-page';
+        $page->uiComponent = 'TestComponent';
+        $page->isTemplate = false;
+        $page->layout = $this->thereIsALayout('mercure-layout');
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+
+        $componentGroup = new ComponentGroup();
+        $componentGroup->reference = 'mercure-group';
+        $componentGroup->location = 'mercure-group';
+        $this->timestampedHelper->persistTimestampedFields($componentGroup, true);
+        $this->manager->persist($componentGroup);
+        $page->addComponentGroup($componentGroup);
+
+        $otherComponentGroup = new ComponentGroup();
+        $otherComponentGroup->reference = 'mercure-other-group';
+        $otherComponentGroup->location = 'mercure-other-group';
+        $this->timestampedHelper->persistTimestampedFields($otherComponentGroup, true);
+        $this->manager->persist($otherComponentGroup);
+        $page->addComponentGroup($otherComponentGroup);
+
+        $published = new DummyPublishableComponent();
+        $published->reference = 'published';
+        $published->setPublishedAt(new \DateTime('-1 day'));
+        $this->manager->persist($published);
+
+        $position = new ComponentPosition();
+        $position->componentGroup = $componentGroup;
+        $position->component = $published;
+        $position->sortValue = 0;
+        $this->timestampedHelper->persistTimestampedFields($position, true);
+        $this->manager->persist($position);
+
+        $route = new Route();
+        $route->setPath($path)->setName($path)->setPage($page);
+        $this->timestampedHelper->persistTimestampedFields($route, true);
+        $this->manager->persist($route);
+
+        $draft = null;
+        if ('' !== $withDraft) {
+            $draft = new DummyPublishableComponent();
+            $draft->reference = 'draft';
+            $draft->setPublishedResource($published);
+            $this->manager->persist($draft);
+        }
+
+        $this->manager->flush();
+
+        $this->restContext->resources['route'] = $this->iriConverter->getIriFromResource($route);
+        $this->restContext->resources['page'] = $this->iriConverter->getIriFromResource($page);
+        $this->restContext->resources['component_group'] = $this->iriConverter->getIriFromResource($componentGroup);
+        $this->restContext->resources['other_component_group'] = $this->iriConverter->getIriFromResource($otherComponentGroup);
+        $this->restContext->resources['position'] = $this->iriConverter->getIriFromResource($position);
+        $this->restContext->resources['published_component'] = $this->iriConverter->getIriFromResource($published);
+        if ($draft) {
+            $this->restContext->resources['draft_component'] = $this->iriConverter->getIriFromResource($draft);
+        }
+    }
+
+    /**
+     * @Given there is a valid Page that no route reaches
+     */
+    public function thereIsAValidPageThatNoRouteReaches(): void
+    {
+        $page = new Page();
+        $page->reference = 'unrouted-page';
+        $page->uiComponent = 'TestComponent';
+        $page->isTemplate = false;
+        $page->layout = $this->thereIsALayout('unrouted-layout');
+        $this->timestampedHelper->persistTimestampedFields($page, true);
+        $this->manager->persist($page);
+        $this->manager->flush();
+        $this->restContext->resources['page'] = $this->iriConverter->getIriFromResource($page);
+    }
+
+    /**
+     * @When the publication date of the resource :name is moved to :date in the database
+     */
+    public function thePublicationDateOfTheResourceIsMovedInTheDatabase(string $name, string $date): void
+    {
+        $this->manager->clear();
+        $component = $this->iriConverter->getResourceFromIri($this->restContext->resources[$name]);
+        if (!$component instanceof DummyPublishableComponent) {
+            throw new \RuntimeException(\sprintf('The resource named `%s` is not a DummyPublishableComponent', $name));
+        }
+        $component->setPublishedAt(new \DateTime($date));
+        $this->manager->flush();
+    }
+
+    /**
      * @Given /^there is a routed Page with a component group and an unpublished component(?: set to publish in (\d+) seconds|) with the path "([^"]*)"$/
      */
     public function thereIsARoutedPageWithAComponentGroupAndAnUnpublishedComponent(string $seconds, string $path): void

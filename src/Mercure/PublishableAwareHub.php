@@ -68,7 +68,7 @@ class PublishableAwareHub implements RemoteHubInterface
 
     public function publish(Update $update): string
     {
-        if ($update->getData() && $data = json_decode($update->getData(), true, 512, \JSON_THROW_ON_ERROR)) {
+        if ($update->getData() && ($data = json_decode($update->getData(), true, 512, \JSON_THROW_ON_ERROR)) && !$this->isPublicDelete($update, $data)) {
             try {
                 $resource = $this->iriConverter->getResourceFromIri($data['@id']);
             } catch (ItemNotFoundException $e) {
@@ -82,5 +82,20 @@ class PublishableAwareHub implements RemoteHubInterface
         }
 
         return $this->decorated->publish($update);
+    }
+
+    private function isPublicDelete(Update $update, array $data): bool
+    {
+        if (['@id'] !== array_keys($data)) {
+            return false;
+        }
+
+        foreach ($update->getTopics() as $topic) {
+            if (str_contains($topic, '?draft=1')) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

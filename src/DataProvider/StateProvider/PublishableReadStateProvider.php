@@ -17,6 +17,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Mercure\AnonymousResourceReader;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -48,6 +49,7 @@ final readonly class PublishableReadStateProvider implements ProviderInterface
             || HttpOperation::METHOD_GET !== $operation->getMethod()
             || $operation instanceof CollectionOperationInterface
             || !$this->publishableStatusChecker->getAttributeReader()->isConfigured($data)
+            || $request->attributes->getBoolean(AnonymousResourceReader::REQUEST_ATTRIBUTE)
         ) {
             return $data;
         }

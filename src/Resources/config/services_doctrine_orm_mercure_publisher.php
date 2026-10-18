@@ -16,7 +16,12 @@
 use ApiPlatform\State\SerializerContextBuilderInterface;
 use Silverback\ApiComponentsBundle\ApiPlatform\Api\MercureIriConverter;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Mercure\AnonymousResourceReader;
 use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
+use Silverback\ApiComponentsBundle\Message\PublishMercureUpdatesMessage;
+use Silverback\ApiComponentsBundle\MessageHandler\PublishMercureUpdatesHandler;
+use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -24,6 +29,25 @@ use Symfony\Component\Mercure\HubRegistry;
 
 return static function (ContainerConfigurator $configurator) {
     $services = $configurator->services();
+
+    $services
+        ->set('silverback.api_components.mercure.anonymous_resource_reader')
+        ->class(AnonymousResourceReader::class)
+        ->args([
+            new Reference('http_kernel'),
+            new Reference('request_stack'),
+            new Reference('security.token_storage'),
+            new TaggedIteratorArgument('silverback.api_components.caller_scoped_state'),
+            new Reference('debug.stopwatch', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ]);
+    $services->alias(AnonymousResourceReader::class, 'silverback.api_components.mercure.anonymous_resource_reader');
+
+    $services
+        ->set('silverback.api_components.message_handler.publish_mercure_updates')
+        ->class(PublishMercureUpdatesHandler::class)
+        ->args([new Reference(HubRegistry::class)])
+        ->tag('messenger.message_handler', ['handles' => PublishMercureUpdatesMessage::class]);
+    $services->alias(PublishMercureUpdatesHandler::class, 'silverback.api_components.message_handler.publish_mercure_updates');
 
     $services
         ->set('silverback.api_components.mercure.resource_publisher')
@@ -34,6 +58,9 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(SerializerContextBuilderInterface::class),
             new Reference('request_stack'),
             '%api_platform.formats%',
+            new Reference('silverback.api_components.mercure.anonymous_resource_reader'),
+            new Reference(PublishableStatusChecker::class),
+            new Reference('doctrine'),
             new Reference('api_platform.metadata.resource.metadata_collection_factory'),
             new Reference('api_platform.resource_class_resolver'),
             new Reference('messenger.default_bus', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),

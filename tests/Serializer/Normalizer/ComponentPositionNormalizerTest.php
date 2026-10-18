@@ -23,6 +23,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\EventListener\Api\CacheHeadersEventListener;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Mercure\AnonymousResourceReader;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentPositionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
@@ -70,6 +71,50 @@ class ComponentPositionNormalizerTest extends TestCase
         self::assertTrue($normalizer->supportsDenormalization($data, ComponentPosition::class));
         self::assertSame($position, $normalizer->denormalize($data, ComponentPosition::class, 'jsonld'));
         self::assertSame($sent, $position->wasSortValueSent());
+    }
+
+    public function test_normalizing_for_an_admin_names_the_draft_without_changing_the_position(): void
+    {
+        $published = new DummyPublishableComponent();
+        $draft = new DummyPublishableComponent();
+        $position = new ComponentPosition();
+        $position->component = $published;
+
+        $registry = $this->createStub(ManagerRegistry::class);
+        $statusChecker = $this->createStub(PublishableStatusChecker::class);
+        $statusChecker->method('getAttributeReader')->willReturn(new PublishableAttributeReader($registry));
+        $statusChecker->method('isGranted')->willReturn(true);
+        $classMetadata = $this->createStub(ClassMetadata::class);
+        $classMetadata->method('getFieldValue')->willReturnCallback(static fn (object $component): ?object => $component === $published ? $draft : null);
+        $entityManager = $this->createStub(EntityManagerInterface::class);
+        $entityManager->method('getClassMetadata')->willReturn($classMetadata);
+        $registry->method('getManagerForClass')->willReturn($entityManager);
+
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturn('/component/draft');
+
+        $normalizedComponent = null;
+        $inner = $this->createStub(NormalizerInterface::class);
+        $inner->method('normalize')->willReturnCallback(static function (ComponentPosition $object) use (&$normalizedComponent): array {
+            $normalizedComponent = $object->component;
+
+            return [];
+        });
+        $normalizer = new ComponentPositionNormalizer(
+            $this->createStub(PageDataProvider::class),
+            new RequestStack(),
+            $statusChecker,
+            $registry,
+            $iriConverter,
+            $metadataProvider = new ResourceMetadataProvider(),
+        );
+        $normalizer->setNormalizer($inner);
+
+        $normalizer->normalize($position, 'jsonld');
+
+        self::assertSame($draft, $normalizedComponent);
+        self::assertSame($published, $position->component);
+        self::assertFalse($metadataProvider->findResourceMetadata($position)->getIsDynamicPosition());
     }
 
     public function test_a_component_which_is_not_publishable_is_exposed(): void
@@ -166,6 +211,14 @@ class ComponentPositionNormalizerTest extends TestCase
         self::assertSame($publishedAt, $result['request']->attributes->get(CacheHeadersEventListener::NEXT_PUBLICATION_ATTRIBUTE));
     }
 
+    public function test_a_hidden_component_in_an_anonymous_read_for_mercure_is_not_recorded_on_the_writers_request(): void
+    {
+        $result = $this->normalizeStatic(new DummyPublishableComponent(), granted: false, active: false, publishedAt: new \DateTimeImmutable('+1 hour'), subRequest: true, anonymousRead: true);
+
+        self::assertArrayNotHasKey('component', $result['data']);
+        self::assertNull($result['request']->attributes->get(CacheHeadersEventListener::NEXT_PUBLICATION_ATTRIBUTE));
+    }
+
     public function test_a_hidden_component_with_no_request_is_still_hidden(): void
     {
         $result = $this->normalizeStatic(new DummyPublishableComponent(), granted: false, active: false, publishedAt: new \DateTimeImmutable('+1 hour'), withRequest: false);
@@ -176,7 +229,7 @@ class ComponentPositionNormalizerTest extends TestCase
     /**
      * @return array{data: array<string, mixed>, normalized: ComponentPosition, position: ComponentPosition, metadata: ResourceMetadata, request: Request}
      */
-    private function normalizeStatic(AbstractComponent $component, bool $granted, bool $active, ?\DateTimeInterface $publishedAt, ?AbstractComponent $draft = null, mixed $recorded = null, bool $withRequest = true, bool $subRequest = false): array
+    private function normalizeStatic(AbstractComponent $component, bool $granted, bool $active, ?\DateTimeInterface $publishedAt, ?AbstractComponent $draft = null, mixed $recorded = null, bool $withRequest = true, bool $subRequest = false, bool $anonymousRead = false): array
     {
         $position = new ComponentPosition();
         $position->component = $component;
@@ -206,7 +259,7 @@ class ComponentPositionNormalizerTest extends TestCase
             $requestStack->push($request);
         }
         if ($subRequest) {
-            $requestStack->push(new Request());
+            $requestStack->push(new Request(attributes: $anonymousRead ? [AnonymousResourceReader::REQUEST_ATTRIBUTE => true] : []));
         }
 
         $metadataProvider = new ResourceMetadataProvider();
@@ -222,7 +275,7 @@ class ComponentPositionNormalizerTest extends TestCase
         $normalized = null;
         $inner = $this->createStub(NormalizerInterface::class);
         $inner->method('normalize')->willReturnCallback(static function (ComponentPosition $object) use (&$normalized, $iriConverter): array {
-            $normalized = $object;
+            $normalized = clone $object;
 
             return ['@id' => '/_/component_positions/1', 'component' => $object->component ? $iriConverter->getIriFromResource($object->component) : null];
         });

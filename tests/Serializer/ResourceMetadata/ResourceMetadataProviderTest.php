@@ -64,4 +64,19 @@ class ResourceMetadataProviderTest extends TestCase
 
         self::assertNull($resourceReference->get());
     }
+
+    public function test_isolated_metadata_is_separate_and_the_callers_returns_on_restore(): void
+    {
+        $provider = new ResourceMetadataProvider();
+        $resource = new \stdClass();
+        $callers = $provider->findResourceMetadata($resource);
+
+        $restore = $provider->isolate();
+        self::assertFalse($provider->resourceMetadataExists($resource));
+        $isolated = $provider->findResourceMetadata($resource);
+        self::assertNotSame($callers, $isolated);
+
+        $restore();
+        self::assertSame($callers, $provider->findResourceMetadata($resource));
+    }
 }

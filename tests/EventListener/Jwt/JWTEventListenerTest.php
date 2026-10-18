@@ -39,12 +39,12 @@ class JWTEventListenerTest extends TestCase
         );
     }
 
-    private function makeResponseEvent(): ResponseEvent
+    private function makeResponseEvent(int $requestType = HttpKernelInterface::MAIN_REQUEST): ResponseEvent
     {
         return new ResponseEvent(
             $this->createStub(HttpKernelInterface::class),
             new Request(),
-            HttpKernelInterface::MAIN_REQUEST,
+            $requestType,
             new Response(),
         );
     }
@@ -158,5 +158,19 @@ class JWTEventListenerTest extends TestCase
         $listener->onKernelResponse($second);
         $secondCookieNames = array_map(static fn (Cookie $c) => $c->getName(), $second->getResponse()->headers->getCookies());
         self::assertNotContains('api_components', $secondCookieNames, 'Token must not be reused on a second response');
+    }
+
+    public function test_a_sub_request_response_leaves_the_refreshed_token_for_the_main_response(): void
+    {
+        $listener = $this->buildListener();
+        $listener->onJWTRefreshed(new JWTRefreshedEvent('header.payload.signature'));
+
+        $subRequest = $this->makeResponseEvent(HttpKernelInterface::SUB_REQUEST);
+        $listener->onKernelResponse($subRequest);
+        $main = $this->makeResponseEvent();
+        $listener->onKernelResponse($main);
+
+        self::assertSame([], $subRequest->getResponse()->headers->getCookies());
+        self::assertSame(['api_components', '__Secure-mercure_access_token'], array_map(static fn (Cookie $c) => $c->getName(), $main->getResponse()->headers->getCookies()));
     }
 }

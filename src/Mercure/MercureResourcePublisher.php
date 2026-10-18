@@ -21,10 +21,15 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use ApiPlatform\Metadata\UrlGeneratorInterface;
 use ApiPlatform\State\SerializerContextBuilderInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\PersistentCollection;
+use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
+use Silverback\ApiComponentsBundle\Message\PublishMercureUpdatesMessage;
+use Silverback\ApiComponentsBundle\Utility\PublicationDate;
 use Silverback\ApiComponentsBundle\Utility\ResourceClassInfoTrait;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
@@ -55,6 +60,8 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         'hub' => true,
         'enable_async_update' => true,
     ];
+    private const string ADMIN_TOPIC_QUERY = '?draft=1';
+    private const string SERIALIZATION_ID_PATTERN = '~"@id":"[^"]*(?:\\.well-known(?:\\\\/|/)genid|media_objects)(?:\\\\/|/)[^"]*"~';
 
     private readonly ?ExpressionLanguage $expressionLanguage;
     private \SplObjectStorage $createdObjects;
@@ -68,6 +75,9 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         private readonly SerializerContextBuilderInterface $serializerContextBuilder,
         private readonly RequestStack $requestStack,
         private readonly array $formats,
+        private readonly AnonymousResourceReader $anonymousResourceReader,
+        private readonly PublishableStatusChecker $publishableStatusChecker,
+        private readonly ManagerRegistry $registry,
         ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory,
         ResourceClassResolverInterface $resourceClassResolver,
         ?MessageBusInterface $messageBus = null,
@@ -131,7 +141,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
 
         $id = $this->iriConverter->getIriFromResource($object);
         $iri = $this->iriConverter->getIriFromResource($object, UrlGeneratorInterface::ABS_URL);
-        $objectData = ['id' => $id, 'iri' => $iri, 'mercureOptions' => $this->normalizeMercureOptions($options, $object)];
+        $objectData = ['id' => $id, 'iri' => $iri, 'mercureOptions' => $this->normalizeMercureOptions($options, $object), 'wasPublished' => false];
 
         if ('deletedObjects' === $property) {
             $this->createdObjects->offsetUnset($object);
@@ -141,7 +151,41 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
             return;
         }
 
+        $objectData['wasPublished'] = ($this->{$property}[$object]['wasPublished'] ?? false) || $this->wasPublishedBeforeThisWrite($object);
         $this->{$property}[$object] = $objectData;
+    }
+
+    private function isDraft(object $object): bool
+    {
+        $attributeReader = $this->publishableStatusChecker->getAttributeReader();
+        if (!$attributeReader->isConfigured($object)) {
+            return false;
+        }
+
+        if (!$this->publishableStatusChecker->isActivePublishedAt($object)) {
+            return true;
+        }
+
+        $manager = $this->registry->getManagerForClass($this->getObjectClass($object));
+
+        return $manager instanceof EntityManagerInterface && null !== $manager->getClassMetadata($this->getObjectClass($object))->getFieldValue($object, $attributeReader->getConfiguration($object)->associationName);
+    }
+
+    private function wasPublishedBeforeThisWrite(object $object): bool
+    {
+        if (!$this->isDraft($object)) {
+            return false;
+        }
+
+        $manager = $this->registry->getManagerForClass($this->getObjectClass($object));
+        if (!$manager instanceof EntityManagerInterface) {
+            return false;
+        }
+
+        $fieldName = $this->publishableStatusChecker->getAttributeReader()->getConfiguration($object)->fieldName;
+        $changeSet = $manager->getUnitOfWork()->getEntityChangeSet($object);
+
+        return isset($changeSet[$fieldName]) && PublicationDate::isActive($changeSet[$fieldName][0]);
     }
 
     private function getObjectMercureOptions(object $object): ?array
@@ -249,58 +293,138 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         $baseContext = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
         $context = array_merge($baseContext, $options['normalization_context'] ?? []);
 
-        return $options['data'] ?? $this->serializer->serialize($object, key($this->formats), $context);
+        return $this->serializer->serialize($object, key($this->formats), $context);
     }
 
     private function publishUpdate(object $object, array $objectData, string $type): void
     {
         $options = $objectData['mercureOptions'];
 
-        $topicIri = $options['topics'] ?? $objectData['iri'];
-        $resourceIri = $objectData['iri'];
-
-        $getDeletedObjectData = static function () use ($objectData) {
-            return json_encode(['@id' => $objectData['id']], \JSON_THROW_ON_ERROR);
-        };
-
-        if ('delete' === $type) {
-            $data = $getDeletedObjectData();
-        } else {
-            try {
-                $data = $this->getObjectData($object, $resourceIri, $options);
-            } catch (InvalidArgumentException) {
-                $type = 'delete';
-                $data = $getDeletedObjectData();
-            }
-        }
-
         $updates = array_merge(
-            [$this->buildUpdate($topicIri, $data, $options)],
+            $this->buildResourceUpdates($object, $objectData, $type),
             $this->getGraphQlSubscriptionUpdates($object, $options, $type)
         );
 
         foreach ($updates as $update) {
-            $topics = $update->getTopics();
-            foreach ((array) $topics as $topic) {
+            foreach ($update->getTopics() as $topic) {
                 $this->collectorData?->recordMercurePublication($topic);
             }
+        }
 
+        if ($options['enable_async_update'] && $this->messageBus) {
             try {
-                if ($options['enable_async_update'] && $this->messageBus) {
-                    $this->dispatch($update);
-                    continue;
-                }
+                $this->dispatch(1 === \count($updates) ? $updates[0] : new PublishMercureUpdatesMessage($updates, $options['hub'] ?? null));
+            } catch (MercureRuntimeException|HttpClientExceptionInterface $exception) {
+                $this->logPublishFailure($updates, $objectData['iri'], $exception);
+            }
 
+            return;
+        }
+
+        foreach ($updates as $update) {
+            try {
                 $this->hubRegistry->getHub($options['hub'] ?? null)->publish($update);
             } catch (MercureRuntimeException|HttpClientExceptionInterface $exception) {
-                $this->logPublishFailure($update, $resourceIri, $exception);
+                $this->logPublishFailure([$update], $objectData['iri'], $exception);
             }
         }
     }
 
-    private function logPublishFailure(Update $update, string $resourceIri, \Throwable $exception): void
+    /**
+     * @return list<Update>
+     */
+    private function buildResourceUpdates(object $object, array $objectData, string $type): array
     {
-        $topics = (array) $update->getTopics();
+        $options = $objectData['mercureOptions'];
+        $topics = $options['topics'] ?? $objectData['iri'];
+        $deleteData = json_encode(['@id' => $objectData['id']], \JSON_THROW_ON_ERROR);
+
+        if ('delete' === $type) {
+            return [$this->buildUpdate($topics, $deleteData, $options)];
+        }
+
+        if (isset($options['data'])) {
+            return [$this->buildUpdate($topics, $options['data'], $options)];
+        }
+
+        if ($this->isDraft($object)) {
+            $writerData = $this->getWriterData($object, $objectData['iri'], $options);
+            $updates = [];
+            if ($objectData['wasPublished']) {
+                $updates[] = $this->buildUpdate($this->withoutAdminQuery($topics), json_encode(['@id' => $this->withoutAdminQuery($objectData['id'])], \JSON_THROW_ON_ERROR), $options);
+            }
+            if (null !== $writerData) {
+                $updates[] = $this->buildUpdate($this->withAdminQuery($topics), $writerData, $options, true);
+            }
+
+            return $updates;
+        }
+
+        $publicData = $this->anonymousResourceReader->read($objectData['id'], $this->getAcceptedMimeType());
+        $updates = [$this->buildUpdate($topics, $publicData ?? $deleteData, $options)];
+        $writerData = $this->getWriterData($object, $objectData['iri'], $options);
+        if (null !== $writerData && (null === $publicData || $this->withoutSerializationIds($writerData) !== $this->withoutSerializationIds($publicData))) {
+            $updates[] = $this->buildUpdate($this->withAdminQuery($topics), $writerData, $options, true);
+        }
+
+        return $updates;
+    }
+
+    private function withoutSerializationIds(string $data): string
+    {
+        return (string) preg_replace(self::SERIALIZATION_ID_PATTERN, '', $data);
+    }
+
+    private function getWriterData(object $object, string $iri, array $options): ?string
+    {
+        try {
+            return $this->getObjectData($object, $iri, $options);
+        } catch (InvalidArgumentException) {
+            return null;
+        }
+    }
+
+    private function getAcceptedMimeType(): string
+    {
+        $mimeTypes = (array) current($this->formats);
+
+        return (string) reset($mimeTypes);
+    }
+
+    /**
+     * @param string|string[] $topics
+     *
+     * @return string|string[]
+     */
+    private function withAdminQuery(string|array $topics): string|array
+    {
+        if (\is_array($topics)) {
+            return array_map($this->withAdminQuery(...), $topics);
+        }
+
+        return str_ends_with($topics, self::ADMIN_TOPIC_QUERY) ? $topics : $topics . self::ADMIN_TOPIC_QUERY;
+    }
+
+    /**
+     * @param string|string[] $topics
+     *
+     * @return string|string[]
+     */
+    private function withoutAdminQuery(string|array $topics): string|array
+    {
+        if (\is_array($topics)) {
+            return array_map($this->withoutAdminQuery(...), $topics);
+        }
+
+        return str_ends_with($topics, self::ADMIN_TOPIC_QUERY) ? substr($topics, 0, -\strlen(self::ADMIN_TOPIC_QUERY)) : $topics;
+    }
+
+    /**
+     * @param list<Update> $updates
+     */
+    private function logPublishFailure(array $updates, string $resourceIri, \Throwable $exception): void
+    {
+        $topics = array_merge(...array_map(static fn (Update $update): array => $update->getTopics(), $updates));
         $this->logger?->error(\sprintf('The Mercure update for "%s" could not be published and was dropped; the write itself was saved: %s', implode('", "', $topics), $exception->getMessage()), [
             'topics' => $topics,
             'resource' => $resourceIri,
@@ -334,8 +458,8 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
     /**
      * @param string|string[] $iri
      */
-    private function buildUpdate(string|array $iri, string $data, array $options): Update
+    private function buildUpdate(string|array $iri, string $data, array $options, bool $private = false): Update
     {
-        return new Update($iri, $data, $options['private'] ?? false, $options['id'] ?? null, $options['type'] ?? null, $options['retry'] ?? null);
+        return new Update($iri, $data, $private || ($options['private'] ?? false), $options['id'] ?? null, $options['type'] ?? null, $options['retry'] ?? null);
     }
 }
