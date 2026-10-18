@@ -11,16 +11,15 @@
 
 namespace Silverback\ApiComponentsBundle\Mercure;
 
+use Silverback\ApiComponentsBundle\Helper\SubRequest\SubRequestKernel;
 use Silverback\ApiComponentsBundle\Utility\CallerScopedStateInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
-use Symfony\Component\Stopwatch\Stopwatch;
 
 final class AnonymousResourceReader
 {
@@ -51,11 +50,10 @@ final class AnonymousResourceReader
      * @param iterable<CallerScopedStateInterface> $callerScopedStates
      */
     public function __construct(
-        private readonly HttpKernelInterface $httpKernel,
+        private readonly SubRequestKernel $subRequestKernel,
         private readonly RequestStack $requestStack,
         private readonly TokenStorageInterface $tokenStorage,
         private readonly iterable $callerScopedStates,
-        private readonly ?Stopwatch $stopwatch = null,
     ) {
     }
 
@@ -70,13 +68,10 @@ final class AnonymousResourceReader
         $this->tokenStorage->setToken(null);
 
         try {
-            $response = $this->httpKernel->handle($request, HttpKernelInterface::SUB_REQUEST, false);
+            $response = $this->subRequestKernel->handle($request);
         } catch (AccessDeniedException|AuthenticationException) {
-            $this->closeStopwatchSection($request);
-
             return null;
         } catch (HttpExceptionInterface $exception) {
-            $this->closeStopwatchSection($request);
             if (\in_array($exception->getStatusCode(), self::DENIED_STATUSES, true)) {
                 return null;
             }
@@ -94,19 +89,6 @@ final class AnonymousResourceReader
         }
 
         return (string) $response->getContent();
-    }
-
-    private function closeStopwatchSection(Request $request): void
-    {
-        $sectionId = $request->attributes->get('_stopwatch_token');
-        if (null === $this->stopwatch || !\is_string($sectionId)) {
-            return;
-        }
-
-        try {
-            $this->stopwatch->stopSection($sectionId);
-        } catch (\LogicException) {
-        }
     }
 
     private function createRequest(string $path, string $accept): Request

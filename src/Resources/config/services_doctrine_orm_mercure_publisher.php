@@ -17,6 +17,7 @@ use ApiPlatform\State\SerializerContextBuilderInterface;
 use Silverback\ApiComponentsBundle\ApiPlatform\Api\MercureIriConverter;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Helper\SubRequest\SubRequestKernel;
 use Silverback\ApiComponentsBundle\Mercure\AnonymousResourceReader;
 use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
 use Silverback\ApiComponentsBundle\Message\PublishMercureUpdatesMessage;
@@ -34,11 +35,10 @@ return static function (ContainerConfigurator $configurator) {
         ->set('silverback.api_components.mercure.anonymous_resource_reader')
         ->class(AnonymousResourceReader::class)
         ->args([
-            new Reference('http_kernel'),
+            new Reference(SubRequestKernel::class),
             new Reference('request_stack'),
             new Reference('security.token_storage'),
             new TaggedIteratorArgument('silverback.api_components.caller_scoped_state'),
-            new Reference('debug.stopwatch', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ]);
     $services->alias(AnonymousResourceReader::class, 'silverback.api_components.mercure.anonymous_resource_reader');
 

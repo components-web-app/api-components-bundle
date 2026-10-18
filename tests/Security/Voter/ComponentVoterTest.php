@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteReachabilityResolver;
+use Silverback\ApiComponentsBundle\Helper\SubRequest\SubRequestKernel;
 use Silverback\ApiComponentsBundle\Security\Voter\ComponentVoter;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -68,7 +69,7 @@ class ComponentVoterTest extends TestCase
         $voter = new ComponentVoter(
             $pageDataProvider,
             $this->createStub(IriConverterInterface::class),
-            $this->createStub(HttpKernelInterface::class),
+            new SubRequestKernel($this->createStub(HttpKernelInterface::class)),
             $requestStack,
             $publishableStatusChecker,
             $this->createStub(ManagerRegistry::class),
