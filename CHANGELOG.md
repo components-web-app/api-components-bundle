@@ -4,9 +4,13 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- A position or page data component property written with a draft that has a published version (by any client, fixture or Doctrine write) stores the published component, so publishing the draft no longer empties it; a never-published draft is stored as it is, and `generate-fixtures` reads such a reference in an older database as the published component and reports it ([#523](https://github.com/components-web-app/api-components-bundle/pull/523))
+- A component `PATCH` that adds a new embedded component position no longer fails with a 500 for a missing `createdAt` ([#523](https://github.com/components-web-app/api-components-bundle/pull/523))
+
 ### Tooling
 - `justinrainbow/json-schema` `^6.4` for the functional tests' schema checks, which now enforce `const`; the boilerplate `$id`s that broke `$ref` resolution are removed from the schema files, and the validation error schema expects API Platform's `ConstraintViolation` type ([#519](https://github.com/components-web-app/api-components-bundle/pull/519))
-- Functional tests pin what the module's clone and "Delete from all locations" rely on: a clone is the same component IRI in a new position, validated like any placement, and `GET {component}/usage` counts positions across groups plus page data properties, a published component and its draft as one ([#521](https://github.com/components-web-app/api-components-bundle/pull/521))
+- Functional tests pin what the module's clone and "Delete from all locations" rely on: a clone is the same component IRI in a new position, validated like any placement, and `GET {component}/usage` counts positions across groups plus page data properties, a published component and its draft as one ([#523](https://github.com/components-web-app/api-components-bundle/pull/523))
 
 ## [2.0.0-alpha.30](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.29...2.0.0-alpha.30) - 2026-10-18
 
