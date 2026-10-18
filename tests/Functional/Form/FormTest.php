@@ -9,13 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Silverback\ApiComponentsBundle\Tests\Functional\User;
+namespace Silverback\ApiComponentsBundle\Tests\Functional\Form;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\NestedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestRepeatedType;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Form\TestType;
+use Silverback\ApiComponentsBundle\Tests\Functional\User\UserTrait;
 
 final class FormTest extends FunctionalTestCase
 {
