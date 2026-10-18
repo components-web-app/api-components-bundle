@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.29](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.28...2.0.0-alpha.29) - 2026-10-18
+
 ### Breaking
 - `ComponentVoter` and `AnonymousResourceReader` take the new `SubRequestKernel` (`silverback.api_components.helper.sub_request_kernel`) instead of the HTTP kernel, and `AnonymousResourceReader` no longer takes the stopwatch ([#501](https://github.com/components-web-app/api-components-bundle/pull/501))
 
