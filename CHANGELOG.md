@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Changed
+- Requires `api-platform/core` `^4.4.5 || ^5.0.4`, which reset the skolem IRI converter between requests themselves ([api-platform/core#8681](https://github.com/api-platform/core/pull/8681)); `ApiPlatformCompilerPass` no longer adds that `kernel.reset` tag (PRLINK)
+
 ## [2.0.0-alpha.28](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.27...2.0.0-alpha.28) - 2026-10-18
 
 ### Changed
