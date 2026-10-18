@@ -41,9 +41,12 @@ trait UploadsAreaTrait
     #[After]
     protected function removeUploadCopiesAndRestoreMemoryLimit(): void
     {
-        foreach ($this->uploadCopies as $copy) {
-            if (is_file($copy)) {
+        foreach ($this->uploadCopies as $directory) {
+            foreach (glob($directory . '/*') ?: [] as $copy) {
                 unlink($copy);
+            }
+            if (is_dir($directory)) {
+                rmdir($directory);
             }
         }
         $this->uploadCopies = [];
@@ -60,17 +63,26 @@ trait UploadsAreaTrait
     {
         $uploads = [];
         foreach ($files as $field => $name) {
-            $copy = tempnam(sys_get_temp_dir(), 'acb_upload_');
-            self::assertNotFalse($copy);
+            $directory = sys_get_temp_dir() . '/acb_upload_' . bin2hex(random_bytes(8));
+            self::assertTrue(mkdir($directory));
+            $this->uploadCopies[] = $directory;
+            $copy = $directory . '/' . basename($name);
             copy(static::assetPath($name), $copy);
-            $this->uploadCopies[] = $copy;
-            $uploads[$field] = new UploadedFile($copy, $name, null, null, true);
+            $uploads[$field] = new UploadedFile($copy, $field, null, null, true);
         }
 
         return $client->request('POST', $url, [
             'headers' => ['accept' => 'application/ld+json', 'content-type' => 'multipart/form-data'],
             'extra' => ['files' => $uploads],
         ]);
+    }
+
+    protected static function assertHasStoredFile(object $resource): void
+    {
+        $reloaded = static::findByIri(static::iriOf($resource));
+        self::assertNotNull($reloaded, 'The resource cannot be found any more.');
+        self::assertTrue(method_exists($reloaded, 'getFilename'));
+        self::assertNotNull($reloaded->getFilename(), 'The resource has no stored file.');
     }
 
     protected function setMemoryLimitJustAboveCurrentUsage(): void

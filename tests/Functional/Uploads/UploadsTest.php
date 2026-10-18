@@ -233,7 +233,7 @@ final class UploadsTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(200);
         self::assertJsonMatchesSchemaFile('uploadable_no_files.schema.json');
         self::assertJsonNodeSame('_metadata.publishable.published', false);
-        self::storedPathOf($resource);
+        self::assertHasStoredFile($resource);
     }
 
     public function test_i_can_set_the_file_to_null_to_delete_it(): void
@@ -393,7 +393,7 @@ final class UploadsTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(201);
         self::assertJsonNodeSame('_metadata.publishable.published', false);
         self::assertJsonMatchesSchemaFile('uploadable_has_files.schema.json');
-        self::storedPathOf($resource);
+        self::assertHasStoredFile($resource);
     }
 
     public function test_when_i_upload_to_overwrite_a_draft_cache_should_overwrite_properly(): void
@@ -719,8 +719,8 @@ final class UploadsTest extends FunctionalTestCase
         self::assertJsonNodeSame('member[1]._metadata.mediaObjects.file[0].mimeType', 'image/png');
         self::assertJsonNodeNotExists('member[0].filename');
         self::assertJsonNodeNotExists('member[1].filename');
-        self::storedPathOf($first);
-        self::storedPathOf($second);
+        self::assertHasStoredFile($first);
+        self::assertHasStoredFile($second);
     }
 
     public function test_generating_imagine_filters_while_serialising_keeps_the_filenames_of_the_uploadables_serialised_before_them(): void
@@ -736,8 +736,8 @@ final class UploadsTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(200);
         self::assertJsonNodeSame('member[1]._metadata.mediaObjects.file[1].imagineFilter', 'thumbnail');
-        self::storedPathOf($first);
-        self::storedPathOf($second);
+        self::assertHasStoredFile($first);
+        self::assertHasStoredFile($second);
     }
 
     public function test_an_imagine_filter_too_large_to_generate_under_the_memory_ceiling_is_skipped_on_read_and_the_original_is_still_returned(): void
@@ -771,7 +771,7 @@ final class UploadsTest extends FunctionalTestCase
         self::assertJsonNodeNotExists('_metadata.mediaObjects.file[1]');
         $resource = self::findByIri($iri);
         self::assertInstanceOf(DummyUploadableWithImagineFilters::class, $resource);
-        self::storedPathOf($resource);
+        self::assertHasStoredFile($resource);
         self::assertOversizedSourceImageLogged('thumbnail');
     }
 }
