@@ -19,6 +19,7 @@
     },
     "testFramework": "phpunit",
     "initialTestsPhpOptions": "-d memory_limit=512M",
+    "testFrameworkExtraArgs": "--testsuite=unit",
     "timeout": 30,
     "minMsi": 80,
     "minCoveredMsi": 80
