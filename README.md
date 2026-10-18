@@ -37,7 +37,9 @@ php tests/Functional/app/bin/console -e test doctrine:schema:validate
 ### PHPUnit
 
 ```bash
-php -d memory_limit=-1 vendor/bin/phpunit                         # both suites
+vendor/bin/paratest                                               # both suites, one process per CPU, as CI runs them
+vendor/bin/paratest --testsuite functional                        # paratest takes PHPUnit's options
+php -d memory_limit=-1 vendor/bin/phpunit                         # both suites in one process
 php vendor/bin/phpunit --testsuite unit                           # unit tests
 php vendor/bin/phpunit --testsuite functional                     # functional tests on the test app
 php vendor/bin/phpunit tests/Functional/HttpCache                 # one area
@@ -46,7 +48,7 @@ API_PLATFORM_USE_SYMFONY_LISTENERS=1 php vendor/bin/phpunit --testsuite function
 
 Unit tests (outside `tests/Functional`, mirroring `src/`) cover pure logic and service wiring. They never boot a kernel: wiring is asserted by loading the bundle's config into a bare `ContainerBuilder`. Tests that need a database use an in-memory SQLite `EntityManager`.
 
-Functional tests (`tests/Functional/<Area>/`) cover API behaviour. They extend `FunctionalTestCase`, which boots the test app in `tests/Functional/app` and rolls back the database after each test, and share the helper traits in `tests/Functional/Trait`. The container is not rebuilt automatically: after changing a service, config file or route, run `php tests/Functional/app/bin/console cache:clear -e test`.
+Functional tests (`tests/Functional/<Area>/`) cover API behaviour. They extend `FunctionalTestCase`, which boots the test app in `tests/Functional/app` and rolls back the database after each test, and share the helper traits in `tests/Functional/Trait`. The container is not rebuilt automatically: after changing a service, config file or route, run `php tests/Functional/app/bin/console cache:clear -e test`, and delete `tests/Functional/app/var/paratest-*`, where each paratest process keeps its own cache.
 
 Every new behaviour or bug fix starts with a test that fails first.
 
