@@ -13,6 +13,7 @@ env:
   COMPOSER_ALLOW_SUPERUSER: '1' # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
   COVERAGE: '0'
   INFECTION_VERSION: '0.35.4'
+  TEST_PROCESSES: '4'
   COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -128,17 +129,21 @@ jobs:
         run: |
           composer config extra.symfony.require ${{ matrix.symfony }}
           composer update --no-progress --ansi
-      - name: Install PHPUnit
-        run: vendor/bin/simple-phpunit --version
       - name: Clear test app cache
-        run: tests/Functional/app/bin/console cache:clear --ansi
+        run: |
+          pids=
+          for token in $(seq "$TEST_PROCESSES"); do
+            TEST_TOKEN=$token tests/Functional/app/bin/console cache:clear --ansi &
+            pids="$pids $!"
+          done
+          for pid in $pids; do wait "$pid"; done
       - name: Run PHPUnit tests
         run: |
           mkdir -p build/logs/phpunit
           if [ "$COVERAGE" = '1' ]; then
-            vendor/bin/simple-phpunit --configuration=phpunit.coverage.xml.dist --coverage-xml=build/logs/phpunit/coverage-xml --coverage-clover=build/logs/phpunit/clover.xml --log-junit=build/logs/phpunit/junit.xml
+            vendor/bin/paratest --processes="$TEST_PROCESSES" --configuration=phpunit.coverage.xml.dist --coverage-xml=build/logs/phpunit/coverage-xml --coverage-clover=build/logs/phpunit/clover.xml --log-junit=build/logs/phpunit/junit.xml
           else
-            vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml
+            vendor/bin/paratest --processes="$TEST_PROCESSES" --log-junit build/logs/phpunit/junit.xml
           fi
       - name: Upload test artifacts
         if: always()
@@ -244,13 +249,19 @@ jobs:
           composer require "api-platform/core:${{ matrix.api-platform }}" --no-update --no-interaction
           composer update --no-progress --ansi
       - name: Clear test app cache
-        run: tests/Functional/app/bin/console cache:clear --ansi
+        run: |
+          pids=
+          for token in $(seq "$TEST_PROCESSES"); do
+            TEST_TOKEN=$token tests/Functional/app/bin/console cache:clear --ansi &
+            pids="$pids $!"
+          done
+          for pid in $pids; do wait "$pid"; done
       - name: Run PHPUnit functional tests
         env:
           SYMFONY_DEPRECATIONS_HELPER: disabled=1
         run: |
           mkdir -p build/logs/functional
-          vendor/bin/simple-phpunit --testsuite functional --log-junit build/logs/functional/junit.xml
+          vendor/bin/paratest --processes="$TEST_PROCESSES" --testsuite functional --log-junit build/logs/functional/junit.xml
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -299,13 +310,19 @@ jobs:
       - name: Update project dependencies
         run: composer update --no-progress --ansi --prefer-stable --prefer-lowest
       - name: Clear test app cache
-        run: tests/Functional/app/bin/console cache:clear --ansi
+        run: |
+          pids=
+          for token in $(seq "$TEST_PROCESSES"); do
+            TEST_TOKEN=$token tests/Functional/app/bin/console cache:clear --ansi &
+            pids="$pids $!"
+          done
+          for pid in $pids; do wait "$pid"; done
       - name: Disable deprecations helper
         run: echo "SYMFONY_DEPRECATIONS_HELPER=disabled=1" >> $GITHUB_ENV
       - name: Run PHPUnit tests
         run: |
           mkdir -p build/logs/phpunit
-          vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml
+          vendor/bin/paratest --processes="$TEST_PROCESSES" --log-junit build/logs/phpunit/junit.xml
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -375,11 +392,17 @@ jobs:
           ! echo "$symfony_packages" | grep -vE "$version_pattern"
         continue-on-error: true
       - name: Clear test app cache
-        run: tests/Functional/app/bin/console cache:clear --ansi
+        run: |
+          pids=
+          for token in $(seq "$TEST_PROCESSES"); do
+            TEST_TOKEN=$token tests/Functional/app/bin/console cache:clear --ansi &
+            pids="$pids $!"
+          done
+          for pid in $pids; do wait "$pid"; done
       - name: Run PHPUnit tests
         run: |
           mkdir -p build/logs/phpunit
-          vendor/bin/simple-phpunit --log-junit build/logs/phpunit/junit.xml
+          vendor/bin/paratest --processes="$TEST_PROCESSES" --log-junit build/logs/phpunit/junit.xml
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4

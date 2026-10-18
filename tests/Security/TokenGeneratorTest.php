@@ -9,29 +9,25 @@
  * file that was distributed with this source code.
  */
 
-namespace Silverback\ApiComponentsBundle\Security {
-    function random_bytes(int $bytes = 0)
+namespace Silverback\ApiComponentsBundle\Tests\Security;
+
+use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\Security\TokenGenerator;
+
+class TokenGeneratorTest extends TestCase
+{
+    public function test_a_token_is_the_hex_of_the_requested_number_of_bytes(): void
     {
-        return (string) $bytes;
+        $this->assertMatchesRegularExpression('/\A[0-9a-f]{200}\z/', TokenGenerator::generateToken(100));
     }
 
-    function bin2hex($str)
+    public function test_a_token_is_16_bytes_by_default(): void
     {
-        return $str . '_bin2hex';
+        $this->assertMatchesRegularExpression('/\A[0-9a-f]{32}\z/', TokenGenerator::generateToken());
     }
-}
 
-namespace Silverback\ApiComponentsBundle\Tests\Security {
-    use PHPUnit\Framework\TestCase;
-    use Silverback\ApiComponentsBundle\Security\TokenGenerator;
-
-    class TokenGeneratorTest extends TestCase
+    public function test_each_token_is_random(): void
     {
-        public function test_clean_token_generated(): void
-        {
-            $tokenGenerator = new TokenGenerator();
-            $this->assertEquals('100_bin2hex', $tokenGenerator->generateToken(100));
-            $this->assertEquals('16_bin2hex', $tokenGenerator->generateToken());
-        }
+        $this->assertNotSame(TokenGenerator::generateToken(), TokenGenerator::generateToken());
     }
 }

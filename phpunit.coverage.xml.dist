@@ -4,6 +4,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
     bootstrap="tests/Functional/app/bootstrap.php"
+    cacheDirectory="build/cache/phpunit"
     backupGlobals="false"
     colors="true"
     failOnRisky="true"
@@ -36,8 +37,6 @@
     <server name="APP_ENV" value="test" force="true"/>
     <server name="LEGACY" value="0"/>
     <server name="SHELL_VERBOSITY" value="-1"/>
-    <server name="SYMFONY_PHPUNIT_REMOVE" value=""/>
-    <server name="SYMFONY_PHPUNIT_VERSION" value="13.4"/>
   </php>
   <logging>
     <junit outputFile="/tmp/infection/phpunit.junit.xml"/>
