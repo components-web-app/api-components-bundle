@@ -74,11 +74,17 @@ Feature: Prevent disabled users from logging in
     And the header "set-cookie" should contain "secure; httponly; samesite=lax"
     And the mercure cookie should contain draft resource topics
 
-  Scenario: Non-authenticated user gets a mercure authorization cookie without draft access
+  Scenario: A request to /me with no cookies is a 401 that sets no mercure cookie
+    When I send a "GET" request to "/me"
+    Then the response status code should be 401
+    And the response should not have a "__Secure-mercure_access_token" cookie
+
+  Scenario: A request to /me carrying only a mercure cookie with draft grants is a 401 that clears the mercure cookie
+    Given I have a mercure cookie with draft resource topics
     When I send a "GET" request to "/me"
     Then the response status code should be 401
     And the response should have a "__Secure-mercure_access_token" cookie
-    And the mercure cookie should not contain draft resource topics
+    And the mercure cookie should be cleared
 
   @loginUser
   Scenario: Expired JWT tokens should be refreshed
@@ -98,6 +104,17 @@ Feature: Prevent disabled users from logging in
     And my JWT token has expired
     When I send a "GET" request to "/me"
     Then the response status code should be 401
+    And the response should have a "__Secure-mercure_access_token" cookie
+    And the mercure cookie should be cleared
+
+  @loginAdmin
+  Scenario: An admin with an expired refresh-token and an expired access-token gets a 401 and a cleared mercure cookie
+    Given I have a refresh token which expires at "-1 second"
+    And my JWT token has expired
+    When I send a "GET" request to "/me"
+    Then the response status code should be 401
+    And the response should have a "__Secure-mercure_access_token" cookie
+    And the mercure cookie should be cleared
 
   @loginUser
   Scenario Outline: I have a valid refresh-token and I am authenticated when I log out, all my refresh-tokens should expire
@@ -110,7 +127,7 @@ Feature: Prevent disabled users from logging in
     And the response should have a "api_components" cookie with max age less than 2
     And the response should have a "api_components" cookie with the value "x.x.x"
     And the response should have a "__Secure-mercure_access_token" cookie
-    And the mercure cookie should not contain draft resource topics
+    And the mercure cookie should be cleared
     Examples:
     | Method |
     | Get    |
@@ -126,7 +143,7 @@ Feature: Prevent disabled users from logging in
     And the response should have a "api_components" cookie with max age less than 2
     And the response should have a "api_components" cookie with the value "x.x.x"
     And the response should have a "__Secure-mercure_access_token" cookie
-    And the mercure cookie should not contain draft resource topics
+    And the mercure cookie should be cleared
 
   @loginUser
   Scenario: I can logout even if the user has been deleted while logged in
@@ -138,7 +155,39 @@ Feature: Prevent disabled users from logging in
     And the response should have a "api_components" cookie with max age less than 2
     And the response should have a "api_components" cookie with the value "x.x.x"
     And the response should have a "__Secure-mercure_access_token" cookie
-    And the mercure cookie should not contain draft resource topics
+    And the mercure cookie should be cleared
+
+  @loginAdmin
+  Scenario Outline: An admin who logs out gets a cleared mercure cookie
+    Given I have a refresh token
+    When I send a "<Method>" request to "/logout"
+    Then the response status code should be 200
+    And all the refresh tokens should be expired
+    And the response should have a "api_components" cookie with the value "x.x.x"
+    And the response should have a "__Secure-mercure_access_token" cookie
+    And the header "set-cookie" should contain "secure; httponly; samesite=lax"
+    And the mercure cookie should be cleared
+    Examples:
+    | Method |
+    | Get    |
+    | Post   |
+
+  @loginAdmin
+  Scenario: An admin with no refresh token who logs out gets a cleared mercure cookie
+    When I send a "POST" request to "/logout"
+    Then the response status code should be 200
+    And the response should have a "api_components" cookie with the value "x.x.x"
+    And the response should have a "__Secure-mercure_access_token" cookie
+    And the mercure cookie should be cleared
+
+  @loginAdmin
+  Scenario: An admin deleted while logged in who logs out gets a cleared mercure cookie
+    Given the resource "login_user" is removed
+    When I send a "POST" request to "/logout"
+    Then the response status code should be 200
+    And the response should have a "api_components" cookie with the value "x.x.x"
+    And the response should have a "__Secure-mercure_access_token" cookie
+    And the mercure cookie should be cleared
 
   @loginUser
   Scenario: JWT tokens that are invalid should be removed from a user's cookie store in the response headers
@@ -149,7 +198,7 @@ Feature: Prevent disabled users from logging in
     And the response should have a "api_components" cookie with max age less than 2
     And the response should have a "api_components" cookie with the value "x.x.x"
     And the response should have a "__Secure-mercure_access_token" cookie
-    And the mercure cookie should not contain draft resource topics
+    And the mercure cookie should be cleared
 
   # TODO: fix this side effect if this scenario runs first, traced that back to an empty Authorization header
   Scenario: I cannot submit a login form back to the resource
@@ -188,8 +237,7 @@ Feature: Prevent disabled users from logging in
     And the response should have a "__Secure-mercure_access_token" cookie
     And the mercure cookie should contain topics matching "/dummy_secured_mercure_resource/"
 
-  Scenario: With secure_subscriptions enabled, an anonymous user's mercure cookie excludes admin-only resource topics
+  Scenario: With secure_subscriptions enabled, an anonymous request to /me sets no mercure cookie
     When I send a "GET" request to "/me"
     Then the response status code should be 401
-    And the response should have a "__Secure-mercure_access_token" cookie
-    And the mercure cookie should not contain topics matching "/dummy_secured_mercure_resource/"
+    And the response should not have a "__Secure-mercure_access_token" cookie

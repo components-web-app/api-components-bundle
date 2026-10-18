@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- Logout, an invalid or expired JWT and a failed `/me` expire the Mercure subscriber cookie instead of issuing a new one; a failed `/me` expires it whenever the request carries it, and sets no Mercure cookie when the request carries none ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+
 ## [2.0.0-alpha.26](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.25...2.0.0-alpha.26) - 2026-10-18
 
 ### Fixed

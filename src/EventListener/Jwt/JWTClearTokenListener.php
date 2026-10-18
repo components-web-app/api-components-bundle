@@ -55,9 +55,13 @@ class JWTClearTokenListener
             return;
         }
         $clearCookie = $this->cookieProvider->createCookie('x.x.x', null, 1);
-        if ($request->cookies->has($clearCookie->getName())) {
+        $hasJwtCookie = $request->cookies->has($clearCookie->getName());
+        if ($hasJwtCookie) {
             $response->headers->setCookie($clearCookie);
-            $response->headers->setCookie($this->mercureAuthorization->getClearAuthorizationCookie());
+        }
+        $clearMercureCookie = $this->mercureAuthorization->getClearAuthorizationCookie();
+        if ($hasJwtCookie || $request->cookies->has($clearMercureCookie->getName())) {
+            $response->headers->setCookie($clearMercureCookie);
         }
     }
 

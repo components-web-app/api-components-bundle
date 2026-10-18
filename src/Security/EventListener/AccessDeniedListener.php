@@ -35,6 +35,10 @@ class AccessDeniedListener
             || !($response = $event->getResponse()) instanceof JWTAuthenticationFailureResponse) {
             return;
         }
-        $response->headers->setCookie($this->mercureAuthorization->getClearAuthorizationCookie());
+        $clearMercureCookie = $this->mercureAuthorization->getClearAuthorizationCookie();
+        if (!$request->cookies->has($clearMercureCookie->getName())) {
+            return;
+        }
+        $response->headers->setCookie($clearMercureCookie);
     }
 }
