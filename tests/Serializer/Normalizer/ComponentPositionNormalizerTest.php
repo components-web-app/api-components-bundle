@@ -12,16 +12,26 @@
 namespace Silverback\ApiComponentsBundle\Tests\Serializer\Normalizer;
 
 use ApiPlatform\Metadata\IriConverterInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\EventListener\Api\CacheHeadersEventListener;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentPositionNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 class ComponentPositionNormalizerTest extends TestCase
 {
@@ -60,5 +70,174 @@ class ComponentPositionNormalizerTest extends TestCase
         self::assertTrue($normalizer->supportsDenormalization($data, ComponentPosition::class));
         self::assertSame($position, $normalizer->denormalize($data, ComponentPosition::class, 'jsonld'));
         self::assertSame($sent, $position->wasSortValueSent());
+    }
+
+    public function test_a_component_which_is_not_publishable_is_exposed(): void
+    {
+        $component = new DummyComponent();
+        $result = $this->normalizeStatic($component, granted: false, active: false, publishedAt: null);
+
+        self::assertSame('/component', $result['data']['component']);
+        self::assertSame($component, $result['normalized']->component);
+        self::assertSame('/component', $result['metadata']->getStaticComponent());
+    }
+
+    public function test_an_active_publishable_component_is_exposed_to_a_caller_who_is_not_granted(): void
+    {
+        $component = new DummyPublishableComponent();
+        $result = $this->normalizeStatic($component, granted: false, active: true, publishedAt: new \DateTimeImmutable('-1 day'));
+
+        self::assertSame('/component', $result['data']['component']);
+        self::assertSame($component, $result['normalized']->component);
+        self::assertSame('/component', $result['metadata']->getStaticComponent());
+        self::assertNull($result['request']->attributes->get(CacheHeadersEventListener::NEXT_PUBLICATION_ATTRIBUTE));
+    }
+
+    public function test_an_unpublished_component_is_exposed_to_a_granted_caller(): void
+    {
+        $component = new DummyPublishableComponent();
+        $result = $this->normalizeStatic($component, granted: true, active: false, publishedAt: null);
+
+        self::assertSame('/component', $result['data']['component']);
+        self::assertSame($component, $result['normalized']->component);
+        self::assertSame('/component', $result['metadata']->getStaticComponent());
+    }
+
+    public function test_a_granted_caller_is_given_the_draft_of_a_published_component(): void
+    {
+        $draft = new DummyPublishableComponent();
+        $result = $this->normalizeStatic(new DummyPublishableComponent(), granted: true, active: true, publishedAt: new \DateTimeImmutable('-1 day'), draft: $draft);
+
+        self::assertSame('/draft', $result['data']['component']);
+        self::assertSame($draft, $result['normalized']->component);
+        self::assertSame('/draft', $result['metadata']->getStaticComponent());
+    }
+
+    public function test_an_unpublished_component_is_not_exposed_to_a_caller_who_is_not_granted(): void
+    {
+        $component = new DummyPublishableComponent();
+        $result = $this->normalizeStatic($component, granted: false, active: false, publishedAt: null);
+
+        self::assertArrayNotHasKey('component', $result['data']);
+        self::assertSame('/_/component_positions/1', $result['data']['@id']);
+        self::assertSame($component, $result['position']->component);
+        self::assertNull($result['metadata']->getStaticComponent());
+        self::assertNull($result['request']->attributes->get(CacheHeadersEventListener::NEXT_PUBLICATION_ATTRIBUTE));
+    }
+
+    public function test_a_scheduled_component_hidden_from_the_caller_records_its_publication_on_the_main_request(): void
+    {
+        $publishedAt = new \DateTimeImmutable('+1 hour');
+        $result = $this->normalizeStatic(new DummyPublishableComponent(), granted: false, active: false, publishedAt: $publishedAt);
+
+        self::assertArrayNotHasKey('component', $result['data']);
+        self::assertSame($publishedAt, $result['request']->attributes->get(CacheHeadersEventListener::NEXT_PUBLICATION_ATTRIBUTE));
+    }
+
+    public function test_the_earliest_hidden_publication_is_kept(): void
+    {
+        $earlier = new \DateTimeImmutable('+1 hour');
+        $result = $this->normalizeStatic(new DummyPublishableComponent(), granted: false, active: false, publishedAt: new \DateTimeImmutable('+2 hours'), recorded: $earlier);
+
+        self::assertSame($earlier, $result['request']->attributes->get(CacheHeadersEventListener::NEXT_PUBLICATION_ATTRIBUTE));
+    }
+
+    public function test_an_earlier_hidden_publication_replaces_a_later_one(): void
+    {
+        $earlier = new \DateTimeImmutable('+1 hour');
+        $result = $this->normalizeStatic(new DummyPublishableComponent(), granted: false, active: false, publishedAt: $earlier, recorded: new \DateTimeImmutable('+2 hours'));
+
+        self::assertSame($earlier, $result['request']->attributes->get(CacheHeadersEventListener::NEXT_PUBLICATION_ATTRIBUTE));
+    }
+
+    public function test_a_recorded_value_which_is_not_a_date_is_replaced(): void
+    {
+        $publishedAt = new \DateTimeImmutable('+1 hour');
+        $result = $this->normalizeStatic(new DummyPublishableComponent(), granted: false, active: false, publishedAt: $publishedAt, recorded: 'tomorrow');
+
+        self::assertSame($publishedAt, $result['request']->attributes->get(CacheHeadersEventListener::NEXT_PUBLICATION_ATTRIBUTE));
+    }
+
+    public function test_a_hidden_component_is_recorded_on_the_main_request_not_a_sub_request(): void
+    {
+        $publishedAt = new \DateTimeImmutable('+1 hour');
+        $result = $this->normalizeStatic(new DummyPublishableComponent(), granted: false, active: false, publishedAt: $publishedAt, subRequest: true);
+
+        self::assertSame($publishedAt, $result['request']->attributes->get(CacheHeadersEventListener::NEXT_PUBLICATION_ATTRIBUTE));
+    }
+
+    public function test_a_hidden_component_with_no_request_is_still_hidden(): void
+    {
+        $result = $this->normalizeStatic(new DummyPublishableComponent(), granted: false, active: false, publishedAt: new \DateTimeImmutable('+1 hour'), withRequest: false);
+
+        self::assertArrayNotHasKey('component', $result['data']);
+    }
+
+    /**
+     * @return array{data: array<string, mixed>, normalized: ComponentPosition, position: ComponentPosition, metadata: ResourceMetadata, request: Request}
+     */
+    private function normalizeStatic(AbstractComponent $component, bool $granted, bool $active, ?\DateTimeInterface $publishedAt, ?AbstractComponent $draft = null, mixed $recorded = null, bool $withRequest = true, bool $subRequest = false): array
+    {
+        $position = new ComponentPosition();
+        $position->component = $component;
+
+        $statusChecker = $this->createStub(PublishableStatusChecker::class);
+        $statusChecker->method('getAttributeReader')->willReturn(new PublishableAttributeReader($this->createStub(ManagerRegistry::class)));
+        $statusChecker->method('isGranted')->willReturn($granted);
+        $statusChecker->method('isActivePublishedAt')->willReturn($active);
+        $statusChecker->method('getPublicationDate')->willReturn($publishedAt);
+
+        $classMetadata = $this->createStub(ClassMetadata::class);
+        $classMetadata->method('getFieldValue')->willReturn($draft);
+        $entityManager = $this->createStub(EntityManagerInterface::class);
+        $entityManager->method('getClassMetadata')->willReturn($classMetadata);
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn($entityManager);
+
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturnCallback(static fn (object $resource): string => $resource === $draft ? '/draft' : '/component');
+
+        $request = new Request();
+        if (null !== $recorded) {
+            $request->attributes->set(CacheHeadersEventListener::NEXT_PUBLICATION_ATTRIBUTE, $recorded);
+        }
+        $requestStack = new RequestStack();
+        if ($withRequest) {
+            $requestStack->push($request);
+        }
+        if ($subRequest) {
+            $requestStack->push(new Request());
+        }
+
+        $metadataProvider = new ResourceMetadataProvider();
+        $normalizer = new ComponentPositionNormalizer(
+            $this->createStub(PageDataProvider::class),
+            $requestStack,
+            $statusChecker,
+            $registry,
+            $iriConverter,
+            $metadataProvider,
+        );
+
+        $normalized = null;
+        $inner = $this->createStub(NormalizerInterface::class);
+        $inner->method('normalize')->willReturnCallback(static function (ComponentPosition $object) use (&$normalized, $iriConverter): array {
+            $normalized = $object;
+
+            return ['@id' => '/_/component_positions/1', 'component' => $object->component ? $iriConverter->getIriFromResource($object->component) : null];
+        });
+        $normalizer->setNormalizer($inner);
+
+        $data = $normalizer->normalize($position, 'jsonld');
+        self::assertIsArray($data);
+        self::assertInstanceOf(ComponentPosition::class, $normalized);
+
+        return [
+            'data' => $data,
+            'normalized' => $normalized,
+            'position' => $position,
+            'metadata' => $metadataProvider->findResourceMetadata($position),
+            'request' => $request,
+        ];
     }
 }

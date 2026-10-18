@@ -531,7 +531,7 @@ final class DoctrineContext implements Context
     /**
      * @Given there is a routed Page with a component group and a component with the path :path
      */
-    public function thereIsARoutedPageWithAComponentGroupAndComponent(string $path): void
+    public function thereIsARoutedPageWithAComponentGroupAndComponent(string $path, ?AbstractComponent $component = null): void
     {
         $layout = $this->thereIsALayout('manifest-tag-layout');
 
@@ -550,7 +550,7 @@ final class DoctrineContext implements Context
         $this->manager->persist($componentGroup);
         $page->addComponentGroup($componentGroup);
 
-        $component = new DummyComponent();
+        $component ??= new DummyComponent();
         $this->manager->persist($component);
 
         $position = new ComponentPosition();
@@ -573,6 +573,16 @@ final class DoctrineContext implements Context
         $this->restContext->resources['component'] = $this->iriConverter->getIriFromResource($component);
         $this->restContext->resources['position'] = $this->iriConverter->getIriFromResource($position);
         $this->restContext->resources['page_manifest'] = '/_/resource_manifest/' . $page->getId();
+    }
+
+    /**
+     * @Given /^there is a routed Page with a component group and an unpublished component(?: set to publish in (\d+) seconds|) with the path "([^"]*)"$/
+     */
+    public function thereIsARoutedPageWithAComponentGroupAndAnUnpublishedComponent(string $seconds, string $path): void
+    {
+        $component = new DummyPublishableComponent();
+        $component->setPublishedAt('' === $seconds ? null : new \DateTime(\sprintf('+%d seconds', (int) $seconds)));
+        $this->thereIsARoutedPageWithAComponentGroupAndComponent($path, $component);
     }
 
     /**
@@ -1678,9 +1688,9 @@ final class DoctrineContext implements Context
     }
 
     /**
-     * @Given there is a PageData resource with a draft component in a pageDataProperty position and the route path :path
+     * @Given /^there is a PageData resource with a draft component(?: set to publish in (\d+) seconds|) in a pageDataProperty position and the route path "([^"]*)"$/
      */
-    public function thereIsAPageDataWithDraftComponentInPageDataPropertyPosition(string $path): void
+    public function thereIsAPageDataWithDraftComponentInPageDataPropertyPosition(string $seconds, string $path): void
     {
         $componentGroup = new ComponentGroup();
         $componentGroup->reference = 'test';
@@ -1704,6 +1714,9 @@ final class DoctrineContext implements Context
         $this->manager->persist($page);
 
         $draftComponent = $this->thereIsADummyPublishableComponent();
+        if ('' !== $seconds) {
+            $draftComponent->setPublishedAt(new \DateTime(\sprintf('+%d seconds', (int) $seconds)));
+        }
 
         $pageData = new PageDataWithComponent();
         $pageData->publishableComponent = $draftComponent;

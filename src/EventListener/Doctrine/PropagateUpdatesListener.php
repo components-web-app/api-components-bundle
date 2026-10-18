@@ -26,9 +26,11 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use Doctrine\Persistence\Proxy;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\EventListener\Console\FixtureLoadListener;
@@ -58,6 +60,7 @@ class PropagateUpdatesListener implements ResetInterface
         private readonly ComponentPositionRepository $positionRepository,
         private readonly ?CwaCollectorData $collectorData = null,
         private readonly ?FixtureLoadListener $fixtureLoad = null,
+        private readonly ?PublishableAttributeReader $publishableAttributeReader = null,
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         $this->collectionRepository = $entityManager->getRepository(Collection::class);
@@ -158,6 +161,7 @@ class PropagateUpdatesListener implements ResetInterface
 
         if ('updated' === $type) {
             $this->gatherUpdatedAssociatedEntities($associationMappings, $changeSet);
+            $this->gatherPositionsOfPublicationChange($entity, $changeSet);
 
             return;
         }
@@ -181,6 +185,22 @@ class PropagateUpdatesListener implements ResetInterface
                     $this->collectUpdatedResource($entityInverseValuesUpdated, 'updated');
                 }
             }
+        }
+    }
+
+    private function gatherPositionsOfPublicationChange(object $entity, array $changeSet): void
+    {
+        if (
+            !$entity instanceof AbstractComponent
+            || null === $this->publishableAttributeReader
+            || !$this->publishableAttributeReader->isConfigured($entity)
+            || !\array_key_exists($this->publishableAttributeReader->getConfiguration($entity)->fieldName, $changeSet)
+        ) {
+            return;
+        }
+
+        foreach ($this->positionRepository->findByComponent($entity) as $position) {
+            $this->collectUpdatedResource($position, 'updated');
         }
     }
 
