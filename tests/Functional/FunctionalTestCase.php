@@ -34,6 +34,8 @@ abstract class FunctionalTestCase extends ApiTestCase
 {
     private const array RESET_ENV = ['EMAIL_LINK_DEFAULT_ORIGIN', 'ORPHANED_RESOURCES_NOTIFY_RECIPIENTS'];
 
+    private const string UPLOADS_SUBDIRECTORY_ENV = 'TEST_UPLOADS_SUBDIRECTORY';
+
     protected static ?bool $alwaysBootKernel = false;
 
     private static bool $schemaCreated = false;
@@ -41,6 +43,7 @@ abstract class FunctionalTestCase extends ApiTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $_SERVER[self::UPLOADS_SUBDIRECTORY_ENV] = $_ENV[self::UPLOADS_SUBDIRECTORY_ENV] = '/phpunit-' . getmypid();
         self::resetTestDoubles();
         StaticDriver::setKeepStaticConnections(true);
         self::createSchemaOnce();
@@ -52,6 +55,15 @@ abstract class FunctionalTestCase extends ApiTestCase
         StaticDriver::rollBack();
         self::resetTestDoubles();
         parent::tearDown();
+    }
+
+    /**
+     * @param array<string, mixed> $kernelOptions
+     * @param array<string, mixed> $defaultOptions
+     */
+    protected static function createClient(array $kernelOptions = [], array $defaultOptions = []): Client
+    {
+        return parent::createClient($kernelOptions, $defaultOptions + ['base_uri' => 'http://example.com']);
     }
 
     /**
@@ -83,6 +95,11 @@ abstract class FunctionalTestCase extends ApiTestCase
 
         static::$kernel->shutdown();
         static::$kernel->boot();
+    }
+
+    protected static function uploadsDirectory(): string
+    {
+        return __DIR__ . '/app/public/uploads' . \AppKernel::shardSuffix() . $_SERVER[self::UPLOADS_SUBDIRECTORY_ENV];
     }
 
     protected static function bootDebugKernel(): KernelInterface
