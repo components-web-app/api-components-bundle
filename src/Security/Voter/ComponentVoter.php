@@ -19,12 +19,12 @@ use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteReachabilityResolver;
+use Silverback\ApiComponentsBundle\Helper\SubRequest\SubRequestKernel;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -42,7 +42,7 @@ class ComponentVoter extends Voter
     public function __construct(
         private readonly PageDataProvider $pageDataProvider,
         private readonly IriConverterInterface $iriConverter,
-        private readonly HttpKernelInterface $httpKernel,
+        private readonly SubRequestKernel $subRequestKernel,
         private readonly RequestStack $requestStack,
         private readonly PublishableStatusChecker $publishableStatusChecker,
         ManagerRegistry $registry,
@@ -191,7 +191,7 @@ class ComponentVoter extends Voter
         );
 
         try {
-            $this->httpKernel->handle($subRequest, HttpKernelInterface::SUB_REQUEST, false);
+            $this->subRequestKernel->handle($subRequest);
 
             return true;
         } catch (\Exception $e) {

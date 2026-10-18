@@ -33,6 +33,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Helper\SubRequest\SubRequestKernel;
 use Silverback\ApiComponentsBundle\Mercure\AnonymousResourceReader;
 use Silverback\ApiComponentsBundle\Mercure\MercureResourcePublisher;
 use Silverback\ApiComponentsBundle\Message\PublishMercureUpdatesMessage;
@@ -132,7 +133,7 @@ class MercureResourcePublisherTest extends TestCase
             $this->createStub(SerializerContextBuilderInterface::class),
             new RequestStack(),
             ['jsonld' => ['application/ld+json']],
-            new AnonymousResourceReader($httpKernel, new RequestStack(), new TokenStorage(), []),
+            new AnonymousResourceReader(new SubRequestKernel($httpKernel), new RequestStack(), new TokenStorage(), []),
             new PublishableStatusChecker($registry, new PublishableAttributeReader($registry), $this->createStub(AuthorizationCheckerInterface::class), "is_granted('ROLE_ADMIN')"),
             $registry,
             $metadataFactory,

@@ -156,6 +156,7 @@ use Silverback\ApiComponentsBundle\Helper\Route\RouteGenerator;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteReachabilityResolver;
+use Silverback\ApiComponentsBundle\Helper\SubRequest\SubRequestKernel;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoDeduplicator;
@@ -2111,12 +2112,21 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias('silverback.api_components.api_platform.state_provider.page_data_metadata', PageDataMetadataStateProvider::class);
 
     $services
+        ->set('silverback.api_components.helper.sub_request_kernel')
+        ->class(SubRequestKernel::class)
+        ->args([
+            new Reference('http_kernel'),
+            new Reference('debug.stopwatch', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ]);
+    $services->alias(SubRequestKernel::class, 'silverback.api_components.helper.sub_request_kernel');
+
+    $services
         ->set('silverback.security.voter.component_voter')
         ->class(ComponentVoter::class)
         ->args([
             new Reference(PageDataProvider::class),
             new Reference('api_platform.iri_converter'),
-            new Reference('http_kernel'),
+            new Reference(SubRequestKernel::class),
             new Reference('request_stack'),
             new Reference(PublishableStatusChecker::class),
             new Reference('doctrine'),

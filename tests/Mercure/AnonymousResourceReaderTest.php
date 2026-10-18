@@ -13,12 +13,12 @@ namespace Silverback\ApiComponentsBundle\Tests\Mercure;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\Helper\SubRequest\SubRequestKernel;
 use Silverback\ApiComponentsBundle\Mercure\AnonymousResourceReader;
 use Silverback\ApiComponentsBundle\Utility\CallerScopedStateInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -66,7 +66,7 @@ class AnonymousResourceReaderTest extends TestCase
             return $respond($request);
         });
 
-        return new AnonymousResourceReader($kernel, $requestStack, $this->tokenStorage, $states, $stopwatch);
+        return new AnonymousResourceReader(new SubRequestKernel($kernel, $stopwatch), $requestStack, $this->tokenStorage, $states);
     }
 
     public function test_it_returns_the_body_of_an_anonymous_sub_request_for_the_path(): void
@@ -280,13 +280,12 @@ class AnonymousResourceReaderTest extends TestCase
         $arguments = $definition->getArguments();
 
         self::assertSame(AnonymousResourceReader::class, $definition->getClass());
-        self::assertSame('http_kernel', (string) $arguments[0]);
+        self::assertCount(4, $arguments);
+        self::assertSame(SubRequestKernel::class, (string) $arguments[0]);
         self::assertSame('request_stack', (string) $arguments[1]);
         self::assertSame('security.token_storage', (string) $arguments[2]);
         self::assertInstanceOf(TaggedIteratorArgument::class, $arguments[3]);
         self::assertSame('silverback.api_components.caller_scoped_state', $arguments[3]->getTag());
-        self::assertSame('debug.stopwatch', (string) $arguments[4]);
-        self::assertSame(ContainerInterface::NULL_ON_INVALID_REFERENCE, $arguments[4]->getInvalidBehavior());
 
         $publisherArguments = $container->getDefinition('silverback.api_components.mercure.resource_publisher')->getArguments();
         self::assertSame('silverback.api_components.mercure.anonymous_resource_reader', (string) $publisherArguments[5]);
