@@ -7,6 +7,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ### Breaking
 - `ComponentVoter` and `AnonymousResourceReader` take the new `SubRequestKernel` (`silverback.api_components.helper.sub_request_kernel`) instead of the HTTP kernel, and `AnonymousResourceReader` no longer takes the stopwatch ([#501](https://github.com/components-web-app/api-components-bundle/pull/501))
 
+### Changed
+- Requires `api-platform/core` `^4.4.5 || ^5.0.4`, which reset the skolem IRI converter between requests themselves ([api-platform/core#8681](https://github.com/api-platform/core/pull/8681)); `ApiPlatformCompilerPass` no longer adds that `kernel.reset` tag ([#500](https://github.com/components-web-app/api-components-bundle/pull/500))
+
 ### Fixed
 - With a debug stopwatch (dev and test), a write whose Mercure update makes an anonymous read no longer fails with a 500 "Event \"api_platform.processor.write\" is not started": a sub-request whose stopwatch section is left open, because it threw, or because the profiler reported itself disabled partway through it (`framework.profiler.collect: false`), now has that section closed ([#501](https://github.com/components-web-app/api-components-bundle/pull/501))
 

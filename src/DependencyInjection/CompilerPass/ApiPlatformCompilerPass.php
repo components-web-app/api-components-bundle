@@ -26,7 +26,6 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
     private const string HTTP_CACHE_FLUSHER = 'silverback.api_components.http_cache.flusher';
     private const string INVALIDATION_CLIENT_PREFIX = 'api_platform.invalidation_http_client.';
     private const string EXCEPTION_TO_STATUS = 'api_platform.exception_to_status';
-    private const string SKOLEM_IRI_CONVERTER = 'api_platform.symfony.iri_converter.skolem';
 
     public function process(ContainerBuilder $container): void
     {
@@ -35,7 +34,6 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
         $container->findDefinition(CollectionPopulator::class)->setArgument('$itemsPerPageParameterName', $itemsPerPageParameterName);
 
         if ($container->hasAlias('api_platform.http_cache.purger')) {
-            // we have implemented fully custom logic
             $container->removeDefinition('api_platform.doctrine.listener.http_cache.purge');
         } else {
             $container->removeDefinition('silverback.api_components.http_cache.purger');
@@ -45,11 +43,8 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
 
         $this->appendApiPlatformDefaultExceptionStatuses($container);
 
-        $this->resetSkolemIriConverter($container);
-
         $apiPlatformMercurePublishListener = 'api_platform.doctrine.orm.listener.mercure.publish';
         if ($container->hasDefinition($apiPlatformMercurePublishListener)) {
-            // we have implemented fully custom logic
             $container->removeDefinition($apiPlatformMercurePublishListener);
         }
     }
@@ -61,18 +56,6 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
         $defaults = $tree->getChildren()['exception_to_status']->getDefaultValue();
 
         $container->setParameter(self::EXCEPTION_TO_STATUS, $container->getParameter(self::EXCEPTION_TO_STATUS) + $defaults);
-    }
-
-    private function resetSkolemIriConverter(ContainerBuilder $container): void
-    {
-        if (!$container->hasDefinition(self::SKOLEM_IRI_CONVERTER)) {
-            return;
-        }
-
-        $definition = $container->getDefinition(self::SKOLEM_IRI_CONVERTER);
-        if (!$definition->hasTag('kernel.reset')) {
-            $definition->addTag('kernel.reset', ['method' => 'reset']);
-        }
     }
 
     private function configureHttpCacheFlusher(ContainerBuilder $container): void
