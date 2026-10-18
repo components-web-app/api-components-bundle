@@ -47,6 +47,14 @@ trait ComponentSiteTrait
         ];
     }
 
+    protected static function createDummyComponent(): string
+    {
+        $component = new DummyComponent();
+        static::persistAndFlush($component);
+
+        return static::iriOf($component);
+    }
+
     /**
      * @return array<string, string>
      */
