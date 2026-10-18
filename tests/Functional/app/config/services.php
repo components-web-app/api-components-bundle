@@ -21,6 +21,8 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\DependencyInjection\Reference;
 
 return static function (ContainerConfigurator $container) {
+    $container->parameters()->set('env(TEST_UPLOADS_SUBDIRECTORY)', '');
+
     $services = $container->services();
     $services
         ->defaults()
@@ -47,7 +49,7 @@ return static function (ContainerConfigurator $container) {
         ->set(LocalFilesystemAdapter::class)
         ->args(
             [
-                '%kernel.project_dir%/public/uploads' . \AppKernel::shardSuffix(),
+                '%kernel.project_dir%/public/uploads%env(TEST_UPLOADS_SUBDIRECTORY)%',
             ]
         )
         ->tag(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, ['alias' => 'local']);
@@ -55,7 +57,7 @@ return static function (ContainerConfigurator $container) {
     $services
         ->set('silverback.api_components.test.filesystem_adapter.public_url_local', LocalFilesystemAdapter::class)
         ->args([
-            '%kernel.project_dir%/public/uploads' . \AppKernel::shardSuffix(),
+            '%kernel.project_dir%/public/uploads%env(TEST_UPLOADS_SUBDIRECTORY)%',
         ])
         ->tag(FilesystemProvider::FILESYSTEM_ADAPTER_TAG, ['alias' => 'public_url_local', 'config' => ['public_url' => 'http://localhost/uploads']]);
 

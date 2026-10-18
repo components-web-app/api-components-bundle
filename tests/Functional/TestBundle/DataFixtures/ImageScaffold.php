@@ -27,7 +27,7 @@ class ImageScaffold extends AbstractCwaScaffold implements FixtureGroupInterface
     public function build(CwaFixtureBuilder $cwa): void
     {
         $image = new DummyMercureUploadableWithImagineFilters();
-        $image->file = new File(__DIR__ . '/../../../../features/assets/files/image.png');
+        $image->file = new File(__DIR__ . '/../../assets/files/image.png');
         $cwa->persist($image);
     }
 }

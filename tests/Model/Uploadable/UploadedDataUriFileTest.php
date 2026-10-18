@@ -19,7 +19,7 @@ use Symfony\Component\Validator\Validation;
 
 class UploadedDataUriFileTest extends TestCase
 {
-    private const string ASSETS = __DIR__ . '/../../../features/assets/files/';
+    private const string ASSETS = __DIR__ . '/../../Functional/assets/files/';
 
     public function test_a_decoded_data_uri_is_a_valid_upload_with_its_client_name_and_mime_type(): void
     {

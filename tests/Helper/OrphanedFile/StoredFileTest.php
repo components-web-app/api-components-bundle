@@ -20,7 +20,7 @@ use Silverback\ApiComponentsBundle\Helper\OrphanedFile\StoredFile;
 
 class StoredFileTest extends TestCase
 {
-    private const string ASSETS = __DIR__ . '/../../../features/assets/files/';
+    private const string ASSETS = __DIR__ . '/../../Functional/assets/files/';
 
     public function test_cached_file_info_is_used_without_reading_the_object(): void
     {

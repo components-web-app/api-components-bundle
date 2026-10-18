@@ -465,7 +465,7 @@ class CwaFixtureBuilderTest extends TestCase
         $component = new class extends AbstractComponent {
             public ?File $file = null;
         };
-        $component->file = new File(__DIR__ . '/../../features/assets/files/image.png');
+        $component->file = new File(__DIR__ . '/../Functional/assets/files/image.png');
 
         $reader = $this->createStub(UploadableAttributeReaderInterface::class);
         $reader->method('isConfigured')->willReturnCallback(
