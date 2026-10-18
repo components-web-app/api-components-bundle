@@ -8,7 +8,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - `ComponentVoter` and `AnonymousResourceReader` take the new `SubRequestKernel` (`silverback.api_components.helper.sub_request_kernel`) instead of the HTTP kernel, and `AnonymousResourceReader` no longer takes the stopwatch ([#501](https://github.com/components-web-app/api-components-bundle/pull/501))
 
 ### Fixed
-- With a debug stopwatch (dev and test), a write whose Mercure update reads a component an anonymous caller cannot reach no longer fails with a 500 "Event \"api_platform.processor.write\" is not started": a sub-request that throws now closes its own stopwatch section ([#501](https://github.com/components-web-app/api-components-bundle/pull/501))
+- With a debug stopwatch (dev and test), a write whose Mercure update makes an anonymous read no longer fails with a 500 "Event \"api_platform.processor.write\" is not started": a sub-request whose stopwatch section is left open, because it threw, or because the profiler reported itself disabled partway through it (`framework.profiler.collect: false`), now has that section closed ([#501](https://github.com/components-web-app/api-components-bundle/pull/501))
 
 ## [2.0.0-alpha.28](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.27...2.0.0-alpha.28) - 2026-10-18
 
