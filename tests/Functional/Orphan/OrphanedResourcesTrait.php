@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\Orphan;
 
+use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Test\Client;
 use Monolog\Handler\TestHandler;
 use Monolog\LogRecord;
@@ -94,7 +95,7 @@ trait OrphanedResourcesTrait
     protected static function placeInGroupForOrphans(string $groupIri, string $componentIri): void
     {
         $group = static::findByIri($groupIri);
-        $component = static::findByIri($componentIri);
+        $component = static::getContainer()->get(IriConverterInterface::class)->getResourceFromIri($componentIri);
         \assert($group instanceof ComponentGroup && $component instanceof AbstractComponent);
         $position = new ComponentPosition();
         $position->componentGroup = $group;
