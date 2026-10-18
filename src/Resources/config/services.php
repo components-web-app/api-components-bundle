@@ -985,6 +985,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference('request_stack'),
                 new Reference(AuthorizationCheckerInterface::class),
                 new Reference(RouterInterface::class),
+                '%silverback.api_components.refresh_token.ttl%',
                 '',
                 null,
                 false,

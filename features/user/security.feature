@@ -49,6 +49,7 @@ Feature: Prevent disabled users from logging in
     And the response should have a "__Secure-mercure_access_token" cookie
     And the header "set-cookie" should contain "secure; httponly; samesite=lax"
     And the mercure cookie should not contain draft resource topics
+    And the mercure cookie and its token should expire in 604800 seconds
 
   @loginSuperAdmin
   Scenario: A logged in user can fetch a list of all users

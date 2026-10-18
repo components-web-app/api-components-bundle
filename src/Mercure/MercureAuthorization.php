@@ -41,6 +41,7 @@ class MercureAuthorization
         private readonly RequestStack $requestStack,
         private readonly AuthorizationCheckerInterface $authorizationChecker,
         private readonly RouterInterface $router,
+        private readonly int $cookieLifetime,
         private readonly string $cookieSameSite = Cookie::SAMESITE_STRICT,
         private readonly ?string $hubName = null,
         private readonly bool $secureSubscriptions = false,
@@ -50,11 +51,11 @@ class MercureAuthorization
     public function getAuthorizationCookie(): Cookie
     {
         $subscribeTopics = $this->getSubscribeTopics();
-        $cookie = $this->mercureAuthorization->createCookie($this->requestStack->getCurrentRequest(), ['urlpattern' => $subscribeTopics], null, [], $this->hubName);
+        $expiresAt = new \DateTimeImmutable(\sprintf('+%d seconds', $this->cookieLifetime));
 
-        return $cookie
-            ->withSameSite($this->cookieSameSite)
-            ->withExpires(time() + (10 * 365 * 24 * 60 * 60));
+        return $this->mercureAuthorization
+            ->createCookie($this->requestStack->getCurrentRequest(), ['urlpattern' => $subscribeTopics], null, ['exp' => $expiresAt], $this->hubName)
+            ->withSameSite($this->cookieSameSite);
     }
 
     public function getClearAuthorizationCookie(): Cookie
