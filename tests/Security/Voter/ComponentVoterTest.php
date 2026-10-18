@@ -20,6 +20,7 @@ use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
@@ -50,6 +51,81 @@ class ComponentVoterTest extends TestCase
         $routedPage = $this->page(new Route());
 
         self::assertSame(VoterInterface::ACCESS_DENIED, $this->vote($this->component([$this->page(null)], [$this->page(null)]), $routedPage));
+    }
+
+    public function test_a_component_in_a_cycle_held_in_the_database_reaches_the_page_above_it(): void
+    {
+        $routedPage = $this->page(new Route());
+        $container = $this->component([$routedPage]);
+        $child = new DummyComponent();
+        $this->place($this->groupOwnedBy($container), $child);
+        $this->place($this->groupOwnedBy($child), $container);
+
+        self::assertSame(VoterInterface::ACCESS_GRANTED, $this->vote($child, $routedPage));
+    }
+
+    public function test_a_cycle_held_in_the_database_with_no_page_ends_and_abstains_to_public(): void
+    {
+        $container = new DummyComponent();
+        $child = new DummyComponent();
+        $this->place($this->groupOwnedBy($container), $child);
+        $this->place($this->groupOwnedBy($child), $container);
+
+        self::assertSame(VoterInterface::ACCESS_GRANTED, $this->vote($child, $this->page(new Route())));
+    }
+
+    public function test_a_cycle_held_in_the_database_on_routeless_pages_only_is_denied(): void
+    {
+        $container = $this->component([$this->page(null)]);
+        $child = new DummyComponent();
+        $this->place($this->groupOwnedBy($container), $child);
+        $this->place($this->groupOwnedBy($child), $container);
+
+        self::assertSame(VoterInterface::ACCESS_DENIED, $this->vote($child, $this->page(new Route())));
+    }
+
+    public function test_a_component_in_a_layout_used_by_a_routed_page_is_granted(): void
+    {
+        $routedPage = $this->page(new Route());
+        $layout = new Layout();
+        $layout->pages = new ArrayCollection([$routedPage]);
+        $group = new ComponentGroup();
+        $group->layouts = new ArrayCollection([$layout]);
+        $component = $this->component([$this->page(null)]);
+        $this->place($group, $component);
+
+        self::assertSame(VoterInterface::ACCESS_GRANTED, $this->vote($component, $routedPage));
+    }
+
+    public function test_a_group_reached_twice_does_not_stop_the_walk(): void
+    {
+        $routedPage = $this->page(new Route());
+        $routelessGroup = new ComponentGroup();
+        $routelessGroup->pages = new ArrayCollection([$this->page(null)]);
+        $routedGroup = new ComponentGroup();
+        $routedGroup->pages = new ArrayCollection([$routedPage]);
+        $component = new DummyComponent();
+        $this->place($routelessGroup, $component);
+        $this->place($routelessGroup, $component);
+        $this->place($routedGroup, $component);
+
+        self::assertSame(VoterInterface::ACCESS_GRANTED, $this->vote($component, $routedPage));
+    }
+
+    private function groupOwnedBy(DummyComponent $owner): ComponentGroup
+    {
+        $group = new ComponentGroup();
+        $group->addComponent($owner);
+
+        return $group;
+    }
+
+    private function place(ComponentGroup $group, DummyComponent $component): void
+    {
+        $position = new ComponentPosition();
+        $position->componentGroup = $group;
+        $group->addComponentPosition($position);
+        $component->addComponentPosition($position);
     }
 
     private function vote(DummyComponent $component, Page $routedPage): int
