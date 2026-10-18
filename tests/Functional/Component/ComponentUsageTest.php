@@ -70,7 +70,7 @@ final class ComponentUsageTest extends FunctionalTestCase
     }
 
     #[DataProvider('publishedOrDraft')]
-    public function test_a_position_holding_the_draft_itself_is_not_counted(string $requested): void
+    public function test_a_position_given_the_draft_holds_the_published_component_and_is_counted(string $requested): void
     {
         $client = self::adminClient();
         $group = self::createGroupWithComponentIris(0);
@@ -80,7 +80,7 @@ final class ComponentUsageTest extends FunctionalTestCase
 
         self::requestJsonLd($client, 'GET', $pair[$requested] . '/usage');
 
-        self::assertUsage(1, 0);
+        self::assertUsage(2, 0);
     }
 
     public static function publishedOrDraft(): iterable

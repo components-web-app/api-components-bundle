@@ -243,7 +243,57 @@ class ScaffoldPlannerTest extends TestCase
         self::assertSame($method->components[0], $method->components[0]->draft->published);
     }
 
-    public function test_a_draft_in_its_own_position_is_linked_to_its_published_component_after_both_are_declared(): void
+    public function test_a_related_draft_is_linked_to_its_published_component_after_both_are_declared(): void
+    {
+        $layout = $this->layout('main', 'CwaLayoutPrimary');
+        $published = new DummyPublishableComponent();
+        $published->reference = 'Live';
+        $draft = new DummyPublishableComponent();
+        $draft->reference = 'Pending';
+        $draft->setPublishedResource($published);
+        (new \ReflectionProperty(DummyPublishableComponent::class, 'draftResource'))->setValue($published, $draft);
+        $card = new DummyComponentWithRelated();
+        $card->name = 'Card';
+        $card->related = $draft;
+        $group = $this->group('top_/_/layouts/main', '/_/layouts/main', $layout);
+        $this->position($group, $card, 10);
+        $this->position($group, $published, 20);
+
+        $plan = $this->plan();
+        $method = $plan->methods[0];
+        [$pending, $cardPlan, $live] = $method->components;
+
+        self::assertSame(['pendingDummyPublishableComponent', 'cardDummyComponentWithRelated', 'liveDummyPublishableComponent'], $this->names($method->components));
+        self::assertSame($card, $cardPlan->component);
+        self::assertNull($live->draft);
+        self::assertSame([[$live, $pending]], $method->draftLinks);
+        self::assertSame([], $plan->notReproduced);
+    }
+
+    public function test_a_draft_related_in_another_method_is_linked_in_the_later_method_and_both_are_properties(): void
+    {
+        $layout = $this->layout('main', 'CwaLayoutPrimary');
+        $page = $this->page('home', $layout, $this->route('/', 'home'));
+        $published = new DummyPublishableComponent();
+        $published->reference = 'Live';
+        $draft = new DummyPublishableComponent();
+        $draft->reference = 'Pending';
+        $draft->setPublishedResource($published);
+        (new \ReflectionProperty(DummyPublishableComponent::class, 'draftResource'))->setValue($published, $draft);
+        $card = new DummyComponentWithRelated();
+        $card->name = 'Card';
+        $card->related = $draft;
+        $this->position($this->group('top_/_/layouts/main', '/_/layouts/main', $layout), $card, 10);
+        $this->position($this->group('primary_/_/pages/home', '/_/pages/home', $page), $published, 10);
+
+        $plan = $this->plan();
+
+        self::assertCount(2, $plan->properties);
+        self::assertSame([], $plan->methods[0]->draftLinks);
+        self::assertCount(1, $plan->methods[1]->draftLinks);
+    }
+
+    public function test_a_draft_in_a_position_of_its_own_is_planned_as_its_published_component_and_reported(): void
     {
         $layout = $this->layout('main', 'CwaLayoutPrimary');
         $published = new DummyPublishableComponent();
@@ -259,30 +309,10 @@ class ScaffoldPlannerTest extends TestCase
         $plan = $this->plan();
         $method = $plan->methods[0];
 
-        self::assertSame(['liveDummyPublishableComponent', 'pendingDummyPublishableComponent'], $this->names($method->components));
-        self::assertNull($method->components[0]->draft);
-        self::assertSame([[$method->components[0], $method->components[1]]], $method->draftLinks);
-        self::assertSame([], $plan->notReproduced);
-    }
-
-    public function test_a_draft_positioned_in_another_method_is_linked_in_the_later_method_and_both_are_properties(): void
-    {
-        $layout = $this->layout('main', 'CwaLayoutPrimary');
-        $page = $this->page('home', $layout, $this->route('/', 'home'));
-        $published = new DummyPublishableComponent();
-        $published->reference = 'Live';
-        $draft = new DummyPublishableComponent();
-        $draft->reference = 'Pending';
-        $draft->setPublishedResource($published);
-        (new \ReflectionProperty(DummyPublishableComponent::class, 'draftResource'))->setValue($published, $draft);
-        $this->position($this->group('top_/_/layouts/main', '/_/layouts/main', $layout), $published, 10);
-        $this->position($this->group('primary_/_/pages/home', '/_/pages/home', $page), $draft, 10);
-
-        $plan = $this->plan();
-
-        self::assertCount(2, $plan->properties);
-        self::assertSame([], $plan->methods[0]->draftLinks);
-        self::assertCount(1, $plan->methods[1]->draftLinks);
+        self::assertSame(['liveDummyPublishableComponent'], $this->names($method->components));
+        self::assertSame('liveDummyPublishableComponentDraft', $method->components[0]->draft?->name);
+        self::assertSame([], $method->draftLinks);
+        self::assertSame(['A position holds a draft of a published component, which is generated as the published component a write would store (1 entity).'], $plan->notReproduced);
     }
 
     public function test_a_group_owned_by_a_component_is_planned_with_its_positions_in_the_owner_method(): void

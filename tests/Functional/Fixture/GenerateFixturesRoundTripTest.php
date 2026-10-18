@@ -53,26 +53,52 @@ final class GenerateFixturesRoundTripTest extends FunctionalTestCase
         $this->assertGeneratedFixturesNotContain('afterRoutes(');
     }
 
-    public function test_a_draft_placed_in_its_own_position_stays_linked_to_its_published_component(): void
+    public function test_a_draft_added_to_a_group_is_placed_as_its_published_component_and_comes_back_so(): void
     {
         $this->siteHasAPublishedComponentWithAPlacedDraft('live', 'pending');
+        $this->siteIsFlushed();
+
+        $this->assertComponentHoldsPositions('live', 2);
+        $this->assertComponentHoldsPositions('pending', 0);
+        $this->assertComponentIsAnUnpublishedDraftOf('pending', 'live');
+
         $this->generateSiteAndReload();
 
-        $this->assertComponentIsPublishedAndPlaced('live');
+        $this->assertComponentHoldsPositions('live', 2);
+        $this->assertComponentHoldsPositions('pending', 0);
         $this->assertComponentIsAnUnpublishedDraftOf('pending', 'live');
-        $this->assertComponentIsPlaced('pending');
         $this->assertGeneratedFixturesContain('->draft(');
         $this->assertCommandOutputNotContains('could not be reproduced');
     }
 
-    public function test_a_placed_draft_whose_published_component_is_in_no_position_comes_back_with_its_published_component(): void
+    public function test_a_draft_added_to_a_group_without_its_published_component_places_the_published_component(): void
     {
         $this->siteHasAnUnplacedPublishedComponentWithAPlacedDraft('live', 'pending');
+        $this->siteIsFlushed();
+
+        $this->assertComponentHoldsPositions('live', 1);
+        $this->assertComponentHoldsPositions('pending', 0);
+
         $this->generateSiteAndReload();
 
+        $this->assertComponentIsPublishedAndPlaced('live');
+        $this->assertComponentHoldsPositions('pending', 0);
         $this->assertComponentIsAnUnpublishedDraftOf('pending', 'live');
-        $this->assertComponentIsPlaced('pending');
-        $this->assertComponentIsPublishedAndInNoPosition('live');
+        $this->assertCommandOutputNotContains('could not be reproduced');
+    }
+
+    public function test_a_draft_given_to_a_page_data_property_holds_its_published_component_and_comes_back_so(): void
+    {
+        $this->siteHasAPageDataHoldingADraftOfAPublishedComponent('Conference', 'live', 'pending');
+        $this->siteIsFlushed();
+
+        $this->assertPageDataWithComponentHoldsThePublishableComponent('Conference', 'live');
+        $this->assertComponentIsAnUnpublishedDraftOf('pending', 'live');
+
+        $this->generateSiteAndReload();
+
+        $this->assertPageDataWithComponentHoldsThePublishableComponent('Conference', 'live');
+        $this->assertComponentIsAnUnpublishedDraftOf('pending', 'live');
         $this->assertCommandOutputNotContains('could not be reproduced');
     }
 

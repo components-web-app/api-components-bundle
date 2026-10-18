@@ -157,7 +157,7 @@ final class ComponentCloneTest extends FunctionalTestCase
         self::assertComponentIsIn([], $pair['draft']);
     }
 
-    public function test_a_clone_by_a_drafts_iri_places_the_draft_itself_without_a_copy(): void
+    public function test_a_clone_by_a_drafts_iri_places_its_published_component_without_a_copy(): void
     {
         $client = static::createClient();
         self::loginAsAdmin($client);
@@ -170,8 +170,8 @@ final class ComponentCloneTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(201);
         self::assertJsonNodeSame('component', $pair['draft']);
         self::assertSame(2, self::countEntities(DummyPublishableComponent::class));
-        self::assertComponentIsIn([$source['group']], $pair['published']);
-        self::assertComponentIsIn([$target['group']], $pair['draft']);
+        self::assertComponentIsIn([$source['group'], $target['group']], $pair['published']);
+        self::assertComponentIsIn([], $pair['draft']);
     }
 
     public function test_a_component_placed_in_a_group_is_cloned_into_a_page_data_property_by_its_iri_without_a_copy(): void

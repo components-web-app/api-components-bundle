@@ -96,6 +96,7 @@ use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UnpublishedRouteExceptionListener;
 use Silverback\ApiComponentsBundle\EventListener\Console\ConsoleOutputListener;
 use Silverback\ApiComponentsBundle\EventListener\Console\FixtureLoadListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\DraftComponentReferenceListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\MappedSuperclassDiscriminatorMapListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
@@ -992,6 +993,14 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata', 'method' => 'loadClassMetadata']);
     $services->alias(MappedSuperclassDiscriminatorMapListener::class, 'silverback.api_components.doctrine.event_listener.mapped_superclass_discriminator_map');
+
+    $services
+        ->set('silverback.api_components.doctrine.event_listener.draft_component_reference')
+        ->class(DraftComponentReferenceListener::class)
+        ->args([new Reference(PublishableAttributeReader::class)])
+        ->autoconfigure(false)
+        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush, 'priority' => 100]);
+    $services->alias(DraftComponentReferenceListener::class, 'silverback.api_components.doctrine.event_listener.draft_component_reference');
 
     $services
         ->set('silverback.api_components.mercure.authorization')
