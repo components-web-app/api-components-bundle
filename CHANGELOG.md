@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.28](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.27...2.0.0-alpha.28) - 2026-10-18
+
 ### Changed
 - The Mercure subscriber cookie and the token in it both expire after `refresh_token.ttl`, instead of a 10-year cookie carrying a token of `mercure.default_cookie_lifetime` (usually one hour), which no longer applies to the cookie the bundle builds ([#499](https://github.com/components-web-app/api-components-bundle/pull/499))
 
