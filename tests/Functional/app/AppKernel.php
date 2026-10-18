@@ -68,16 +68,9 @@ class AppKernel extends Kernel
         };
     }
 
-    public static function shardSuffix(): string
-    {
-        $shard = preg_replace('/[^A-Za-z0-9]+/', '', (string) getenv('BEHAT_SHARD'));
-
-        return '' === $shard ? '' : '/shard-' . $shard;
-    }
-
     private function getVarDir(): string
     {
-        return $this->getProjectDir() . '/var' . self::shardSuffix();
+        return $this->getProjectDir() . '/var';
     }
 
     protected function getContainerClass(): string

@@ -88,7 +88,7 @@ final class PurgeHttpCacheTagsTest extends FunctionalTestCase
     {
         $tester = null;
         $collector = self::traceOutsideAnHttpRequest(static function () use ($input, &$tester): void {
-            $tester = self::runCommand('silverback:api-components:purge-http-cache', $input);
+            $tester = self::runConsoleCommand('silverback:api-components:purge-http-cache', $input);
         });
         \assert($tester instanceof CommandTester);
 

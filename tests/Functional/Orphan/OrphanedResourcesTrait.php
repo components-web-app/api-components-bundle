@@ -346,7 +346,7 @@ trait OrphanedResourcesTrait
     protected static function runScheduledOrphanScan(?string $option = null): array
     {
         static::rebootKernel();
-        $tester = static::runCommand(ScanOrphanedCommand::NAME, null === $option ? [] : [$option => true]);
+        $tester = static::runConsoleCommand(ScanOrphanedCommand::NAME, null === $option ? [] : [$option => true]);
         $container = static::getContainer();
         $emails = iterator_to_array($container->get(TemplatedEmailMessageEventSubscriber::class)->getMessages(), false);
         $notifications = array_values(array_filter(

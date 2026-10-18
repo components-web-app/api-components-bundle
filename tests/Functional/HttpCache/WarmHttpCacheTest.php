@@ -30,7 +30,7 @@ final class WarmHttpCacheTest extends FunctionalTestCase
     {
         self::createPageDataWithPublishedComponentInPageDataPropertyPosition('/warm-me');
 
-        $tester = self::runCommand(self::COMMAND, ['--concurrency' => '1']);
+        $tester = self::runConsoleCommand(self::COMMAND, ['--concurrency' => '1']);
 
         self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
         self::assertWarmRequested('/_/routes//warm-me');
@@ -52,7 +52,7 @@ final class WarmHttpCacheTest extends FunctionalTestCase
         self::setRouteLiveAt('/conference', null);
         self::createRouteWithPageAndRedirect('/old', '/new');
 
-        $tester = self::runCommand(self::COMMAND);
+        $tester = self::runConsoleCommand(self::COMMAND);
 
         self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
         self::assertWarmNotRequestedContaining('conference');
@@ -65,7 +65,7 @@ final class WarmHttpCacheTest extends FunctionalTestCase
         self::createComponentInRoute('/user-area/secret');
         self::createPageDataWithRoute('/public');
 
-        $tester = self::runCommand(self::COMMAND);
+        $tester = self::runConsoleCommand(self::COMMAND);
 
         self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
         self::assertWarmRequested('/_/routes//public');
@@ -83,7 +83,7 @@ final class WarmHttpCacheTest extends FunctionalTestCase
         self::createComponentInRoute('/public');
         KernelHttpClient::respondWith('/\/_\/pages\//', 500);
 
-        $tester = self::runCommand(self::COMMAND);
+        $tester = self::runConsoleCommand(self::COMMAND);
 
         self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
         self::assertStringContainsString('1 failed', $tester->getDisplay());

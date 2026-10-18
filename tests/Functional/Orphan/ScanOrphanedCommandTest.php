@@ -30,7 +30,7 @@ final class ScanOrphanedCommandTest extends FunctionalTestCase
         $iris = self::createSiteWithEveryKindOfOrphanAndEveryKindOfUse();
         $counts = self::countStructuralResources();
 
-        $tester = self::runCommand('silverback:api-components:scan-orphaned');
+        $tester = self::runConsoleCommand('silverback:api-components:scan-orphaned');
 
         self::assertSame(0, $tester->getStatusCode());
         $output = $tester->getDisplay();
@@ -45,7 +45,7 @@ final class ScanOrphanedCommandTest extends FunctionalTestCase
     {
         $iris = self::createSiteWithEveryKindOfOrphanAndEveryKindOfUse();
 
-        $tester = self::runCommand('silverback:api-components:scan-orphaned', [], OutputInterface::VERBOSITY_VERBOSE);
+        $tester = self::runConsoleCommand('silverback:api-components:scan-orphaned', [], OutputInterface::VERBOSITY_VERBOSE);
 
         self::assertSame(0, $tester->getStatusCode());
         $output = $tester->getDisplay();
@@ -59,7 +59,7 @@ final class ScanOrphanedCommandTest extends FunctionalTestCase
         $iris = self::createSiteWithEveryKindOfOrphanAndEveryKindOfUse();
         $counts = self::countStructuralResources();
 
-        $tester = self::runCommand('silverback:api-components:clean-orphaned', [], OutputInterface::VERBOSITY_VERBOSE);
+        $tester = self::runConsoleCommand('silverback:api-components:clean-orphaned', [], OutputInterface::VERBOSITY_VERBOSE);
 
         self::assertSame(0, $tester->getStatusCode());
         self::assertOutputListsExactlyUnder($tester->getDisplay(), 'Components', self::irisNamed($iris, self::EVERY_KIND_ORPHANED_COMPONENTS));
@@ -72,7 +72,7 @@ final class ScanOrphanedCommandTest extends FunctionalTestCase
         self::loginAsAdmin($client);
         $iris = self::createSiteWithEveryKindOfOrphanAndEveryKindOfUse();
 
-        self::runCommand('silverback:api-components:scan-orphaned');
+        self::runConsoleCommand('silverback:api-components:scan-orphaned');
         self::requestJsonLd($client, 'GET', '/_/orphaned_resources');
 
         self::assertResponseStatusCodeSame(200);
@@ -85,7 +85,7 @@ final class ScanOrphanedCommandTest extends FunctionalTestCase
         self::loginAsAdmin($client);
         self::createSiteWithEveryKindOfOrphanAndEveryKindOfUse();
 
-        self::runCommand('silverback:api-components:scan-orphaned');
+        self::runConsoleCommand('silverback:api-components:scan-orphaned');
         $remembered = self::storedOrphanedResourcesReportLists();
         self::requestJsonLd($client, 'POST', '/_/orphaned_resources/scan');
 

@@ -78,7 +78,7 @@ final class RefreshTokensExpireTest extends FunctionalTestCase
             $input['--field'] = $field;
         }
         try {
-            self::runCommand('silverback:api-components:refresh-tokens:expire', $input);
+            self::runConsoleCommand('silverback:api-components:refresh-tokens:expire', $input);
         } catch (\Throwable $exception) {
             return $exception;
         }

@@ -65,7 +65,7 @@ final class UserCreateCommandTest extends FunctionalTestCase
 
     private static function createUserFromTheConsole(string $username, string $email, bool $overwrite = false): CommandTester
     {
-        return self::runCommand('silverback:api-components:user:create', [
+        return self::runConsoleCommand('silverback:api-components:user:create', [
             'username' => $username,
             'email' => $email,
             'password' => self::generatedSecret(),

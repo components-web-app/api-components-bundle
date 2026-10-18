@@ -9,4 +9,3 @@
 /phpunit.xml.dist export-ignore
 /travis.php.ini export-ignore
 /tests export-ignore
-/bin export-ignore

@@ -290,7 +290,7 @@ final class OrphanedFilesTest extends FunctionalTestCase
         $broken = self::createUploadable(new DummyUploadable());
         self::removeStoredFilesOf($broken);
 
-        $tester = self::runCommand('silverback:api-components:scan-orphaned-files', [], OutputInterface::VERBOSITY_VERBOSE);
+        $tester = self::runConsoleCommand('silverback:api-components:scan-orphaned-files', [], OutputInterface::VERBOSITY_VERBOSE);
 
         self::assertSame(0, $tester->getStatusCode());
         $output = $tester->getDisplay();
@@ -377,7 +377,7 @@ final class OrphanedFilesTest extends FunctionalTestCase
         self::emptyUploadFilestores();
         $tooManyPixels = self::createUploadable(new DummyUploadableWithConstraints());
 
-        $tester = self::runCommand('silverback:api-components:scan-orphaned-files', [], OutputInterface::VERBOSITY_VERBOSE);
+        $tester = self::runConsoleCommand('silverback:api-components:scan-orphaned-files', [], OutputInterface::VERBOSITY_VERBOSE);
 
         self::assertSame(0, $tester->getStatusCode());
         self::assertStringContainsString('Invalid files: 1', $tester->getDisplay());

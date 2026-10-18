@@ -99,7 +99,7 @@ abstract class FunctionalTestCase extends ApiTestCase
 
     protected static function uploadsDirectory(): string
     {
-        return __DIR__ . '/app/public/uploads' . \AppKernel::shardSuffix() . $_SERVER[self::UPLOADS_SUBDIRECTORY_ENV];
+        return __DIR__ . '/app/public/uploads' . $_SERVER[self::UPLOADS_SUBDIRECTORY_ENV];
     }
 
     protected static function bootDebugKernel(): KernelInterface

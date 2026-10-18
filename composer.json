@@ -11,13 +11,6 @@
             "homepage": "https://silverback.is"
         }
     ],
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/silverbackdan/contexts",
-            "no-api": true
-        }
-    ],
     "require": {
         "php": ">=8.5",
         "ext-exif": "*",
@@ -65,14 +58,8 @@
         "twig/twig": "^3.29"
     },
     "require-dev": {
-        "behat/behat": "^3.33",
-        "behat/mink": "^1.13",
-        "behat/mink-browserkit-driver": "^2.3",
-        "behatch/contexts": "dev-master",
         "dama/doctrine-test-bundle": "^8.6",
         "doctrine/doctrine-fixtures-bundle": "^4.3",
-        "friends-of-behat/mink-extension": "^2.7.5",
-        "friends-of-behat/symfony-extension": "^2.7",
         "friendsofphp/php-cs-fixer": "^3.95",
         "justinrainbow/json-schema": "^5.4",
         "league/flysystem": "^3.36",
@@ -89,7 +76,6 @@
         "rector/rector": "^2.6",
         "roave/security-advisories": "dev-master",
         "symfony/browser-kit": "^7.4 || ^8.1",
-        "symfony/css-selector": "^7.4 || ^8.1",
         "symfony/dotenv": "^7.4 || ^8.1",
         "symfony/http-client": "^7.4 || ^8.1",
         "symfony/maker-bundle": "^1.68",
@@ -97,7 +83,9 @@
         "symfony/monolog-bundle": "^3.11 || ^4.1",
         "symfony/phpunit-bridge": "^7.4 || ^8.1",
         "symfony/stopwatch": "^7.4 || ^8.1",
-        "symfony/web-profiler-bundle": "^7.4 || ^8.1"
+        "symfony/translation": "^7.4 || ^8.1",
+        "symfony/web-profiler-bundle": "^7.4 || ^8.1",
+        "symfony/yaml": "^7.4 || ^8.1"
     },
     "config": {
         "preferred-install": {
