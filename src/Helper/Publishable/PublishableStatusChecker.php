@@ -43,7 +43,9 @@ class PublishableStatusChecker
     public function isGranted(object|string $class): bool
     {
         try {
-            return $this->authorizationChecker->isGranted(new Expression($this->attributeReader->getConfiguration($class)->isGranted ?? $this->permission));
+            $permission = $this->attributeReader->isConfigured($class) ? ($this->attributeReader->getConfiguration($class)->isGranted ?? $this->permission) : $this->permission;
+
+            return $this->authorizationChecker->isGranted(new Expression($permission));
         } catch (AuthenticationCredentialsNotFoundException $e) {
             return false;
         }

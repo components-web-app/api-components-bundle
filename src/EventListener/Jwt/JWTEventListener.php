@@ -74,6 +74,10 @@ final class JWTEventListener implements ResetInterface
 
     public function onKernelResponse(ResponseEvent $event): void
     {
+        if (!$event->isMainRequest()) {
+            return;
+        }
+
         $token = $this->token;
         $this->token = null;
 

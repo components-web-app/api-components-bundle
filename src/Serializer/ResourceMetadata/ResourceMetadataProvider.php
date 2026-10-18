@@ -11,9 +11,10 @@
 
 namespace Silverback\ApiComponentsBundle\Serializer\ResourceMetadata;
 
+use Silverback\ApiComponentsBundle\Utility\CallerScopedStateInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
-class ResourceMetadataProvider implements ResetInterface
+class ResourceMetadataProvider implements ResetInterface, CallerScopedStateInterface
 {
     /**
      * @var \WeakMap<object, ResourceMetadata>
@@ -38,5 +39,15 @@ class ResourceMetadataProvider implements ResetInterface
     public function reset(): void
     {
         $this->metadatas = new \WeakMap();
+    }
+
+    public function isolate(): \Closure
+    {
+        $metadatas = $this->metadatas;
+        $this->metadatas = new \WeakMap();
+
+        return function () use ($metadatas): void {
+            $this->metadatas = $metadatas;
+        };
     }
 }

@@ -17,12 +17,13 @@ use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
+use Silverback\ApiComponentsBundle\Utility\CallerScopedStateInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 
 /**
  * @author Daniel West <daniel@silverback.is>
  */
-final class RouteReachabilityResolver
+final class RouteReachabilityResolver implements CallerScopedStateInterface
 {
     /**
      * @var \WeakMap<AbstractPage, bool>
@@ -34,6 +35,16 @@ final class RouteReachabilityResolver
         private readonly Security $security,
     ) {
         $this->resolved = new \WeakMap();
+    }
+
+    public function isolate(): \Closure
+    {
+        $resolved = $this->resolved;
+        $this->resolved = new \WeakMap();
+
+        return function () use ($resolved): void {
+            $this->resolved = $resolved;
+        };
     }
 
     public function isReachable(AbstractPage $page): bool

@@ -15,7 +15,6 @@ use ApiPlatform\Metadata\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
-use Silverback\ApiComponentsBundle\Annotation\Publishable;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -88,15 +87,9 @@ class MercureAuthorization
             return null;
         }
 
-        $refl = new \ReflectionClass($operation->getClass());
-        $isPublishable = \count($refl->getAttributes(Publishable::class));
-
         $urlPattern = $this->buildAbsoluteUrl() . $this->getOperationUrlPattern($operation);
         $subscribeIris = [$urlPattern . self::EMPTY_QUERY];
 
-        if (!$isPublishable) {
-            return $subscribeIris;
-        }
         if ($this->publishableStatusChecker->isGranted($operation->getClass())) {
             $subscribeIris[] = $urlPattern . self::DRAFT_QUERY;
         }

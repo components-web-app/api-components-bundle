@@ -74,6 +74,31 @@ Feature: Prevent disabled users from logging in
     And the header "set-cookie" should contain "secure; httponly; samesite=lax"
     And the mercure cookie should contain draft resource topics
 
+  Scenario: An admin's mercure cookie grants the admin topic of a resource class that is not publishable
+    Given there is a user with the username "admin" password "password" and role "ROLE_ADMIN"
+    When I send a "POST" request to "/login" with body:
+    """
+    {
+      "username": "admin",
+      "password": "password"
+    }
+    """
+    Then the response status code should be 204
+    And the mercure cookie should contain topics matching "/\/_\/component_groups\/:id\\\?draft=1$/"
+
+  Scenario: A user's mercure cookie does not grant the admin topic of a resource class that is not publishable
+    Given there is a user with the username "user" password "password" and role "ROLE_USER"
+    When I send a "POST" request to "/login" with body:
+    """
+    {
+      "username": "user",
+      "password": "password"
+    }
+    """
+    Then the response status code should be 204
+    And the mercure cookie should contain topics matching "/\/_\/component_groups\/:id\\\?$/"
+    And the mercure cookie should not contain topics matching "/\/_\/component_groups\/:id\\\?draft=1$/"
+
   Scenario: A request to /me with no cookies is a 401 that sets no mercure cookie
     When I send a "GET" request to "/me"
     Then the response status code should be 401

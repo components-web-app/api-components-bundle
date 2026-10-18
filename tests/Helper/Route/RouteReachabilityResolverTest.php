@@ -239,6 +239,25 @@ class RouteReachabilityResolverTest extends TestCase
         self::assertTrue($this->resolver()->isReachable($parent));
     }
 
+    public function test_an_isolated_answer_is_not_memoised_for_the_caller(): void
+    {
+        $page = $this->createPage($this->createRoute());
+        $answers = [true, false];
+        $security = $this->createStub(Security::class);
+        $security->method('isGranted')->willReturnCallback(static function () use (&$answers): bool {
+            return array_shift($answers);
+        });
+        $this->security = $security;
+        $this->expectChildren([], []);
+        $resolver = $this->resolver();
+
+        self::assertTrue($resolver->isReachable($page));
+        $restore = $resolver->isolate();
+        self::assertFalse($resolver->isReachable($page));
+        $restore();
+        self::assertTrue($resolver->isReachable($page));
+    }
+
     private function resolver(): RouteReachabilityResolver
     {
         if (null === $this->resolver) {

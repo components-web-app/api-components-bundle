@@ -64,9 +64,9 @@ class PublishableAwareHubTest extends TestCase
         return new PublishableAwareHub($decorated, $statusChecker, $iriConverter, $collectorData);
     }
 
-    private function update(bool $private = false): Update
+    private function update(bool $private = false, array $data = ['@id' => '/component/1', 'reference' => 'draft'], string $topic = 'https://example.com/component/1'): Update
     {
-        return new Update(topics: ['https://example.com/component/1'], data: json_encode(['@id' => '/component/1']), private: $private, id: 'update-id', type: 'message', retry: 5);
+        return new Update(topics: [$topic], data: json_encode($data), private: $private, id: 'update-id', type: 'message', retry: 5);
     }
 
     public function test_it_is_a_remote_hub_so_decorating_one_hides_nothing(): void
@@ -129,7 +129,7 @@ class PublishableAwareHubTest extends TestCase
         $update = $this->published[0];
         self::assertTrue($update->isPrivate());
         self::assertSame(['https://example.com/component/1'], $update->getTopics());
-        self::assertSame(json_encode(['@id' => '/component/1']), $update->getData());
+        self::assertSame(json_encode(['@id' => '/component/1', 'reference' => 'draft']), $update->getData());
         self::assertSame('update-id', $update->getId());
         self::assertSame('message', $update->getType());
         self::assertSame(5, $update->getRetry());
@@ -164,5 +164,24 @@ class PublishableAwareHubTest extends TestCase
         $hub->publish($update);
 
         self::assertSame([$update], $this->published);
+    }
+
+    public function test_a_delete_on_the_public_topic_of_a_draft_publishable_resource_stays_public(): void
+    {
+        $update = $this->update(data: ['@id' => '/component/1']);
+        $hub = $this->buildHub($this->mockHub(), new DummyPublishableComponent(), false);
+
+        $hub->publish($update);
+
+        self::assertSame([$update], $this->published);
+    }
+
+    public function test_a_delete_on_the_draft_topic_of_a_draft_publishable_resource_is_made_private(): void
+    {
+        $hub = $this->buildHub($this->mockHub(), new DummyPublishableComponent(), false);
+
+        $hub->publish($this->update(data: ['@id' => '/component/1'], topic: 'https://example.com/component/1?draft=1'));
+
+        self::assertTrue($this->published[0]->isPrivate());
     }
 }

@@ -81,6 +81,27 @@ class MercureAuthorizationTest extends TestCase
         );
     }
 
+    public function test_an_admin_is_granted_the_admin_topic_of_a_resource_class_that_is_not_publishable(): void
+    {
+        $authorization = $this->createAuthorization(
+            [Layout::class => [new Get(uriTemplate: '/layouts/{id}', class: Layout::class, name: 'layout_get', mercure: true)]],
+            ['layout_get' => '/layouts/{id}'],
+            true,
+        );
+
+        self::assertSame(['http://example.com/layouts/:id\\?', 'http://example.com/layouts/:id\\?draft=1'], $authorization->getSubscribeTopics());
+    }
+
+    public function test_a_caller_who_is_not_an_admin_is_not_granted_the_admin_topic(): void
+    {
+        $authorization = $this->createAuthorization(
+            [Layout::class => [new Get(uriTemplate: '/layouts/{id}', class: Layout::class, name: 'layout_get', mercure: true)]],
+            ['layout_get' => '/layouts/{id}'],
+        );
+
+        self::assertSame(['http://example.com/layouts/:id\\?'], $authorization->getSubscribeTopics());
+    }
+
     public function test_the_subscribe_topic_is_built_from_the_operation_when_its_route_is_not_registered(): void
     {
         $authorization = $this->createAuthorization(

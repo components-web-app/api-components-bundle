@@ -221,6 +221,186 @@ class ProfilerContext implements Context
     }
 
     /**
+     * @Given only Mercure updates published from now are recorded
+     */
+    public function onlyMercureUpdatesPublishedFromNowAreRecorded(): void
+    {
+        HubStub::clearPublished();
+    }
+
+    /**
+     * @return list<Update>
+     */
+    private function getMercureUpdatesForTheResource(string $name): array
+    {
+        $iri = $this->restContext->resources[$name];
+        $updates = [];
+        foreach (HubStub::getPublished() as $update) {
+            foreach ($update->getTopics() as $topic) {
+                if ((parse_url($topic, \PHP_URL_PATH) ?: $topic) === $iri) {
+                    $updates[] = $update;
+                    continue 2;
+                }
+            }
+        }
+
+        return $updates;
+    }
+
+    private function getTheMercureUpdateForTheResource(string $visibility, string $name): Update
+    {
+        $private = 'private' === $visibility;
+        $matching = array_values(array_filter($this->getMercureUpdatesForTheResource($name), static fn (Update $update): bool => $update->isPrivate() === $private));
+        if (1 !== \count($matching)) {
+            throw new \RuntimeException(\sprintf('Expected one %s Mercure update for %s, found %d: %s', $visibility, $this->restContext->resources[$name], \count($matching), $this->describeMercureUpdates()));
+        }
+
+        return $matching[0];
+    }
+
+    private function topicWithoutOrigin(string $topic): string
+    {
+        $query = parse_url($topic, \PHP_URL_QUERY);
+
+        return (parse_url($topic, \PHP_URL_PATH) ?: $topic) . (null === $query ? '' : '?' . $query);
+    }
+
+    private function describeMercureUpdates(): string
+    {
+        return implode('; ', array_map(static fn (Update $update): string => \sprintf('%s %s %s', $update->isPrivate() ? 'private' : 'public', implode(', ', $update->getTopics()), $update->getData()), HubStub::getPublished()));
+    }
+
+    /**
+     * @Then the Mercure updates for the resource :name should be published publicly and then privately
+     */
+    public function theMercureUpdatesForTheResourceShouldBePublishedPubliclyAndThenPrivately(string $name): void
+    {
+        $iri = $this->restContext->resources[$name];
+        $updates = $this->getMercureUpdatesForTheResource($name);
+        $shape = array_map(fn (Update $update): string => ($update->isPrivate() ? 'private ' : 'public ') . implode(', ', array_map($this->topicWithoutOrigin(...), $update->getTopics())), $updates);
+        $expected = ['public ' . $iri, 'private ' . $iri . '?draft=1'];
+        if ($expected !== $shape) {
+            throw new \RuntimeException(\sprintf('Expected the updates [%s] but they were [%s]', implode('; ', $expected), implode('; ', $shape)));
+        }
+    }
+
+    /**
+     * @Then the Mercure update for the resource :name should be one private update on its draft topic
+     */
+    public function theMercureUpdateForTheResourceShouldBeOnePrivateUpdateOnItsDraftTopic(string $name): void
+    {
+        $iri = $this->restContext->resources[$name];
+        $updates = $this->getMercureUpdatesForTheResource($name);
+        if (1 !== \count($updates) || !$updates[0]->isPrivate() || [$iri . '?draft=1'] !== array_map($this->topicWithoutOrigin(...), $updates[0]->getTopics())) {
+            throw new \RuntimeException(\sprintf('Expected one private update on the draft topic of %s: %s', $iri, $this->describeMercureUpdates()));
+        }
+    }
+
+    /**
+     * @Then the public Mercure update for the resource :name should be a delete
+     */
+    public function thePublicMercureUpdateForTheResourceShouldBeADelete(string $name): void
+    {
+        $update = $this->getTheMercureUpdateForTheResource('public', $name);
+        $iri = $this->restContext->resources[$name];
+        if ([$iri] !== array_map($this->topicWithoutOrigin(...), $update->getTopics()) || json_encode(['@id' => $iri]) !== $update->getData()) {
+            throw new \RuntimeException(\sprintf('Expected a public delete of %s on its own topic, got %s on %s', $iri, $update->getData(), implode(', ', $update->getTopics())));
+        }
+    }
+
+    /**
+     * @Then there should be no private Mercure update for the resource :name
+     */
+    public function thereShouldBeNoPrivateMercureUpdateForTheResource(string $name): void
+    {
+        foreach ($this->getMercureUpdatesForTheResource($name) as $update) {
+            if ($update->isPrivate()) {
+                throw new \RuntimeException(\sprintf('A private update was published for %s: %s', $this->restContext->resources[$name], $this->describeMercureUpdates()));
+            }
+        }
+    }
+
+    /**
+     * @Then /^the (public|private) Mercure update for the resource "([^"]+)" should have the JSON node "([^"]+)" equal to the IRI of the resource "([^"]+)"$/
+     */
+    public function theMercureUpdateForTheResourceShouldHaveTheJsonNodeEqualToTheIriOf(string $visibility, string $name, string $node, string $other): void
+    {
+        $this->theMercureUpdateForTheResourceShouldHaveTheJsonNodeEqualTo($visibility, $name, $node, $this->restContext->resources[$other]);
+    }
+
+    /**
+     * @Then /^the (public|private) Mercure update for the resource "([^"]+)" should have the JSON node "([^"]+)" equal to "([^"]*)"$/
+     */
+    public function theMercureUpdateForTheResourceShouldHaveTheJsonNodeEqualTo(string $visibility, string $name, string $node, string $expected): void
+    {
+        $data = json_decode($this->getTheMercureUpdateForTheResource($visibility, $name)->getData(), true, 512, \JSON_THROW_ON_ERROR);
+        $actual = $data[$node] ?? null;
+        if ($expected !== $actual) {
+            throw new \RuntimeException(\sprintf('Expected the %s update node %s to be %s, got %s', $visibility, $node, $expected, json_encode($actual)));
+        }
+    }
+
+    /**
+     * @Then no public Mercure update should contain :text
+     */
+    public function noPublicMercureUpdateShouldContain(string $text): void
+    {
+        foreach (HubStub::getPublished() as $update) {
+            if (!$update->isPrivate() && str_contains((string) $update->getData(), $text)) {
+                throw new \RuntimeException(\sprintf('A public update contains %s: %s', $text, $update->getData()));
+            }
+        }
+    }
+
+    /**
+     * @Then no public Mercure update should contain the IRI of the resource :name
+     */
+    public function noPublicMercureUpdateShouldContainTheIriOfTheResource(string $name): void
+    {
+        $this->noPublicMercureUpdateShouldContain(json_encode($this->restContext->resources[$name], \JSON_UNESCAPED_SLASHES));
+        $this->noPublicMercureUpdateShouldContain(json_encode($this->restContext->resources[$name]));
+    }
+
+    /**
+     * @Then the public Mercure update for the resource :name should equal an anonymous GET of it
+     */
+    public function thePublicMercureUpdateForTheResourceShouldEqualAnAnonymousGetOfIt(string $name): void
+    {
+        $published = json_decode($this->getTheMercureUpdateForTheResource('public', $name)->getData(), true, 512, \JSON_THROW_ON_ERROR);
+        $client = $this->minkContext->getSession()->getDriver()->getClient();
+        $client->getCookieJar()->clear();
+        $client->request('GET', $this->restContext->resources[$name], [], [], ['HTTP_ACCEPT' => 'application/ld+json', 'HTTP_AUTHORIZATION' => '']);
+        $read = json_decode($client->getResponse()->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        if (200 !== $client->getResponse()->getStatusCode() || $this->withoutBlankNodeIds($published) !== $this->withoutBlankNodeIds($read)) {
+            throw new \RuntimeException(\sprintf('The public update was %s but an anonymous GET returns %d %s', json_encode($published), $client->getResponse()->getStatusCode(), json_encode($read)));
+        }
+    }
+
+    private function withoutBlankNodeIds(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if ('@id' === $key && \is_string($value) && str_starts_with($value, '/.well-known/genid/')) {
+                unset($data[$key]);
+            } elseif (\is_array($value)) {
+                $data[$key] = $this->withoutBlankNodeIds($value);
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * @Then the response should carry no cache tags
+     */
+    public function theResponseShouldCarryNoCacheTags(): void
+    {
+        $tags = $this->collectResponseTags();
+        if ([] !== $tags) {
+            throw new \RuntimeException(\sprintf('The response carries the cache tags `%s`', implode('`, `', $tags)));
+        }
+    }
+
+    /**
      * @Given the Mercure hub is unreachable
      */
     public function theMercureHubIsUnreachable(): void

@@ -1165,7 +1165,8 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set('silverback.api_components.serializer.resource_metadata_provider')
         ->class(ResourceMetadataProvider::class)
-        ->tag('kernel.reset', ['method' => 'reset']);
+        ->tag('kernel.reset', ['method' => 'reset'])
+        ->tag('silverback.api_components.caller_scoped_state');
     $services->alias(ResourceMetadataProvider::class, 'silverback.api_components.serializer.resource_metadata_provider');
 
     $services
@@ -1273,7 +1274,8 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference('doctrine'),
             new Reference('security.helper'),
-        ]);
+        ])
+        ->tag('silverback.api_components.caller_scoped_state');
     $services->alias(RouteReachabilityResolver::class, 'silverback.api_components.helper.route.reachability_resolver');
 
     $services

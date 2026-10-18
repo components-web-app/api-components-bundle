@@ -20,6 +20,7 @@ use ApiPlatform\State\ProviderInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableReadStateProvider;
+use Silverback\ApiComponentsBundle\Mercure\AnonymousResourceReader;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
 use Silverback\ApiComponentsBundle\Tests\Helper\Publishable\PublishableDatabaseTrait;
@@ -47,6 +48,17 @@ class PublishableReadStateProviderTest extends TestCase
         self::assertSame($published, $request->attributes->get('data'));
         $this->entityManager->clear();
         self::assertNull($this->entityManager->find(DummyPublishableComponent::class, $draftId));
+    }
+
+    public function test_a_due_draft_is_not_merged_by_an_anonymous_read_for_mercure_because_that_read_must_not_write(): void
+    {
+        [$published, $draft] = $this->persistPublishedWithDraft(new \DateTime('-2 days'), new \DateTime('-1 day'));
+
+        $result = $this->provider($published)->provide(new Get(), [], ['request' => new Request(attributes: [AnonymousResourceReader::REQUEST_ATTRIBUTE => true])]);
+
+        self::assertSame($published, $result);
+        self::assertSame('published', $published->reference);
+        self::assertSame($published, $draft->getPublishedResource());
     }
 
     /**
