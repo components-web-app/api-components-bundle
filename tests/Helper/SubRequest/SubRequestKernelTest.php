@@ -114,6 +114,78 @@ class SubRequestKernelTest extends TestCase
         self::assertFalse($stopwatch->isStarted('outer'));
     }
 
+    public function test_a_sub_request_that_returns_with_its_section_still_open_leaves_the_callers_section_active(): void
+    {
+        $stopwatch = new Stopwatch();
+        $stopwatch->openSection();
+        $stopwatch->start('outer');
+        $response = new Response('ok');
+
+        $kernel = new class($stopwatch, $response) implements HttpKernelInterface {
+            public function __construct(private readonly Stopwatch $stopwatch, private readonly Response $response)
+            {
+            }
+
+            public function handle(Request $request, int $type = self::MAIN_REQUEST, bool $catch = true): Response
+            {
+                $request->attributes->set('_stopwatch_token', 'sub');
+                $this->stopwatch->openSection();
+
+                return $this->response;
+            }
+        };
+
+        self::assertSame($response, (new SubRequestKernel($kernel, $stopwatch))->handle(Request::create('/')));
+
+        $stopwatch->stop('outer');
+        self::assertFalse($stopwatch->isStarted('outer'));
+        self::assertArrayHasKey('sub', $stopwatch->getSections());
+    }
+
+    public function test_a_sub_request_that_closes_its_own_section_is_not_closed_again(): void
+    {
+        $stopwatch = new Stopwatch();
+        $stopwatch->openSection();
+        $stopwatch->start('outer');
+
+        $kernel = new class($stopwatch) implements HttpKernelInterface {
+            public function __construct(private readonly Stopwatch $stopwatch)
+            {
+            }
+
+            public function handle(Request $request, int $type = self::MAIN_REQUEST, bool $catch = true): Response
+            {
+                $request->attributes->set('_stopwatch_token', 'sub');
+                $this->stopwatch->openSection();
+                $this->stopwatch->stopSection('sub');
+
+                return new Response('ok');
+            }
+        };
+
+        (new SubRequestKernel($kernel, $stopwatch))->handle(Request::create('/'));
+
+        $stopwatch->stop('outer');
+        $stopwatch->stopSection('main');
+        self::assertArrayHasKey('main', $stopwatch->getSections());
+        self::assertArrayHasKey('sub', $stopwatch->getSections());
+        self::assertTrue(false === $stopwatch->getSections()['main']->getEvent('outer')->isStarted());
+    }
+
+    public function test_the_sub_request_is_timed_in_the_callers_section(): void
+    {
+        $stopwatch = new Stopwatch();
+        $stopwatch->openSection();
+        $kernel = $this->createStub(HttpKernelInterface::class);
+        $kernel->method('handle')->willReturn(new Response('ok'));
+
+        (new SubRequestKernel($kernel, $stopwatch))->handle(Request::create('/'));
+
+        self::assertFalse($stopwatch->isStarted(SubRequestKernel::STOPWATCH_EVENT));
+        $stopwatch->stopSection('main');
+        self::assertCount(1, $stopwatch->getSections()['main']->getEvent(SubRequestKernel::STOPWATCH_EVENT)->getPeriods());
+    }
+
     public function test_the_service_definition_and_its_users(): void
     {
         $container = new ContainerBuilder();

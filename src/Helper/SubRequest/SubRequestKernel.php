@@ -18,6 +18,8 @@ use Symfony\Component\Stopwatch\Stopwatch;
 
 final class SubRequestKernel
 {
+    public const string STOPWATCH_EVENT = 'cwa.sub_request';
+
     public function __construct(
         private readonly HttpKernelInterface $httpKernel,
         private readonly ?Stopwatch $stopwatch = null,
@@ -26,25 +28,31 @@ final class SubRequestKernel
 
     public function handle(Request $request): Response
     {
+        $this->stopwatch?->start(self::STOPWATCH_EVENT, 'section');
+
         try {
             return $this->httpKernel->handle($request, HttpKernelInterface::SUB_REQUEST, false);
-        } catch (\Throwable $exception) {
-            $this->closeStopwatchSection($request);
-
-            throw $exception;
+        } finally {
+            $this->restoreCallerSection($request);
         }
     }
 
-    private function closeStopwatchSection(Request $request): void
+    private function restoreCallerSection(Request $request): void
     {
-        $sectionId = $request->attributes->get('_stopwatch_token');
-        if (null === $this->stopwatch || !\is_string($sectionId)) {
+        if (null === $this->stopwatch) {
             return;
         }
 
-        try {
-            $this->stopwatch->stopSection($sectionId);
-        } catch (\LogicException) {
+        $sectionId = $request->attributes->get('_stopwatch_token');
+        if (!$this->stopwatch->isStarted(self::STOPWATCH_EVENT) && \is_string($sectionId)) {
+            try {
+                $this->stopwatch->stopSection($sectionId);
+            } catch (\LogicException) {
+            }
+        }
+
+        if ($this->stopwatch->isStarted(self::STOPWATCH_EVENT)) {
+            $this->stopwatch->stop(self::STOPWATCH_EVENT);
         }
     }
 }
