@@ -2184,6 +2184,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('silverback.doctrine.repository.component_position'),
             new Reference(CwaCollectorData::class),
             new Reference('silverback.api_components.event_listener.console.fixture_load'),
+            new Reference(PublishableAttributeReader::class),
         ])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush])
         ->tag('doctrine.event_listener', ['event' => DoctrineEvents::postFlush])

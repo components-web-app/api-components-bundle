@@ -326,6 +326,95 @@ class CacheHeadersEventListenerTest extends TestCase
         self::assertFalse($response->headers->hasCacheControlDirective('max-age'));
     }
 
+    public function test_a_hidden_publication_sets_expires_and_caps_the_shared_cache_lifetime(): void
+    {
+        $publishedAt = (new \DateTimeImmutable('@' . time()))->modify('+60 seconds');
+        $response = $this->dispatch(
+            resourceClass: CacheHeadersUnaffectedResource::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialSharedMaxAge: 3600,
+            nextHiddenPublication: $publishedAt,
+        );
+
+        self::assertSame($publishedAt->getTimestamp(), $response->getExpires()?->getTimestamp());
+        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('s-maxage'));
+    }
+
+    public function test_a_hidden_publication_after_a_pending_expires_keeps_the_expires(): void
+    {
+        $expires = (new \DateTimeImmutable('@' . time()))->modify('+60 seconds');
+        $response = $this->dispatch(
+            resourceClass: CacheHeadersUnaffectedResource::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialSharedMaxAge: 3600,
+            expires: $expires,
+            nextHiddenPublication: $expires->modify('+1800 seconds'),
+        );
+
+        self::assertSame($expires->getTimestamp(), $response->getExpires()?->getTimestamp());
+    }
+
+    public function test_a_hidden_publication_at_a_pending_expires_keeps_the_expires(): void
+    {
+        $expires = (new \DateTimeImmutable('@' . time()))->modify('+60 seconds');
+        $response = $this->dispatch(
+            resourceClass: CacheHeadersUnaffectedResource::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialSharedMaxAge: 3600,
+            expires: $expires,
+            nextHiddenPublication: $expires,
+        );
+
+        self::assertSame($expires->getTimestamp(), $response->getExpires()?->getTimestamp());
+    }
+
+    public function test_a_hidden_publication_before_a_pending_expires_replaces_the_expires(): void
+    {
+        $publishedAt = (new \DateTimeImmutable('@' . time()))->modify('+60 seconds');
+        $response = $this->dispatch(
+            resourceClass: CacheHeadersUnaffectedResource::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialSharedMaxAge: 3600,
+            expires: $publishedAt->modify('+1800 seconds'),
+            nextHiddenPublication: $publishedAt,
+        );
+
+        self::assertSame($publishedAt->getTimestamp(), $response->getExpires()?->getTimestamp());
+        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('s-maxage'));
+    }
+
+    public function test_a_hidden_publication_attribute_which_is_not_a_date_is_ignored(): void
+    {
+        $response = $this->dispatch(
+            resourceClass: CacheHeadersUnaffectedResource::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialSharedMaxAge: 3600,
+            nextHiddenPublication: '+60 seconds',
+        );
+
+        self::assertNull($response->getExpires());
+        self::assertSame(3600, (int) $response->headers->getCacheControlDirective('s-maxage'));
+    }
+
+    public function test_a_hidden_publication_does_not_set_expires_on_an_authenticated_response(): void
+    {
+        $this->authenticateAsUser();
+        $response = $this->dispatch(
+            resourceClass: CacheHeadersUnaffectedResource::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialSharedMaxAge: 3600,
+            nextHiddenPublication: (new \DateTimeImmutable())->modify('+60 seconds'),
+        );
+
+        self::assertNull($response->getExpires());
+    }
+
     /**
      * @param array<class-string> $personalisedResourceClasses
      * @param array<class-string> $scheduledExpiryResourceClasses
@@ -339,6 +428,7 @@ class CacheHeadersEventListenerTest extends TestCase
         array $scheduledExpiryResourceClasses = [Route::class],
         ?\DateTimeInterface $expires = null,
         ?int $initialMaxAge = null,
+        mixed $nextHiddenPublication = null,
     ): Response {
         $publishableReader = new PublishableAttributeReader($this->createStub(ManagerRegistry::class));
         $statusChecker = $this->createStub(PublishableStatusChecker::class);
@@ -362,6 +452,9 @@ class CacheHeadersEventListenerTest extends TestCase
         }
         if ($unpublishedRoute) {
             $request->attributes->set(UnpublishedRouteExceptionListener::REQUEST_ATTRIBUTE, true);
+        }
+        if (null !== $nextHiddenPublication) {
+            $request->attributes->set(CacheHeadersEventListener::NEXT_PUBLICATION_ATTRIBUTE, $nextHiddenPublication);
         }
 
         $response = new Response();
