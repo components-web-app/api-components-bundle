@@ -6,6 +6,7 @@
     bootstrap="tests/Functional/app/bootstrap.php"
     backupGlobals="false"
     colors="true"
+    failOnRisky="true"
     failOnWarning="false"
     failOnDeprecation="false">
   <source>
@@ -26,6 +27,7 @@
     <env name="SYMFONY_DEPRECATIONS_HELPER" value="baselineFile=./tests/allowed.json&amp;verbose=1"/>
     <server name="KERNEL_DIR" value="tests/Functional/app/"/>
     <server name="KERNEL_CLASS" value="AppKernel"/>
+    <env name="TEST_DATABASE_PATH" value=":memory:"/>
     <server name="APP_ENV" value="test" force="true"/>
     <server name="LEGACY" value="0"/>
     <server name="SHELL_VERBOSITY" value="-1"/>
@@ -36,8 +38,14 @@
     <junit outputFile="/tmp/infection/phpunit.junit.xml"/>
   </logging>
   <testsuites>
-    <testsuite name="Project Test Suite">
+    <testsuite name="unit">
       <directory>tests</directory>
+      <exclude>tests/Functional</exclude>
+    </testsuite>
+    <testsuite name="functional">
+      <directory>tests/Functional</directory>
+      <exclude>tests/Functional/app</exclude>
+      <exclude>tests/Functional/TestBundle</exclude>
     </testsuite>
   </testsuites>
 </phpunit>

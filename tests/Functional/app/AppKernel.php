@@ -27,7 +27,7 @@ class AppKernel extends Kernel
 
     private const CONFIG_EXTS = '.{php,xml,yaml,yml}';
 
-    public function __construct(string $environment, bool $debug, private readonly string $routePrefix = '')
+    public function __construct(string $environment, bool $debug, private readonly string $routePrefix = '', private readonly bool $profilerCollect = true)
     {
         parent::__construct($environment, $debug);
 
@@ -46,7 +46,7 @@ class AppKernel extends Kernel
 
     public function getCacheDir(): string
     {
-        return $this->getVarDir() . '/cache/' . $this->environment . self::symfonyListenersSuffix() . $this->getRoutePrefixSuffix();
+        return $this->getVarDir() . '/cache/' . $this->environment . self::symfonyListenersSuffix() . $this->getRoutePrefixSuffix() . ($this->profilerCollect ? '' : '_no_profiler_collect');
     }
 
     public static function useSymfonyListeners(): ?bool
@@ -124,6 +124,10 @@ class AppKernel extends Kernel
 
         $container->import($confDir . '/services' . self::CONFIG_EXTS);
         $container->import($confDir . '/services_' . $this->environment . self::CONFIG_EXTS);
+
+        if (!$this->profilerCollect) {
+            $container->extension('framework', ['profiler' => ['collect' => false]]);
+        }
 
         if (null !== $useSymfonyListeners = self::useSymfonyListeners()) {
             $container->extension('api_platform', ['use_symfony_listeners' => $useSymfonyListeners]);
