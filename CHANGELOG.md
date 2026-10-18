@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.27](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.26...2.0.0-alpha.27) - 2026-10-18
+
 ### Breaking
 - Admins (the publishable permission) are now granted `<pattern>\?draft=1` for every Mercure resource class, which carries the writer's view privately; an application routing `Symfony\Component\Mercure\Update` to an async transport must also route `Silverback\ApiComponentsBundle\Message\PublishMercureUpdatesMessage`, which carries a resource's public and private updates in order ([#497](https://github.com/components-web-app/api-components-bundle/pull/497))
 
