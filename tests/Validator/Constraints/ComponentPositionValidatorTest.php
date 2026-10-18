@@ -15,12 +15,16 @@ use ApiPlatform\Metadata\Exception\ItemNotFoundException;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Silverback\ApiComponentsBundle\AttributeReader\ExplicitAllowOnlyAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentCycleDetector;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionIriResolver;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
@@ -45,6 +49,10 @@ class ComponentPositionValidatorTest extends ConstraintValidatorTestCase
     /** @var array<string, object> */
     private array $resources = [];
 
+    private ?\WeakMap $originalData = null;
+
+    private bool $withEntityManager = true;
+
     protected function createValidator(): ConstraintValidatorInterface
     {
         $iriConverter = $this->createStub(IriConverterInterface::class);
@@ -61,7 +69,104 @@ class ComponentPositionValidatorTest extends ConstraintValidatorTestCase
             new ExplicitAllowOnlyAttributeReader($this->createStub(ManagerRegistry::class)),
             new ListedComponentPositions($iriConverter),
             new ComponentPositionIriResolver($iriConverter),
+            new ComponentCycleDetector($this->createStub(ManagerRegistry::class), new PublishableAttributeReader($this->createStub(ManagerRegistry::class))),
+            $this->registry(),
         );
+    }
+
+    private function registry(): ManagerRegistry
+    {
+        $this->originalData = new \WeakMap();
+        $unitOfWork = $this->createStub(UnitOfWork::class);
+        $unitOfWork->method('getOriginalEntityData')->willReturnCallback(fn (object $entity): array => $this->originalData[$entity] ?? []);
+        $entityManager = $this->createStub(EntityManagerInterface::class);
+        $entityManager->method('getUnitOfWork')->willReturn($unitOfWork);
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturnCallback(fn (string $class): ?EntityManagerInterface => $this->withEntityManager && ComponentPosition::class === $class ? $entityManager : null);
+
+        return $registry;
+    }
+
+    public function test_a_new_position_that_places_a_component_inside_itself_is_refused_on_component(): void
+    {
+        $container = new DummyComponent();
+        $group = $this->groupHolding(0);
+        $group->addComponent($container);
+        $position = $this->newPosition($group);
+        $position->component = $container;
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->buildViolation('The component cannot be placed in the component group `{{ reference }}`: the group is inside the component.')
+            ->atPath('property.path.component')
+            ->setParameter('{{ reference }}', 'header')
+            ->assertRaised();
+    }
+
+    public function test_a_position_is_checked_for_a_cycle_without_an_entity_manager(): void
+    {
+        $this->withEntityManager = false;
+        $container = new DummyComponent();
+        $group = $this->groupHolding(0);
+        $group->addComponent($container);
+        $position = $this->newPosition($group);
+        $position->component = $container;
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        self::assertCount(1, $this->context->getViolations());
+    }
+
+    public function test_a_position_that_places_a_component_elsewhere_is_allowed(): void
+    {
+        $group = $this->groupHolding(0);
+        $group->addComponent(new DummyComponent());
+
+        $this->validator->validate($this->newPosition($group), new ComponentPositionConstraint());
+
+        $this->assertNoViolation();
+    }
+
+    public function test_an_unchanged_position_in_a_cycle_already_held_is_not_checked(): void
+    {
+        $container = new DummyComponent();
+        $group = $this->groupHolding(0);
+        $group->addComponent($container);
+        $position = $this->newPosition($group);
+        $position->component = $container;
+        $group->addComponentPosition($position);
+        $this->originalData[$position] = ['component' => $container, 'componentGroup' => $group];
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->assertNoViolation();
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function changedFields(): iterable
+    {
+        yield 'component' => ['component'];
+        yield 'componentGroup' => ['componentGroup'];
+    }
+
+    #[DataProvider('changedFields')]
+    public function test_a_position_whose_component_or_group_changed_is_checked(string $changed): void
+    {
+        $container = new DummyComponent();
+        $group = $this->groupHolding(0);
+        $group->addComponent($container);
+        $position = $this->newPosition($group);
+        $position->component = $container;
+        $group->addComponentPosition($position);
+        $original = ['component' => $container, 'componentGroup' => $group];
+        $original[$changed] = 'component' === $changed ? new DummyComponent() : new ComponentGroup();
+        $this->originalData[$position] = $original;
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        self::assertCount(1, $this->context->getViolations());
     }
 
     public function test_an_anchor_in_the_group_is_allowed(): void

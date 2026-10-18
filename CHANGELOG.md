@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- A component can no longer be placed inside its own subtree: a position whose component would contain its own group, at any depth (a published component and its draft counting as one), is a 422 on `component`, and giving a component group an owner from inside it is a 422 on `components`; `ComponentVoter` no longer recurses forever on such a cycle already in the database ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+
 ## [2.0.0-alpha.29](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.28...2.0.0-alpha.29) - 2026-10-18
 
 ### Breaking
