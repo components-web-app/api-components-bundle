@@ -66,15 +66,12 @@ final class ScaffoldRenderer
         foreach ($method->components as $component) {
             $this->component($component);
         }
-        if ([] !== $method->lateAssignments || [] !== $method->draftLinks) {
+        if ([] !== $method->lateAssignments) {
             $this->block();
             foreach ($method->lateAssignments as $assignment) {
                 if (null !== $assignment->target) {
                     $this->assignment(self::expression($assignment->target), $assignment);
                 }
-            }
-            foreach ($method->draftLinks as [$published, $draft]) {
-                $this->writer->line(\sprintf('$cwa->component(%s)->draft(%s);', self::expression($published), self::expression($draft)));
             }
         }
 

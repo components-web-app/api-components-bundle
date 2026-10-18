@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Tests\Helper\Publishable;
 
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -96,11 +97,43 @@ class PublishableDraftMergerTest extends TestCase
         self::assertFalse($request->attributes->has('data'));
     }
 
+    public function test_a_merge_keeps_the_published_components_groups_and_adds_the_drafts_own_once(): void
+    {
+        [$published, $draft] = $this->persistPublishedWithDraft(new \DateTime('-2 days'), new \DateTime('-1 day'));
+        $shared = $this->newGroup('shared');
+        $publishedOnly = $this->newGroup('published-only');
+        $draftOnly = $this->newGroup('draft-only');
+        $published->addComponentGroup($shared)->addComponentGroup($publishedOnly);
+        $draft->addComponentGroup($shared)->addComponentGroup($draftOnly);
+        $this->entityManager->flush();
+        $publishedId = $published->getId();
+
+        $this->publishableDraftMerger->mergeDueDraft(new Request(), $draft, true);
+
+        $this->entityManager->clear();
+        $stored = $this->entityManager->find(DummyPublishableComponent::class, $publishedId);
+        self::assertInstanceOf(DummyPublishableComponent::class, $stored);
+        $references = array_map(static fn (ComponentGroup $group): ?string => $group->reference, $stored->getComponentGroups()->toArray());
+        sort($references);
+        self::assertSame(['draft-only', 'published-only', 'shared'], $references);
+    }
+
     public function test_a_published_resource_with_no_draft_is_left_alone(): void
     {
         $published = new DummyPublishableComponent();
         $published->setPublishedAt(new \DateTime('-1 day'));
 
         self::assertSame($published, $this->publishableDraftMerger->mergeDueDraft(new Request(), $published, true));
+    }
+
+    private function newGroup(string $reference): ComponentGroup
+    {
+        $group = new ComponentGroup();
+        $group->reference = $reference;
+        $group->location = $reference;
+        $group->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $this->entityManager->persist($group);
+
+        return $group;
     }
 }

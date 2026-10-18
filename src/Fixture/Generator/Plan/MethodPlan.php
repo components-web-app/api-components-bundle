@@ -34,9 +34,6 @@ final class MethodPlan
     /** @var list<Assignment> */
     public array $lateAssignments = [];
 
-    /** @var list<array{ComponentPlan, ComponentPlan}> */
-    public array $draftLinks = [];
-
     public ?string $entityClass = null;
 
     /** @var list<Assignment> */

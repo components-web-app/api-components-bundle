@@ -402,14 +402,40 @@ final class GenerateFixturesRoundTripTest extends FunctionalTestCase
         $this->assertPageDataWithRouteHasTheRelatedRoute('Event', '/about');
     }
 
-    public function test_a_draft_owned_group_is_reported_as_not_reproduced(): void
+    public function test_a_group_given_to_a_draft_is_owned_by_its_published_component_and_comes_back_so(): void
     {
         $this->siteHasAPublishedComponentWithADraftOwningAGroup('live', 'live-draft', 'panels');
-        $this->generateSite();
+        $this->siteIsFlushed();
 
-        $this->assertCommandOutputContains('could not be reproduced');
-        $this->assertCommandOutputContains('panels_');
-        $this->assertGeneratedFixturesNotContain("->group('panels')");
+        $this->assertPublishableComponentOwnsTheGroupsHolding('live', 'Panel');
+        $this->assertPublishableComponentOwnsTheGroupsHolding('live-draft', '');
+
+        $this->generateSiteAndReload();
+
+        $this->assertPublishableComponentOwnsTheGroupsHolding('live', 'Panel');
+        $this->assertPublishableComponentOwnsTheGroupsHolding('live-draft', '');
+        $this->assertComponentIsAnUnpublishedDraftOf('live-draft', 'live');
+        $this->assertCommandOutputNotContains('could not be reproduced');
+        $this->generateSiteAgain();
+        $this->assertGenerationIdenticalToThePreviousOne();
+    }
+
+    public function test_a_draft_given_to_a_component_field_holds_its_published_component_and_comes_back_so(): void
+    {
+        $this->siteHasAComponentRelatedToADraftOfAPublishedComponent('Card', 'live', 'pending');
+        $this->siteIsFlushed();
+
+        $this->assertComponentIsRelatedToThePublishableComponent('Card', 'live');
+        $this->assertComponentIsAnUnpublishedDraftOf('pending', 'live');
+
+        $this->generateSiteAndReload();
+
+        $this->assertComponentIsRelatedToThePublishableComponent('Card', 'live');
+        $this->assertComponentIsAnUnpublishedDraftOf('pending', 'live');
+        $this->assertGeneratedFixturesContain('->draft(');
+        $this->assertCommandOutputNotContains('could not be reproduced');
+        $this->generateSiteAgain();
+        $this->assertGenerationIdenticalToThePreviousOne();
     }
 
     public function test_a_page_and_page_data_whose_own_routes_redirect_keep_their_redirects_and_regenerate_identically(): void

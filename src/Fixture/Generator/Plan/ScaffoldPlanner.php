@@ -55,11 +55,10 @@ final readonly class ScaffoldPlanner
         $placer->describeAll();
 
         $relatedPairs = array_map(static fn (array $relation): array => [$relation[0], $relation[2]], $placer->relations());
-        $scopes->decide($placer->plans(), [...$relatedPairs, ...$placer->draftPairs()]);
+        $scopes->decide($placer->plans(), $relatedPairs);
 
         $declarations = new DeclarationOrderer($order, $placer->plans(), $placer->relations());
         $declarations->declare();
-        $declarations->linkDrafts($placer->draftPairs());
 
         return new ScaffoldPlan($methods, $this->nameComponents($methods, $namer), $this->imports, $report->all());
     }

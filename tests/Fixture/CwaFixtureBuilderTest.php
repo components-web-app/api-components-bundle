@@ -3553,6 +3553,38 @@ class CwaFixtureBuilderTest extends TestCase
         $this->assertSame(self::flushCountWhenPositioned($persistedAt, $published), self::flushCountWhenPersisted($persistedAt, $draft));
     }
 
+    public function test_a_group_given_to_a_draft_of_a_published_component_belongs_to_the_published_component(): void
+    {
+        $persistedAt = [];
+        $flushCount = 0;
+        $builder = $this->publishingBuilder($this->timedEm($persistedAt, $flushCount));
+        $published = new DummyPublishableComponent();
+        $builder->layout('main', 'Primary')->group('nav')->add($published);
+        $draft = new DummyPublishableComponent();
+        $builder->component($published)->draft($draft);
+        $builder->component($draft)->group('panels')->add(new DummyComponent());
+        $builder->flush();
+
+        $this->assertCount(0, $draft->getComponentGroups());
+        $this->assertCount(1, $published->getComponentGroups());
+        $group = $published->getComponentGroups()->first();
+        $this->assertInstanceOf(ComponentGroup::class, $group);
+        $this->assertSame([$published], $group->components->toArray());
+    }
+
+    public function test_a_group_given_to_a_never_published_draft_belongs_to_the_draft(): void
+    {
+        $persistedAt = [];
+        $flushCount = 0;
+        $builder = $this->publishingBuilder($this->timedEm($persistedAt, $flushCount));
+        $draft = new DummyPublishableComponent();
+        $builder->layout('main', 'Primary')->group('nav')->add($draft);
+        $builder->component($draft)->group('panels')->add(new DummyComponent());
+        $builder->flush();
+
+        $this->assertCount(1, $draft->getComponentGroups());
+    }
+
     public function test_a_draft_of_a_non_publishable_component_throws(): void
     {
         $persistedAt = [];
