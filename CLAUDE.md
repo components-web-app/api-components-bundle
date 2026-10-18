@@ -70,7 +70,7 @@ php tests/Functional/app/bin/console -e test doctrine:migrations:migrate --no-in
 php tests/Functional/app/bin/console -e test doctrine:schema:validate
 ```
 
-Behat is being replaced by PHPUnit functional tests (#504): **new API behaviour gets a functional test in `tests/Functional/<Area>/<Feature>Test.php`, not a scenario**, and porting follows `tests/Functional/PORTING-FROM-BEHAT.md`. Unit tests stay for pure logic. **Infection scores from PHPUnit coverage only**: the functional suite counts, Behat does not, so a class reached only by Behat still needs a unit or functional test. The covered-MSI gate is 80.
+Behat is being replaced by PHPUnit functional tests (#504): **new API behaviour gets a functional test in `tests/Functional/<Area>/<Feature>Test.php`, not a scenario**, and porting follows `tests/Functional/PORTING-FROM-BEHAT.md`, in PRs against the integration branch `test/504-phpunit`. Unit tests stay for pure logic. **Infection scores from PHPUnit coverage only**: the functional suite counts, Behat does not, so a class reached only by Behat still needs a unit or functional test. The covered-MSI gate is 80.
 
 ## Testing and CI traps
 

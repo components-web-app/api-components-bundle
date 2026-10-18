@@ -44,6 +44,8 @@
     </testsuite>
     <testsuite name="functional">
       <directory>tests/Functional</directory>
+      <exclude>tests/Functional/app</exclude>
+      <exclude>tests/Functional/TestBundle</exclude>
     </testsuite>
   </testsuites>
 </phpunit>

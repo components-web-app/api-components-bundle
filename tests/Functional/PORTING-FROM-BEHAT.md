@@ -145,9 +145,11 @@ API_PLATFORM_USE_SYMFONY_LISTENERS=1 php vendor/bin/phpunit --testsuite function
 
 ## What a port PR contains
 
+Every port PR targets the integration branch **`test/504-phpunit`**, not `main`: branch from it, merge `origin/test/504-phpunit` into your branch right before pushing, and open the PR with `--base test/504-phpunit`. The coordinator merges `main` into it regularly, and one final PR takes it into `main`.
+
 - The new test class(es) and any trait methods they needed.
 - The deleted scenarios, and the feature file once it is empty.
 - Step definitions no remaining feature uses, deleted; a static reset in a Behat hook removed once no feature sets that double.
 - The equivalence table (coverage numbers, covered MSI, survivors, scenario → test map) and anything you were unsure of.
-- A `### Tooling` line in `CHANGELOG.md`.
+- A `### Tooling` line under `## Unreleased` in `CHANGELOG.md`; it reaches `main` with the final merge.
 - Nothing in `src/`. If a port shows a real bug, stop and report it on #504.
