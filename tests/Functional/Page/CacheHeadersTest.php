@@ -39,6 +39,7 @@ final class CacheHeadersTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(200);
         self::assertStringContainsString('private', self::cacheControlHeader());
         self::assertStringContainsString('no-store', self::cacheControlHeader());
+        self::assertStringNotContainsString('s-maxage', self::cacheControlHeader());
     }
 
     /**
@@ -123,6 +124,7 @@ final class CacheHeadersTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(200);
         self::assertSharedMaxAgeAtMost(60);
+        self::assertSharedMaxAgeAtLeast(50);
     }
 
     public function test_a_pending_publication_caps_the_shared_cache_lifetime_not_just_the_expires_header(): void
@@ -135,6 +137,7 @@ final class CacheHeadersTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(200);
         self::assertMatchesRegularExpression('/GMT$/', (string) self::getClient()->getResponse()->headers->get('expires'));
         self::assertSharedMaxAgeAtMost(60);
+        self::assertSharedMaxAgeAtLeast(50);
     }
 
     public function test_a_response_with_no_pending_transition_keeps_its_configured_shared_cache_lifetime(): void
