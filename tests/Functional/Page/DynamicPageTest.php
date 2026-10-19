@@ -156,6 +156,21 @@ final class DynamicPageTest extends FunctionalTestCase
         self::assertCacheTagPurged(self::iriOf($created['position']));
     }
 
+    public function test_a_static_position_names_its_component_as_the_static_component_and_does_not_vary_on_the_path_header(): void
+    {
+        $client = static::createClient();
+        $created = self::createComponentGroupWithComponents(1);
+        $componentIri = self::iriOf($created['components'][0]);
+
+        self::requestJsonLd($client, 'GET', self::iriOf($created['positions'][0]), null, ['path' => '/page-data']);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeSame('component', $componentIri);
+        self::assertJsonNodeSame('_metadata.staticComponent', $componentIri);
+        self::assertJsonNodeSame('_metadata.isDynamicPosition', false);
+        self::assertNotContains('path', self::getClient()->getResponse()->getVary());
+    }
+
     public function test_an_admin_can_fetch_a_page_data_property_position_without_a_path_header_and_the_component_slot_is_not_resolved(): void
     {
         $client = self::adminClient();
