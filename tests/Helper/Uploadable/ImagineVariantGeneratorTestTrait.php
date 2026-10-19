@@ -27,10 +27,13 @@ use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
 use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
+use Silverback\ApiComponentsBundle\Tests\Imagine\MemoryLimitAboveUsageTrait;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
 trait ImagineVariantGeneratorTestTrait
 {
+    use MemoryLimitAboveUsageTrait;
+
     private Filesystem $local;
     private FlysystemDataLoader $dataLoader;
     /** @var array<string, true> */
@@ -42,6 +45,7 @@ trait ImagineVariantGeneratorTestTrait
     /** @var array<string, \Exception> */
     private array $storedCheckFailures = [];
     private string $originalMemoryLimit;
+    private string $memoryCeiling;
     private UploadableCacheControl $cacheControl;
     /** @var array<string, ?string> */
     private array $cacheControlAtGeneration = [];
@@ -50,7 +54,8 @@ trait ImagineVariantGeneratorTestTrait
     private function setUpImagine(): void
     {
         $this->originalMemoryLimit = (string) \ini_get('memory_limit');
-        ini_set('memory_limit', '256M');
+        $this->memoryCeiling = self::megabytesAboveUsage(512);
+        self::setMemoryLimit(self::megabytesAboveUsage(256));
         $this->local = new Filesystem(new InMemoryFilesystemAdapter());
     }
 
@@ -95,7 +100,7 @@ trait ImagineVariantGeneratorTestTrait
             $this->dataLoader,
             new FileInfoCacheManager($this->entityManager, new FileInfoRepository($this->registry)),
             $this->cacheControl,
-            new ImagineFilterGenerator($filterService, $cacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', '512M', $logger),
+            new ImagineFilterGenerator($filterService, $cacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', $this->memoryCeiling, $logger),
             $batchSize,
             $logger,
         );

@@ -17,6 +17,8 @@ use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 
 class PhpMemoryLimitTest extends TestCase
 {
+    use MemoryLimitAboveUsageTrait;
+
     private string $originalLimit;
 
     protected function setUp(): void
@@ -54,9 +56,10 @@ class PhpMemoryLimitTest extends TestCase
 
     public function test_reads_the_current_limit(): void
     {
-        ini_set('memory_limit', '768M');
+        $limit = self::megabytesAboveUsage(64);
+        self::setMemoryLimit($limit);
 
-        self::assertSame(805306368, (new PhpMemoryLimit())->limit());
+        self::assertSame(self::bytesOf($limit), (new PhpMemoryLimit())->limit());
     }
 
     public function test_an_unlimited_limit_reads_as_null(): void
@@ -76,20 +79,24 @@ class PhpMemoryLimitTest extends TestCase
 
     public function test_raising_sets_the_new_limit_and_returns_the_previous_one(): void
     {
-        ini_set('memory_limit', '256M');
+        $start = self::megabytesAboveUsage(64);
+        $target = self::bytesOf($start) + 67108864;
+        self::setMemoryLimit($start);
 
-        $previous = (new PhpMemoryLimit())->raiseTo(536870912);
+        $previous = (new PhpMemoryLimit())->raiseTo($target);
 
-        self::assertSame('256M', $previous);
-        self::assertSame('536870912', \ini_get('memory_limit'));
+        self::assertSame($start, $previous);
+        self::assertSame((string) $target, \ini_get('memory_limit'));
     }
 
     public function test_a_limit_already_at_or_above_the_target_is_left_alone(): void
     {
-        ini_set('memory_limit', '1G');
+        $start = self::megabytesAboveUsage(128);
+        self::setMemoryLimit($start);
 
-        self::assertNull((new PhpMemoryLimit())->raiseTo(536870912));
-        self::assertSame('1G', \ini_get('memory_limit'));
+        self::assertNull((new PhpMemoryLimit())->raiseTo(self::bytesOf($start)));
+        self::assertNull((new PhpMemoryLimit())->raiseTo(self::bytesOf($start) - 67108864));
+        self::assertSame($start, \ini_get('memory_limit'));
     }
 
     public function test_an_unlimited_limit_is_never_raised(): void
@@ -102,18 +109,20 @@ class PhpMemoryLimitTest extends TestCase
 
     public function test_restoring_puts_the_previous_limit_back(): void
     {
-        ini_set('memory_limit', '512M');
+        $previous = self::megabytesAboveUsage(64);
+        self::setMemoryLimit(self::megabytesAboveUsage(128));
 
-        self::assertTrue((new PhpMemoryLimit())->restore('256M'));
-        self::assertSame('256M', \ini_get('memory_limit'));
+        self::assertTrue((new PhpMemoryLimit())->restore($previous));
+        self::assertSame($previous, \ini_get('memory_limit'));
     }
 
     public function test_restoring_below_the_current_usage_fails_without_a_warning(): void
     {
-        ini_set('memory_limit', '512M');
+        $current = self::megabytesAboveUsage(64);
+        self::setMemoryLimit($current);
         $tooLow = (string) (int) (memory_get_usage(true) / 2);
 
         self::assertFalse((new PhpMemoryLimit())->restore($tooLow));
-        self::assertSame('512M', \ini_get('memory_limit'));
+        self::assertSame($current, \ini_get('memory_limit'));
     }
 }
