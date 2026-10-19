@@ -23,11 +23,17 @@ use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
+use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResourceHelper;
 use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\Factory\PageDataMetadataFactoryInterface;
+use Silverback\ApiComponentsBundle\Metadata\PageDataMetadata;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
 
 class DeletedResourceStateProcessorTest extends TestCase
 {
@@ -54,6 +60,72 @@ class DeletedResourceStateProcessorTest extends TestCase
 
         self::assertSame('deleted', $result);
         self::assertSame(['remove route', 'delete'], $calls);
+    }
+
+    /**
+     * @return iterable<string, array{AbstractComponent|Layout|Page}>
+     */
+    public static function groupOwners(): iterable
+    {
+        yield 'a component' => [new DummyComponent()];
+        yield 'a layout' => [new Layout()];
+        yield 'a page' => [new Page()];
+    }
+
+    #[DataProvider('groupOwners')]
+    public function test_deleting_a_group_owner_removes_the_group_it_alone_owns(AbstractComponent|Layout|Page $owner): void
+    {
+        $group = new ComponentGroup();
+        $owner->addComponentGroup($group);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('remove')->with($group);
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn($entityManager);
+
+        (new DeletedResourceStateProcessor($this->inner(), $this->helper($registry)))->process($owner, new Delete(class: $owner::class));
+    }
+
+    public function test_deleting_a_group_owner_keeps_a_group_another_owner_still_holds(): void
+    {
+        $group = new ComponentGroup();
+        $component = new DummyComponent();
+        $component->addComponentGroup($group);
+        $group->addComponent($component);
+        $group->addPage(new Page());
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::never())->method('remove');
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn($entityManager);
+
+        (new DeletedResourceStateProcessor($this->inner(), $this->helper($registry)))->process($component, new Delete(class: DummyComponent::class));
+    }
+
+    public function test_deleting_routed_page_data_removes_its_route(): void
+    {
+        $pageData = new PageDataWithComponent();
+        $route = (new Route())->setPageData($pageData);
+        $pageData->setRoute($route);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('remove')->with($route);
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn($entityManager);
+        $pageDataMetadataFactory = $this->createStub(PageDataMetadataFactoryInterface::class);
+        $pageDataMetadataFactory->method('create')->willReturn(new PageDataMetadata(PageDataWithComponent::class));
+
+        (new DeletedResourceStateProcessor($this->inner(), $this->helper($registry, $pageDataMetadataFactory)))->process($pageData, new Delete(class: PageDataWithComponent::class));
+    }
+
+    public function test_deleting_a_page_whose_route_also_redirects_keeps_the_route(): void
+    {
+        $page = new Page();
+        $route = (new Route())->setPage($page)->setRedirect(new Route());
+        $page->setRoute($route);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::never())->method('remove');
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn($entityManager);
+
+        (new DeletedResourceStateProcessor($this->inner(), $this->helper($registry)))->process($page, new Delete(class: Page::class));
     }
 
     /**
@@ -85,10 +157,10 @@ class DeletedResourceStateProcessorTest extends TestCase
         (new DeletedResourceStateProcessor($inner, $this->helper($this->createStub(ManagerRegistry::class))))->process('data', $operation, ['id' => 1], ['a' => 'b']);
     }
 
-    private function helper(ManagerRegistry $registry): OrphanedResourceHelper
+    private function helper(ManagerRegistry $registry, ?PageDataMetadataFactoryInterface $pageDataMetadataFactory = null): OrphanedResourceHelper
     {
         return new OrphanedResourceHelper(
-            $this->createStub(PageDataMetadataFactoryInterface::class),
+            $pageDataMetadataFactory ?? $this->createStub(PageDataMetadataFactoryInterface::class),
             $this->createStub(ComponentUsageMetadataFactory::class),
             $registry,
             new PublishableAttributeReader($registry),

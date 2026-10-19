@@ -146,6 +146,19 @@ final class ManifestCacheTagsTest extends FunctionalTestCase
         self::assertCacheTagPurged(self::manifestCacheTag(self::iriOf($site['page'])));
     }
 
+    public function test_adding_a_position_to_a_group_inside_a_component_cycle_purges_the_manifest_of_the_page_the_cycle_is_on(): void
+    {
+        $client = self::adminClient();
+        $site = self::createRoutedPageWithComponent('/my-route');
+        $loop = self::giveComponentAGroupHoldingItself($site['component'], 'loop');
+        $component = self::createDummyComponent();
+
+        self::requestJsonLd($client, 'POST', '/_/component_positions', ['componentGroup' => self::iriOf($loop['group']), 'component' => self::iriOf($component)]);
+
+        self::assertResponseStatusCodeSame(201);
+        self::assertCacheTagPurgedTimes(self::manifestCacheTag(self::iriOf($site['page'])), 1);
+    }
+
     public function test_editing_a_components_content_does_not_purge_the_manifest_of_the_page_it_is_in(): void
     {
         $client = self::adminClient();

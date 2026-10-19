@@ -393,6 +393,25 @@ final class PageTest extends FunctionalTestCase
         self::assertJsonNodeCount('member', 2);
     }
 
+    public function test_the_page_template_filter_ignores_the_case_of_a_boolean_word(): void
+    {
+        $client = self::adminClient();
+        self::createPageWith('my-template', isTemplate: true);
+        self::createPageWith('not-a-template');
+
+        self::requestJsonLd($client, 'GET', '/_/pages?isTemplate=TRUE');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeCount('member', 1);
+        self::assertJsonNodeSame('member[0].reference', 'my-template');
+
+        self::requestJsonLd($client, 'GET', '/_/pages?isTemplate[]=False');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeCount('member', 1);
+        self::assertJsonNodeSame('member[0].reference', 'not-a-template');
+    }
+
     public function test_an_invalid_sort_direction_is_refused(): void
     {
         $client = self::adminClient();
