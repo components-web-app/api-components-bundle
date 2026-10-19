@@ -51,7 +51,7 @@ final class RouteTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(401);
     }
 
-    public function test_i_cannot_create_a_route_without_a_page(): void
+    public function test_a_route_cannot_be_created_without_a_page_page_data_or_redirect(): void
     {
         $client = static::createClient();
         self::loginAsUser($client);
@@ -62,6 +62,7 @@ final class RouteTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(422);
         self::assertJsonMatchesSchemaFile('validation_errors_object.schema.json');
+        self::assertJsonNodeSame('violations[0].message', 'Please specify either page, pageData or redirect.');
     }
 
     public function test_a_route_path_with_a_format_extension_resolves_to_the_correct_route(): void

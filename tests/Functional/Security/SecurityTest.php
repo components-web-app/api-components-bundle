@@ -168,10 +168,10 @@ final class SecurityTest extends FunctionalTestCase
     public function test_a_component_forbidden_in_a_static_route_but_allowed_within_page_data_is_allowed(): void
     {
         $client = static::createClient();
-        self::createComponentInRoute('/user-area/my-page');
-        $created = self::createComponentInPageDataRoute('/any-path');
+        $componentIri = self::iriOf(self::createComponentInRoute('/user-area/my-page')['component']);
+        self::placeComponentInPageDataRoute($componentIri, '/any-path');
 
-        self::requestJsonLd($client, 'GET', $created['component']);
+        self::requestJsonLd($client, 'GET', $componentIri);
 
         self::assertResponseStatusCodeSame(200);
     }

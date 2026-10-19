@@ -6,6 +6,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Tooling
 - Functional and unit tests pin user and cookie behaviour no test asserted: each login cookie's own attributes, both cookies cleared on an expired token, `refresh-tokens:expire` per user and for all, `user:create` options, the user `PUT` response and its notifications, and the JWT listeners' profiler records ([#528](https://github.com/components-web-app/api-components-bundle/pull/528))
+- Ported functional tests are named for what they do, the security test for a component in a restricted static route and a public page data route places the same component in both, and the max-components edit and move tests assert the result as well as the status ([#527](https://github.com/components-web-app/api-components-bundle/pull/527))
+- Tests pin behaviour no test asserted yet: orphan liveness through a placed owner and deduplicated delete lists, Mercure publish failures from the HTTP client (logged) and from an invalid JWT (thrown), the warm's request headers, combined purge options, the order endpoint's cache tags and 422 messages, draft usage counts, delete cascades for group owners and routables, and the usage and order as request data ([#530](https://github.com/components-web-app/api-components-bundle/pull/530))
 
 ## [2.0.0-alpha.31](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.30...2.0.0-alpha.31) - 2026-10-19
 
