@@ -141,6 +141,59 @@ class StoredFileExporterTest extends TestCase
         self::assertSame(0, $exporter->count());
     }
 
+    public function test_an_asset_directory_that_cannot_be_created_throws_naming_it(): void
+    {
+        mkdir(\dirname($this->directory));
+        file_put_contents($this->directory, 'not a directory');
+        $this->filesystem->write('components/home-hero-0a1b2c3d.png', base64_decode(self::PNG, true));
+
+        try {
+            $this->exporter()->export('local', 'components/home-hero-0a1b2c3d.png');
+            self::fail('An asset directory that cannot be created was written to.');
+        } catch (\RuntimeException $exception) {
+            self::assertStringStartsWith(\sprintf('The fixture asset directory %s could not be created: ', $this->directory), $exception->getMessage());
+        } finally {
+            unlink($this->directory);
+            rmdir(\dirname($this->directory));
+        }
+    }
+
+    public function test_a_stored_file_that_cannot_be_copied_into_the_asset_directory_throws_naming_both(): void
+    {
+        mkdir($this->directory . '/.export', 0777, true);
+        $this->filesystem->write('components/home-hero-0a1b2c3d.png', base64_decode(self::PNG, true));
+        $exporter = $this->exporter();
+
+        try {
+            $exporter->export('local', 'components/home-hero-0a1b2c3d.png');
+            self::fail('A stored file that cannot be copied was exported.');
+        } catch (\RuntimeException $exception) {
+            self::assertStringStartsWith(\sprintf('The stored file "components/home-hero-0a1b2c3d.png" could not be written to %s: ', $this->directory . '/.export'), $exception->getMessage());
+        } finally {
+            rmdir($this->directory . '/.export');
+        }
+        self::assertSame(0, $exporter->count());
+    }
+
+    public function test_a_stored_file_that_cannot_be_given_its_name_throws_naming_both_and_leaves_no_copy(): void
+    {
+        mkdir($this->directory . '/home-hero.png', 0777, true);
+        touch($this->directory . '/home-hero.png/taken');
+        $this->filesystem->write('components/home-hero-0a1b2c3d.png', base64_decode(self::PNG, true));
+        $exporter = $this->exporter();
+
+        try {
+            $exporter->export('local', 'components/home-hero-0a1b2c3d.png');
+            self::fail('A stored file that cannot be given its name was exported.');
+        } catch (\RuntimeException $exception) {
+            self::assertStringStartsWith(\sprintf('The stored file "components/home-hero-0a1b2c3d.png" could not be written to %s: ', $this->directory . '/home-hero.png'), $exception->getMessage());
+        } finally {
+            unlink($this->directory . '/home-hero.png/taken');
+            rmdir($this->directory . '/home-hero.png');
+        }
+        self::assertSame([], $this->exportedFiles());
+    }
+
     private function png(int $variant): string
     {
         return base64_decode(self::PNG, true) . str_repeat("\0", $variant);
