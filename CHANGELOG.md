@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Tooling
+- Tests pin the page, layout and manifest behaviour #516 listed as unasserted: the case-insensitive `isTemplate` filter, the cache caps' lower bounds and `max-age`, the emptied OpenAPI paths, the manifest's tree shape, a static position's metadata and `Vary`, the cycle guard on manifest purges, and every page data resolution outcome the profiler records ([#529](https://github.com/components-web-app/api-components-bundle/pull/529))
+
 ## [2.0.0-alpha.31](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.30...2.0.0-alpha.31) - 2026-10-19
 
 ### Fixed
