@@ -46,6 +46,7 @@ class StateOperationMetadataTest extends TestCase
         self::assertSame('/dummy_components/{id}/usage', $operation->getUriTemplate());
         self::assertSame(['public' => false, 'no_store' => true], $operation->getCacheHeaders());
         self::assertSame('main_controller', $operation->getController());
+        self::assertSame("is_granted('ROLE_ADMIN')", $operation->getSecurity());
     }
 
     public function test_the_move_operation_is_a_post_of_a_move_under_the_components_iri_through_the_main_controller(): void

@@ -310,44 +310,13 @@ final class ComponentUsageLocationsTest extends FunctionalTestCase
         self::assertJsonNodeSame('locations[0].renderedOn[19].routePath', '/posts/29');
     }
 
-    public function test_an_anonymous_caller_reading_the_usage_of_a_public_component_gets_the_counts_without_locations(): void
-    {
-        $component = new DummyComponent();
-        self::place($component, self::groupOf(self::routedPage('Live', '/live')));
-        self::saveSite();
-
-        self::requestJsonLd(static::createClient(), 'GET', self::iriOf($component) . '/usage');
-
-        self::assertResponseStatusCodeSame(200);
-        self::assertJsonNodeSame('total', 1);
-        self::assertArrayNotHasKey('locations', self::lastJson());
-    }
-
-    public function test_a_user_who_is_not_an_admin_gets_the_counts_without_locations(): void
+    public function test_the_usage_is_never_stored_by_a_shared_cache(): void
     {
         $component = new DummyComponent();
         self::place($component, self::groupOf(self::routedPage('Live', '/live')));
         self::saveSite();
         $client = static::createClient();
-        self::loginAsUser($client);
-
-        self::requestJsonLd($client, 'GET', self::iriOf($component) . '/usage');
-
-        self::assertResponseStatusCodeSame(200);
-        self::assertJsonNodeSame('total', 1);
-        self::assertArrayNotHasKey('locations', self::lastJson());
-    }
-
-    #[DataProvider('callers')]
-    public function test_the_usage_is_never_stored_by_a_shared_cache(string $caller): void
-    {
-        $component = new DummyComponent();
-        self::place($component, self::groupOf(self::routedPage('Live', '/live')));
-        self::saveSite();
-        $client = static::createClient();
-        if ('admin' === $caller) {
-            self::loginAsAdmin($client);
-        }
+        self::loginAsAdmin($client);
 
         self::requestJsonLd($client, 'GET', self::iriOf($component) . '/usage');
 
@@ -356,12 +325,6 @@ final class ComponentUsageLocationsTest extends FunctionalTestCase
         self::assertStringContainsString('private', $cacheControl);
         self::assertStringContainsString('no-store', $cacheControl);
         self::assertStringNotContainsString('s-maxage', $cacheControl);
-    }
-
-    public static function callers(): iterable
-    {
-        yield 'an anonymous caller' => ['anonymous'];
-        yield 'an admin' => ['admin'];
     }
 
     public function test_the_number_of_queries_does_not_grow_with_the_depth_of_the_component_chain(): void
