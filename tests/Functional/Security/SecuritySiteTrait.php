@@ -63,6 +63,18 @@ trait SecuritySiteTrait
         static::persistAndFlush($page, static::newRoute($path)->setPage($page), $group, static::newComponentPosition($group, $component, 0));
     }
 
+    protected static function placeComponentInPageDataRoute(string $componentIri, string $path): void
+    {
+        $component = static::findByIri($componentIri);
+        self::assertInstanceOf(AbstractComponent::class, $component);
+        $page = static::newPage('page_data_page');
+        $pageData = new PageData();
+        $pageData->page = $page;
+        $group = static::newComponentGroup('page_data_cc');
+        $page->addComponentGroup($group);
+        static::persistAndFlush($page, $pageData, static::newRoute($path)->setPageData($pageData), $group, static::newComponentPosition($group, $component, 0));
+    }
+
     /**
      * @return array{parentPageData: string, parentTemplate: string, parentComponent: string, parentManifest: string, childPage: string}
      */

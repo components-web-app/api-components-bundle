@@ -154,7 +154,7 @@ final class RouteScheduleTest extends FunctionalTestCase
         self::assertRouteNotLive('/conference/programme');
     }
 
-    public function test_a_nested_static_page_under_a_scheduled_page_data_parent_inherits_the_parent_go_live_date(): void
+    public function test_a_nested_page_under_a_scheduled_parent_page_inherits_the_parent_go_live_date(): void
     {
         $client = static::createClient();
         self::createPageNestedWithinRoute('/conference/programme', '/conference');

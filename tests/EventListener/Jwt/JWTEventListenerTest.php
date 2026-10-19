@@ -111,6 +111,7 @@ class JWTEventListenerTest extends TestCase
         $collector->collect(new Request(), new Response());
 
         self::assertTrue($collector->isJwtCookiePresent(), 'JWT cookie present must be recorded when request contains the cookie');
+        self::assertSame('api_components', $collector->getJwtCookieName());
     }
 
     public function test_on_kernel_response_does_not_record_jwt_cookie_present_when_cookie_absent(): void

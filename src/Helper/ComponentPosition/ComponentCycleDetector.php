@@ -45,6 +45,11 @@ final class ComponentCycleDetector
         return false;
     }
 
+    public function isSameComponent(AbstractComponent $component, AbstractComponent $other): bool
+    {
+        return \in_array($other, $this->family($component), true);
+    }
+
     public function isOwnershipCyclic(AbstractComponent $owner, ComponentGroup $group): bool
     {
         $family = $this->family($owner);

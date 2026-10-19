@@ -60,6 +60,18 @@ final class PurgeHttpCacheTagsTest extends FunctionalTestCase
         self::assertOnlyCacheTagsPurged(['/_api/_/routes//about-us/team', '/_api/_/routes//'], $collector);
     }
 
+    public function test_tags_and_paths_given_together_are_purged_in_one_request_each_tag_once_even_when_a_path_resolves_to_a_given_tag(): void
+    {
+        [$tester, $collector] = self::runPurgeCommand(['--tag' => ['cwa-html', '/_api/_/routes//about-us', 'cwa-html'], '--path' => ['/about-us', '/contact']]);
+
+        self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
+        self::assertOnlyCacheTagsPurged(['cwa-html', '/_api/_/routes//about-us', '/_api/_/routes//contact'], $collector);
+        self::assertCacheTagPurgedTimes('cwa-html', 1, $collector);
+        self::assertCacheTagPurgedTimes('/_api/_/routes//about-us', 1, $collector);
+        self::assertCacheTagPurgedTimes('/_api/_/routes//contact', 1, $collector);
+        self::assertSame(1, substr_count($tester->getDisplay(), '  cwa-html'), $tester->getDisplay());
+    }
+
     public function test_a_purge_that_fails_is_reported_and_exits_1(): void
     {
         MockClientCallback::setCacheUnreachable(true);

@@ -198,7 +198,7 @@ class CacheHeadersEventListenerTest extends TestCase
 
         $response = $this->dispatch(Route::class, 'GET', [], 3600);
 
-        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('s-maxage'));
+        self::assertDirectiveCappedAtAMinute($response, 's-maxage');
     }
 
     public function test_an_anonymous_route_response_is_not_extended_when_the_next_go_live_moment_is_further_away(): void
@@ -240,7 +240,7 @@ class CacheHeadersEventListenerTest extends TestCase
             scheduledExpiryResourceClasses: [CacheHeadersConfiguredResource::class],
         );
 
-        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('s-maxage'));
+        self::assertDirectiveCappedAtAMinute($response, 's-maxage');
     }
 
     public function test_a_pending_expires_caps_a_resource_which_is_not_listed_for_scheduled_expiry(): void
@@ -253,7 +253,7 @@ class CacheHeadersEventListenerTest extends TestCase
             expires: (new \DateTimeImmutable())->modify('+60 seconds'),
         );
 
-        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('s-maxage'));
+        self::assertDirectiveCappedAtAMinute($response, 's-maxage');
     }
 
     public function test_a_past_expires_does_not_cap(): void
@@ -281,7 +281,7 @@ class CacheHeadersEventListenerTest extends TestCase
             expires: (new \DateTimeImmutable())->modify('+60 seconds'),
         );
 
-        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('s-maxage'));
+        self::assertDirectiveCappedAtAMinute($response, 's-maxage');
     }
 
     public function test_the_next_go_live_moment_wins_when_it_precedes_a_pending_expires(): void
@@ -296,7 +296,7 @@ class CacheHeadersEventListenerTest extends TestCase
             expires: (new \DateTimeImmutable())->modify('+1800 seconds'),
         );
 
-        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('s-maxage'));
+        self::assertDirectiveCappedAtAMinute($response, 's-maxage');
     }
 
     public function test_max_age_is_capped_alongside_shared_max_age(): void
@@ -310,7 +310,48 @@ class CacheHeadersEventListenerTest extends TestCase
             initialMaxAge: 3600,
         );
 
-        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('max-age'));
+        self::assertDirectiveCappedAtAMinute($response, 'max-age');
+        self::assertDirectiveCappedAtAMinute($response, 's-maxage');
+    }
+
+    public function test_max_age_is_capped_when_there_is_no_shared_max_age(): void
+    {
+        $this->nextLiveAt = (new \DateTimeImmutable())->modify('+60 seconds');
+
+        $response = $this->dispatch(
+            resourceClass: Route::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialMaxAge: 3600,
+        );
+
+        self::assertDirectiveCappedAtAMinute($response, 'max-age');
+        self::assertFalse($response->headers->hasCacheControlDirective('s-maxage'));
+    }
+
+    public function test_a_max_age_already_below_the_next_transition_is_kept(): void
+    {
+        $this->nextLiveAt = (new \DateTimeImmutable())->modify('+60 seconds');
+
+        $response = $this->dispatch(
+            resourceClass: Route::class,
+            method: 'GET',
+            personalisedResourceClasses: [],
+            initialSharedMaxAge: 3600,
+            initialMaxAge: 30,
+        );
+
+        self::assertSame('30', $response->headers->getCacheControlDirective('max-age'));
+        self::assertDirectiveCappedAtAMinute($response, 's-maxage');
+    }
+
+    public function test_a_transition_which_has_just_passed_caps_at_zero(): void
+    {
+        $this->nextLiveAt = (new \DateTimeImmutable())->modify('-1 seconds');
+
+        $response = $this->dispatch(Route::class, 'GET', [], 3600);
+
+        self::assertSame('0', $response->headers->getCacheControlDirective('s-maxage'));
     }
 
     public function test_a_response_with_no_cache_directives_is_left_untouched(): void
@@ -338,7 +379,7 @@ class CacheHeadersEventListenerTest extends TestCase
         );
 
         self::assertSame($publishedAt->getTimestamp(), $response->getExpires()?->getTimestamp());
-        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('s-maxage'));
+        self::assertDirectiveCappedAtAMinute($response, 's-maxage');
     }
 
     public function test_a_hidden_publication_after_a_pending_expires_keeps_the_expires(): void
@@ -384,7 +425,7 @@ class CacheHeadersEventListenerTest extends TestCase
         );
 
         self::assertSame($publishedAt->getTimestamp(), $response->getExpires()?->getTimestamp());
-        self::assertLessThanOrEqual(60, (int) $response->headers->getCacheControlDirective('s-maxage'));
+        self::assertDirectiveCappedAtAMinute($response, 's-maxage');
     }
 
     public function test_a_hidden_publication_attribute_which_is_not_a_date_is_ignored(): void
@@ -413,6 +454,14 @@ class CacheHeadersEventListenerTest extends TestCase
         );
 
         self::assertNull($response->getExpires());
+    }
+
+    private static function assertDirectiveCappedAtAMinute(Response $response, string $directive): void
+    {
+        $value = $response->headers->getCacheControlDirective($directive);
+        self::assertIsString($value);
+        self::assertGreaterThanOrEqual(58, (int) $value);
+        self::assertLessThanOrEqual(60, (int) $value);
     }
 
     /**
