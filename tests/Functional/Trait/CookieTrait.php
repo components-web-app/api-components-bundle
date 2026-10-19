@@ -35,6 +35,16 @@ trait CookieTrait
         self::fail(\sprintf('The response sets no "%s" cookie.', $name));
     }
 
+    protected static function assertResponseCookieAttributes(string $name, string $path, string $sameSite): void
+    {
+        $cookie = static::responseCookie($name);
+
+        self::assertTrue($cookie->isSecure(), \sprintf('The cookie "%s" is not secure.', $name));
+        self::assertTrue($cookie->isHttpOnly(), \sprintf('The cookie "%s" is not httponly.', $name));
+        self::assertSame($sameSite, $cookie->getSameSite(), \sprintf('The cookie "%s" has the wrong samesite attribute.', $name));
+        self::assertSame($path, $cookie->getPath(), \sprintf('The cookie "%s" has the wrong path.', $name));
+    }
+
     protected static function assertResponseHasNoCookie(string $name): void
     {
         $names = array_map(static fn (Cookie $cookie): string => $cookie->getName(), self::getClient()->getResponse()->headers->getCookies());

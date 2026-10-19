@@ -219,6 +219,7 @@ final class ComponentGroupMaxComponentsTest extends FunctionalTestCase
         self::requestJsonLd($client, 'PATCH', $group['components'][0], '{"uiComponent": "Another"}');
 
         self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeSame('uiComponent', 'Another');
     }
 
     public function test_a_position_cannot_be_moved_into_a_full_component_group(): void
@@ -299,5 +300,7 @@ final class ComponentGroupMaxComponentsTest extends FunctionalTestCase
         self::requestJsonLd($client, 'PATCH', $group['positions'][2], ['before' => $group['positions'][0]]);
 
         self::assertResponseStatusCodeSame(200);
+        self::requestJsonLd($client, 'GET', $group['group'] . '/order');
+        self::assertJsonNodeSame('componentPositions', [$group['positions'][2], $group['positions'][0], $group['positions'][1]]);
     }
 }

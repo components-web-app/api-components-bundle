@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Tests\Functional\Component;
 use ApiPlatform\Test\Client;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
+use Silverback\ApiComponentsBundle\Metadata\ComponentUsageMetadata;
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
@@ -52,6 +53,20 @@ final class ComponentUsageTest extends FunctionalTestCase
         self::requestJsonLd($client, 'GET', $component . '/usage');
 
         self::assertUsage(2, 2);
+    }
+
+    public function test_the_usage_is_the_request_data_for_the_listeners_that_read_it(): void
+    {
+        $client = self::adminClient();
+        $group = self::createGroupWithComponentIris(1);
+        $component = $group['components'][0];
+
+        self::requestJsonLd($client, 'GET', $component . '/usage');
+
+        self::assertUsage(1, 0);
+        $data = $client->getKernelBrowser()->getRequest()->attributes->get('data');
+        self::assertInstanceOf(ComponentUsageMetadata::class, $data);
+        self::assertSame(1, $data->getTotal());
     }
 
     #[DataProvider('publishedOrDraft')]

@@ -302,12 +302,6 @@ trait UserTrait
         $client->getKernelBrowser()->setServerParameter('HTTP_AUTHORIZATION', 'Bearer ' . $token);
     }
 
-    protected static function assertSetCookieHeaderContains(string $text): void
-    {
-        $header = implode(', ', self::getClient()->getResponse()->headers->all('set-cookie'));
-        self::assertStringContainsString($text, $header);
-    }
-
     protected static function assertJwtCookieCleared(): void
     {
         static::assertResponseCookieExpiresWithin('api_components', 2);

@@ -27,6 +27,8 @@ class HubStub implements HubInterface
 {
     private static bool $unreachable = false;
 
+    private static ?\Throwable $failure = null;
+
     /** @var list<Update> */
     private static array $published = [];
 
@@ -37,6 +39,11 @@ class HubStub implements HubInterface
     public static function setUnreachable(bool $unreachable): void
     {
         self::$unreachable = $unreachable;
+    }
+
+    public static function failWith(?\Throwable $failure): void
+    {
+        self::$failure = $failure;
     }
 
     /**
@@ -54,6 +61,9 @@ class HubStub implements HubInterface
 
     public function publish(Update $update): string
     {
+        if (null !== self::$failure) {
+            throw self::$failure;
+        }
         if (self::$unreachable) {
             throw new RuntimeException('Failed to send an update.', 0, new TransportException('Could not resolve host: example.com'));
         }
