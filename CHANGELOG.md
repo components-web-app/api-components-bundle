@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- `generate-fixtures` exits 1 naming the path, instead of reporting success, when its output directory is missing or not writable (checked before anything is exported) or when the class, the asset manifest or a readable asset copy cannot be written ([#536](https://github.com/components-web-app/api-components-bundle/pull/536))
+
 ### Tooling
 - Tests pin the security, publishable and route behaviour no test asserted (#516): unit tests for `RouteVoter`'s literal `route_security` matching, `RouteExtension` and `PublishableExtension` on a real query, `RouteLiveResolver`'s per-request memo, `ComponentVoter`'s fall-through and `RouteNormalizer`'s redirect reflection and pruning; functional tests for `route_security` on the route collection, the `/me` cookies, the go-live cache cap's lower bound and a collection default reaching a `QueryParameter` filter ([#532](https://github.com/components-web-app/api-components-bundle/pull/532))
 ### Added
