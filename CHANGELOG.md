@@ -5,7 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Added
-- `GET {component}/usage` lists, for admins, where the component is used: one location per counted position or page data property, with the layout it is in or the pages and page data it renders on through templates and nested components, capped at 50 locations and 20 pages each with exact counts; the response is never stored by a shared cache ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+- `GET {component}/usage` lists, for admins, where the component is used: one location per counted position or page data property, with the layout it is in or the pages and page data it renders on through templates and nested components, capped at 50 locations and 20 pages each with exact counts; the response is never stored by a shared cache ([#535](https://github.com/components-web-app/api-components-bundle/pull/535))
 
 ### Tooling
 - Tests pin the page, layout and manifest behaviour #516 listed as unasserted: the case-insensitive `isTemplate` filter, the cache caps' lower bounds and `max-age`, the emptied OpenAPI paths, the manifest's tree shape, a static position's metadata and `Vary`, the cycle guard on manifest purges, and every page data resolution outcome the profiler records ([#529](https://github.com/components-web-app/api-components-bundle/pull/529))
