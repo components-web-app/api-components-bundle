@@ -56,11 +56,9 @@ final class SecurityTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(204);
         self::assertSame('', $response->getContent());
-        self::responseCookie('api_components');
-        self::assertSetCookieHeaderContains('secure; httponly; samesite=lax');
+        self::assertResponseCookieAttributes('api_components', '/', 'lax');
         self::assertRefreshTokenCount(1);
-        self::responseCookie(self::mercureCookieName());
-        self::assertSetCookieHeaderContains('secure; httponly; samesite=lax');
+        self::assertResponseCookieAttributes(self::mercureCookieName(), '/.well-known/mercure', 'strict');
         self::assertEmpty(self::draftTopics(), 'The cookie allows a user to be subscribed to draft resources');
         self::assertMercureCookieAndTokenExpireIn(604800);
     }
@@ -89,8 +87,7 @@ final class SecurityTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(204);
         self::assertSame('', $response->getContent());
-        self::responseCookie(self::mercureCookieName());
-        self::assertSetCookieHeaderContains('secure; httponly; samesite=lax');
+        self::assertResponseCookieAttributes(self::mercureCookieName(), '/.well-known/mercure', 'strict');
         self::assertNotEmpty(self::draftTopics(), 'The cookie does not allow a user to subscribe to any draft resources');
     }
 
@@ -151,9 +148,8 @@ final class SecurityTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(200);
         self::assertRefreshTokenExpired($user);
-        self::responseCookie('api_components');
-        self::assertSetCookieHeaderContains('secure; httponly; samesite=lax');
-        self::responseCookie(self::mercureCookieName());
+        self::assertResponseCookieAttributes('api_components', '/', 'lax');
+        self::assertResponseCookieAttributes(self::mercureCookieName(), '/.well-known/mercure', 'strict');
         self::assertRefreshTokenCount(2);
     }
 
@@ -167,6 +163,7 @@ final class SecurityTest extends FunctionalTestCase
         self::requestJsonLd($client, 'GET', '/me');
 
         self::assertResponseStatusCodeSame(401);
+        self::assertJwtCookieCleared();
         self::assertMercureCookieCleared();
     }
 
@@ -180,6 +177,7 @@ final class SecurityTest extends FunctionalTestCase
         self::requestJsonLd($client, 'GET', '/me');
 
         self::assertResponseStatusCodeSame(401);
+        self::assertJwtCookieCleared();
         self::assertMercureCookieCleared();
     }
 
@@ -239,8 +237,7 @@ final class SecurityTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(200);
         self::assertAllRefreshTokensExpired($user);
         self::assertSame('x.x.x', self::responseCookie('api_components')->getValue());
-        self::responseCookie(self::mercureCookieName());
-        self::assertSetCookieHeaderContains('secure; httponly; samesite=lax');
+        self::assertResponseCookieAttributes(self::mercureCookieName(), '/.well-known/mercure', 'strict');
         self::assertMercureCookieCleared();
     }
 
@@ -324,6 +321,37 @@ final class SecurityTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(401);
         self::assertResponseHasNoCookie(self::mercureCookieName());
+    }
+
+    public function test_an_expired_access_token_that_cannot_be_refreshed_on_an_operation_other_than_me_is_a_401_that_clears_both_cookies(): void
+    {
+        $client = static::createClient();
+        $user = self::loginAsUser($client);
+        self::createRefreshToken($user, '-1 second');
+        self::setExpiredJwtCookie($client, $user);
+
+        self::requestJsonLd($client, 'GET', '/_/routes');
+
+        self::assertResponseStatusCodeSame(401);
+        self::assertJwtCookieCleared();
+        self::assertResponseCookieAttributes('api_components', '/', 'lax');
+        self::assertMercureCookieCleared();
+        self::assertResponseCookieAttributes(self::mercureCookieName(), '/.well-known/mercure', 'strict');
+    }
+
+    public function test_an_expired_access_token_that_is_refreshed_on_an_operation_other_than_me_sets_new_cookies(): void
+    {
+        $client = static::createClient();
+        $user = self::loginAsUser($client);
+        self::setExpiredJwtCookie($client, $user);
+        self::createRefreshToken($user);
+
+        self::requestJsonLd($client, 'GET', '/_/routes');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertNotSame('x.x.x', self::responseCookie('api_components')->getValue());
+        self::assertFalse(self::responseCookie('api_components')->isCleared());
+        self::assertMercureCookieAndTokenExpireIn(604800);
     }
 
     public static function logoutMethods(): iterable
