@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Tooling
+- Tests pin the security, publishable and route behaviour no test asserted (#516): unit tests for `RouteVoter`'s literal `route_security` matching, `RouteExtension` and `PublishableExtension` on a real query, `RouteLiveResolver`'s per-request memo, `ComponentVoter`'s fall-through and `RouteNormalizer`'s redirect reflection and pruning; functional tests for `route_security` on the route collection, the `/me` cookies, the go-live cache cap's lower bound and a collection default reaching a `QueryParameter` filter ([#532](https://github.com/components-web-app/api-components-bundle/pull/532))
+
 ## [2.0.0-alpha.31](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.30...2.0.0-alpha.31) - 2026-10-19
 
 ### Fixed
