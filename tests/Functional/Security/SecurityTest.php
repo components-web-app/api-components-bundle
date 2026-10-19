@@ -117,6 +117,31 @@ final class SecurityTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(200);
     }
 
+    public function test_a_route_security_pattern_without_a_leading_wildcard_does_not_restrict_a_path_holding_it_further_in(): void
+    {
+        $client = static::createClient();
+        self::createRouteWithPage('/other/user-area/x');
+
+        self::requestJsonLd($client, 'GET', '/_/routes');
+        self::assertJsonNodeSame('totalItems', 1);
+        self::assertJsonNodeSame('member[0].path', '/other/user-area/x');
+
+        self::requestJsonLd($client, 'GET', '/_/routes//other/user-area/x');
+        self::assertResponseStatusCodeSame(200);
+    }
+
+    public function test_a_route_security_pattern_with_a_leading_wildcard_restricts_a_path_holding_it_further_in(): void
+    {
+        $client = static::createClient();
+        self::createRouteWithPage('/other/members-area/x');
+
+        self::requestJsonLd($client, 'GET', '/_/routes');
+        self::assertJsonNodeSame('totalItems', 0);
+
+        self::requestJsonLd($client, 'GET', '/_/routes//other/members-area/x');
+        self::assertResponseStatusCodeSame(401);
+    }
+
     public function test_a_component_in_a_restricted_route_cannot_be_loaded_by_an_anonymous_user(): void
     {
         $client = static::createClient();

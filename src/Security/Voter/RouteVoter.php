@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Security\Voter;
 use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
+use Silverback\ApiComponentsBundle\Utility\RouteSecurityPattern;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -48,8 +49,7 @@ class RouteVoter extends Voter
         }
 
         foreach ($this->config ?? [] as $routeConfig) {
-            $routeRegex = str_replace('\*', '(.*)', preg_quote($routeConfig['route'], '#'));
-            if (!$this->resourceAccessChecker->isGranted($subject::class, $routeConfig['security']) && preg_match(\sprintf('#%s#', $routeRegex), $subject->getPath())) {
+            if (!$this->resourceAccessChecker->isGranted($subject::class, $routeConfig['security']) && RouteSecurityPattern::matches($routeConfig['route'], $subject->getPath())) {
                 return false;
             }
         }

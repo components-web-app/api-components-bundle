@@ -36,6 +36,7 @@ silverback_api_components:
         secure_subscriptions: true
     route_security:
         - { route: "/user-area*", security: "is_granted('ROLE_USER')" }
+        - { route: "*/members-area*", security: "is_granted('ROLE_USER')" }
     routable_security: "is_granted('ROLE_ADMIN')"
     orphaned_resources:
         notify:
