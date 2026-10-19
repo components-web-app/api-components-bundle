@@ -67,25 +67,23 @@ final class ComponentMover
         }
 
         $position = $this->writePosition($held, $from, $to);
-        if ($to->pageData && $to->property) {
-            $this->setSlot($to->pageData, $to->property, $held);
+        if ($to->pageData) {
+            $this->setSlot($to->pageData, (string) $to->property, $held);
         }
-        if ($from->pageData && $from->property) {
-            $this->setSlot($from->pageData, $from->property, null);
+        if ($from->pageData) {
+            $this->setSlot($from->pageData, (string) $from->property, null);
         }
 
         $this->timestamp($from, $to, $position);
         $this->denyUnlessGrantedWritesPostDenormalize($from, $to, $position, $previous);
         $this->validateWrites($from, $to, $position);
 
+        $entityManager = $this->getEntityManager($held);
         if ($position) {
             $this->placer->place($position);
-        }
-        $this->removeMovedOutPosition($held, $from, $to);
-
-        $entityManager = $this->getEntityManager($held);
-        if ($position && !$entityManager->contains($position)) {
             $entityManager->persist($position);
+        } elseif ($from->componentPosition) {
+            $entityManager->remove($from->componentPosition);
         }
         $entityManager->flush();
 
@@ -243,18 +241,6 @@ final class ComponentMover
         foreach ($pageDataViolations as $violation) {
             $violations->add($this->moved($violation, $endpoint->propertyPath($violation->getPropertyPath() === $endpoint->property ? 'property' : 'pageData')));
         }
-    }
-
-    private function removeMovedOutPosition(AbstractComponent $held, ComponentMoveEndpoint $from, ComponentMoveEndpoint $to): void
-    {
-        $position = $from->componentPosition;
-        if (!$position || $to->componentGroup) {
-            return;
-        }
-
-        $position->componentGroup?->componentPositions->removeElement($position);
-        $held->getComponentPositions()->removeElement($position);
-        $this->getEntityManager($position)->remove($position);
     }
 
     private function slot(AbstractPageData $pageData, string $property): ?AbstractComponent
