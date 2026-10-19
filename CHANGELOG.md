@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Tooling
+- Functional and unit tests pin user and cookie behaviour no test asserted: each login cookie's own attributes, both cookies cleared on an expired token, `refresh-tokens:expire` per user and for all, `user:create` options, the user `PUT` response and its notifications, and the JWT listeners' profiler records ([#528](https://github.com/components-web-app/api-components-bundle/pull/528))
+
 ## [2.0.0-alpha.31](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.30...2.0.0-alpha.31) - 2026-10-19
 
 ### Fixed
