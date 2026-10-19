@@ -44,6 +44,7 @@ class StateOperationMetadataTest extends TestCase
 
         self::assertSame('_api_/dummy_components/{id}/usage_get_usage', $operation->getName());
         self::assertSame('/dummy_components/{id}/usage', $operation->getUriTemplate());
+        self::assertSame(['public' => false, 'no_store' => true], $operation->getCacheHeaders());
         self::assertSame('main_controller', $operation->getController());
     }
 
