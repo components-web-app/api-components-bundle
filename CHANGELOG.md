@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Tooling
+- Tests pin the upload, orphaned file, imagine variant and stored-file constraint behaviours and the fixture load, `generate-fixtures` option and `make:rename-component` console behaviours that #516 lists as unasserted; `MockClientCallback` records PURGE requests for console runs ([#534](https://github.com/components-web-app/api-components-bundle/pull/534))
+
 ## [2.0.0-alpha.31](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.30...2.0.0-alpha.31) - 2026-10-19
 
 ### Fixed
