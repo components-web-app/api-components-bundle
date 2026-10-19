@@ -19,8 +19,6 @@ use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
 
 /**
- * This will add an endpoint for component resources to find out usage totals.
- *
  * @author Daniel West <daniel@silverback.is>
  */
 class ComponentResourceMetadataFactory implements ResourceMetadataCollectionFactoryInterface
@@ -65,7 +63,7 @@ class ComponentResourceMetadataFactory implements ResourceMetadataCollectionFact
                 }
                 if ($copyOperation) {
                     $usageOperationName = '_api_' . $usagePath . '_get_usage';
-                    $operations->add($usageOperationName, $copyOperation->withUriTemplate($usagePath)->withName($usageOperationName));
+                    $operations->add($usageOperationName, $copyOperation->withUriTemplate($usagePath)->withName($usageOperationName)->withCacheHeaders(['public' => false, 'no_store' => true]));
                 }
             }
         }

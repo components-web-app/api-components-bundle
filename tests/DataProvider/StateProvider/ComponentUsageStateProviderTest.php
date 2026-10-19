@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Tests\DataProvider\StateProvider;
 
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\State\ProviderInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentUsageStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
@@ -20,6 +21,7 @@ use Silverback\ApiComponentsBundle\Metadata\ComponentUsageMetadata;
 use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactory;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class ComponentUsageStateProviderTest extends TestCase
 {
@@ -28,7 +30,7 @@ class ComponentUsageStateProviderTest extends TestCase
         $component = new DummyComponent();
         $usage = new ComponentUsageMetadata(2, 1);
         $factory = $this->createMock(ComponentUsageMetadataFactory::class);
-        $factory->expects(self::once())->method('create')->with($component)->willReturn($usage);
+        $factory->expects(self::once())->method('create')->with($component, false)->willReturn($usage);
         $request = new Request();
         $request->attributes->set('data', $component);
 
@@ -36,6 +38,25 @@ class ComponentUsageStateProviderTest extends TestCase
 
         self::assertSame($usage, $result);
         self::assertSame($usage, $request->attributes->get('data'));
+    }
+
+    #[DataProvider('adminOrNot')]
+    public function test_the_locations_are_requested_only_for_an_admin(bool $isAdmin): void
+    {
+        $component = new DummyComponent();
+        $usage = new ComponentUsageMetadata(0, 0);
+        $factory = $this->createMock(ComponentUsageMetadataFactory::class);
+        $factory->expects(self::once())->method('create')->with($component, $isAdmin)->willReturn($usage);
+        $authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
+        $authorizationChecker->expects(self::once())->method('isGranted')->with('ROLE_ADMIN')->willReturn($isAdmin);
+
+        self::assertSame($usage, $this->provider($component, $factory, $authorizationChecker)->provide(new Get(name: 'x_get_usage')));
+    }
+
+    public static function adminOrNot(): iterable
+    {
+        yield 'an admin' => [true];
+        yield 'anyone else' => [false];
     }
 
     public function test_the_usage_operation_without_a_request_still_returns_the_usage_metadata(): void
@@ -75,14 +96,14 @@ class ComponentUsageStateProviderTest extends TestCase
         $inner = $this->createMock(ProviderInterface::class);
         $inner->expects(self::once())->method('provide')->with($operation, ['id' => 1], ['resource_class' => Route::class])->willReturn(null);
 
-        (new ComponentUsageStateProvider($inner, $this->createStub(ComponentUsageMetadataFactory::class)))->provide($operation, ['id' => 1], ['resource_class' => Route::class]);
+        (new ComponentUsageStateProvider($inner, $this->createStub(ComponentUsageMetadataFactory::class), $this->createStub(AuthorizationCheckerInterface::class)))->provide($operation, ['id' => 1], ['resource_class' => Route::class]);
     }
 
-    private function provider(?object $data, ComponentUsageMetadataFactory $factory): ComponentUsageStateProvider
+    private function provider(?object $data, ComponentUsageMetadataFactory $factory, ?AuthorizationCheckerInterface $authorizationChecker = null): ComponentUsageStateProvider
     {
         $inner = $this->createStub(ProviderInterface::class);
         $inner->method('provide')->willReturn($data);
 
-        return new ComponentUsageStateProvider($inner, $factory);
+        return new ComponentUsageStateProvider($inner, $factory, $authorizationChecker ?? $this->createStub(AuthorizationCheckerInterface::class));
     }
 }

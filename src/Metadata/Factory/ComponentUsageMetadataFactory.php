@@ -13,7 +13,9 @@ namespace Silverback\ApiComponentsBundle\Metadata\Factory;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
+use Silverback\ApiComponentsBundle\Helper\ComponentUsage\ComponentUsageLocator;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Metadata\ComponentUsageMetadata;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
@@ -38,6 +40,7 @@ class ComponentUsageMetadataFactory
         PageDataProvider $pageDataProvider,
         PublishableStatusChecker $publishableStatusChecker,
         ManagerRegistry $registry,
+        private readonly ComponentUsageLocator $locator,
     ) {
         $this->componentPositionRepository = $componentPositionRepository;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
@@ -46,11 +49,10 @@ class ComponentUsageMetadataFactory
         $this->initRegistry($registry);
     }
 
-    public function create(ComponentInterface $component): ComponentUsageMetadata
+    public function create(ComponentInterface $component, bool $withLocations = false): ComponentUsageMetadata
     {
         $annotationReader = $this->publishableStatusChecker->getAttributeReader();
         if ($annotationReader->isConfigured($component) && !$this->publishableStatusChecker->isActivePublishedAt($component)) {
-            // get the published component to run checks against
             $configuration = $annotationReader->getConfiguration($component);
             $classMetadata = $this->getClassMetadata($component);
 
@@ -59,32 +61,32 @@ class ComponentUsageMetadataFactory
                 $component = $publishedResourceAssociation;
             }
         }
-        $componentPositions = $this->componentPositionRepository->findByComponent($component);
-        $componentPositionCount = \count($componentPositions);
+        $componentPositions = array_values($this->componentPositionRepository->findByComponent($component));
+        $pageDataUses = $this->findPageDataUses($component);
 
-        $pageDataCount = $this->getPageDataTotal($component);
-
-        return new ComponentUsageMetadata($componentPositionCount, $pageDataCount);
+        return new ComponentUsageMetadata(
+            \count($componentPositions),
+            \count($pageDataUses),
+            $withLocations ? $this->locator->locate($componentPositions, $pageDataUses) : null,
+        );
     }
 
-    private function getPageDataTotal(ComponentInterface $component): int
+    /**
+     * @return list<array{pageData: AbstractPageData, property: string}>
+     */
+    private function findPageDataUses(ComponentInterface $component): array
     {
-        /** @var \Generator $pageDataLocations */
-        $pageDataLocations = $this->pageDataProvider->findPageDataComponentMetadata($component);
-        $pageDataCount = 0;
-
-        foreach ($pageDataLocations as $pageDataComponentMetadata) {
-            $componentInDataCount = 0;
+        $uses = [];
+        foreach ($this->pageDataProvider->findPageDataComponentMetadata($component) as $pageDataComponentMetadata) {
             foreach ($pageDataComponentMetadata->getPageDataResources() as $pageDataResource) {
                 foreach ($pageDataComponentMetadata->getProperties() as $property) {
                     if ($this->propertyAccessor->getValue($pageDataResource, $property) === $component) {
-                        ++$componentInDataCount;
+                        $uses[] = ['pageData' => $pageDataResource, 'property' => $property];
                     }
                 }
             }
-            $pageDataCount += $componentInDataCount;
         }
 
-        return $pageDataCount;
+        return $uses;
     }
 }

@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Added
+- `GET {component}/usage` lists, for admins, where the component is used: one location per counted position or page data property, with the layout it is in or the pages and page data it renders on through templates and nested components, capped at 50 locations and 20 pages each with exact counts; the response is never stored by a shared cache ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+
 ### Tooling
 - Ported functional tests are named for what they do, the security test for a component in a restricted static route and a public page data route places the same component in both, and the max-components edit and move tests assert the result as well as the status ([#527](https://github.com/components-web-app/api-components-bundle/pull/527))
 

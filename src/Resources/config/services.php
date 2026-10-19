@@ -146,6 +146,7 @@ use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentCycleDetect
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionIriResolver;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionOrderer;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
+use Silverback\ApiComponentsBundle\Helper\ComponentUsage\ComponentUsageLocator;
 use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResourceHelper;
@@ -2014,8 +2015,21 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(PageDataProvider::class),
                 new Reference(PublishableStatusChecker::class),
                 new Reference('doctrine'),
+                new Reference('silverback.api_components.helper.component_usage_locator'),
             ]
         );
+
+    $services
+        ->set('silverback.api_components.helper.component_usage_locator')
+        ->class(ComponentUsageLocator::class)
+        ->args(
+            [
+                new Reference('doctrine'),
+                new Reference(PublishableAttributeReader::class),
+                new Reference('api_platform.iri_converter'),
+            ]
+        );
+    $services->alias(ComponentUsageLocator::class, 'silverback.api_components.helper.component_usage_locator');
 
     $services
         ->set('silverback.api_components.api_platform.state_provider.component_usage')
@@ -2025,6 +2039,7 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference('silverback.api_components.api_platform.state_provider.component_usage.inner'),
                 new Reference('silverback.metadata_factory.component_usage'),
+                new Reference('security.authorization_checker'),
             ]
         );
     $services->alias(ComponentUsageStateProvider::class, 'silverback.api_components.api_platform.state_provider.component_usage');

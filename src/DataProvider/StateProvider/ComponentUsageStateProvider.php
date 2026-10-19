@@ -16,6 +16,7 @@ use ApiPlatform\State\ProviderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
 use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactory;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
  * @implements ProviderInterface<object>
@@ -30,6 +31,7 @@ final readonly class ComponentUsageStateProvider implements ProviderInterface
     public function __construct(
         private ProviderInterface $decorated,
         private ComponentUsageMetadataFactory $metadataFactory,
+        private AuthorizationCheckerInterface $authorizationChecker,
     ) {
     }
 
@@ -41,7 +43,7 @@ final readonly class ComponentUsageStateProvider implements ProviderInterface
             return $data;
         }
 
-        $usage = $this->metadataFactory->create($data);
+        $usage = $this->metadataFactory->create($data, $this->authorizationChecker->isGranted('ROLE_ADMIN'));
         $request = $context['request'] ?? null;
         if ($request instanceof Request) {
             $request->attributes->set('data', $usage);
