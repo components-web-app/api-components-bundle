@@ -130,6 +130,7 @@ abstract class FunctionalTestCase extends ApiTestCase
         RejectedDeleteMiddleware::setRejectDeletes(false);
         QueryCountingMiddleware::reset();
         MockClientCallback::setCacheUnreachable(false);
+        MockClientCallback::clearPurgeRequests();
         SwitchableMailer::setUnreachable(false);
         KernelHttpClient::reset();
         foreach (self::RESET_ENV as $name) {

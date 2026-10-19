@@ -23,13 +23,34 @@ class MockClientCallback
 {
     private static bool $cacheUnreachable = false;
 
+    /**
+     * @var list<string>
+     */
+    private static array $purgeRequests = [];
+
     public static function setCacheUnreachable(bool $cacheUnreachable): void
     {
         self::$cacheUnreachable = $cacheUnreachable;
     }
 
+    /**
+     * @return list<string>
+     */
+    public static function purgeRequests(): array
+    {
+        return self::$purgeRequests;
+    }
+
+    public static function clearPurgeRequests(): void
+    {
+        self::$purgeRequests = [];
+    }
+
     public function __invoke(string $method, string $url, array $options = []): ResponseInterface
     {
+        if ('PURGE' === $method) {
+            self::$purgeRequests[] = $url;
+        }
         if (self::$cacheUnreachable && 'PURGE' === $method) {
             return new MockResponse('', ['error' => \sprintf('Could not resolve host: %s', parse_url($url, \PHP_URL_HOST))]);
         }

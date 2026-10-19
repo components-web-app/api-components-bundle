@@ -11,11 +11,39 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\Fixture;
 
+use Monolog\Level;
+use Monolog\LogRecord;
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
+use Silverback\ApiComponentsBundle\Tests\Functional\Trait\LogRecordsTrait;
 
 final class AppendTest extends FunctionalTestCase
 {
     use FixtureScenarioTrait;
+    use LogRecordsTrait;
+
+    public function test_a_load_logs_each_created_entity_at_debug_each_kept_or_skipped_one_at_notice_and_counts_them_in_singular_and_plural(): void
+    {
+        $this->scaffoldHasALayoutWithAGroup('main', 'top', 'Logo');
+        $this->scaffoldHasAPage('home', 'main', '/', 'primary', 'Hero');
+        $this->scaffoldHasAPage('about', 'main', '/about', 'primary', 'About text, Contact');
+        $this->loadScaffold(self::getContainer()->get('logger'));
+
+        $this->assertLastLoadSummary('CWA scaffold: created 2 pages, 1 layout, 2 routes, 3 groups, 4 components');
+        self::assertLogRecord(Level::Debug, 'created page `home`');
+        self::assertLogRecord(Level::Debug, 'created layout `main`');
+
+        $this->loadScaffold(self::getContainer()->get('logger'));
+
+        $this->assertLastLoadSummary('CWA scaffold: kept 2 pages, 1 layout, 3 groups; skipped 4 positions (group kept)');
+        self::assertLogRecord(Level::Notice, 'kept page `home`');
+        self::assertLogRecord(Level::Notice, 'kept layout `main`');
+        self::assertLogRecord(Level::Notice, 'The group `primary` of the page `about` already exists, so its 2 scaffold positions were not created.');
+    }
+
+    private static function assertLogRecord(Level $level, string $message): void
+    {
+        self::assertLogged(\sprintf('%s %s', $level->getName(), $message), static fn (LogRecord $record): bool => $level === $record->level && $message === $record->message);
+    }
 
     public function test_loading_the_same_scaffold_again_changes_nothing(): void
     {

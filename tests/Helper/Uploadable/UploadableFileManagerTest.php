@@ -19,7 +19,9 @@ use League\Flysystem\GoogleCloudStorage\GoogleCloudStorageAdapter;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Service\FilterService;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\AbstractLogger;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Utility\ImagineFiltersInterface;
@@ -34,6 +36,7 @@ use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Silverback\ApiComponentsBundle\Model\Uploadable\DataUriFile;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Tests\Flysystem\RecordingFilesystemAdapter;
+use Silverback\ApiComponentsBundle\Tests\Imagine\MemoryLimitAboveUsageTrait;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -96,11 +99,101 @@ class _ImagineCacheControlUploadable implements ImagineFiltersInterface
     }
 }
 
+#[Silverback\Uploadable]
+class _TwoFieldTestUploadable
+{
+    #[Silverback\UploadableField(adapter: 'local')]
+    public ?File $file = null;
+
+    public ?string $filename = null;
+
+    #[Silverback\UploadableField(adapter: 'local', property: 'secondFilename')]
+    public ?File $secondFile = null;
+
+    public ?string $secondFilename = null;
+}
+
+#[Silverback\Uploadable]
+class _FilteredTestUploadable implements ImagineFiltersInterface
+{
+    #[Silverback\UploadableField(adapter: 'local')]
+    public ?File $file = null;
+
+    public ?string $filename = null;
+
+    public function getImagineFilters(string $property, ?Request $request): array
+    {
+        return ['thumbnail'];
+    }
+}
+
+#[Silverback\Uploadable]
+class _TwoFieldFilteredTestUploadable implements ImagineFiltersInterface
+{
+    #[Silverback\UploadableField(adapter: 'local')]
+    public ?File $file = null;
+
+    public ?string $filename = null;
+
+    #[Silverback\UploadableField(adapter: 'local', property: 'secondFilename')]
+    public ?File $secondFile = null;
+
+    public ?string $secondFilename = null;
+
+    public function getImagineFilters(string $property, ?Request $request): array
+    {
+        return ['thumbnail'];
+    }
+}
+
+class _CollidingFilesystemAdapter extends InMemoryFilesystemAdapter
+{
+    /**
+     * @var list<string>
+     */
+    public array $asked = [];
+
+    public function __construct(public int $collisions)
+    {
+        parent::__construct();
+    }
+
+    public function fileExists(string $path): bool
+    {
+        $this->asked[] = $path;
+        if (parent::fileExists($path)) {
+            return true;
+        }
+        if ($this->collisions > 0) {
+            --$this->collisions;
+
+            return true;
+        }
+
+        return false;
+    }
+}
+
+class _RecordingLogger extends AbstractLogger
+{
+    /**
+     * @var list<array{string, string, array<mixed>}>
+     */
+    public array $records = [];
+
+    public function log($level, \Stringable|string $message, array $context = []): void
+    {
+        $this->records[] = [(string) $level, (string) $message, $context];
+    }
+}
+
 /**
  * @author Daniel West <daniel@silverback.is>
  */
 class UploadableFileManagerTest extends TestCase
 {
+    use MemoryLimitAboveUsageTrait;
+
     private const string ORIGINAL = 'public, max-age=31536000, immutable';
     private const string IMAGINE = 'public, max-age=2592000';
 
@@ -410,6 +503,259 @@ class UploadableFileManagerTest extends TestCase
         self::assertSame(['thumbnail' => 'public, max-age=600', 'square' => 'public, max-age=600'], $generated);
     }
 
+    public function test_deleted_markers_on_two_fields_of_one_object_delete_both_files(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $filesystem->write('first-aaaaaaaa.png', 'first');
+        $filesystem->write('second-bbbbbbbb.png', 'second');
+        $resource = new _TwoFieldTestUploadable();
+        $resource->filename = 'first-aaaaaaaa.png';
+        $resource->secondFilename = 'second-bbbbbbbb.png';
+
+        $manager = $this->createFileManager($filesystem);
+        $manager->addDeletedField($resource, 'filename');
+        $manager->addDeletedField($resource, 'secondFilename');
+        $manager->addDeletedField($resource, 'filename');
+        $manager->persistFiles($resource);
+
+        self::assertFalse($filesystem->fileExists('first-aaaaaaaa.png'));
+        self::assertFalse($filesystem->fileExists('second-bbbbbbbb.png'));
+        self::assertNull($resource->filename);
+        self::assertNull($resource->secondFilename);
+    }
+
+    public function test_an_upload_to_a_later_field_is_stored_when_an_earlier_field_has_no_file(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $resource = new _TwoFieldTestUploadable();
+        $resource->secondFile = $this->upload('image.png', 'photo.png');
+
+        $this->createFileManager($filesystem)->persistFiles($resource);
+
+        self::assertNull($resource->filename);
+        self::assertMatchesRegularExpression('#^photo-[0-9a-f]{8}\.png$#', (string) $resource->secondFilename);
+        self::assertTrue($filesystem->fileExists((string) $resource->secondFilename));
+    }
+
+    public function test_a_new_upload_deletes_the_file_it_replaces_and_clears_the_uploaded_file(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $filesystem->write('old-aaaaaaaa.png', 'the replaced file');
+        $resource = new _LeakTestUploadable();
+        $resource->filename = 'old-aaaaaaaa.png';
+        $resource->file = $this->upload('image.png', 'photo.png');
+
+        $this->createFileManager($filesystem)->persistFiles($resource);
+
+        self::assertFalse($filesystem->fileExists('old-aaaaaaaa.png'));
+        self::assertTrue($filesystem->fileExists((string) $resource->filename));
+        self::assertNull($resource->file);
+    }
+
+    public function test_an_upload_whose_tokenised_name_is_taken_is_given_another_token(): void
+    {
+        $adapter = new _CollidingFilesystemAdapter(1);
+        $filesystem = new Filesystem($adapter);
+        $resource = new _LeakTestUploadable();
+        $resource->file = $this->upload('image.png', 'photo.png');
+
+        $this->createFileManager($filesystem)->persistFiles($resource);
+
+        self::assertCount(2, $adapter->asked);
+        self::assertNotSame($adapter->asked[0], $adapter->asked[1]);
+        self::assertSame($adapter->asked[1], $resource->filename);
+        self::assertTrue($filesystem->fileExists($adapter->asked[1]));
+    }
+
+    public function test_a_data_uri_upload_is_stored_under_its_own_name_without_checking_for_a_clash(): void
+    {
+        $adapter = new _CollidingFilesystemAdapter(0);
+        $filesystem = new Filesystem($adapter);
+        $resource = new _LeakTestUploadable();
+        $dataUri = new DataUriFile('data:image/png;base64,' . base64_encode((string) file_get_contents(__DIR__ . '/../../Functional/assets/files/image.png')));
+        $resource->file = new UploadedDataUriFile($dataUri, '6a3f5e2c-1b4d-4e8f-9a0b-1c2d3e4f5a6b.png');
+
+        $this->createFileManager($filesystem)->persistFiles($resource);
+
+        self::assertSame([], $adapter->asked);
+        self::assertSame('6a3f5e2c-1b4d-4e8f-9a0b-1c2d3e4f5a6b.png', $resource->filename);
+    }
+
+    public function test_an_upload_is_named_after_its_client_name_even_when_the_file_has_an_extension(): void
+    {
+        $source = sys_get_temp_dir() . '/acb-' . bin2hex(random_bytes(4)) . '.png';
+        copy(__DIR__ . '/../../Functional/assets/files/image.png', $source);
+        try {
+            $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+            $resource = new _LeakTestUploadable();
+            $resource->file = new UploadedFile($source, 'holiday.png', null, null, true);
+
+            $this->createFileManager($filesystem)->persistFiles($resource);
+
+            self::assertMatchesRegularExpression('#^holiday-[0-9a-f]{8}\.png$#', (string) $resource->filename);
+        } finally {
+            unlink($source);
+        }
+    }
+
+    public function test_stored_file_paths_list_every_field(): void
+    {
+        $resource = new _TwoFieldTestUploadable();
+        $resource->filename = 'first-aaaaaaaa.png';
+        $resource->secondFilename = 'second-bbbbbbbb.png';
+
+        self::assertSame(
+            ['filename' => 'first-aaaaaaaa.png', 'secondFilename' => 'second-bbbbbbbb.png'],
+            $this->createFileManager(new Filesystem(new InMemoryFilesystemAdapter()))->getStoredFilePaths($resource),
+        );
+    }
+
+    public function test_orphaned_file_deletion_reaches_a_later_field_when_an_earlier_one_is_unchanged(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $filesystem->write('first-aaaaaaaa.png', 'kept');
+        $filesystem->write('second-bbbbbbbb.png', 'replaced');
+        $resource = new _TwoFieldTestUploadable();
+        $resource->filename = 'first-aaaaaaaa.png';
+        $resource->secondFilename = 'second-bbbbbbbb.png';
+
+        $manager = $this->createFileManager($filesystem);
+        $previousPaths = $manager->getStoredFilePaths($resource);
+        $resource->secondFilename = 'second-cccccccc.png';
+        $manager->deleteOrphanedFiles($resource, $previousPaths);
+
+        self::assertTrue($filesystem->fileExists('first-aaaaaaaa.png'));
+        self::assertFalse($filesystem->fileExists('second-bbbbbbbb.png'));
+    }
+
+    public function test_cloning_an_uploadable_whose_new_name_is_taken_copies_under_another_token(): void
+    {
+        $adapter = new _CollidingFilesystemAdapter(1);
+        $filesystem = new Filesystem($adapter);
+        $filesystem->write('documents/report-aaaaaaaa.pdf', 'the original');
+        $published = new _PrefixedTestUploadable();
+        $published->filename = 'documents/report-aaaaaaaa.pdf';
+        $draft = new _PrefixedTestUploadable();
+
+        $this->createFileManager($filesystem)->processClonedUploadable($published, $draft);
+
+        self::assertSame('documents/report-aaaaaaaa.pdf', $adapter->asked[0]);
+        self::assertNotSame($adapter->asked[1], $adapter->asked[2]);
+        self::assertSame($adapter->asked[2], $draft->filename);
+        self::assertTrue($filesystem->fileExists($adapter->asked[2]));
+    }
+
+    public function test_storing_metadata_generates_a_later_fields_variants_after_an_earlier_field_that_is_not_an_image(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $filesystem->write('notes-aaaaaaaa.txt', 'plain text');
+        $filesystem->write('photo-aaaaaaaa.png', (string) file_get_contents(__DIR__ . '/../../Functional/assets/files/image.png'));
+        $resource = new _TwoFieldFilteredTestUploadable();
+        $resource->filename = 'notes-aaaaaaaa.txt';
+        $resource->secondFilename = 'photo-aaaaaaaa.png';
+
+        $generated = [];
+        $filterService = $this->createStub(FilterService::class);
+        $filterService->method('getUrlOfFilteredImage')->willReturnCallback(static function (string $path, string $filter) use (&$generated): string {
+            $generated[] = $filter . ':' . $path;
+
+            return '/media/cache/' . $filter . '/' . $path;
+        });
+        $liipCacheManager = $this->createStub(CacheManager::class);
+        $liipCacheManager->method('isStored')->willReturn(true);
+
+        $this->createFileManager($filesystem, filterGenerator: new ImagineFilterGenerator($filterService, $liipCacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', null))->storeFilesMetadata($resource);
+
+        self::assertSame(['thumbnail:photo-aaaaaaaa.png'], $generated);
+    }
+
+    public function test_storing_metadata_points_the_imagine_data_loader_at_the_fields_adapter(): void
+    {
+        $dataLoader = $this->createMock(FlysystemDataLoader::class);
+        $dataLoader->expects(self::once())->method('setAdapter')->with('local');
+
+        $this->createFileManager(new Filesystem(new InMemoryFilesystemAdapter()), dataLoader: $dataLoader)->storeFilesMetadata(new _LeakTestUploadable());
+    }
+
+    /**
+     * @return iterable<string, array{object}>
+     */
+    public static function resourcesWithNoVariantToGenerate(): iterable
+    {
+        yield 'filters and no stored file' => [new _FilteredTestUploadable()];
+
+        $text = new _FilteredTestUploadable();
+        $text->filename = 'notes-aaaaaaaa.txt';
+        yield 'filters on a file that is not an image' => [$text];
+
+        $svg = new _FilteredTestUploadable();
+        $svg->filename = 'vector-aaaaaaaa.svg';
+        yield 'filters on an svg' => [$svg];
+
+        $unfiltered = new _LeakTestUploadable();
+        $unfiltered->filename = 'photo-aaaaaaaa.png';
+        yield 'an image on a resource with no filters' => [$unfiltered];
+    }
+
+    #[DataProvider('resourcesWithNoVariantToGenerate')]
+    public function test_storing_metadata_generates_no_variant_for(object $resource): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $filesystem->write('notes-aaaaaaaa.txt', 'plain text');
+        $filesystem->write('vector-aaaaaaaa.svg', (string) file_get_contents(__DIR__ . '/../../Functional/assets/files/image.svg'));
+        $filesystem->write('photo-aaaaaaaa.png', (string) file_get_contents(__DIR__ . '/../../Functional/assets/files/image.png'));
+
+        $filterService = $this->createMock(FilterService::class);
+        $filterService->expects(self::never())->method('getUrlOfFilteredImage');
+        $liipCacheManager = $this->createStub(CacheManager::class);
+        $liipCacheManager->method('isStored')->willReturn(true);
+
+        $this->createFileManager($filesystem, filterGenerator: new ImagineFilterGenerator($filterService, $liipCacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', null))->storeFilesMetadata($resource);
+    }
+
+    /**
+     * @return iterable<string, array{int, int}>
+     */
+    public static function imageDimensions(): iterable
+    {
+        yield 'wider than tall' => [90000, 3000];
+        yield 'taller than wide' => [3000, 90000];
+    }
+
+    #[DataProvider('imageDimensions')]
+    public function test_storing_metadata_budgets_a_variant_against_the_source_images_width_and_height(int $width, int $height): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $filesystem->write('huge-aaaaaaaa.png', self::pngHeader($width, $height));
+        $resource = new _FilteredTestUploadable();
+        $resource->filename = 'huge-aaaaaaaa.png';
+
+        $filterService = $this->createMock(FilterService::class);
+        $filterService->expects(self::never())->method('getUrlOfFilteredImage');
+        $liipCacheManager = $this->createStub(CacheManager::class);
+        $liipCacheManager->method('isStored')->willReturn(false);
+        $logger = new _RecordingLogger();
+
+        $originalLimit = (string) \ini_get('memory_limit');
+        self::setMemoryLimit(self::megabytesAboveUsage(64));
+        try {
+            $this->createFileManager($filesystem, filterGenerator: new ImagineFilterGenerator($filterService, $liipCacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', null, $logger))->storeFilesMetadata($resource);
+        } finally {
+            ini_set('memory_limit', $originalLimit);
+        }
+
+        self::assertCount(1, $logger->records);
+        self::assertSame($width, $logger->records[0][2]['width']);
+        self::assertSame($height, $logger->records[0][2]['height']);
+    }
+
+    private static function pngHeader(int $width, int $height): string
+    {
+        $chunk = 'IHDR' . pack('NNCCCCC', $width, $height, 8, 2, 0, 0, 0);
+
+        return "\x89PNG\r\n\x1a\n" . pack('N', 13) . $chunk . pack('N', crc32($chunk)) . str_repeat("\0", 32);
+    }
+
     /**
      * @return array{Filesystem, RecordingFilesystemAdapter, FilesystemFactory}
      */
@@ -448,7 +794,7 @@ class UploadableFileManagerTest extends TestCase
         }
     }
 
-    private function createFileManager(Filesystem $filesystem, ?FilesystemFactory $factory = null, ?UploadableCacheControl $cacheControl = null, ?ImagineFilterGenerator $filterGenerator = null): UploadableFileManager
+    private function createFileManager(Filesystem $filesystem, ?FilesystemFactory $factory = null, ?UploadableCacheControl $cacheControl = null, ?ImagineFilterGenerator $filterGenerator = null, ?FlysystemDataLoader $dataLoader = null): UploadableFileManager
     {
         $classMetadata = $this->createStub(ClassMetadata::class);
         $classMetadata
@@ -473,7 +819,7 @@ class UploadableFileManagerTest extends TestCase
             $registry,
             new UploadableAttributeReader($registry, false),
             $filesystemProvider,
-            $this->createStub(FlysystemDataLoader::class),
+            $dataLoader ?? $this->createStub(FlysystemDataLoader::class),
             $this->createStub(FileInfoCacheManager::class),
             $cacheControl ?? new UploadableCacheControl($factory ?? new FilesystemFactory(new ServiceLocator([])), self::ORIGINAL, self::IMAGINE),
             null,

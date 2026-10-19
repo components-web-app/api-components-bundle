@@ -37,6 +37,31 @@ class FlysystemCacheResolverTest extends TestCase
         self::assertSame('https://cdn.example.com/media/cache/thumbnail/image.png', $resolver->resolve('image.png', 'thumbnail'));
     }
 
+    public function test_a_variant_url_with_an_empty_cache_prefix_has_one_slash_after_the_root(): void
+    {
+        $resolver = new FlysystemCacheResolver(new Filesystem(new InMemoryFilesystemAdapter()), 'https://cdn.example.com/', '');
+
+        self::assertSame('https://cdn.example.com/thumbnail/image.png', $resolver->resolve('image.png', 'thumbnail'));
+    }
+
+    public function test_a_source_path_with_a_leading_slash_is_stored_directly_under_the_filter(): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $resolver = new FlysystemCacheResolver($filesystem, 'https://cdn.example.com');
+
+        $resolver->store(new Binary('png bytes', 'image/png', 'png'), '/photo-1a2b3c4d.png', 'thumbnail');
+
+        self::assertTrue($filesystem->fileExists('media/cache/thumbnail/photo-1a2b3c4d.png'));
+        self::assertSame('https://cdn.example.com/media/cache/thumbnail/photo-1a2b3c4d.png', $resolver->resolve('/photo-1a2b3c4d.png', 'thumbnail'));
+    }
+
+    public function test_a_source_given_as_a_url_has_its_scheme_separator_replaced_in_the_variant_path(): void
+    {
+        $resolver = new FlysystemCacheResolver(new Filesystem(new InMemoryFilesystemAdapter()), 'https://cdn.example.com');
+
+        self::assertSame('https://cdn.example.com/media/cache/thumbnail/https---example.com/photo.png', $resolver->resolve('https://example.com/photo.png', 'thumbnail'));
+    }
+
     public function test_the_default_cache_prefix_is_media_cache(): void
     {
         self::assertSame('media/cache', (new FlysystemCacheResolver(new Filesystem(new InMemoryFilesystemAdapter()), '/'))->getCachePrefix());

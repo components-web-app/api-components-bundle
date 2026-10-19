@@ -258,6 +258,58 @@ class RouteReachabilityResolverTest extends TestCase
         self::assertTrue($resolver->isReachable($page));
     }
 
+    public function test_a_page_already_visited_in_the_queue_does_not_stop_the_walk_before_later_children(): void
+    {
+        $parent = $this->createPage();
+        $loopingChild = $this->createPage();
+        $deniedChild = $this->createPage($this->createRoute());
+        $grantedGrandchild = $this->createPage($this->createRoute());
+
+        $security = $this->createStub(Security::class);
+        $security->method('isGranted')->willReturnCallback(static fn (string $attribute, Route $route): bool => $route === $grantedGrandchild->getRoute());
+        $this->security = $security;
+        $this->pageRepository->method('findBy')->willReturnCallback(static fn (array $criteria) => match ($criteria['parentPage'] ?? null) {
+            $parent => [$loopingChild, $deniedChild],
+            $loopingChild => [$parent],
+            $deniedChild => [$grantedGrandchild],
+            default => [],
+        });
+        $this->pageDataRepository->method('findBy')->willReturn([]);
+
+        self::assertTrue($this->resolver()->isReachable($parent));
+    }
+
+    public function test_an_unsaved_page_marked_reachable_without_a_route_with_no_parent_is_reachable(): void
+    {
+        $page = new Page();
+        $page->isTemplate = false;
+        $page->isReachableWithoutRoute = true;
+        $this->expectNoRouteCheck();
+        $this->expectNoChildLookup();
+
+        self::assertTrue($this->resolver()->isReachable($page));
+    }
+
+    public function test_the_children_of_a_page_are_found_by_their_parent_page(): void
+    {
+        $parent = $this->createPage();
+        [$pageRepository, $pageDataRepository] = $this->mockRepositories();
+        $pageRepository->expects(self::once())->method('findBy')->with(['parentPage' => $parent])->willReturn([]);
+        $pageDataRepository->expects(self::once())->method('findBy')->with(['parentPage' => $parent])->willReturn([]);
+
+        self::assertFalse($this->resolver()->isReachable($parent));
+    }
+
+    public function test_the_children_of_page_data_are_found_by_their_parent_page_data(): void
+    {
+        $parent = $this->createPageData();
+        [$pageRepository, $pageDataRepository] = $this->mockRepositories();
+        $pageRepository->expects(self::once())->method('findBy')->with(['parentPageData' => $parent])->willReturn([]);
+        $pageDataRepository->expects(self::once())->method('findBy')->with(['parentPageData' => $parent])->willReturn([]);
+
+        self::assertFalse($this->resolver()->isReachable($parent));
+    }
+
     private function resolver(): RouteReachabilityResolver
     {
         if (null === $this->resolver) {

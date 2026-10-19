@@ -16,7 +16,11 @@ use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation\PathSegmentNameGeneratorInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
+use ApiPlatform\State\SerializerContextBuilderInterface;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentMoveStateProcessor;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentInterface;
+use Silverback\ApiComponentsBundle\Model\Component\ComponentMove;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -64,10 +68,32 @@ class ComponentResourceMetadataFactory implements ResourceMetadataCollectionFact
                 if ($copyOperation) {
                     $usageOperationName = '_api_' . $usagePath . '_get_usage';
                     $operations->add($usageOperationName, $copyOperation->withUriTemplate($usagePath)->withName($usageOperationName)->withCacheHeaders(['public' => false, 'no_store' => true]));
+
+                    $movePath = \sprintf('/%s/{id}/move', $pathSegmentName);
+                    $moveOperationName = '_api_' . $movePath . '_post_move';
+                    $operations->add($moveOperationName, self::moveOperation($copyOperation, $movePath, $moveOperationName));
                 }
             }
         }
 
         return $resourceMetadata;
+    }
+
+    private static function moveOperation(HttpOperation $copyOperation, string $movePath, string $moveOperationName): HttpOperation
+    {
+        return $copyOperation
+            ->withUriTemplate($movePath)
+            ->withName($moveOperationName)
+            ->withMethod(HttpOperation::METHOD_POST)
+            ->withStatus(200)
+            ->withRead(true)
+            ->withDeserialize(true)
+            ->withValidate(true)
+            ->withWrite(true)
+            ->withInput(['class' => ComponentMove::class])
+            ->withOutput(['class' => ComponentMove::class])
+            ->withNormalizationContext(['groups' => ['ComponentMove:read'], AbstractObjectNormalizer::SKIP_NULL_VALUES => false])
+            ->withDenormalizationContext(['groups' => ['ComponentMove:write'], SerializerContextBuilderInterface::ASSIGN_OBJECT_TO_POPULATE => false])
+            ->withProcessor(ComponentMoveStateProcessor::class);
     }
 }
