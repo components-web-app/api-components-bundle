@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- A `route_security` `route` pattern matches the whole path, with `*` as its only wildcard, in `RouteVoter` and the route list alike: a pattern without a leading `*` no longer matches mid-path (add one to keep the old behaviour, e.g. `*/user-area*`), `%` and `_` are literal in the list too, and ASCII letters match regardless of case ([#538](https://github.com/components-web-app/api-components-bundle/pull/538))
+
 ### Fixed
 - `generate-fixtures` exits 1 naming the path, instead of reporting success, when its output directory is missing or not writable (checked before anything is exported) or when the class, the asset manifest or a readable asset copy cannot be written ([#536](https://github.com/components-web-app/api-components-bundle/pull/536))
 
