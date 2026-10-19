@@ -25,13 +25,19 @@ use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
 #[Publishable]
 class _PublishNowStub
 {
     public ?\DateTimeInterface $publishedAt = null;
+
+    public ?self $publishedResource = null;
+
+    public ?self $draftResource = null;
 }
 
 class PublishableNormalizerTest extends TestCase
@@ -57,23 +63,66 @@ class PublishableNormalizerTest extends TestCase
         self::assertSame(['reference' => 'r'], $this->denormalizedData(['reference' => 'r']));
     }
 
-    private function denormalizedData(array $data): array
+    public function test_the_associations_to_the_draft_and_published_resource_are_never_written_by_the_client(): void
+    {
+        self::assertSame(['reference' => 'r'], $this->denormalizedData(['publishedResource' => '/x/1', 'draftResource' => '/x/2', 'reference' => 'r']));
+    }
+
+    public function test_a_caller_without_the_publication_permission_creates_a_resource_published_now(): void
+    {
+        $before = date('Y-m-d H:i:s');
+        $data = $this->denormalizedData(['publishedAt' => '2999-01-01T00:00:00+00:00', 'reference' => 'r'], granted: false);
+
+        self::assertSame('r', $data['reference']);
+        self::assertGreaterThanOrEqual($before, $data['publishedAt']);
+        self::assertLessThanOrEqual(date('Y-m-d H:i:s'), $data['publishedAt']);
+    }
+
+    public function test_a_caller_with_the_publication_permission_creates_a_resource_with_the_publication_date_it_sends(): void
+    {
+        self::assertSame(['publishedAt' => '2999-01-01T00:00:00+00:00'], $this->denormalizedData(['publishedAt' => '2999-01-01T00:00:00+00:00']));
+    }
+
+    public function test_a_request_for_the_published_resource_is_denormalized_as_sent_without_a_publication_date_for_a_caller_without_the_permission(): void
+    {
+        self::assertSame(['reference' => 'r'], $this->denormalizedData(['publishedAt' => '2999-01-01T00:00:00+00:00', 'reference' => 'r'], granted: false, requestForPublished: true));
+    }
+
+    public function test_a_request_for_the_published_resource_never_creates_a_draft(): void
+    {
+        $object = new _PublishNowStub();
+        $object->publishedAt = new \DateTimeImmutable('-1 day');
+        $registry = $this->createMock(ManagerRegistry::class);
+        $registry->expects(self::never())->method('getManagerForClass');
+        $context = null;
+
+        $this->denormalizedData(['reference' => 'r'], requestForPublished: true, objectToPopulate: $object, registry: $registry, receivedContext: $context);
+
+        self::assertSame($object, $context[AbstractNormalizer::OBJECT_TO_POPULATE]);
+    }
+
+    private function denormalizedData(array $data, bool $granted = true, bool $requestForPublished = false, ?object $objectToPopulate = null, ?ManagerRegistry $registry = null, ?array &$receivedContext = null): array
     {
         $statusChecker = $this->createStub(PublishableStatusChecker::class);
         $statusChecker->method('getAttributeReader')->willReturn(new PublishableAttributeReader($this->createStub(ManagerRegistry::class)));
-        $statusChecker->method('isGranted')->willReturn(true);
+        $statusChecker->method('isGranted')->willReturn($granted);
+        $statusChecker->method('isRequestForPublished')->willReturn($requestForPublished);
+        $statusChecker->method('isActivePublishedAt')->willReturn(true);
 
         $received = null;
         $inner = $this->createStub(DenormalizerInterface::class);
-        $inner->method('denormalize')->willReturnCallback(static function (mixed $data) use (&$received): \stdClass {
+        $inner->method('denormalize')->willReturnCallback(static function (mixed $data, string $type, ?string $format, array $context) use (&$received, &$receivedContext): \stdClass {
             $received = $data;
+            $receivedContext = $context;
 
             return new \stdClass();
         });
 
-        $normalizer = $this->createNormalizer($this->createStub(ManagerRegistry::class), $statusChecker);
+        $requestStack = new RequestStack();
+        $requestStack->push(new Request());
+        $normalizer = $this->createNormalizer($registry ?? $this->createStub(ManagerRegistry::class), $statusChecker, $requestStack);
         $normalizer->setDenormalizer($inner);
-        $normalizer->denormalize($data, _PublishNowStub::class);
+        $normalizer->denormalize($data, _PublishNowStub::class, null, null === $objectToPopulate ? [] : [AbstractNormalizer::OBJECT_TO_POPULATE => $objectToPopulate]);
 
         return $received;
     }
@@ -100,12 +149,12 @@ class PublishableNormalizerTest extends TestCase
         $this->createNormalizer($registry)->createDraft(new \stdClass(), new Publishable(), \stdClass::class);
     }
 
-    private function createNormalizer(ManagerRegistry $registry, ?PublishableStatusChecker $statusChecker = null): PublishableNormalizer
+    private function createNormalizer(ManagerRegistry $registry, ?PublishableStatusChecker $statusChecker = null, RequestStack $requestStack = new RequestStack()): PublishableNormalizer
     {
         return new PublishableNormalizer(
             $statusChecker ?? $this->createStub(PublishableStatusChecker::class),
             $registry,
-            new RequestStack(),
+            $requestStack,
             $this->createStub(ValidatorInterface::class),
             $this->createStub(IriConverterInterface::class),
             $this->createStub(UploadableFileManager::class),
