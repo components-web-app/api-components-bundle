@@ -21,6 +21,7 @@ use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionPlacementStateProcessor;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionOrderer;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionPlacer;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 
 class ComponentPositionPlacementStateProcessorTest extends TestCase
@@ -162,7 +163,7 @@ class ComponentPositionPlacementStateProcessorTest extends TestCase
     {
         $decorated = $this->createMock(ProcessorInterface::class);
         $decorated->expects(self::once())->method('process')->with($data, $operation)->willReturn('done');
-        $processor = new ComponentPositionPlacementStateProcessor($decorated, new ComponentPositionOrderer(), $this->resolver());
+        $processor = new ComponentPositionPlacementStateProcessor($decorated, new ComponentPositionPlacer(new ComponentPositionOrderer(), $this->resolver()));
 
         self::assertSame('done', $processor->process($data, $operation));
         if ($data instanceof ComponentPosition) {
@@ -192,7 +193,7 @@ class ComponentPositionPlacementStateProcessorTest extends TestCase
             return 'done';
         });
 
-        return new ComponentPositionPlacementStateProcessor($decorated, new ComponentPositionOrderer(), $this->resolver());
+        return new ComponentPositionPlacementStateProcessor($decorated, new ComponentPositionPlacer(new ComponentPositionOrderer(), $this->resolver()));
     }
 
     private function newPosition(\Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup $group): ComponentPosition
