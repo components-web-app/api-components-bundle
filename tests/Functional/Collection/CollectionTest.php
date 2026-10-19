@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Tests\Functional\Collection;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\ApiRequestTrait;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\AuthenticationTrait;
@@ -202,5 +203,30 @@ final class CollectionTest extends FunctionalTestCase
         yield 'pagination disabled and an empty reference' => [80, '?pagination=false&reference='];
         yield 'perPage=20 and an empty reference' => [20, '?perPage=20&reference='];
         yield 'reference=10' => [1, '?reference=10'];
+    }
+
+    public function test_a_default_query_parameter_reaches_a_query_parameter_filter_of_the_collected_resource(): void
+    {
+        $client = static::createClient();
+        self::persistAndFlush(new Route()->setPath('/about')->setName('about'), new Route()->setPath('/about-us')->setName('about-us'), new Route()->setPath('/contact')->setName('contact'));
+        $collection = self::createCollection('/_/routes', ['search' => 'about']);
+
+        self::requestJsonLd($client, 'GET', self::iriOf($collection));
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeSame('collection.totalItems', 2);
+    }
+
+    public function test_a_query_parameter_in_the_request_overrides_the_collections_default_for_a_query_parameter_filter(): void
+    {
+        $client = static::createClient();
+        self::persistAndFlush(new Route()->setPath('/about')->setName('about'), new Route()->setPath('/about-us')->setName('about-us'), new Route()->setPath('/contact')->setName('contact'));
+        $collection = self::createCollection('/_/routes', ['search' => 'about']);
+
+        self::requestJsonLd($client, 'GET', self::iriOf($collection) . '?search=contact');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeSame('collection.totalItems', 1);
+        self::assertJsonNodeSame('collection.member[0].path', '/contact');
     }
 }
