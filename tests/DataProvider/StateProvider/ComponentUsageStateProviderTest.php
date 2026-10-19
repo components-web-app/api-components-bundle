@@ -20,16 +20,16 @@ use Silverback\ApiComponentsBundle\Metadata\ComponentUsageMetadata;
 use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactory;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class ComponentUsageStateProviderTest extends TestCase
 {
     public function test_the_usage_operation_returns_the_usage_metadata_of_the_component_and_sets_it_as_the_request_data(): void
     {
         $component = new DummyComponent();
-        $usage = new ComponentUsageMetadata(2, 1);
+        $usage = new ComponentUsageMetadata(2, 1, []);
         $factory = $this->createMock(ComponentUsageMetadataFactory::class);
-        $factory->expects(self::once())->method('create')->with($component)->willReturn($usage);
+        $factory->expects(self::never())->method('create');
+        $factory->expects(self::once())->method('createWithLocations')->with($component)->willReturn($usage);
         $request = new Request();
         $request->attributes->set('data', $component);
 
@@ -39,34 +39,12 @@ class ComponentUsageStateProviderTest extends TestCase
         self::assertSame($usage, $request->attributes->get('data'));
     }
 
-    public function test_an_admin_gets_the_usage_with_its_locations(): void
-    {
-        $component = new DummyComponent();
-        $usage = new ComponentUsageMetadata(0, 0, []);
-        $factory = $this->createMock(ComponentUsageMetadataFactory::class);
-        $factory->expects(self::never())->method('create');
-        $factory->expects(self::once())->method('createWithLocations')->with($component)->willReturn($usage);
-
-        self::assertSame($usage, $this->provider($component, $factory, $this->authorizationChecker(true))->provide(new Get(name: 'x_get_usage')));
-    }
-
-    public function test_anyone_else_gets_the_usage_without_locations(): void
-    {
-        $component = new DummyComponent();
-        $usage = new ComponentUsageMetadata(0, 0);
-        $factory = $this->createMock(ComponentUsageMetadataFactory::class);
-        $factory->expects(self::never())->method('createWithLocations');
-        $factory->expects(self::once())->method('create')->with($component)->willReturn($usage);
-
-        self::assertSame($usage, $this->provider($component, $factory, $this->authorizationChecker(false))->provide(new Get(name: 'x_get_usage')));
-    }
-
     public function test_the_usage_operation_without_a_request_still_returns_the_usage_metadata(): void
     {
         $component = new DummyComponent();
-        $usage = new ComponentUsageMetadata(0, 0);
+        $usage = new ComponentUsageMetadata(0, 0, []);
         $factory = $this->createStub(ComponentUsageMetadataFactory::class);
-        $factory->method('create')->willReturn($usage);
+        $factory->method('createWithLocations')->willReturn($usage);
 
         self::assertSame($usage, $this->provider($component, $factory)->provide(new Get(name: 'x_get_usage')));
     }
@@ -75,7 +53,7 @@ class ComponentUsageStateProviderTest extends TestCase
     {
         $component = new DummyComponent();
         $factory = $this->createMock(ComponentUsageMetadataFactory::class);
-        $factory->expects(self::never())->method('create');
+        $factory->expects(self::never())->method('createWithLocations');
         $request = new Request();
 
         self::assertSame($component, $this->provider($component, $factory)->provide(new Get(name: '_api_/component/dummy_components/{id}_get'), [], ['request' => $request]));
@@ -86,7 +64,7 @@ class ComponentUsageStateProviderTest extends TestCase
     {
         $route = new Route();
         $factory = $this->createMock(ComponentUsageMetadataFactory::class);
-        $factory->expects(self::never())->method('create');
+        $factory->expects(self::never())->method('createWithLocations');
 
         self::assertSame($route, $this->provider($route, $factory)->provide(new Get(name: 'x_get_usage')));
         self::assertNull($this->provider(null, $factory)->provide(new Get(name: 'x_get_usage')));
@@ -98,22 +76,14 @@ class ComponentUsageStateProviderTest extends TestCase
         $inner = $this->createMock(ProviderInterface::class);
         $inner->expects(self::once())->method('provide')->with($operation, ['id' => 1], ['resource_class' => Route::class])->willReturn(null);
 
-        (new ComponentUsageStateProvider($inner, $this->createStub(ComponentUsageMetadataFactory::class), $this->createStub(AuthorizationCheckerInterface::class)))->provide($operation, ['id' => 1], ['resource_class' => Route::class]);
+        (new ComponentUsageStateProvider($inner, $this->createStub(ComponentUsageMetadataFactory::class)))->provide($operation, ['id' => 1], ['resource_class' => Route::class]);
     }
 
-    private function authorizationChecker(bool $isAdmin): AuthorizationCheckerInterface
-    {
-        $authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
-        $authorizationChecker->expects(self::once())->method('isGranted')->with('ROLE_ADMIN')->willReturn($isAdmin);
-
-        return $authorizationChecker;
-    }
-
-    private function provider(?object $data, ComponentUsageMetadataFactory $factory, ?AuthorizationCheckerInterface $authorizationChecker = null): ComponentUsageStateProvider
+    private function provider(?object $data, ComponentUsageMetadataFactory $factory): ComponentUsageStateProvider
     {
         $inner = $this->createStub(ProviderInterface::class);
         $inner->method('provide')->willReturn($data);
 
-        return new ComponentUsageStateProvider($inner, $factory, $authorizationChecker ?? $this->createStub(AuthorizationCheckerInterface::class));
+        return new ComponentUsageStateProvider($inner, $factory);
     }
 }

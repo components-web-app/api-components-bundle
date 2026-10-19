@@ -104,14 +104,25 @@ final class ComponentUsageTest extends FunctionalTestCase
         yield 'the draft' => ['draft'];
     }
 
-    public function test_the_usage_is_as_readable_as_the_component_so_an_anonymous_caller_reads_it_for_a_component_on_a_live_route(): void
+    public function test_an_anonymous_caller_cannot_read_the_usage_of_a_component_on_a_live_route(): void
     {
         $client = static::createClient();
         $site = self::createComponentInRoute('/live');
 
         self::requestJsonLd($client, 'GET', self::iriOf($site['component']) . '/usage');
 
-        self::assertUsage(1, 0);
+        self::assertResponseStatusCodeSame(401);
+    }
+
+    public function test_a_user_who_is_not_an_admin_cannot_read_the_usage_of_a_component_on_a_live_route(): void
+    {
+        $client = static::createClient();
+        self::loginAsUser($client);
+        $site = self::createComponentInRoute('/live');
+
+        self::requestJsonLd($client, 'GET', self::iriOf($site['component']) . '/usage');
+
+        self::assertResponseStatusCodeSame(403);
     }
 
     public function test_an_anonymous_caller_cannot_read_the_usage_of_a_component_on_a_page_no_route_reaches(): void
@@ -144,7 +155,7 @@ final class ComponentUsageTest extends FunctionalTestCase
 
         self::requestJsonLd($client, 'GET', $pair['draft'] . '/usage');
 
-        self::assertResponseStatusCodeSame(404);
+        self::assertResponseStatusCodeSame(403);
     }
 
     private static function adminClient(): Client

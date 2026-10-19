@@ -2093,7 +2093,6 @@ return static function (ContainerConfigurator $configurator) {
             [
                 new Reference('silverback.api_components.api_platform.state_provider.component_usage.inner'),
                 new Reference('silverback.metadata_factory.component_usage'),
-                new Reference('security.authorization_checker'),
             ]
         );
     $services->alias(ComponentUsageStateProvider::class, 'silverback.api_components.api_platform.state_provider.component_usage');
