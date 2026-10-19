@@ -6,6 +6,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Breaking
 - `GET {component}/usage` is `ROLE_ADMIN` only: anonymous callers get 401 and other users 403, where anyone who could read the component used to get the counts ([#539](https://github.com/components-web-app/api-components-bundle/pull/539))
+- A `route_security` `route` pattern matches the whole path, with `*` as its only wildcard, in `RouteVoter` and the route list alike: a pattern without a leading `*` no longer matches mid-path (add one to keep the old behaviour, e.g. `*/user-area*`), `%` and `_` are literal in the list too, and ASCII letters match regardless of case ([#538](https://github.com/components-web-app/api-components-bundle/pull/538))
 
 ### Added
 - `GET {component}/usage` lists, for admins, where the component is used: one location per counted position or page data property, with the layout it is in or the pages and page data it renders on through templates and nested components, capped at 50 locations and 20 pages each with exact counts; the response is never stored by a shared cache ([#535](https://github.com/components-web-app/api-components-bundle/pull/535))

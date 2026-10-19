@@ -63,10 +63,14 @@ class RouteVoterTest extends TestCase
         yield 'a dot in the rule matching a dot' => ['/v1.0/*', '/v1.0/page', VoterInterface::ACCESS_DENIED];
         yield 'the delimiter in the rule' => ['/a#b*', '/a#b/page', VoterInterface::ACCESS_DENIED];
         yield 'a path the rule does not match' => ['/user-area*', '/public', VoterInterface::ACCESS_GRANTED];
+        yield 'a path holding the rule further in' => ['/user-area*', '/other/user-area/my-page', VoterInterface::ACCESS_GRANTED];
+        yield 'a path holding a rule with a leading wildcard further in' => ['*/user-area*', '/other/user-area/my-page', VoterInterface::ACCESS_DENIED];
+        yield 'a path below a rule with no wildcard' => ['/user-area', '/user-area/my-page', VoterInterface::ACCESS_GRANTED];
+        yield 'the path of a rule with no wildcard' => ['/user-area', '/user-area', VoterInterface::ACCESS_DENIED];
     }
 
     #[DataProvider('routeSecurityPaths')]
-    public function test_a_route_security_rule_matches_its_path_literally_apart_from_the_wildcard(string $rule, string $path, int $expected): void
+    public function test_a_route_security_rule_matches_the_whole_path_literally_with_an_asterisk_as_its_only_wildcard(string $rule, string $path, int $expected): void
     {
         self::assertSame($expected, $this->vote([['route' => $rule, 'security' => self::USER]], [], $this->route($path)));
     }
