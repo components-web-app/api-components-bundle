@@ -722,6 +722,7 @@ class CwaFixtureBuilder implements ResetInterface
             return;
         }
 
+        $owner = $this->publishedGroupOwner($owner);
         $ownerIri = $this->iriConverter->getIriFromResource($owner);
         $locationRef = $groupBuilder->getLocationReference() ?? $ownerIri;
         $fullRef = $groupBuilder->getName() . '_' . $locationRef;
@@ -781,6 +782,16 @@ class CwaFixtureBuilder implements ResetInterface
 
         $this->linkGroup($componentGroup, $owner);
         $this->componentGroupMap[$groupBuilderId] = $componentGroup;
+    }
+
+    private function publishedGroupOwner(Layout|Page|AbstractComponent $owner): Layout|Page|AbstractComponent
+    {
+        if (!$owner instanceof AbstractComponent || null === $this->publishableAttributeReader || !$this->publishableAttributeReader->isConfigured($owner)) {
+            return $owner;
+        }
+        $published = $this->propertyAccessor->getValue($owner, $this->publishableAttributeReader->getConfiguration($owner)->associationName);
+
+        return $published instanceof AbstractComponent ? $published : $owner;
     }
 
     private function linkGroup(ComponentGroup $componentGroup, Layout|Page|AbstractComponent $owner): bool

@@ -153,6 +153,15 @@ trait FixtureScenarioTrait
         $this->homePageGroup()->add($published)->add(self::newDraftOf($published, $draftReference));
     }
 
+    protected function siteHasAComponentRelatedToADraftOfAPublishedComponent(string $name, string $reference, string $draftReference): void
+    {
+        $published = self::newPublishedComponent($reference, '2020-01-01 00:00:00');
+        $component = new DummyComponentWithRelated();
+        $component->name = $name;
+        $component->related = self::newDraftOf($published, $draftReference);
+        $this->homePageGroup()->add($published)->add($component);
+    }
+
     protected function siteHasAnUnplacedPublishedComponentWithAPlacedDraft(string $reference, string $draftReference): void
     {
         $published = self::newPublishedComponent($reference, '2020-01-01 00:00:00');
@@ -965,6 +974,31 @@ trait FixtureScenarioTrait
         $manager = self::getEntityManager();
         $manager->clear();
         self::assertSame($reference, $manager->getRepository(PageDataWithComponent::class)->findOneBy(['title' => $title])?->publishableComponent?->reference);
+    }
+
+    protected function assertComponentIsRelatedToThePublishableComponent(string $name, string $reference): void
+    {
+        $manager = self::getEntityManager();
+        $manager->clear();
+        $related = $manager->getRepository(DummyComponentWithRelated::class)->findOneBy(['name' => $name])?->related;
+        self::assertInstanceOf(DummyPublishableComponent::class, $related, \sprintf('The component "%s" is not related to a publishable component.', $name));
+        self::assertSame($reference, $related->reference);
+    }
+
+    protected function assertPublishableComponentOwnsTheGroupsHolding(string $reference, string $labels): void
+    {
+        $manager = self::getEntityManager();
+        $manager->clear();
+        $held = [];
+        foreach ($this->findPublishable($reference)->getComponentGroups() as $group) {
+            foreach ($group->componentPositions as $position) {
+                $held[] = $position->component?->uiComponent;
+            }
+        }
+        sort($held);
+        $expected = '' === $labels ? [] : array_map('trim', explode(',', $labels));
+        sort($expected);
+        self::assertSame($expected, $held, \sprintf('The groups of "%s" hold the wrong components.', $reference));
     }
 
     protected function assertComponentIsPlaced(string $reference): void

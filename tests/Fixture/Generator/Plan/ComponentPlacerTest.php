@@ -23,6 +23,7 @@ use Silverback\ApiComponentsBundle\Fixture\Generator\Code\PhpValueExporter;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Plan\Assignment;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Plan\ComponentPlacer;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Plan\ComponentPlan;
+use Silverback\ApiComponentsBundle\Fixture\Generator\Plan\GroupPlan;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Plan\GroupPlanner;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Plan\IriValueLinker;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Plan\MethodKind;
@@ -311,6 +312,21 @@ class ComponentPlacerTest extends TestCase
         ], $this->report->all());
     }
 
+    public function test_a_group_a_draft_co_owns_with_its_published_component_is_planned_once_under_the_published_component(): void
+    {
+        $published = new DummyPublishableComponent();
+        $group = $this->ownGroup($published, 'panels');
+        $draft = $this->draftOf($published);
+        $draft->addComponentGroup($group);
+        $group->components->add($draft);
+
+        $plans = $this->placeAll($this->layoutWith($published));
+
+        self::assertSame(['panels'], array_map(static fn (GroupPlan $groupPlan): string => $groupPlan->name, $plans[0]->groups));
+        self::assertSame([], $plans[1]->groups);
+        self::assertSame([], $this->report->all());
+    }
+
     public function test_a_draft_in_a_position_of_its_own_is_placed_as_its_published_component_and_reported(): void
     {
         $published = new DummyPublishableComponent();
@@ -327,7 +343,6 @@ class ComponentPlacerTest extends TestCase
         self::assertSame([$publishedPlan, $publishedPlan], $method->groups[0]->items);
         self::assertSame($draftPlan, $publishedPlan->draft);
         self::assertSame(0, $draftPlan->uses);
-        self::assertSame([], $placer->draftPairs());
         self::assertSame(['A position holds a draft of a published component, which is generated as the published component a write would store (1 entity).'], $this->report->all());
     }
 
@@ -352,7 +367,6 @@ class ComponentPlacerTest extends TestCase
         self::assertTrue($publishedPlan->publishNow);
         self::assertSame($draftPlan, $publishedPlan->draft);
         self::assertSame(0, $draftPlan->uses);
-        self::assertSame([], $placer->draftPairs());
         self::assertSame(['A position holds a draft of a published component, which is generated as the published component a write would store (1 entity).'], $this->report->all());
     }
 
@@ -377,25 +391,28 @@ class ComponentPlacerTest extends TestCase
         self::assertSame(['The page data property ' . PageDataWithComponent::class . '::$publishableComponent holds a draft of a published component, which is generated as the published component a write would store (2 page data).'], $this->report->all());
     }
 
-    public function test_a_draft_related_to_a_placed_component_is_paired_with_its_published_component(): void
+    public function test_a_component_field_holding_a_draft_is_related_to_its_published_component_and_reported(): void
     {
         $published = new DummyPublishableComponent();
         $draft = $this->draftOf($published);
         $card = new DummyComponentWithRelated();
         $card->related = $draft;
+        $other = new DummyComponentWithRelated();
+        $other->related = $draft;
         $placer = $this->placer();
-        $method = $this->methodFor($this->layoutWith($card, $published));
+        $method = $this->methodFor($this->layoutWith($card, $other));
 
         $placer->placeIn($method);
         $placer->describeAll();
 
-        [$cardPlan, $publishedPlan, $draftPlan] = $placer->plans();
+        [$cardPlan, $otherPlan, $publishedPlan, $draftPlan] = $placer->plans();
         self::assertSame($card, $cardPlan->component);
-        self::assertSame($draft, $draftPlan->component);
-        self::assertNull($publishedPlan->draft);
+        self::assertSame($published, $publishedPlan->component);
+        self::assertSame([[$cardPlan, $publishedPlan], [$otherPlan, $publishedPlan]], array_map(static fn (array $relation): array => [$relation[0], $relation[2]], $placer->relations()));
+        self::assertSame($draftPlan, $publishedPlan->draft);
         self::assertSame($publishedPlan, $draftPlan->published);
-        self::assertSame([[$publishedPlan, $draftPlan]], $placer->draftPairs());
-        self::assertSame([], $this->report->all());
+        self::assertSame($draft, $draftPlan->component);
+        self::assertSame(['The component field ' . DummyComponentWithRelated::class . '::$related holds a draft of a published component, which is generated as the published component a write would store (2 components).'], $this->report->all());
     }
 
     public function test_a_group_owned_by_a_component_is_placed_in_the_owner_method_named_after_the_owner(): void

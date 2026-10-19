@@ -108,32 +108,6 @@ class DeclarationOrdererTest extends TestCase
         self::assertEquals([new Assignment('related', $related)], $draft->assignments);
     }
 
-    public function test_a_draft_is_linked_in_the_later_of_the_two_methods(): void
-    {
-        $layout = new MethodPlan(MethodKind::Layout, 'layout');
-        $page = new MethodPlan(MethodKind::Page, 'page');
-        $earlyPublished = $this->plan('earlyPublished', $layout);
-        $lateDraft = $this->plan('lateDraft', $page);
-        $latePublished = $this->plan('latePublished', $page);
-        $earlyDraft = $this->plan('earlyDraft', $layout);
-        $samePublished = $this->plan('samePublished', $layout);
-        $sameDraft = $this->plan('sameDraft', $layout);
-
-        (new DeclarationOrderer(new ExecutionOrder([$layout, $page]), [], []))->linkDrafts([
-            [$earlyPublished, $lateDraft],
-            [$latePublished, $earlyDraft],
-            [$samePublished, $sameDraft],
-        ]);
-
-        self::assertSame([[$samePublished, $sameDraft]], $layout->draftLinks);
-        self::assertSame([[$earlyPublished, $lateDraft], [$latePublished, $earlyDraft]], $page->draftLinks);
-    }
-
-    /**
-     * @param list<MethodPlan>                                         $methods
-     * @param list<ComponentPlan>                                      $plans
-     * @param list<array{ComponentPlan, PropertyValue, ComponentPlan}> $relations
-     */
     private function declare(array $methods, array $plans, array $relations = []): void
     {
         (new DeclarationOrderer(new ExecutionOrder($methods), $plans, $relations))->declare();

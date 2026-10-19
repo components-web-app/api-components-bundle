@@ -243,7 +243,7 @@ class ScaffoldPlannerTest extends TestCase
         self::assertSame($method->components[0], $method->components[0]->draft->published);
     }
 
-    public function test_a_related_draft_is_linked_to_its_published_component_after_both_are_declared(): void
+    public function test_a_related_draft_is_planned_as_its_published_component_and_reported(): void
     {
         $layout = $this->layout('main', 'CwaLayoutPrimary');
         $published = new DummyPublishableComponent();
@@ -261,16 +261,16 @@ class ScaffoldPlannerTest extends TestCase
 
         $plan = $this->plan();
         $method = $plan->methods[0];
-        [$pending, $cardPlan, $live] = $method->components;
 
-        self::assertSame(['pendingDummyPublishableComponent', 'cardDummyComponentWithRelated', 'liveDummyPublishableComponent'], $this->names($method->components));
+        self::assertSame(['liveDummyPublishableComponent', 'cardDummyComponentWithRelated'], $this->names($method->components));
+        [$live, $cardPlan] = $method->components;
         self::assertSame($card, $cardPlan->component);
-        self::assertNull($live->draft);
-        self::assertSame([[$live, $pending]], $method->draftLinks);
-        self::assertSame([], $plan->notReproduced);
+        self::assertSame('liveDummyPublishableComponentDraft', $live->draft?->name);
+        self::assertSame($draft, $live->draft->component);
+        self::assertSame(['The component field ' . DummyComponentWithRelated::class . '::$related holds a draft of a published component, which is generated as the published component a write would store (1 component).'], $plan->notReproduced);
     }
 
-    public function test_a_draft_related_in_another_method_is_linked_in_the_later_method_and_both_are_properties(): void
+    public function test_a_draft_related_in_another_method_relates_both_published_component_properties(): void
     {
         $layout = $this->layout('main', 'CwaLayoutPrimary');
         $page = $this->page('home', $layout, $this->route('/', 'home'));
@@ -288,9 +288,7 @@ class ScaffoldPlannerTest extends TestCase
 
         $plan = $this->plan();
 
-        self::assertCount(2, $plan->properties);
-        self::assertSame([], $plan->methods[0]->draftLinks);
-        self::assertCount(1, $plan->methods[1]->draftLinks);
+        self::assertSame(['cardDummyComponentWithRelated', 'liveDummyPublishableComponent'], $this->names($plan->properties));
     }
 
     public function test_a_draft_in_a_position_of_its_own_is_planned_as_its_published_component_and_reported(): void
@@ -311,7 +309,6 @@ class ScaffoldPlannerTest extends TestCase
 
         self::assertSame(['liveDummyPublishableComponent'], $this->names($method->components));
         self::assertSame('liveDummyPublishableComponentDraft', $method->components[0]->draft?->name);
-        self::assertSame([], $method->draftLinks);
         self::assertSame(['A position holds a draft of a published component, which is generated as the published component a write would store (1 entity).'], $plan->notReproduced);
     }
 

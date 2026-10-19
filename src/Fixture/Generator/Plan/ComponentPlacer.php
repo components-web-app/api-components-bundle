@@ -44,9 +44,6 @@ final class ComponentPlacer
     /** @var list<array{ComponentPlan, PropertyValue, ComponentPlan}> */
     private array $relations = [];
 
-    /** @var list<array{ComponentPlan, ComponentPlan}> */
-    private array $draftPairs = [];
-
     /** @var array<int, true> */
     private array $placedGroups = [];
 
@@ -136,14 +133,6 @@ final class ComponentPlacer
     }
 
     /**
-     * @return list<array{ComponentPlan, ComponentPlan}>
-     */
-    public function draftPairs(): array
-    {
-        return $this->draftPairs;
-    }
-
-    /**
      * @param list<string> $phrases
      */
     private function placeGroup(GroupPlan $groupPlan, ComponentGroup $group, MethodPlan $method, array $phrases): void
@@ -218,6 +207,9 @@ final class ComponentPlacer
 
         foreach (GroupPlanner::sort($component->getComponentGroups()) as $group) {
             if (null !== $published) {
+                if ($published->component->getComponentGroups()->contains($group)) {
+                    continue;
+                }
                 $this->report->add(\sprintf('Component group "%s" is owned by a draft, which the fixture builder cannot give a group.', $group->reference));
                 continue;
             }
@@ -240,7 +232,8 @@ final class ComponentPlacer
                 continue;
             }
             if (PropertyValue::COMPONENT === $value->kind && $value->value instanceof AbstractComponent) {
-                $related = $this->plans[spl_object_id($value->value)] ?? $this->newPlan($value->value, $plan->scope, [...$plan->phrases, $value->property]);
+                $held = $this->publishedInsteadOfDraft($value->value, \sprintf('The component field %s::$%s', $this->stateReader->className($component), $value->property), $component);
+                $related = $this->plans[spl_object_id($held)] ?? $this->newPlan($held, $plan->scope, [...$plan->phrases, $value->property]);
                 $plan->related = $related->related = true;
                 $this->relations[] = [$plan, $value, $related];
                 continue;
@@ -271,25 +264,10 @@ final class ComponentPlacer
             }
         }
 
-        if (null === $plan->published) {
-            $published = $this->stateReader->publishedOf($component);
-            if (null !== $published && !isset($this->plans[spl_object_id($published)])) {
-                $this->newPlan($published, $plan->scope, $plan->phrases);
-            }
-        }
-
         $draft = null === $plan->published ? $this->stateReader->draftOf($component) : null;
-        if (null === $draft) {
-            return;
-        }
-        $placed = $this->plans[spl_object_id($draft)] ?? null;
-        if (null === $placed) {
+        if (null !== $draft) {
             $plan->draft = $this->newPlan($draft, $plan->scope, $plan->phrases, $plan);
-
-            return;
         }
-        $placed->published = $plan;
-        $this->draftPairs[] = [$plan, $placed];
     }
 
     private function linkRoute(string $property, Route $route): string

@@ -224,18 +224,6 @@ class ScaffoldRendererTest extends TestCase
         self::assertStringContainsString("        \$teaserDummyComponent = new DummyComponent();\n\n        \$cardDummyComponent->related = \$teaserDummyComponent;\n\n        \$cwa->layout(", $this->render([$layout]));
     }
 
-    public function test_a_draft_link_follows_every_declaration_when_the_draft_has_its_own_position(): void
-    {
-        $layout = new MethodPlan(MethodKind::Layout, 'mainLayout');
-        $layout->arguments = ["'main'", "'Primary'"];
-        $published = $this->declared('liveDummyComponent', $layout);
-        $draft = $this->declared('pendingDummyComponent', $layout);
-        $layout->components = [$published, $draft];
-        $layout->draftLinks[] = [$published, $draft];
-
-        self::assertStringContainsString("        \$pendingDummyComponent = new DummyComponent();\n\n        \$cwa->component(\$liveDummyComponent)->draft(\$pendingDummyComponent);\n\n        \$cwa->layout(", $this->render([$layout]));
-    }
-
     public function test_a_component_expression_is_new_inline_published_inline_a_variable_or_a_property(): void
     {
         $plan = $this->inline();

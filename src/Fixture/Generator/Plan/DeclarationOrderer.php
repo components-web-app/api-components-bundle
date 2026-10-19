@@ -36,17 +36,6 @@ final readonly class DeclarationOrderer
         }
     }
 
-    /**
-     * @param list<array{ComponentPlan, ComponentPlan}> $draftPairs
-     */
-    public function linkDrafts(array $draftPairs): void
-    {
-        foreach ($draftPairs as [$published, $draft]) {
-            $later = $this->order->runsAfter($draft->scope, $published->scope) ? $draft->scope : $published->scope;
-            $later->draftLinks[] = [$published, $draft];
-        }
-    }
-
     private function declareIn(MethodPlan $method): void
     {
         $state = [];
