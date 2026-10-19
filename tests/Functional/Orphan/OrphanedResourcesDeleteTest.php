@@ -44,6 +44,26 @@ final class OrphanedResourcesDeleteTest extends FunctionalTestCase
         self::assertResourceExists($iris['empty_position']);
     }
 
+    public function test_a_resource_named_in_the_request_and_reached_again_by_a_cascade_and_a_cycle_is_listed_as_deleted_once(): void
+    {
+        $client = static::createClient();
+        self::loginAsAdmin($client);
+        $iris = self::createOrphanedGroupWithNestedSharedPageDataAndDraftDescendants();
+
+        self::requestOrphanDeletion($client, self::irisNamed($iris, ['chain_group', 'chain_position', 'chain_component', 'chain_owned_group', 'cycle_position', 'chained_published']));
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeCount('rejected', 0);
+        foreach (['componentGroups', 'componentPositions', 'components'] as $kind) {
+            $deleted = self::jsonNode('deleted.' . $kind);
+            self::assertIsArray($deleted);
+            self::assertSame(array_values(array_unique($deleted)), $deleted, \sprintf('deleted.%s lists a resource more than once', $kind));
+        }
+        self::assertJsonNodeListsExactly('deleted.componentGroups', self::irisNamed($iris, ['chain_group', 'chain_owned_group']));
+        self::assertJsonNodeListsExactly('deleted.componentPositions', self::irisNamed($iris, ['chain_position', 'chain_owned_position', 'cycle_position', 'shared_position', 'page_data_position', 'parent_typed_position', 'published_position']));
+        self::assertJsonNodeListsExactly('deleted.components', self::irisNamed($iris, ['chain_component', 'chain_owned_component', 'chained_published', 'chained_published_draft']));
+    }
+
     public function test_deleting_all_orphans_deletes_everything_reported_with_its_cascade_and_nothing_in_use(): void
     {
         $client = static::createClient();
