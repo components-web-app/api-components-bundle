@@ -62,6 +62,16 @@ class GenerateFixturesCommand extends Command
         }
 
         $outputDirectory = \dirname($outputPath);
+        if (!is_dir($outputDirectory)) {
+            $output->writeln(\sprintf('<error>The fixture class could not be written to %s: the directory %s does not exist.</error>', $outputPath, $outputDirectory));
+
+            return Command::FAILURE;
+        }
+        if (!is_writable($outputDirectory)) {
+            $output->writeln(\sprintf('<error>The fixture class could not be written to %s: the directory %s is not writable.</error>', $outputPath, $outputDirectory));
+
+            return Command::FAILURE;
+        }
         try {
             /** @var string|null $store */
             $store = $input->getOption('assets-store');
@@ -100,11 +110,19 @@ class GenerateFixturesCommand extends Command
 
         $assetsDirectory = $outputDirectory . '/assets';
         $scaffold = $this->generator->generate($namespace, $className, $assetsDirectory, (bool) $input->getOption('keep-timestamps'), null, $assetStore);
-        file_put_contents($outputPath, $scaffold->code);
+        if (false === @file_put_contents($outputPath, $scaffold->code)) {
+            $output->writeln(\sprintf('<error>The fixture class could not be written to %s: %s</error>', $outputPath, error_get_last()['message'] ?? 'unknown error'));
+
+            return Command::FAILURE;
+        }
 
         $output->writeln(\sprintf('<info>Fixture class written to %s</info>', $outputPath));
         if (null !== $assetStore && null !== $scaffold->assetManifest) {
-            file_put_contents($manifestPath, $scaffold->assetManifest->toJson());
+            if (false === @file_put_contents($manifestPath, $scaffold->assetManifest->toJson())) {
+                $output->writeln(\sprintf('<error>The fixture asset manifest could not be written to %s: %s</error>', $manifestPath, error_get_last()['message'] ?? 'unknown error'));
+
+                return Command::FAILURE;
+            }
             $output->writeln(\sprintf('<info>%d stored file(s) in the fixture asset store %s, listed in %s</info>', $scaffold->assetCount, $assetStore->description, $manifestPath));
             if (null !== $invalidManifest) {
                 $output->writeln(\sprintf('<comment>%s, so no asset was deleted from the fixture asset store.</comment>', $invalidManifest));

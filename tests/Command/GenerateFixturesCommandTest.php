@@ -147,6 +147,66 @@ class GenerateFixturesCommandTest extends TestCase
         self::assertFileDoesNotExist($this->outputFile);
     }
 
+    public function test_an_output_file_in_a_directory_that_does_not_exist_fails_without_writing_anything(): void
+    {
+        $this->twoUploads('first', 'second');
+        $outputFile = $this->outputDirectory . '/missing/GeneratedScaffold.php';
+
+        $tester = $this->runCommand(['--output' => $outputFile]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString(\sprintf('The fixture class could not be written to %s: the directory %s does not exist.', $outputFile, $this->outputDirectory . '/missing'), $tester->getDisplay());
+        self::assertStringNotContainsString('Fixture class written to', $tester->getDisplay());
+        self::assertDirectoryDoesNotExist($this->outputDirectory . '/missing');
+    }
+
+    public function test_an_output_file_in_a_directory_that_is_not_writable_fails_without_writing_anything(): void
+    {
+        $this->twoUploads('first', 'second');
+        $directory = $this->outputDirectory . '/read-only';
+        mkdir($directory, 0555);
+        if (is_writable($directory)) {
+            self::markTestSkipped('This user can write to a read-only directory.');
+        }
+
+        try {
+            $tester = $this->runCommand(['--output' => $directory . '/GeneratedScaffold.php']);
+        } finally {
+            chmod($directory, 0755);
+        }
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString(\sprintf('The fixture class could not be written to %s: the directory %s is not writable.', $directory . '/GeneratedScaffold.php', $directory), $tester->getDisplay());
+        self::assertStringNotContainsString('Fixture class written to', $tester->getDisplay());
+        self::assertSame([], array_values(array_diff(scandir($directory) ?: [], ['.', '..'])));
+    }
+
+    public function test_an_output_file_that_cannot_be_written_fails_naming_the_path(): void
+    {
+        mkdir($this->outputFile);
+
+        $tester = $this->runCommand();
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString(\sprintf('The fixture class could not be written to %s', $this->outputFile), $tester->getDisplay());
+        self::assertStringNotContainsString('Fixture class written to', $tester->getDisplay());
+    }
+
+    public function test_an_asset_manifest_that_cannot_be_written_fails_naming_the_path_and_deletes_no_asset(): void
+    {
+        $this->twoUploads('first', 'second');
+        mkdir($this->outputDirectory . '/assets');
+        file_put_contents($this->outputDirectory . '/assets/' . hash('sha256', 'stale'), 'stale');
+        mkdir($this->outputDirectory . '/GeneratedScaffold.assets.json');
+
+        $tester = $this->runCommand(['--assets-store' => 'local']);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString(\sprintf('The fixture asset manifest could not be written to %s', $this->outputDirectory . '/GeneratedScaffold.assets.json'), $tester->getDisplay());
+        self::assertStringNotContainsString('listed in', $tester->getDisplay());
+        self::assertFileExists($this->outputDirectory . '/assets/' . hash('sha256', 'stale'));
+    }
+
     public function test_the_whole_file_for_the_documented_site(): void
     {
         $this->documentedSite();
