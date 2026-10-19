@@ -272,6 +272,17 @@ class ImagineGenerateCommandTest extends OrphanedResourceDatabaseTestCase
         self::assertStringContainsString('Stopped at 768.0 MiB resident memory (--max-memory 768.0 MiB) after 1 variant; variants are still missing, so run the command again.', $tester->getDisplay());
     }
 
+    public function test_the_stop_message_gives_sizes_in_mebibytes_to_one_decimal_place(): void
+    {
+        $this->persistImage('one-1a2b3c4d.png');
+        $this->afterGenerate = fn () => $this->residentMemory(150000 * 1048576);
+        $tester = new CommandTester($this->command());
+
+        $tester->execute(['--max-memory' => '100000M']);
+
+        self::assertStringContainsString('Stopped at 150000.0 MiB resident memory (--max-memory 100000.0 MiB) after 1 variant;', $tester->getDisplay());
+    }
+
     public function test_below_the_maximum_the_run_completes(): void
     {
         $this->persistImage('one-1a2b3c4d.png');

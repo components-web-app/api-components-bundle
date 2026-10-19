@@ -50,6 +50,30 @@ class StoredFileListerTest extends TestCase
         self::assertSame(['a/b/c/file.png'], $this->paths($filesystem, ['a/b/c'], []));
     }
 
+    public function test_listing_starts_at_the_prefixs_directory_and_enters_only_directories_that_can_hold_it(): void
+    {
+        $adapter = $this->listingAdapter();
+        $filesystem = new Filesystem($adapter);
+        foreach (['a/b/c/file.png', 'a/x/file.png', 'a/file.png', 'z/file.png'] as $path) {
+            $filesystem->write($path, $path);
+        }
+
+        self::assertSame(['a/b/c/file.png'], $this->paths($filesystem, ['a/b'], []));
+        self::assertSame(['a', 'a/b', 'a/b/c'], $adapter->listed);
+
+        $adapter->listed = [];
+        self::assertSame(['a/b/c/file.png'], $this->paths($filesystem, ['a/b/'], []));
+        self::assertSame(['a/b', 'a/b/c'], $adapter->listed);
+    }
+
+    public function test_every_outermost_prefix_is_listed_after_an_excluded_one(): void
+    {
+        $filesystem = $this->filesystem(['a/1.png', 'b/2.png', 'c/3.png', 'd/4.png']);
+
+        self::assertSame(['b/2.png', 'c/3.png'], $this->paths($filesystem, ['c/', 'a/', 'b/'], ['a/']));
+        self::assertSame(['a/1.png', 'b/2.png'], $this->paths($filesystem, ['a/', 'b/'], []));
+    }
+
     public function test_excluded_paths_are_never_listed(): void
     {
         $filesystem = $this->filesystem(['a.png', 'media/cache/thumbnail/a.png', 'media/b.png', 'exports/report.csv', 'exports-old.csv', 'keep/exports/c.png']);
@@ -127,6 +151,21 @@ class StoredFileListerTest extends TestCase
         self::assertCount(1, $files);
         self::assertInstanceOf(FileAttributes::class, $files[0]);
         self::assertSame(1000, $files[0]->lastModified());
+    }
+
+    private function listingAdapter(): InMemoryFilesystemAdapter
+    {
+        return new class extends InMemoryFilesystemAdapter {
+            /** @var list<string> */
+            public array $listed = [];
+
+            public function listContents(string $path, bool $deep): iterable
+            {
+                $this->listed[] = $path;
+
+                return parent::listContents($path, $deep);
+            }
+        };
     }
 
     /**

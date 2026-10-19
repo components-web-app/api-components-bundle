@@ -64,6 +64,15 @@ class StoredFileConstraintValidatorTest extends TestCase
             'image min pixels' => new Image(minPixels: 357501),
             'image max ratio' => new Image(maxRatio: 0.5),
             'image min ratio' => new Image(minRatio: 0.8),
+            'image min width equal' => new Image(minWidth: 500),
+            'image min height equal' => new Image(minHeight: 715),
+            'image max height equal' => new Image(maxHeight: 715),
+            'image min pixels equal' => new Image(minPixels: 357500),
+            'image min ratio rounded to the ratio' => new Image(minRatio: 0.704),
+            'image max ratio rounded to the ratio' => new Image(maxRatio: 0.696),
+            'image no mime types still checks dimensions' => new Image(mimeTypes: [], maxWidth: 499),
+            'image exact mime type still checks dimensions' => new Image(mimeTypes: ['image/png', 'image/svg+xml', 'text/plain'], maxWidth: 499),
+            'image min height stops shape checks' => new Image(minHeight: 716, maxRatio: 0.1, allowPortrait: false),
             'image no portrait' => new Image(allowPortrait: false),
             'image no landscape' => new Image(allowLandscape: false),
             'image no square' => new Image(allowSquare: false),
@@ -176,6 +185,35 @@ class StoredFileConstraintValidatorTest extends TestCase
         self::assertSame([[File::TOO_LARGE_ERROR, 'The file is too large (1500 bytes). Allowed maximum size is 999 bytes.']], $this->summarise($this->validator()->validate($file, new File(maxSize: 999))));
         self::assertSame([[File::TOO_LARGE_ERROR, 'The file is too large (1.5 kB). Allowed maximum size is 1.25 kB.']], $this->summarise($this->validator()->validate($file, new File(maxSize: 1250))));
         self::assertSame([[File::TOO_LARGE_ERROR, 'The file is too large (1501 bytes). Allowed maximum size is 1500 bytes.']], $this->summarise($this->validator()->validate($this->cached('image/png', 1501, 1, 1), new File(maxSize: 1500))));
+    }
+
+    /**
+     * @return iterable<string, array{int, int}>
+     */
+    public static function sizesAndLimits(): iterable
+    {
+        yield 'a limit with too many decimals in the larger unit' => [2000000, 1234500];
+        yield 'a size that rounds to the limit and has decimals in the smaller unit' => [1004567, 1000000];
+        yield 'a size that rounds to the limit in every larger unit' => [1000001, 1000000];
+    }
+
+    #[DataProvider('sizesAndLimits')]
+    public function test_a_too_large_file_is_reported_in_the_units_symfony_chooses(int $size, int $maxSize): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'acb');
+        self::assertIsString($path);
+        try {
+            $handle = fopen($path, 'r+');
+            self::assertIsResource($handle);
+            ftruncate($handle, $size);
+            fclose($handle);
+            $expected = $this->summarise(Validation::createValidator()->validate(new FileObject($path), new File(maxSize: $maxSize)));
+        } finally {
+            unlink($path);
+        }
+
+        self::assertCount(1, $expected);
+        self::assertSame($expected, $this->summarise($this->validator()->validate($this->cached('image/png', $size, 1, 1), new File(maxSize: $maxSize))));
     }
 
     public function test_a_null_value_is_valid_and_anything_else_that_is_not_a_stored_file_is_refused(): void

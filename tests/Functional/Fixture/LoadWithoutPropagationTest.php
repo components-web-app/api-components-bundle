@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Tests\Functional\Fixture;
 
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
+use Silverback\ApiComponentsBundle\Tests\Functional\MockClientCallback;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\MercureTrait;
 
 final class LoadWithoutPropagationTest extends FunctionalTestCase
@@ -28,5 +29,15 @@ final class LoadWithoutPropagationTest extends FunctionalTestCase
         self::assertSame(0, self::countFileInfoRows());
         $this->assertCommandOutputContains('The configured HTTP cache purger cannot flush the whole cache, so nothing was flushed');
         $this->assertCommandOutputContains('Run silverback:api-components:imagine:generate to generate the image variants');
+    }
+
+    public function test_an_append_load_without_images_publishes_no_mercure_update_and_sends_no_per_write_purge(): void
+    {
+        $this->runCommandLine('doctrine:fixtures:load', 'cwa_append');
+
+        $this->assertCommandOutputContains('CWA scaffold: created');
+        self::assertNoMercureUpdatePublished();
+        self::assertSame([], MockClientCallback::purgeRequests());
+        $this->assertCommandOutputContains('The configured HTTP cache purger cannot flush the whole cache, so nothing was flushed');
     }
 }

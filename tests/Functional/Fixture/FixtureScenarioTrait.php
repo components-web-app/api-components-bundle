@@ -17,6 +17,7 @@ use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use PHPUnit\Framework\Attributes\After;
+use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\GenerateFixturesCommand;
@@ -841,10 +842,10 @@ trait FixtureScenarioTrait
         };
     }
 
-    protected function loadScaffold(): void
+    protected function loadScaffold(?LoggerInterface $logger = null): void
     {
         $this->sharedScaffoldComponents = [];
-        $cwa = $this->newFixtureBuilder();
+        $cwa = $this->newFixtureBuilder($logger);
         $this->pageDataBuilders = [];
         $this->pageBuilders = [];
         foreach ($this->scaffold as $definition) {
@@ -1232,7 +1233,7 @@ trait FixtureScenarioTrait
         return $this->siteBuilder ??= $this->newFixtureBuilder();
     }
 
-    private function newFixtureBuilder(): CwaFixtureBuilder
+    private function newFixtureBuilder(?LoggerInterface $logger = null): CwaFixtureBuilder
     {
         $container = self::getContainer();
 
@@ -1242,7 +1243,7 @@ trait FixtureScenarioTrait
             self::iriConverter(),
             $container->get(UploadableFileManager::class),
             $container->get(UploadableAttributeReader::class),
-            null,
+            $logger,
             null,
             $container->get(PublishableAttributeReader::class),
             new FixtureAssetLoader($this->assetStores()),

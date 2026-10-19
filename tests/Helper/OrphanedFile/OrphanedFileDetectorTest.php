@@ -95,6 +95,69 @@ class OrphanedFileDetectorTest extends OrphanedResourceDatabaseTestCase
         self::assertSame([['adapter' => 'local', 'path' => 'orphan-00000001.png']], $this->detector()->detect()->orphanedFiles);
     }
 
+    public function test_each_field_of_a_row_is_read_from_its_own_column(): void
+    {
+        $multiple = new DummyMultipleUploadable();
+        $multiple->setFilename('main-0000000a.png');
+        $multiple->previewFilename = 'preview-0000000b.png';
+        $this->persist($multiple);
+        $previewOnly = new DummyMultipleUploadable();
+        $previewOnly->previewFilename = 'gone-0000000c.png';
+        $this->persist($previewOnly);
+        $this->entityManager->flush();
+        $this->write($this->local, 'main-0000000a.png', self::OLD);
+        $this->write($this->local, 'preview-0000000b.png', self::OLD);
+
+        $report = $this->detector()->detect();
+
+        self::assertSame([], $report->orphanedFiles);
+        self::assertSame([], $report->unknownFiles);
+        self::assertSame([['resource' => $this->iri($previewOnly), 'adapter' => 'local', 'path' => 'gone-0000000c.png']], $report->missingFiles);
+    }
+
+    public function test_missing_files_are_sorted_by_adapter_then_path(): void
+    {
+        $expected = [];
+        foreach ([['public_url_local', 'b.png'], ['local', 'd.png'], ['public_url_local', 'a.png'], ['local', 'c.png']] as [$adapter, $path]) {
+            $uploadable = 'local' === $adapter ? new DummyUploadable() : new DummyUploadablePublicUrl();
+            $uploadable->setFilename($path);
+            $this->persist($uploadable);
+            $expected[$adapter . $path] = $uploadable;
+        }
+        $this->entityManager->flush();
+
+        self::assertSame([
+            ['resource' => $this->iri($expected['localc.png']), 'adapter' => 'local', 'path' => 'c.png'],
+            ['resource' => $this->iri($expected['locald.png']), 'adapter' => 'local', 'path' => 'd.png'],
+            ['resource' => $this->iri($expected['public_url_locala.png']), 'adapter' => 'public_url_local', 'path' => 'a.png'],
+            ['resource' => $this->iri($expected['public_url_localb.png']), 'adapter' => 'public_url_local', 'path' => 'b.png'],
+        ], $this->detector()->detect()->missingFiles);
+    }
+
+    public function test_an_imagine_cache_prefix_with_a_trailing_slash_excludes_that_directory_only(): void
+    {
+        $this->write($this->local, 'media/cache/thumbnail/a-0000000d.png', self::OLD);
+        $this->write($this->local, 'media/cache-0000000e.png', self::OLD);
+
+        $report = $this->detector(cacheResolvers: [new FlysystemCacheResolver($this->local, '/', 'media/cache/')])->detect();
+
+        self::assertSame([['adapter' => 'local', 'path' => 'media/cache-0000000e.png']], $report->orphanedFiles);
+        self::assertSame([], $report->unknownFiles);
+    }
+
+    public function test_the_age_in_the_listing_is_used_without_asking_the_filesystem(): void
+    {
+        $this->local = new Filesystem(new class extends InMemoryFilesystemAdapter {
+            public function lastModified(string $path): FileAttributes
+            {
+                throw UnableToRetrieveMetadata::lastModified($path);
+            }
+        });
+        $this->write($this->local, 'listed-0000000f.png', self::OLD);
+
+        self::assertSame([['adapter' => 'local', 'path' => 'listed-0000000f.png']], $this->detector()->detect()->orphanedFiles);
+    }
+
     public function test_a_path_a_field_on_another_filesystem_references_is_not_reported_because_two_adapters_can_share_one_storage(): void
     {
         $publicUrl = new DummyUploadablePublicUrl();

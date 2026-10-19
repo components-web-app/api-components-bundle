@@ -5,6 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Tooling
+- Tests pin the upload, orphaned file, imagine variant and stored-file constraint behaviours and the fixture load, `generate-fixtures` option and `make:rename-component` console behaviours that #516 lists as unasserted; `MockClientCallback` records PURGE requests for console runs ([#534](https://github.com/components-web-app/api-components-bundle/pull/534))
 - Tests pin the security, publishable and route behaviour no test asserted (#516): unit tests for `RouteVoter`'s literal `route_security` matching, `RouteExtension` and `PublishableExtension` on a real query, `RouteLiveResolver`'s per-request memo, `ComponentVoter`'s fall-through and `RouteNormalizer`'s redirect reflection and pruning; functional tests for `route_security` on the route collection, the `/me` cookies, the go-live cache cap's lower bound and a collection default reaching a `QueryParameter` filter ([#532](https://github.com/components-web-app/api-components-bundle/pull/532))
 ### Added
 - `POST {component IRI}/move` moves a component between component positions and page data component properties in one request and one flush, with the same validation and security as the separate writes; a moved position keeps its IRI and a position moved into a property is removed without deleting its component ([#533](https://github.com/components-web-app/api-components-bundle/pull/533))
