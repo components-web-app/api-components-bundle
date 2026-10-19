@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Tests\ApiPlatform\Metadata\Resource;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation\PathSegmentNameGeneratorInterface;
 use ApiPlatform\Metadata\Operations;
 use ApiPlatform\Metadata\Put;
@@ -23,8 +24,10 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ComponentResour
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UserResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentMoveStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DownloadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UploadStateProvider;
+use Silverback\ApiComponentsBundle\Model\Component\ComponentMove;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyUploadable;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
@@ -42,6 +45,41 @@ class StateOperationMetadataTest extends TestCase
         self::assertSame('_api_/dummy_components/{id}/usage_get_usage', $operation->getName());
         self::assertSame('/dummy_components/{id}/usage', $operation->getUriTemplate());
         self::assertSame('main_controller', $operation->getController());
+    }
+
+    public function test_the_move_operation_is_a_post_of_a_move_under_the_components_iri_through_the_main_controller(): void
+    {
+        $segments = $this->createStub(PathSegmentNameGeneratorInterface::class);
+        $segments->method('getSegmentName')->willReturn('dummy_components');
+        $factory = new ComponentResourceMetadataFactory($this->decorated(DummyComponent::class, 'DummyComponent'), $segments);
+
+        $operation = $factory->create(DummyComponent::class)->getOperation('_api_/dummy_components/{id}/move_post_move');
+
+        self::assertInstanceOf(HttpOperation::class, $operation);
+        self::assertSame('_api_/dummy_components/{id}/move_post_move', $operation->getName());
+        self::assertSame('/dummy_components/{id}/move', $operation->getUriTemplate());
+        self::assertSame('POST', $operation->getMethod());
+        self::assertSame(200, $operation->getStatus());
+        self::assertSame(['id'], $operation->getUriVariables());
+        self::assertSame('main_controller', $operation->getController());
+        self::assertTrue($operation->canRead());
+        self::assertTrue($operation->canDeserialize());
+        self::assertTrue($operation->canValidate());
+        self::assertTrue($operation->canWrite());
+        self::assertSame(ComponentMove::class, $operation->getInput()['class'] ?? null);
+        self::assertSame(ComponentMove::class, $operation->getOutput()['class'] ?? null);
+        self::assertSame(['groups' => ['ComponentMove:read'], 'skip_null_values' => false], $operation->getNormalizationContext());
+        self::assertSame(['groups' => ['ComponentMove:write'], 'api_assign_object_to_populate' => false], $operation->getDenormalizationContext());
+        self::assertSame(ComponentMoveStateProcessor::class, $operation->getProcessor());
+    }
+
+    public function test_a_resource_that_is_not_a_component_gets_no_move_operation(): void
+    {
+        $segments = $this->createStub(PathSegmentNameGeneratorInterface::class);
+        $segments->method('getSegmentName')->willReturn('users');
+        $factory = new ComponentResourceMetadataFactory($this->decorated(User::class, 'User'), $segments);
+
+        self::assertSame(['item_get'], array_keys(iterator_to_array($factory->create(User::class)[0]->getOperations() ?? [])));
     }
 
     public function test_the_me_operation_keeps_the_controller_of_the_get_operation_it_is_made_from(): void

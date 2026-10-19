@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Added
+- `POST {component IRI}/move` moves a component between component positions and page data component properties in one request and one flush, with the same validation and security as the separate writes; a moved position keeps its IRI and a position moved into a property is removed without deleting its component ([#533](https://github.com/components-web-app/api-components-bundle/pull/533))
+
 ### Tooling
 - Tests pin the page, layout and manifest behaviour #516 listed as unasserted: the case-insensitive `isTemplate` filter, the cache caps' lower bounds and `max-age`, the emptied OpenAPI paths, the manifest's tree shape, a static position's metadata and `Vary`, the cycle guard on manifest purges, and every page data resolution outcome the profiler records ([#529](https://github.com/components-web-app/api-components-bundle/pull/529))
 - Functional and unit tests pin user and cookie behaviour no test asserted: each login cookie's own attributes, both cookies cleared on an expired token, `refresh-tokens:expire` per user and for all, `user:create` options, the user `PUT` response and its notifications, and the JWT listeners' profiler records ([#528](https://github.com/components-web-app/api-components-bundle/pull/528))
