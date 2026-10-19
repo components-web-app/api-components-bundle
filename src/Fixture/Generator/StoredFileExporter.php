@@ -49,11 +49,13 @@ final class StoredFileExporter implements StoredFileExport
         if (isset($this->namesByHash[$hash])) {
             return $this->namesByHash[$hash];
         }
-        if (!is_dir($this->directory)) {
-            mkdir($this->directory, 0777, true);
+        if (!is_dir($this->directory) && !@mkdir($this->directory, 0777, true)) {
+            throw new \RuntimeException(\sprintf('The fixture asset directory %s could not be created: %s', $this->directory, error_get_last()['message'] ?? 'unknown error'));
         }
         $file = $this->directory . '/.export';
-        file_put_contents($file, $contents);
+        if (false === @file_put_contents($file, $contents)) {
+            throw $this->writeFailure($storedPath, $file);
+        }
 
         $exported = StoredFileName::fromStoredPath($storedPath, MimeTypes::getDefault()->guessMimeType($file));
         $extension = pathinfo($exported, \PATHINFO_EXTENSION);
@@ -63,9 +65,14 @@ final class StoredFileExporter implements StoredFileExport
         for ($i = 2; isset($this->names[$name]); ++$i) {
             $name = $stem . '-' . $i . $suffix;
         }
+        if (!@rename($file, $this->directory . '/' . $name)) {
+            $failure = $this->writeFailure($storedPath, $this->directory . '/' . $name);
+            @unlink($file);
+
+            throw $failure;
+        }
         $this->names[$name] = true;
         $this->namesByHash[$hash] = $name;
-        rename($file, $this->directory . '/' . $name);
 
         return $name;
     }
@@ -73,5 +80,10 @@ final class StoredFileExporter implements StoredFileExport
     public function count(): int
     {
         return \count($this->names);
+    }
+
+    private function writeFailure(string $storedPath, string $path): \RuntimeException
+    {
+        return new \RuntimeException(\sprintf('The stored file "%s" could not be written to %s: %s', $storedPath, $path, error_get_last()['message'] ?? 'unknown error'));
     }
 }
