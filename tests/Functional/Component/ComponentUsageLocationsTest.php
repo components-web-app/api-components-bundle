@@ -406,7 +406,7 @@ final class ComponentUsageLocationsTest extends FunctionalTestCase
         self::assertInstanceOf(ComponentUsageMetadataFactory::class, $factory);
 
         QueryCountingMiddleware::reset();
-        $usage = $factory->create($loaded, true);
+        $usage = $factory->createWithLocations($loaded);
         $count = QueryCountingMiddleware::count();
         self::assertCount(1, $usage->getLocations() ?? []);
         self::assertSame(2, ($usage->getLocations() ?? [])[0]['renderedOnCount']);

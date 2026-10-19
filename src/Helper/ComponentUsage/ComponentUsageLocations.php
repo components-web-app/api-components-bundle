@@ -58,9 +58,8 @@ final class ComponentUsageLocations
     {
         $unique = [];
         foreach ($renderedOn as $item) {
-            $unique[$item['iri']] ??= $item;
+            $unique[$item['iri']] = $item;
         }
-        $unique = array_values($unique);
         usort($unique, static fn (array $a, array $b): int => self::compareRenderedOn($a, $b));
 
         return $unique;
@@ -83,35 +82,35 @@ final class ComponentUsageLocations
      */
     private static function compareLocations(array $a, array $b): int
     {
-        return self::rank($a) <=> self::rank($b)
-            ?: strcmp($a['layout']['reference'] ?? '', $b['layout']['reference'] ?? '')
-            ?: strcmp($a['renderedOn'][0]['routePath'] ?? '', $b['renderedOn'][0]['routePath'] ?? '')
-            ?: self::compareNullsLast($a['renderedOn'][0]['title'] ?? null, $b['renderedOn'][0]['title'] ?? null, self::compareTitles(...))
+        [$aRank, $aName, $aTitle] = self::sortKey($a);
+        [$bRank, $bName, $bTitle] = self::sortKey($b);
+
+        return $aRank <=> $bRank
+            ?: strcmp($aName, $bName)
+            ?: self::compareNullsLast($aTitle, $bTitle, self::compareTitles(...))
             ?: strcmp(self::identifier($a), self::identifier($b));
     }
 
     /**
      * @param Location $location
+     *
+     * @return array{int, string, ?string}
      */
-    private static function rank(array $location): int
+    private static function sortKey(array $location): array
     {
         if (null !== $location['layout']) {
-            return 0;
+            return [0, $location['layout']['reference'], null];
         }
-        $first = $location['renderedOn'][0] ?? null;
-        if (null === $first) {
-            return 3;
+        foreach ($location['renderedOn'] as $first) {
+            return null === $first['routePath'] ? [2, '', $first['title']] : [1, $first['routePath'], null];
         }
 
-        return null === $first['routePath'] ? 2 : 1;
+        return [2, '', null];
     }
 
-    /**
-     * @param Location $location
-     */
     private static function identifier(array $location): string
     {
-        return ($location['componentPosition'] ?? '') . ($location['pageData'] ?? '') . ($location['property'] ?? '');
+        return implode(' ', [$location['pageData'], $location['property'], $location['componentPosition']]);
     }
 
     private static function compareTitles(string $a, string $b): int

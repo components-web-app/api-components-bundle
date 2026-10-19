@@ -31,6 +31,9 @@ class ComponentPositionRepository extends ServiceEntityRepository
         parent::__construct($registry, ComponentPosition::class);
     }
 
+    /**
+     * @return list<ComponentPosition>
+     */
     public function findByComponent(ComponentInterface $component): array
     {
         return $this->findBy([

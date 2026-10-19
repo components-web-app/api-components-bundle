@@ -97,6 +97,38 @@ class ComponentUsageLocationsTest extends TestCase
         self::assertSame(['first', 'second'], array_values(array_filter(array_column($presented, 'property'))));
     }
 
+    public function test_page_data_uses_tied_on_their_page_are_ordered_by_page_data_then_property(): void
+    {
+        $page = self::page('/one', 'One', null);
+        $presented = ComponentUsageLocations::present([
+            self::pageDataUse('/pd-b', 'a', [$page]),
+            self::pageDataUse('/pd-a', 'z', [$page]),
+            self::pageDataUse('/pd-a', 'b', [$page]),
+        ]);
+
+        self::assertSame([['/pd-a', 'b'], ['/pd-a', 'z'], ['/pd-b', 'a']], array_map(static fn (array $location): array => [$location['pageData'], $location['property']], $presented));
+    }
+
+    public function test_a_location_rendered_nowhere_ties_with_an_untitled_unrouted_one_and_is_ordered_by_position(): void
+    {
+        $presented = ComponentUsageLocations::present([
+            self::position('/z-untitled', null, [self::page('/u', null, null)]),
+            self::position('/a-nowhere', null, []),
+        ]);
+
+        self::assertSame(['/a-nowhere', '/z-untitled'], array_column($presented, 'componentPosition'));
+    }
+
+    public function test_a_location_rendered_nowhere_follows_a_titled_unrouted_one(): void
+    {
+        $presented = ComponentUsageLocations::present([
+            self::position('/a-nowhere', null, []),
+            self::position('/z-titled', null, [self::page('/t', 'Title', null)]),
+        ]);
+
+        self::assertSame(['/z-titled', '/a-nowhere'], array_column($presented, 'componentPosition'));
+    }
+
     public function test_untitled_unrouted_locations_follow_titled_ones(): void
     {
         $presented = ComponentUsageLocations::present([

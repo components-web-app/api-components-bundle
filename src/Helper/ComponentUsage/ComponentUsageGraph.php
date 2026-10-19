@@ -45,11 +45,10 @@ final readonly class ComponentUsageGraph
 
             foreach ($this->ownersByGroup[$current] ?? [] as $owner) {
                 foreach ($this->family($owner) as $member) {
-                    if (isset($components[$member])) {
-                        continue;
+                    if (!isset($components[$member])) {
+                        $components[$member] = $member;
+                        array_push($queue, ...$this->groupsByComponent[$member] ?? []);
                     }
-                    $components[$member] = $member;
-                    array_push($queue, ...$this->groupsByComponent[$member] ?? []);
                 }
             }
         }

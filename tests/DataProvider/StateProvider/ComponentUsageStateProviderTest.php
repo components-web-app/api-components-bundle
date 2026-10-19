@@ -13,7 +13,6 @@ namespace Silverback\ApiComponentsBundle\Tests\DataProvider\StateProvider;
 
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\State\ProviderInterface;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentUsageStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
@@ -30,7 +29,7 @@ class ComponentUsageStateProviderTest extends TestCase
         $component = new DummyComponent();
         $usage = new ComponentUsageMetadata(2, 1);
         $factory = $this->createMock(ComponentUsageMetadataFactory::class);
-        $factory->expects(self::once())->method('create')->with($component, false)->willReturn($usage);
+        $factory->expects(self::once())->method('create')->with($component)->willReturn($usage);
         $request = new Request();
         $request->attributes->set('data', $component);
 
@@ -40,23 +39,26 @@ class ComponentUsageStateProviderTest extends TestCase
         self::assertSame($usage, $request->attributes->get('data'));
     }
 
-    #[DataProvider('adminOrNot')]
-    public function test_the_locations_are_requested_only_for_an_admin(bool $isAdmin): void
+    public function test_an_admin_gets_the_usage_with_its_locations(): void
+    {
+        $component = new DummyComponent();
+        $usage = new ComponentUsageMetadata(0, 0, []);
+        $factory = $this->createMock(ComponentUsageMetadataFactory::class);
+        $factory->expects(self::never())->method('create');
+        $factory->expects(self::once())->method('createWithLocations')->with($component)->willReturn($usage);
+
+        self::assertSame($usage, $this->provider($component, $factory, $this->authorizationChecker(true))->provide(new Get(name: 'x_get_usage')));
+    }
+
+    public function test_anyone_else_gets_the_usage_without_locations(): void
     {
         $component = new DummyComponent();
         $usage = new ComponentUsageMetadata(0, 0);
         $factory = $this->createMock(ComponentUsageMetadataFactory::class);
-        $factory->expects(self::once())->method('create')->with($component, $isAdmin)->willReturn($usage);
-        $authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
-        $authorizationChecker->expects(self::once())->method('isGranted')->with('ROLE_ADMIN')->willReturn($isAdmin);
+        $factory->expects(self::never())->method('createWithLocations');
+        $factory->expects(self::once())->method('create')->with($component)->willReturn($usage);
 
-        self::assertSame($usage, $this->provider($component, $factory, $authorizationChecker)->provide(new Get(name: 'x_get_usage')));
-    }
-
-    public static function adminOrNot(): iterable
-    {
-        yield 'an admin' => [true];
-        yield 'anyone else' => [false];
+        self::assertSame($usage, $this->provider($component, $factory, $this->authorizationChecker(false))->provide(new Get(name: 'x_get_usage')));
     }
 
     public function test_the_usage_operation_without_a_request_still_returns_the_usage_metadata(): void
@@ -97,6 +99,14 @@ class ComponentUsageStateProviderTest extends TestCase
         $inner->expects(self::once())->method('provide')->with($operation, ['id' => 1], ['resource_class' => Route::class])->willReturn(null);
 
         (new ComponentUsageStateProvider($inner, $this->createStub(ComponentUsageMetadataFactory::class), $this->createStub(AuthorizationCheckerInterface::class)))->provide($operation, ['id' => 1], ['resource_class' => Route::class]);
+    }
+
+    private function authorizationChecker(bool $isAdmin): AuthorizationCheckerInterface
+    {
+        $authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
+        $authorizationChecker->expects(self::once())->method('isGranted')->with('ROLE_ADMIN')->willReturn($isAdmin);
+
+        return $authorizationChecker;
     }
 
     private function provider(?object $data, ComponentUsageMetadataFactory $factory, ?AuthorizationCheckerInterface $authorizationChecker = null): ComponentUsageStateProvider

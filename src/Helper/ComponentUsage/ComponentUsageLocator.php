@@ -16,7 +16,7 @@ use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
-use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
@@ -59,14 +59,12 @@ final class ComponentUsageLocator
         $walks = [];
         $groups = [];
         $components = [];
-        foreach ($positions as $index => $position) {
-            $walk = $graph->walkUpFrom((string) $position->componentGroup->getId());
-            $walks[$index] = $walk;
+        foreach ($positions as $position) {
+            $walk = $graph->walkUpFrom($position->componentGroup->getId()->toString());
+            $walks[] = $walk;
             array_push($groups, ...$walk['groups']);
             array_push($components, ...$walk['components']);
         }
-        $groups = array_values(array_unique($groups));
-        $components = array_values(array_unique($components));
 
         $pagesByGroup = $this->findPagesByGroup($entityManager, $groups);
         $layoutsByGroup = $this->findLayoutsByGroup($entityManager, $groups);
@@ -74,11 +72,11 @@ final class ComponentUsageLocator
         foreach ($pagesByGroup as $pages) {
             foreach ($pages as $page) {
                 if ($page['isTemplate']) {
-                    $templates[$page['id']] = $page['id'];
+                    $templates[] = $page['id'];
                 }
             }
         }
-        $pageDataByTemplate = $this->findPageDataByTemplate($entityManager, array_values($templates));
+        $pageDataByTemplate = $this->findPageDataByTemplate($entityManager, $templates);
         $pageDataIdsByComponent = $this->findPageDataIdsByComponent($entityManager, $components);
 
         $detailIds = [];
@@ -86,9 +84,9 @@ final class ComponentUsageLocator
             array_push($detailIds, ...$ids);
         }
         foreach ($pageDataUses as $use) {
-            $detailIds[] = (string) $use['pageData']->getId();
+            $detailIds[] = $use['pageData']->getId()->toString();
         }
-        $pageDataDetails = $this->findPageData($entityManager, array_values(array_unique($detailIds)));
+        $pageDataDetails = $this->findPageData($entityManager, $detailIds);
 
         $locations = [];
         foreach ($positions as $index => $position) {
@@ -97,9 +95,7 @@ final class ComponentUsageLocator
             foreach ($walks[$index]['groups'] as $group) {
                 foreach ($pagesByGroup[$group] ?? [] as $page) {
                     $renderedOn[] = $page['renderedOn'];
-                    if ($page['isTemplate']) {
-                        array_push($renderedOn, ...$pageDataByTemplate[$page['id']] ?? []);
-                    }
+                    array_push($renderedOn, ...$pageDataByTemplate[$page['id']] ?? []);
                 }
                 array_push($layouts, ...$layoutsByGroup[$group] ?? []);
             }
@@ -127,7 +123,7 @@ final class ComponentUsageLocator
                 'pageData' => $this->iriConverter->getIriFromResource($use['pageData']),
                 'property' => $use['property'],
                 'layout' => null,
-                'renderedOn' => [$pageDataDetails[(string) $use['pageData']->getId()]],
+                'renderedOn' => [$pageDataDetails[$use['pageData']->getId()->toString()]],
             ];
         }
 
@@ -140,46 +136,60 @@ final class ComponentUsageLocator
             ->select('g.id AS grp', 'c.id AS owner')
             ->from(AbstractComponent::class, 'c')
             ->innerJoin('c.componentGroups', 'g');
-        $positionQuery = $entityManager->createQueryBuilder()
-            ->select('IDENTITY(p.component) AS component', 'IDENTITY(p.componentGroup) AS grp')
-            ->from(ComponentPosition::class, 'p');
         $holdsAnOwner = [\sprintf('IDENTITY(p.component) IN (SELECT o.id FROM %s o WHERE o.componentGroups IS NOT EMPTY)', AbstractComponent::class)];
 
         $publishedAliases = [];
-        foreach ($entityManager->getMetadataFactory()->getAllMetadata() as $metadata) {
-            if ($metadata->isMappedSuperclass || !is_a($metadata->getName(), AbstractComponent::class, true) || !$this->publishableAttributeReader->isConfigured($metadata->getName())) {
-                continue;
-            }
-            $field = $this->publishableAttributeReader->getConfiguration($metadata->getName())->associationName;
-            if (!$metadata->hasAssociation($field) || $metadata->isInheritedAssociation($field)) {
-                continue;
-            }
+        foreach ($this->publishableComponentAssociations($entityManager) as $class => $field) {
             $alias = 'published' . \count($publishedAliases);
             $publishedAliases[] = $alias;
-            $ownerQuery->addSelect(\sprintf('(SELECT IDENTITY(o%1$s.%2$s) FROM %3$s o%1$s WHERE o%1$s.id = c.id) AS %1$s', $alias, $field, $metadata->getName()));
-            $holdsAnOwner[] = \sprintf('IDENTITY(p.component) IN (SELECT IDENTITY(%1$s.%2$s) FROM %3$s %1$s WHERE %1$s.componentGroups IS NOT EMPTY AND %1$s.%2$s IS NOT NULL)', 'd' . $alias, $field, $metadata->getName());
+            $ownerQuery->addSelect(\sprintf('(SELECT IDENTITY(o%1$s.%2$s) FROM %3$s o%1$s WHERE o%1$s.id = c.id) AS %1$s', $alias, $field, $class));
+            $holdsAnOwner[] = \sprintf('IDENTITY(p.component) IN (SELECT IDENTITY(d%1$s.%2$s) FROM %3$s d%1$s WHERE d%1$s.componentGroups IS NOT EMPTY)', $alias, $field, $class);
         }
-
-        $positionQuery->where(implode(' OR ', $holdsAnOwner));
 
         $ownersByGroup = [];
         $publishedByComponent = [];
         foreach ($ownerQuery->getQuery()->getResult() as $row) {
-            $owner = (string) $row['owner'];
-            $ownersByGroup[(string) $row['grp']][] = $owner;
+            $owner = $row['owner']->toString();
+            $ownersByGroup[$row['grp']->toString()][] = $owner;
             foreach ($publishedAliases as $alias) {
                 if (null !== $row[$alias]) {
-                    $publishedByComponent[$owner] = (string) $row[$alias];
+                    $publishedByComponent[$owner] = $row[$alias];
                 }
             }
         }
 
         $groupsByComponent = [];
-        foreach ($positionQuery->getQuery()->getResult() as $row) {
-            $groupsByComponent[(string) $row['component']][] = (string) $row['grp'];
+        $positionRows = $entityManager->createQueryBuilder()
+            ->select('IDENTITY(p.component) AS component', 'IDENTITY(p.componentGroup) AS grp')
+            ->from(ComponentPosition::class, 'p')
+            ->where(implode(' OR ', $holdsAnOwner))
+            ->getQuery()
+            ->getResult();
+        foreach ($positionRows as $row) {
+            $groupsByComponent[$row['component']][] = $row['grp'];
         }
 
         return new ComponentUsageGraph($ownersByGroup, $publishedByComponent, $groupsByComponent);
+    }
+
+    /**
+     * @return array<class-string, string>
+     */
+    private function publishableComponentAssociations(EntityManagerInterface $entityManager): array
+    {
+        $associations = [];
+        foreach ($entityManager->getMetadataFactory()->getAllMetadata() as $metadata) {
+            $class = $metadata->getName();
+            if ($metadata->isMappedSuperclass || !is_a($class, AbstractComponent::class, true) || !$this->publishableAttributeReader->isConfigured($class)) {
+                continue;
+            }
+            $field = $this->publishableAttributeReader->getConfiguration($class)->associationName;
+            if ($metadata->hasAssociation($field) && !$metadata->isInheritedAssociation($field)) {
+                $associations[$class] = $field;
+            }
+        }
+
+        return $associations;
     }
 
     /**
@@ -205,11 +215,10 @@ final class ComponentUsageLocator
 
         $pagesByGroup = [];
         foreach ($rows as $row) {
-            $id = (string) $row['id'];
-            $pagesByGroup[(string) $row['grp']][] = [
-                'id' => $id,
-                'isTemplate' => (bool) $row['isTemplate'],
-                'renderedOn' => $this->renderedOn(Page::class, $id, $row['title'], $row['routePath']),
+            $pagesByGroup[$row['grp']->toString()][] = [
+                'id' => $row['id']->toString(),
+                'isTemplate' => $row['isTemplate'],
+                'renderedOn' => $this->renderedOn(Page::class, $row),
             ];
         }
 
@@ -238,9 +247,9 @@ final class ComponentUsageLocator
 
         $layoutsByGroup = [];
         foreach ($rows as $row) {
-            $layoutsByGroup[(string) $row['grp']][] = [
-                'iri' => $this->iri(Layout::class, (string) $row['id']),
-                'reference' => (string) $row['reference'],
+            $layoutsByGroup[$row['grp']->toString()][] = [
+                'iri' => $this->iri(Layout::class, $row['id']),
+                'reference' => $row['reference'],
             ];
         }
 
@@ -254,13 +263,9 @@ final class ComponentUsageLocator
      */
     private function findPageDataByTemplate(EntityManagerInterface $entityManager, array $templates): array
     {
-        if ([] === $templates) {
-            return [];
-        }
-
         $byTemplate = [];
-        foreach ($this->queryPageData($entityManager, 'IDENTITY(pd.page) IN (:ids)', $templates, 'IDENTITY(pd.page) AS template') as $row) {
-            $byTemplate[(string) $row['template']][] = $row['renderedOn'];
+        foreach ($this->queryPageData($entityManager, 'IDENTITY(pd.page)', $templates) as $row) {
+            $byTemplate[$row['key']][] = $row['renderedOn'];
         }
 
         return $byTemplate;
@@ -273,12 +278,8 @@ final class ComponentUsageLocator
      */
     private function findPageData(EntityManagerInterface $entityManager, array $ids): array
     {
-        if ([] === $ids) {
-            return [];
-        }
-
         $byId = [];
-        foreach ($this->queryPageData($entityManager, 'pd.id IN (:ids)', $ids) as $row) {
+        foreach ($this->queryPageData($entityManager, 'pd.id', $ids) as $row) {
             $byId[$row['id']] = $row['renderedOn'];
         }
 
@@ -286,40 +287,37 @@ final class ComponentUsageLocator
     }
 
     /**
-     * @param list<string> $ids
+     * @param list<string> $values
      *
-     * @return list<array{id: string, template: mixed, renderedOn: RenderedOn}>
+     * @return list<array{id: string, key: string, renderedOn: RenderedOn}>
      */
-    private function queryPageData(EntityManagerInterface $entityManager, string $condition, array $ids, ?string $extraSelect = null): array
+    private function queryPageData(EntityManagerInterface $entityManager, string $column, array $values): array
     {
-        $classes = $this->concreteClasses($entityManager->getClassMetadata(AbstractPageData::class));
+        if ([] === $values) {
+            return [];
+        }
+
+        $classes = $this->deepestClassesFirst($entityManager->getClassMetadata(AbstractPageData::class));
         $type = 'CASE';
         foreach ($classes as $index => $class) {
             $type .= \sprintf(' WHEN pd INSTANCE OF %s THEN %d', $class, $index);
         }
-        $type .= \sprintf(' ELSE %d END', \count($classes) - 1);
+        $type .= ' ELSE 0 END';
 
-        $queryBuilder = $entityManager->createQueryBuilder()
-            ->select('pd.id AS id', $type . ' AS type', 'pd.title AS title', 'r.path AS routePath')
+        $rows = $entityManager->createQueryBuilder()
+            ->select('pd.id AS id', $type . ' AS type', 'pd.title AS title', 'r.path AS routePath', \sprintf('%s AS keyed', $column))
             ->from(AbstractPageData::class, 'pd')
             ->leftJoin('pd.route', 'r')
-            ->where($condition)
-            ->setParameter('ids', $ids, ArrayParameterType::STRING);
-        if (null !== $extraSelect) {
-            $queryBuilder->addSelect($extraSelect);
-        }
+            ->where(\sprintf('%s IN (:values)', $column))
+            ->setParameter('values', $values, ArrayParameterType::STRING)
+            ->getQuery()
+            ->getResult();
 
-        $rows = [];
-        foreach ($queryBuilder->getQuery()->getResult() as $row) {
-            $id = (string) $row['id'];
-            $rows[] = [
-                'id' => $id,
-                'template' => $row['template'] ?? null,
-                'renderedOn' => $this->renderedOn($classes[(int) $row['type']], $id, $row['title'], $row['routePath']),
-            ];
-        }
-
-        return $rows;
+        return array_map(fn (array $row): array => [
+            'id' => $row['id']->toString(),
+            'key' => (string) $row['keyed'],
+            'renderedOn' => $this->renderedOn($classes[$row['type']], $row),
+        ], $rows);
     }
 
     /**
@@ -334,17 +332,10 @@ final class ComponentUsageLocator
         }
 
         $byComponent = [];
-        foreach ($entityManager->getMetadataFactory()->getAllMetadata() as $metadata) {
-            if ($metadata->isMappedSuperclass || !is_a($metadata->getName(), AbstractPageData::class, true)) {
-                continue;
-            }
-            $fields = $this->ownComponentAssociations($metadata);
-            if ([] === $fields) {
-                continue;
-            }
+        foreach ($this->pageDataComponentAssociations($entityManager) as $class => $fields) {
             $queryBuilder = $entityManager->createQueryBuilder()
                 ->select('pd.id AS id')
-                ->from($metadata->getName(), 'pd')
+                ->from($class, 'pd')
                 ->setParameter('components', $components, ArrayParameterType::STRING);
             $holdsAComponent = [];
             foreach ($fields as $index => $field) {
@@ -355,8 +346,8 @@ final class ComponentUsageLocator
             foreach ($queryBuilder->getQuery()->getResult() as $row) {
                 foreach (array_keys($fields) as $index) {
                     $component = $row['field' . $index];
-                    if (null !== $component && \in_array((string) $component, $components, true)) {
-                        $byComponent[(string) $component][] = (string) $row['id'];
+                    if (\in_array($component, $components, true)) {
+                        $byComponent[$component][] = $row['id']->toString();
                     }
                 }
             }
@@ -366,56 +357,56 @@ final class ComponentUsageLocator
     }
 
     /**
-     * @return list<string>
+     * @return array<class-string, non-empty-list<string>>
      */
-    private function ownComponentAssociations(ClassMetadata $metadata): array
+    private function pageDataComponentAssociations(EntityManagerInterface $entityManager): array
     {
-        $fields = [];
-        foreach ($metadata->getAssociationNames() as $field) {
-            if (
-                $metadata->isAssociationWithSingleJoinColumn($field)
-                && !$metadata->isInheritedAssociation($field)
-                && is_a($metadata->getAssociationTargetClass($field), AbstractComponent::class, true)
-            ) {
-                $fields[] = $field;
+        $associations = [];
+        foreach ($entityManager->getMetadataFactory()->getAllMetadata() as $metadata) {
+            if ($metadata->isMappedSuperclass || !is_a($metadata->getName(), AbstractPageData::class, true)) {
+                continue;
+            }
+            foreach ($metadata->getAssociationNames() as $field) {
+                if ($metadata->isAssociationWithSingleJoinColumn($field) && is_a($metadata->getAssociationTargetClass($field), AbstractComponent::class, true)) {
+                    $associations[$metadata->getName()][] = $field;
+                }
             }
         }
 
-        return $fields;
+        return $associations;
     }
 
     /**
      * @return list<class-string>
      */
-    private function concreteClasses(ClassMetadata $metadata): array
+    private function deepestClassesFirst(ClassMetadata $metadata): array
     {
-        $classes = array_values(array_unique(array_values($metadata->discriminatorMap)));
-        usort($classes, static fn (string $a, string $b): int => \count(class_parents($b)) <=> \count(class_parents($a)) ?: strcmp($a, $b));
+        $classes = $metadata->discriminatorMap;
+        usort($classes, static fn (string $a, string $b): int => \count(class_parents($b)) <=> \count(class_parents($a)));
 
         return $classes;
     }
 
     /**
-     * @param class-string $class
+     * @param class-string                                                 $class
+     * @param array{id: UuidInterface, title: ?string, routePath: ?string} $row
      *
      * @return RenderedOn
      */
-    private function renderedOn(string $class, string $id, mixed $title, mixed $routePath): array
+    private function renderedOn(string $class, array $row): array
     {
         return [
-            'iri' => $this->iri($class, $id),
-            'title' => null === $title ? null : (string) $title,
-            'routePath' => null === $routePath ? null : (string) $routePath,
+            'iri' => $this->iri($class, $row['id']),
+            'title' => $row['title'],
+            'routePath' => $row['routePath'],
         ];
     }
 
     /**
      * @param class-string $class
      */
-    private function iri(string $class, string $id): string
+    private function iri(string $class, UuidInterface $id): string
     {
-        $reference = $this->getEntityManager($class)->getReference($class, Uuid::fromString($id));
-
-        return (string) $this->iriConverter->getIriFromResource($reference);
+        return (string) $this->iriConverter->getIriFromResource($this->getEntityManager($class)->getReference($class, $id));
     }
 }

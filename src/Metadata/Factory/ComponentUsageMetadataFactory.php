@@ -49,26 +49,41 @@ class ComponentUsageMetadataFactory
         $this->initRegistry($registry);
     }
 
-    public function create(ComponentInterface $component, bool $withLocations = false): ComponentUsageMetadata
+    public function create(ComponentInterface $component): ComponentUsageMetadata
     {
-        $annotationReader = $this->publishableStatusChecker->getAttributeReader();
-        if ($annotationReader->isConfigured($component) && !$this->publishableStatusChecker->isActivePublishedAt($component)) {
-            $configuration = $annotationReader->getConfiguration($component);
-            $classMetadata = $this->getClassMetadata($component);
+        $component = $this->publishedComponentOf($component);
 
-            $publishedResourceAssociation = $classMetadata->getFieldValue($component, $configuration->associationName);
-            if ($publishedResourceAssociation) {
-                $component = $publishedResourceAssociation;
-            }
-        }
-        $componentPositions = array_values($this->componentPositionRepository->findByComponent($component));
+        return new ComponentUsageMetadata(
+            \count($this->componentPositionRepository->findByComponent($component)),
+            \count($this->findPageDataUses($component)),
+        );
+    }
+
+    public function createWithLocations(ComponentInterface $component): ComponentUsageMetadata
+    {
+        $component = $this->publishedComponentOf($component);
+        $componentPositions = $this->componentPositionRepository->findByComponent($component);
         $pageDataUses = $this->findPageDataUses($component);
 
         return new ComponentUsageMetadata(
             \count($componentPositions),
             \count($pageDataUses),
-            $withLocations ? $this->locator->locate($componentPositions, $pageDataUses) : null,
+            $this->locator->locate($componentPositions, $pageDataUses),
         );
+    }
+
+    private function publishedComponentOf(ComponentInterface $component): ComponentInterface
+    {
+        $annotationReader = $this->publishableStatusChecker->getAttributeReader();
+        if ($annotationReader->isConfigured($component) && !$this->publishableStatusChecker->isActivePublishedAt($component)) {
+            $configuration = $annotationReader->getConfiguration($component);
+            $publishedResourceAssociation = $this->getClassMetadata($component)->getFieldValue($component, $configuration->associationName);
+            if ($publishedResourceAssociation) {
+                return $publishedResourceAssociation;
+            }
+        }
+
+        return $component;
     }
 
     /**

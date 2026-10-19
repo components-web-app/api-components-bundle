@@ -27,9 +27,9 @@ class ComponentUsageMetadata
      */
     public function __construct(
         #[Groups(['AbstractComponent:cwa_resource:read'])]
-        private readonly int $positionCount = 0,
+        private readonly int $positionCount,
         #[Groups(['AbstractComponent:cwa_resource:read'])]
-        private readonly int $pageDataCount = 0,
+        private readonly int $pageDataCount,
         #[Groups(['AbstractComponent:cwa_resource:read'])]
         #[Context(normalizationContext: ['api_sub_level' => true])]
         private readonly ?array $locations = null,

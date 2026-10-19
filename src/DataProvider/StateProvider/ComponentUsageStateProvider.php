@@ -43,7 +43,7 @@ final readonly class ComponentUsageStateProvider implements ProviderInterface
             return $data;
         }
 
-        $usage = $this->metadataFactory->create($data, $this->authorizationChecker->isGranted('ROLE_ADMIN'));
+        $usage = $this->authorizationChecker->isGranted('ROLE_ADMIN') ? $this->metadataFactory->createWithLocations($data) : $this->metadataFactory->create($data);
         $request = $context['request'] ?? null;
         if ($request instanceof Request) {
             $request->attributes->set('data', $usage);
