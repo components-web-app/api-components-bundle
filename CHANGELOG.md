@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.31](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.30...2.0.0-alpha.31) - 2026-10-19
+
 ### Fixed
 - A position or page data component property written with a draft that has a published version (by any client, fixture or Doctrine write) stores the published component, so publishing the draft no longer empties it; a never-published draft is stored as it is, and `generate-fixtures` reads such a reference in an older database as the published component and reports it ([#523](https://github.com/components-web-app/api-components-bundle/pull/523))
 - A component `PATCH` that adds a new embedded component position no longer fails with a 500 for a missing `createdAt` ([#523](https://github.com/components-web-app/api-components-bundle/pull/523))
