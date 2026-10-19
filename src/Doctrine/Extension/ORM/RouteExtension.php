@@ -19,6 +19,7 @@ use Doctrine\ORM\QueryBuilder;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteAncestorGateResolver;
 use Silverback\ApiComponentsBundle\Utility\PublicationDate;
+use Silverback\ApiComponentsBundle\Utility\RouteSecurityPattern;
 
 /**
  * @author Daniel West <daniel@silverback.is>
@@ -52,10 +53,8 @@ class RouteExtension implements QueryCollectionExtensionInterface
             }
             $param = 'path_' . $index;
             $queryBuilder
-                ->andWhere(
-                    $queryBuilder->expr()->notLike("$alias.path", ':' . $param)
-                );
-            $queryBuilder->setParameter($param, str_replace('*', '%', $routeConfig['route']));
+                ->andWhere(\sprintf("LOWER(%s.path) NOT LIKE :%s ESCAPE '%s'", $alias, $param, RouteSecurityPattern::LIKE_ESCAPE))
+                ->setParameter($param, RouteSecurityPattern::like($routeConfig['route']));
         }
     }
 }
