@@ -361,6 +361,157 @@ class ImagineVariantGeneratorTest extends OrphanedResourceDatabaseTestCase
         self::assertSame(0, $this->entityManager->getUnitOfWork()->size());
     }
 
+    public function test_a_stop_ends_the_whole_run_and_leaves_the_entity_manager_clear(): void
+    {
+        $this->persistWithImagineFilters('photo-00000001.png');
+        foreach (['preview-00000002.png', 'preview-00000003.png'] as $path) {
+            $multiple = new DummyMultipleUploadable();
+            $multiple->previewFilename = $path;
+            $this->persist($multiple);
+            $this->writeImage($path);
+        }
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+        $asked = 0;
+
+        $variants = $this->variants($this->imagineVariantGenerator()->generate(proceed: static function () use (&$asked): bool {
+            return 1 === ++$asked;
+        }));
+
+        self::assertSame(2, $asked);
+        self::assertCount(1, $variants);
+        self::assertSame(ImagineVariantStatus::Generated, $variants[0][4]);
+        self::assertCount(1, $this->generated);
+        self::assertSame(0, $this->entityManager->getUnitOfWork()->size());
+    }
+
+    public function test_a_row_whose_original_type_cannot_be_read_does_not_stop_the_rows_after_it(): void
+    {
+        $this->local = new Filesystem(new class extends InMemoryFilesystemAdapter {
+            public ?string $unreadable = null;
+
+            public function mimeType(string $path): \League\Flysystem\FileAttributes
+            {
+                if ($path === $this->unreadable) {
+                    throw UnableToRetrieveMetadata::mimeType($path);
+                }
+
+                return parent::mimeType($path);
+            }
+        });
+        [$first, $second] = $this->persistTwoInOrder();
+        $this->writeImage($first);
+        $this->writeImage($second);
+        $this->setUnreadable($first);
+
+        self::assertSame([[$first, ImagineVariantStatus::Failed], [$second, ImagineVariantStatus::Generated]], $this->thumbnailStatuses());
+    }
+
+    public function test_a_row_whose_original_is_missing_does_not_stop_the_rows_after_it(): void
+    {
+        [$first, $second] = $this->persistTwoInOrder();
+        $this->writeImage($second);
+
+        self::assertSame([[$first, ImagineVariantStatus::OriginalMissing], [$second, ImagineVariantStatus::Generated]], $this->thumbnailStatuses());
+    }
+
+    public function test_a_row_that_is_not_a_raster_image_does_not_stop_the_rows_after_it(): void
+    {
+        [$first, $second] = $this->persistTwoInOrder();
+        $this->local->write($first, '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"></svg>');
+        $this->writeImage($second);
+
+        self::assertSame([[$second, ImagineVariantStatus::Generated]], $this->thumbnailStatuses());
+    }
+
+    public function test_a_row_whose_original_cannot_be_read_for_its_dimensions_does_not_stop_the_rows_after_it(): void
+    {
+        $this->local = new Filesystem(new class extends InMemoryFilesystemAdapter {
+            public ?string $unreadable = null;
+
+            public function read(string $path): string
+            {
+                if ($path === $this->unreadable) {
+                    throw UnableToReadFile::fromLocation($path);
+                }
+
+                return parent::read($path);
+            }
+        });
+        [$first, $second] = $this->persistTwoInOrder();
+        $this->writeImage($first);
+        $this->writeImage($second);
+        $this->setUnreadable($first);
+
+        self::assertSame([[$first, ImagineVariantStatus::Failed], [$second, ImagineVariantStatus::Generated]], $this->thumbnailStatuses());
+    }
+
+    public function test_a_row_whose_variants_are_all_stored_never_reads_its_original(): void
+    {
+        $this->local = new Filesystem(new class extends InMemoryFilesystemAdapter {
+            public function read(string $path): string
+            {
+                throw UnableToReadFile::fromLocation($path);
+            }
+        });
+        $this->persistWithImagineFilters('photo-1a2b3c4d.png');
+        $this->stored['thumbnail:photo-1a2b3c4d.png'] = true;
+        $logger = $this->logger();
+
+        $variants = $this->variants($this->imagineVariantGenerator(logger: $logger)->generate(filters: ['thumbnail']));
+
+        self::assertSame([[DummyUploadableWithImagineFilters::class, 'file', 'photo-1a2b3c4d.png', 'thumbnail', ImagineVariantStatus::Stored]], $variants);
+        self::assertSame([], $logger->records);
+    }
+
+    public function test_an_image_over_the_memory_budget_only_by_its_width_times_its_height_is_skipped(): void
+    {
+        $this->persistWithImagineFilters('photo-1a2b3c4d.png', width: 3000, height: 20000);
+
+        $statuses = array_map(static fn (array $variant): ImagineVariantStatus => $variant[4], $this->variants($this->imagineVariantGenerator()->generate(filters: ['thumbnail'])));
+
+        self::assertSame([ImagineVariantStatus::Skipped], $statuses);
+    }
+
+    /**
+     * @return array{string, string}
+     */
+    private function persistTwoInOrder(): array
+    {
+        $rows = [];
+        foreach (['photo-00000001.png', 'photo-00000002.png'] as $path) {
+            $object = new DummyUploadableWithImagineFilters();
+            $object->setFilename($path);
+            $this->persist($object);
+            $rows[] = $object;
+        }
+        $this->entityManager->flush();
+        usort($rows, static fn (DummyUploadableWithImagineFilters $a, DummyUploadableWithImagineFilters $b): int => strcmp((string) $a->getId(), (string) $b->getId()));
+        $this->entityManager->clear();
+
+        return [(string) $rows[0]->getFilename(), (string) $rows[1]->getFilename()];
+    }
+
+    private function setUnreadable(string $path): void
+    {
+        $adapter = (new \ReflectionProperty(Filesystem::class, 'adapter'))->getValue($this->local);
+        \assert(property_exists($adapter, 'unreadable'));
+        $adapter->unreadable = $path;
+    }
+
+    /**
+     * @return list<array{string, ImagineVariantStatus}>
+     */
+    private function thumbnailStatuses(): array
+    {
+        $statuses = [];
+        foreach ($this->imagineVariantGenerator()->generate(filters: ['thumbnail']) as $variant) {
+            $statuses[] = [$variant->path, $variant->status];
+        }
+
+        return $statuses;
+    }
+
     private function persistWithImagineFilters(string $path, bool $write = true, int $width = 10, int $height = 10): DummyUploadableWithImagineFilters
     {
         $object = new DummyUploadableWithImagineFilters();
