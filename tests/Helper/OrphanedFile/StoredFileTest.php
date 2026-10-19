@@ -175,6 +175,41 @@ class StoredFileTest extends TestCase
         self::assertSame([12, 34], (new StoredFile($filesystem, 'nul.svg'))->getDimensions());
     }
 
+    /**
+     * @return iterable<string, array{int, int}>
+     */
+    public static function zeroSizedImages(): iterable
+    {
+        yield 'no width' => [0, 5];
+        yield 'no height' => [5, 0];
+    }
+
+    #[DataProvider('zeroSizedImages')]
+    public function test_a_raster_image_with_a_zero_dimension_has_no_dimensions(int $width, int $height): void
+    {
+        $filesystem = new Filesystem(new InMemoryFilesystemAdapter());
+        $chunk = 'IHDR' . pack('NNCCCCC', $width, $height, 8, 2, 0, 0, 0);
+        $filesystem->write('empty.png', "\x89PNG\r\n\x1a\n" . pack('N', 13) . $chunk . pack('N', crc32($chunk)) . str_repeat("\0", 32));
+
+        self::assertNull((new StoredFile($filesystem, 'empty.png'))->getDimensions());
+    }
+
+    public function test_reading_dimensions_closes_the_stream_it_read_from(): void
+    {
+        $inner = new Filesystem(new InMemoryFilesystemAdapter());
+        $inner->write('image.png', (string) file_get_contents(self::ASSETS . 'image.png'));
+        $streams = [];
+        $filesystem = $this->createStub(FilesystemOperator::class);
+        $filesystem->method('mimeType')->willReturn('image/png');
+        $filesystem->method('readStream')->willReturnCallback(static function (string $path) use ($inner, &$streams) {
+            return $streams[] = $inner->readStream($path);
+        });
+
+        self::assertSame([500, 715], (new StoredFile($filesystem, 'image.png'))->getDimensions());
+        self::assertCount(1, $streams);
+        self::assertFalse(\is_resource($streams[0]));
+    }
+
     public function test_a_file_that_is_not_an_image_has_no_dimensions_and_is_read_only_once(): void
     {
         $inner = new Filesystem(new InMemoryFilesystemAdapter());

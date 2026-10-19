@@ -23,12 +23,15 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyCompo
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\SiteTrait;
 use Silverback\ApiComponentsBundle\Tests\Maker\DoctrineMigrationsFixture;
+use Symfony\Bundle\MakerBundle\Command\MakerCommand;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
+use Symfony\Bundle\MakerBundle\FileManager;
 use Symfony\Bundle\MakerBundle\Generator;
 use Symfony\Bundle\MakerBundle\InputConfiguration;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Tester\CommandTester;
 
 final class RenameComponentTest extends FunctionalTestCase
 {
@@ -101,6 +104,37 @@ final class RenameComponentTest extends FunctionalTestCase
 
         self::assertEveryComponentGroupAllowsExactly('/component/dummy_components');
         self::assertEveryComponentHasTheDiscriminator('dummycomponent');
+    }
+
+    public function test_the_console_command_asks_for_each_missing_value_and_only_the_iri_it_cannot_resolve(): void
+    {
+        $other = new DoctrineMigrationsFixture();
+        $this->migrations = new DoctrineMigrationsFixture(self::connection(), [$other->namespace => $other->directory]);
+        $maker = new MakeRenameComponent(self::getContainer()->get(IriConverterInterface::class), self::getContainer()->get('doctrine'), $this->migrations->dependencyFactory);
+        $fileManager = $this->createStub(FileManager::class);
+        $fileManager->method('isNamespaceConfiguredToAutoload')->willReturn(true);
+        $command = new MakerCommand($maker, $fileManager, new Generator($fileManager, 'App'));
+        $command->setName(MakeRenameComponent::getCommandName());
+        $tester = new CommandTester($command);
+        $tester->setInputs(['DummyComponent', 'RenamedComponent', DummyComponent::class, '', '', 'renamed', '/component/renamed_components', '0']);
+
+        $status = $tester->execute([]);
+
+        $display = $tester->getDisplay();
+        self::assertSame(Command::SUCCESS, $status, $display);
+        self::assertStringContainsString('Old component fully-qualified class name', $display);
+        self::assertStringContainsString('[App\Entity\Component\DummyComponent]', $display);
+        self::assertStringContainsString('[dummycomponent]', $display);
+        self::assertStringContainsString('[App\Entity\Component\RenamedComponent]', $display);
+        self::assertStringContainsString('[renamedcomponent]', $display);
+        self::assertStringContainsString('The collection IRI for "App\Entity\Component\RenamedComponent" could', $display);
+        self::assertStringContainsString('Collection IRI of the NEW component', $display);
+        self::assertStringNotContainsString('Collection IRI of the OLD component', $display);
+        self::assertStringContainsString('Doctrine Migrations namespace to generate the migration in', $display);
+        $this->assertGeneratedMigrationRenames('/component/dummy_components', '/component/renamed_components');
+        $source = $this->generatedMigration()->generatedSource();
+        self::assertStringContainsString("'dummycomponent'", $source);
+        self::assertStringContainsString("'renamed'", $source);
     }
 
     /**
