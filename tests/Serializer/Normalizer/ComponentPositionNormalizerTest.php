@@ -18,8 +18,10 @@ use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\EventListener\Api\CacheHeadersEventListener;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
@@ -29,8 +31,10 @@ use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
@@ -224,6 +228,196 @@ class ComponentPositionNormalizerTest extends TestCase
         $result = $this->normalizeStatic(new DummyPublishableComponent(), granted: false, active: false, publishedAt: new \DateTimeImmutable('+1 hour'), withRequest: false);
 
         self::assertArrayNotHasKey('component', $result['data']);
+    }
+
+    public function test_a_page_data_position_with_no_path_header_records_no_path(): void
+    {
+        $result = $this->normalizeDynamic('component', pageDataError: true);
+
+        self::assertSame([['property' => 'component', 'resolvedClass' => null, 'skipReason' => 'no_path']], $result['resolutions']);
+        self::assertNull($result['normalized']->component);
+    }
+
+    public function test_a_page_data_position_with_no_matching_page_data_records_no_pagedata(): void
+    {
+        $result = $this->normalizeDynamic('component');
+
+        self::assertSame([['property' => 'component', 'resolvedClass' => null, 'skipReason' => 'no_pagedata']], $result['resolutions']);
+        self::assertNull($result['normalized']->component);
+    }
+
+    public function test_a_page_data_position_normalized_outside_a_request_records_no_request(): void
+    {
+        $result = $this->normalizeDynamic('component', pageData: new PageDataWithComponent(), withRequest: false);
+
+        self::assertSame([['property' => 'component', 'resolvedClass' => null, 'skipReason' => 'no_request']], $result['resolutions']);
+        self::assertNull($result['normalized']->component);
+    }
+
+    public function test_a_page_data_position_naming_a_property_the_page_data_does_not_have_records_property_missing(): void
+    {
+        $result = $this->normalizeDynamic('notAProperty', pageData: new PageDataWithComponent());
+
+        self::assertSame([['property' => 'notAProperty', 'resolvedClass' => null, 'skipReason' => 'property_missing']], $result['resolutions']);
+        self::assertNull($result['normalized']->component);
+    }
+
+    public function test_a_page_data_position_whose_property_is_empty_records_no_component(): void
+    {
+        $result = $this->normalizeDynamic('component', pageData: new PageDataWithComponent());
+
+        self::assertSame([['property' => 'component', 'resolvedClass' => null, 'skipReason' => 'no_component']], $result['resolutions']);
+        self::assertNull($result['normalized']->component);
+    }
+
+    public function test_a_page_data_position_whose_property_is_not_a_component_is_refused(): void
+    {
+        $pageData = new PageDataWithComponent();
+        $pageData->setTitle('A title');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The page data property title is not a component');
+
+        $this->normalizeDynamic('title', pageData: $pageData);
+    }
+
+    public function test_a_page_data_position_whose_component_is_not_published_records_not_published_for_a_caller_who_is_not_granted(): void
+    {
+        $pageData = new PageDataWithComponent();
+        $pageData->publishableComponent = new DummyPublishableComponent();
+
+        $result = $this->normalizeDynamic('publishableComponent', pageData: $pageData);
+
+        self::assertSame([['property' => 'publishableComponent', 'resolvedClass' => DummyPublishableComponent::class, 'skipReason' => 'not_published']], $result['resolutions']);
+        self::assertNull($result['normalized']->component);
+    }
+
+    public function test_a_page_data_position_whose_component_is_not_published_resolves_for_a_granted_caller(): void
+    {
+        $pageData = new PageDataWithComponent();
+        $pageData->publishableComponent = $component = new DummyPublishableComponent();
+
+        $result = $this->normalizeDynamic('publishableComponent', pageData: $pageData, granted: true);
+
+        self::assertSame([['property' => 'publishableComponent', 'resolvedClass' => DummyPublishableComponent::class, 'skipReason' => null]], $result['resolutions']);
+        self::assertSame($component, $result['normalized']->component);
+    }
+
+    public function test_a_page_data_position_whose_component_is_published_resolves_for_a_caller_who_is_not_granted(): void
+    {
+        $pageData = new PageDataWithComponent();
+        $pageData->publishableComponent = $component = new DummyPublishableComponent();
+
+        $result = $this->normalizeDynamic('publishableComponent', pageData: $pageData, active: true);
+
+        self::assertSame([['property' => 'publishableComponent', 'resolvedClass' => DummyPublishableComponent::class, 'skipReason' => null]], $result['resolutions']);
+        self::assertSame($component, $result['normalized']->component);
+    }
+
+    public function test_a_page_data_position_whose_component_the_group_does_not_allow_records_not_in_allowed(): void
+    {
+        $pageData = new PageDataWithComponent();
+        $pageData->component = new DummyComponent();
+
+        $result = $this->normalizeDynamic('component', pageData: $pageData, allowedComponents: ['/component/other_components']);
+
+        self::assertSame([['property' => 'component', 'resolvedClass' => DummyComponent::class, 'skipReason' => 'not_in_allowed']], $result['resolutions']);
+        self::assertNull($result['normalized']->component);
+    }
+
+    public function test_a_page_data_position_whose_component_the_group_allows_resolves(): void
+    {
+        $pageData = new PageDataWithComponent();
+        $pageData->component = $component = new DummyComponent();
+
+        $result = $this->normalizeDynamic('component', pageData: $pageData, allowedComponents: ['/component/dummy_components']);
+
+        self::assertSame([['property' => 'component', 'resolvedClass' => DummyComponent::class, 'skipReason' => null]], $result['resolutions']);
+        self::assertSame($component, $result['normalized']->component);
+        self::assertTrue($result['metadata']->getIsDynamicPosition());
+    }
+
+    public function test_a_page_data_position_resolves_from_the_page_data_in_the_manifest_context_without_a_request(): void
+    {
+        $pageData = new PageDataWithComponent();
+        $pageData->component = $component = new DummyComponent();
+
+        $result = $this->normalizeDynamic('component', withRequest: false, contextPageData: $pageData);
+
+        self::assertSame([['property' => 'component', 'resolvedClass' => DummyComponent::class, 'skipReason' => null]], $result['resolutions']);
+        self::assertSame($component, $result['normalized']->component);
+    }
+
+    /**
+     * @param list<string>|null $allowedComponents
+     *
+     * @return array{normalized: ComponentPosition, resolutions: list<array{property: string, resolvedClass: string|null, skipReason: string|null}>, metadata: ResourceMetadata}
+     */
+    private function normalizeDynamic(string $property, ?PageDataWithComponent $pageData = null, bool $pageDataError = false, bool $withRequest = true, bool $granted = false, bool $active = false, ?array $allowedComponents = null, ?PageDataWithComponent $contextPageData = null): array
+    {
+        $position = new ComponentPosition();
+        $position->setPageDataProperty($property);
+        if (null !== $allowedComponents) {
+            $group = new ComponentGroup();
+            $group->allowedComponents = $allowedComponents;
+            $position->setComponentGroup($group);
+        }
+
+        $pageDataProvider = $this->createStub(PageDataProvider::class);
+        if ($pageDataError) {
+            $pageDataProvider->method('getPageData')->willThrowException(new UnprocessableEntityHttpException('no path'));
+        } else {
+            $pageDataProvider->method('getPageData')->willReturn($pageData);
+        }
+
+        $statusChecker = $this->createStub(PublishableStatusChecker::class);
+        $statusChecker->method('getAttributeReader')->willReturn(new PublishableAttributeReader($this->createStub(ManagerRegistry::class)));
+        $statusChecker->method('isGranted')->willReturn($granted);
+        $statusChecker->method('isActivePublishedAt')->willReturn($active);
+
+        $classMetadata = $this->createStub(ClassMetadata::class);
+        $entityManager = $this->createStub(EntityManagerInterface::class);
+        $entityManager->method('getClassMetadata')->willReturn($classMetadata);
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn($entityManager);
+
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturnCallback(static fn (object|string $resource): string => \is_string($resource) && is_a($resource, DummyComponent::class, true) ? '/component/dummy_components' : '/component');
+
+        $requestStack = new RequestStack();
+        if ($withRequest) {
+            $requestStack->push(new Request());
+        }
+
+        $collectorData = new CwaCollectorData();
+        $metadataProvider = new ResourceMetadataProvider();
+        $normalizer = new ComponentPositionNormalizer(
+            $pageDataProvider,
+            $requestStack,
+            $statusChecker,
+            $registry,
+            $iriConverter,
+            $metadataProvider,
+            $collectorData,
+        );
+
+        $normalized = null;
+        $inner = $this->createStub(NormalizerInterface::class);
+        $inner->method('normalize')->willReturnCallback(static function (ComponentPosition $object) use (&$normalized): array {
+            $normalized = clone $object;
+
+            return [];
+        });
+        $normalizer->setNormalizer($inner);
+
+        $normalizer->normalize($position, 'jsonld', null === $contextPageData ? [] : ['cwa_current_page_data' => $contextPageData]);
+        self::assertInstanceOf(ComponentPosition::class, $normalized);
+
+        return [
+            'normalized' => $normalized,
+            'resolutions' => $collectorData->getPageDataResolutions(),
+            'metadata' => $metadataProvider->findResourceMetadata($position),
+        ];
     }
 
     /**

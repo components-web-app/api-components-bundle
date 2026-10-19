@@ -230,6 +230,25 @@ class ComponentCycleDetectorTest extends TestCase
         self::assertTrue($this->detector->isOwnershipCyclic($draft, $pageGroup));
     }
 
+    public function test_a_draft_and_its_published_component_are_the_same_component_both_ways(): void
+    {
+        [$published, $draft] = $this->persistPublishedWithDraft(new \DateTime('-1 day'), null);
+
+        self::assertTrue($this->detector->isSameComponent($draft, $published));
+        self::assertTrue($this->detector->isSameComponent($published, $draft));
+        self::assertTrue($this->detector->isSameComponent($published, $published));
+    }
+
+    public function test_different_components_are_not_the_same_component(): void
+    {
+        $published = new DummyPublishableComponent();
+        $draft = new DummyPublishableComponent();
+        $draft->setPublishedResource($published);
+
+        self::assertFalse($this->detector->isSameComponent($draft, new DummyPublishableComponent()));
+        self::assertFalse($this->detector->isSameComponent(new DummyComponent(), new DummyComponent()));
+    }
+
     private function groupOwnedBy(AbstractComponent $owner): ComponentGroup
     {
         $group = new ComponentGroup();

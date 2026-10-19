@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Tests\Functional\HttpCache;
 
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\HttpCache\Warm\ModuleRequestHeaders;
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
@@ -44,6 +45,42 @@ final class WarmHttpCacheTest extends FunctionalTestCase
         }
         self::assertStringContainsString('Warmed 1 route with', $tester->getDisplay());
         self::assertStringContainsString('0 failed', $tester->getDisplay());
+    }
+
+    public function test_every_request_goes_to_the_base_url_with_the_modules_accept_encoding_and_preload_headers(): void
+    {
+        self::createPageDataWithPublishedComponentInPageDataPropertyPosition('/warm-me');
+
+        $tester = self::runConsoleCommand(self::COMMAND, ['--base-url' => 'https://cache.example.org/']);
+
+        self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
+        $requests = KernelHttpClient::getRequests();
+        self::assertNotEmpty($requests, 'The HTTP cache warm made no request');
+        foreach ($requests as $request) {
+            self::assertStringStartsWith('https://cache.example.org/', $request['url']);
+            self::assertStringStartsNotWith('https://cache.example.org//', $request['url']);
+            self::assertSame(ModuleRequestHeaders::ACCEPT, $request['headers']['accept'] ?? null, $request['url']);
+            self::assertSame('gzip', $request['headers']['accept-encoding'] ?? null, $request['url']);
+            $iri = (string) parse_url($request['url'], \PHP_URL_PATH);
+            self::assertSame(ModuleRequestHeaders::preload($iri, ''), $request['headers']['preload'] ?? null, $request['url']);
+        }
+        self::assertSame(ModuleRequestHeaders::preload('/_/routes//warm-me', ''), self::warmRequestTo('/_/routes//warm-me')['headers']['preload'] ?? null);
+        self::assertArrayNotHasKey('preload', self::warmRequestTo('/_/resource_manifest//warm-me')['headers']);
+    }
+
+    public function test_an_accept_encoding_of_none_sends_no_accept_encoding_header(): void
+    {
+        self::createComponentInRoute('/plain');
+
+        $tester = self::runConsoleCommand(self::COMMAND, ['--accept-encoding' => 'none']);
+
+        self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
+        $requests = KernelHttpClient::getRequests();
+        self::assertNotEmpty($requests, 'The HTTP cache warm made no request');
+        foreach ($requests as $request) {
+            self::assertArrayNotHasKey('accept-encoding', $request['headers'], $request['url']);
+            self::assertSame(ModuleRequestHeaders::ACCEPT, $request['headers']['accept'] ?? null, $request['url']);
+        }
     }
 
     public function test_a_route_gated_by_its_own_or_an_ancestors_go_live_date_is_not_requested_and_a_redirect_gets_only_its_route_lookup(): void
@@ -124,6 +161,20 @@ final class WarmHttpCacheTest extends FunctionalTestCase
         $page = self::newPage('route-page');
         $route = self::newRoute($path)->setRedirect($redirect)->setPage($page);
         self::persistAndFlush($redirect, $page, $route);
+    }
+
+    /**
+     * @return array{url: string, status: int, headers: array<string, string>}
+     */
+    private static function warmRequestTo(string $path): array
+    {
+        foreach (KernelHttpClient::getRequests() as $request) {
+            if (parse_url($request['url'], \PHP_URL_PATH) === $path) {
+                return $request;
+            }
+        }
+
+        self::fail(\sprintf('The HTTP cache warm did not request "%s". It requested: %s', $path, self::describeWarmRequests()));
     }
 
     private static function assertWarmRequested(string $path): void

@@ -13,15 +13,18 @@ namespace Silverback\ApiComponentsBundle\Tests\Functional\Component;
 
 use ApiPlatform\Test\Client;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Silverback\ApiComponentsBundle\ApiResource\ComponentGroupOrder;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\RestrictedComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\AuthenticationTrait;
+use Silverback\ApiComponentsBundle\Tests\Functional\Trait\CacheTagsTrait;
 
 final class ComponentGroupOrderTest extends FunctionalTestCase
 {
     use AuthenticationTrait;
+    use CacheTagsTrait;
     use ComponentSiteTrait;
 
     private const string FULL = 'The component group `collection` is full: it holds at most 1 component.';
@@ -426,7 +429,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
      * @param list<string> $order
      */
     #[DataProvider('invalidOrders')]
-    public function test_an_order_naming_a_position_outside_the_group_or_one_position_twice_is_a_422(array $order, string $path): void
+    public function test_an_order_naming_a_position_outside_the_group_or_one_position_twice_is_a_422(array $order, int $index, string $message): void
     {
         $client = self::loggedInClient();
         $names = self::createGroupWithPositions('A0 B10');
@@ -436,15 +439,65 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
         self::sendOrder($client, $names['group'], $iris);
 
         self::assertResponseStatusCodeSame(422);
-        self::assertJsonNodeSame('violations[0].propertyPath', $path);
+        self::assertJsonNodeCount('violations', 1);
+        self::assertJsonNodeSame('violations[0].propertyPath', \sprintf('componentPositions[%d]', $index));
+        self::assertJsonNodeSame('violations[0].message', strtr($message, ['{{ iri }}' => $iris[$index]]));
         self::assertGroupHoldsPositions($names['group'], 'A0 B10', $names);
     }
 
     public static function invalidOrders(): iterable
     {
-        yield 'a position of another group' => [['B', 'X', 'A'], 'componentPositions[1]'];
-        yield 'one position twice' => [['B', 'A', 'B'], 'componentPositions[2]'];
-        yield 'an IRI that is not a position' => [['B', 'A', '/nope'], 'componentPositions[2]'];
+        yield 'a position of another group' => [['B', 'X', 'A'], 1, 'The position `{{ iri }}` is not in the component group `collection`.'];
+        yield 'one position twice' => [['B', 'A', 'B'], 2, 'The position `{{ iri }}` is listed more than once.'];
+        yield 'an IRI that is not a position' => [['B', 'A', '/nope'], 2, 'The position `{{ iri }}` is not in the component group `collection`.'];
+    }
+
+    public function test_every_invalid_entry_of_an_order_is_a_violation_of_its_own(): void
+    {
+        $client = self::loggedInClient();
+        $names = self::createGroupWithPositions('A0 B10');
+        $other = self::createGroupWithPositions('X0', 'other_collection');
+
+        self::sendOrder($client, $names['group'], [$other['X'], $names['A'], $names['A']]);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertJsonNodeCount('violations', 2);
+        self::assertJsonNodeSame('violations[0].propertyPath', 'componentPositions[0]');
+        self::assertJsonNodeSame('violations[0].message', \sprintf('The position `%s` is not in the component group `collection`.', $other['X']));
+        self::assertJsonNodeSame('violations[1].propertyPath', 'componentPositions[2]');
+        self::assertJsonNodeSame('violations[1].message', \sprintf('The position `%s` is listed more than once.', $names['A']));
+    }
+
+    public function test_the_order_carries_the_cache_tags_of_its_group_and_every_listed_position_so_a_position_write_purges_it(): void
+    {
+        $client = self::loggedInClient();
+        $names = self::createGroupWithPositions('A0 B1 C2');
+
+        self::requestJsonLd($client, 'GET', $names['group'] . '/order');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertResponseHasCacheTag($names['group']);
+        foreach (['A', 'B', 'C'] as $name) {
+            self::assertResponseHasCacheTag($names[$name]);
+        }
+
+        self::requestJsonLd($client, 'PATCH', $names['C'], ['before' => $names['A']]);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertCacheTagPurged($names['C']);
+    }
+
+    public function test_the_order_is_the_request_data_for_the_listeners_that_read_it(): void
+    {
+        $client = static::createClient();
+        $names = self::createGroupWithPositions('A0 B10');
+
+        self::requestJsonLd($client, 'GET', $names['group'] . '/order');
+
+        self::assertResponseStatusCodeSame(200);
+        $data = $client->getKernelBrowser()->getRequest()->attributes->get('data');
+        self::assertInstanceOf(ComponentGroupOrder::class, $data);
+        self::assertSame([$names['A'], $names['B']], $data->componentPositions);
     }
 
     public function test_the_reorder_response_is_what_a_fresh_read_of_the_order_returns(): void

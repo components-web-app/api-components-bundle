@@ -36,6 +36,31 @@ final class CookieTraitTest extends FunctionalTestCase
         self::assertContains('subscribe', self::mercureCookiePayload()['authorization_details'][0]['actions']);
     }
 
+    public function test_each_login_cookie_is_checked_for_its_own_attributes(): void
+    {
+        $client = static::createClient();
+        self::createUser(['ROLE_USER']);
+        self::rebootKernel();
+
+        $client->request('POST', '/login', ['json' => ['username' => 'new_user', 'password' => 'password']]);
+
+        self::assertResponseCookieAttributes('api_components', '/', 'lax');
+        self::assertResponseCookieAttributes(self::mercureCookieName(), '/.well-known/mercure', 'strict');
+    }
+
+    public function test_a_cookie_attribute_that_differs_fails_naming_the_cookie(): void
+    {
+        $client = static::createClient();
+        self::createUser(['ROLE_USER']);
+        self::rebootKernel();
+        $client->request('POST', '/login', ['json' => ['username' => 'new_user', 'password' => 'password']]);
+
+        $this->expectException(AssertionFailedError::class);
+        $this->expectExceptionMessage('The cookie "__Secure-mercure_access_token" has the wrong samesite attribute.');
+
+        self::assertResponseCookieAttributes(self::mercureCookieName(), '/.well-known/mercure', 'lax');
+    }
+
     public function test_a_response_that_sets_no_cookie_has_none(): void
     {
         static::createClient()->request('GET', '/me');

@@ -13,6 +13,8 @@ namespace Silverback\ApiComponentsBundle\Tests\Helper\Publishable;
 
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
+use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
+use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -124,6 +126,33 @@ class PublishableDraftMergerTest extends TestCase
         $published->setPublishedAt(new \DateTime('-1 day'));
 
         self::assertSame($published, $this->publishableDraftMerger->mergeDueDraft(new Request(), $published, true));
+    }
+
+    public function test_a_merge_copies_every_property_but_the_identifier(): void
+    {
+        [$published, $draft] = $this->persistPublishedWithDraft(new \DateTime('-2 days'), new \DateTime('-1 day'));
+        $draft->uiComponent = 'DraftUi';
+        $draft->uiClassNames = ['draft-class'];
+        $publishedId = $published->getId();
+
+        $this->publishableDraftMerger->mergeDueDraft(new Request(), $published, true);
+
+        self::assertEquals($publishedId, $published->getId());
+        self::assertSame('DraftUi', $published->uiComponent);
+        self::assertSame(['draft-class'], $published->uiClassNames);
+    }
+
+    public function test_a_merge_hands_the_drafts_deleted_files_to_the_published_resource_and_deletes_the_files_it_no_longer_references(): void
+    {
+        [$published, $draft] = $this->persistPublishedWithDraft(new \DateTime('-2 days'), new \DateTime('-1 day'));
+        $previousPaths = ['filePath' => 'published-file.png'];
+        $fileManager = $this->createMock(UploadableFileManager::class);
+        $fileManager->expects(self::once())->method('getStoredFilePaths')->with($published)->willReturn($previousPaths);
+        $fileManager->expects(self::once())->method('transferDeletedFields')->with($draft, $published);
+        $fileManager->expects(self::once())->method('deleteOrphanedFiles')->with($published, $previousPaths);
+        $merger = new PublishableDraftMerger($this->publishableStatusChecker, $this->registry, $fileManager);
+
+        $merger->mergeDueDraft(new Request(), $draft, true);
     }
 
     private function newGroup(string $reference): ComponentGroup

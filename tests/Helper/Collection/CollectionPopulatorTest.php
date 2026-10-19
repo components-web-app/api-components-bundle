@@ -39,6 +39,8 @@ class CollectionPopulatorTest extends TestCase
     private array $providedContexts = [];
     /** @var list<Request> */
     private array $parameterRequests = [];
+    /** @var list<array<string, mixed>> */
+    private array $parameterContexts = [];
     private mixed $collectionData = [];
 
     protected function setUp(): void
@@ -135,6 +137,39 @@ class CollectionPopulatorTest extends TestCase
         self::assertSame([], $this->providedContexts);
     }
 
+    public function test_the_parameter_provider_is_given_the_collection_context_with_the_request_carrying_the_defaults(): void
+    {
+        $collection = $this->collection()->setDefaultQueryParameters(['order' => 'asc']);
+
+        $this->populator()->populate($collection);
+
+        $context = $this->parameterContexts[0];
+        self::assertSame(['perPage' => 5, 'order' => 'asc', 'search' => 'term'], $context['filters']);
+        self::assertInstanceOf(GetCollection::class, $context['operation']);
+        self::assertSame(DummyComponent::class, $context['resource_class']);
+        self::assertSame('read', $context['group']);
+        self::assertSame([], $context['uri_variables']);
+        self::assertNotSame($this->mainRequest, $context['request']);
+    }
+
+    public function test_the_items_are_normalized_with_a_normalization_context_built_from_the_request(): void
+    {
+        $contextBuilder = $this->createMock(SerializerContextBuilderInterface::class);
+        $contextBuilder->expects(self::once())->method('createFromRequest')->with($this->mainRequest, true, self::callback(static fn (array $attributes): bool => DummyComponent::class === $attributes['resource_class']))->willReturn(['group' => 'read']);
+
+        $this->populator(contextBuilder: $contextBuilder)->populate($this->collection());
+    }
+
+    public function test_a_collection_with_no_default_query_parameters_gives_the_parameter_provider_the_request_unchanged(): void
+    {
+        $collection = $this->collection()->setDefaultQueryParameters(null);
+
+        $this->populator()->populate($collection);
+
+        self::assertSame(['search' => 'term'], $this->parameterRequests[0]->query->all());
+        self::assertFalse($this->parameterRequests[0]->attributes->has('_api_query_parameters'));
+    }
+
     private function collection(): Collection
     {
         return (new Collection())
@@ -143,7 +178,7 @@ class CollectionPopulatorTest extends TestCase
             ->setDefaultQueryParameters(['order' => 'asc']);
     }
 
-    private function populator(?Operations $operations = null): CollectionPopulator
+    private function populator(?Operations $operations = null, ?SerializerContextBuilderInterface $contextBuilder = null): CollectionPopulator
     {
         $router = $this->createStub(RouterInterface::class);
         $router->method('match')->willReturn(['_api_resource_class' => DummyComponent::class, '_api_operation_name' => 'get_collection']);
@@ -153,8 +188,10 @@ class CollectionPopulatorTest extends TestCase
             $requestStack->push($this->mainRequest);
         }
 
-        $contextBuilder = $this->createStub(SerializerContextBuilderInterface::class);
-        $contextBuilder->method('createFromRequest')->willReturn(['group' => 'read']);
+        if (null === $contextBuilder) {
+            $contextBuilder = $this->createStub(SerializerContextBuilderInterface::class);
+            $contextBuilder->method('createFromRequest')->willReturn(['group' => 'read']);
+        }
 
         $normalizer = $this->createStub(NormalizerInterface::class);
         $normalizer->method('normalize')->willReturnCallback(static fn (mixed $items, ?string $format, array $context): array => [] === $items ? [] : [['normalized' => iterator_count(\is_array($items) ? new \ArrayIterator($items) : $items), 'format' => $format, 'group' => $context['group']]]);
@@ -173,6 +210,7 @@ class CollectionPopulatorTest extends TestCase
         $parameterProvider = $this->createStub(ProviderInterface::class);
         $parameterProvider->method('provide')->willReturnCallback(function ($operation, array $uriVariables, array $context): null {
             $this->parameterRequests[] = $context['request'];
+            $this->parameterContexts[] = $context;
 
             return null;
         });

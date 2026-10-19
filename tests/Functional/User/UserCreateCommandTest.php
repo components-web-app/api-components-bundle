@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\User;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\ConsoleTrait;
 use Symfony\Component\Console\Command\Command;
@@ -28,6 +29,37 @@ final class UserCreateCommandTest extends FunctionalTestCase
         self::assertSame(Command::SUCCESS, $tester->getStatusCode(), $tester->getDisplay());
         self::assertStringContainsString('Created user: console_user', $tester->getDisplay());
         self::assertSame(1, self::countUsersWithUsername('console_user'));
+    }
+
+    /**
+     * @param array<string, bool> $options
+     * @param list<string>        $roles
+     */
+    #[DataProvider('createdUsers')]
+    public function test_a_created_user_has_the_roles_and_enabled_state_of_the_options_and_a_verified_email_address(array $options, array $roles, bool $enabled): void
+    {
+        $password = self::generatedSecret();
+
+        $tester = self::runConsoleCommand('silverback:api-components:user:create', ['username' => 'console_user', 'email' => 'console@example.com', 'password' => $password] + $options);
+
+        self::assertSame(Command::SUCCESS, $tester->getStatusCode(), $tester->getDisplay());
+        $user = self::findUserByUsername('console_user');
+        self::assertNotNull($user);
+        self::assertSame($roles, $user->getRoles());
+        self::assertSame($enabled, $user->isEnabled());
+        self::assertTrue($user->isEmailAddressVerified());
+        self::assertSame('console@example.com', $user->getEmailAddress());
+        self::assertPasswordIs($password, 'console_user');
+    }
+
+    public static function createdUsers(): iterable
+    {
+        yield 'no options' => [[], ['ROLE_USER'], true];
+        yield 'an admin' => [['--admin' => true], ['ROLE_ADMIN'], true];
+        yield 'a super admin' => [['--super-admin' => true], ['ROLE_SUPER_ADMIN'], true];
+        yield 'a super admin also given admin' => [['--super-admin' => true, '--admin' => true], ['ROLE_SUPER_ADMIN'], true];
+        yield 'an inactive user' => [['--inactive' => true], ['ROLE_USER'], false];
+        yield 'an inactive admin' => [['--inactive' => true, '--admin' => true], ['ROLE_ADMIN'], false];
     }
 
     public function test_a_duplicate_username_fails_prints_the_violation_and_writes_no_second_user(): void

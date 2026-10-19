@@ -56,6 +56,7 @@ use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataCollector\CwaDataCollector;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\CollectionSerializeStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentGroupOrderStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentMoveStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionPlacementStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositionRemovalStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
@@ -142,9 +143,13 @@ use Silverback\ApiComponentsBundle\Form\Type\User\PasswordUpdateType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserLoginType;
 use Silverback\ApiComponentsBundle\Form\Type\User\UserRegisterType;
 use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
+use Silverback\ApiComponentsBundle\Helper\ComponentMove\ComponentMoveAccessChecker;
+use Silverback\ApiComponentsBundle\Helper\ComponentMove\ComponentMover;
+use Silverback\ApiComponentsBundle\Helper\ComponentMove\ComponentMoveRequestResolver;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentCycleDetector;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionIriResolver;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionOrderer;
+use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionPlacer;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
 use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
@@ -437,6 +442,55 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->tag('api_platform.state_processor');
     $services->alias('silverback.api_components.api_platform.state_processor.component_group_order', ComponentGroupOrderStateProcessor::class);
+
+    $services
+        ->set('silverback.api_components.helper.component_position_placer')
+        ->class(ComponentPositionPlacer::class)
+        ->args([
+            new Reference('silverback.api_components.helper.component_position_orderer'),
+            new Reference('silverback.api_components.helper.component_position_iri_resolver'),
+        ]);
+    $services->alias(ComponentPositionPlacer::class, 'silverback.api_components.helper.component_position_placer');
+
+    $services
+        ->set('silverback.api_components.helper.component_move_request_resolver')
+        ->class(ComponentMoveRequestResolver::class)
+        ->args([new Reference(IriConverterInterface::class)]);
+    $services->alias(ComponentMoveRequestResolver::class, 'silverback.api_components.helper.component_move_request_resolver');
+
+    $services
+        ->set('silverback.api_components.helper.component_move_access_checker')
+        ->class(ComponentMoveAccessChecker::class)
+        ->args([
+            new Reference('api_platform.metadata.resource.metadata_collection_factory'),
+            new Reference('api_platform.security.resource_access_checker'),
+        ]);
+    $services->alias(ComponentMoveAccessChecker::class, 'silverback.api_components.helper.component_move_access_checker');
+
+    $services
+        ->set('silverback.api_components.helper.component_mover')
+        ->class(ComponentMover::class)
+        ->args([
+            new Reference(ManagerRegistry::class),
+            new Reference(PageDataMetadataFactoryInterface::class),
+            new Reference('silverback.api_components.helper.component_cycle_detector'),
+            new Reference('silverback.api_components.helper.component_position_placer'),
+            new Reference('silverback.api_components.helper.component_move_access_checker'),
+            new Reference(ValidatorInterface::class),
+            new Reference('silverback.helper.timestamped_data_persister'),
+        ]);
+    $services->alias(ComponentMover::class, 'silverback.api_components.helper.component_mover');
+
+    $services
+        ->set(ComponentMoveStateProcessor::class)
+        ->args([
+            new Reference('silverback.api_components.helper.component_move_request_resolver'),
+            new Reference('silverback.api_components.helper.component_mover'),
+            new Reference(IriConverterInterface::class),
+        ])
+        ->autoconfigure(false)
+        ->tag('api_platform.state_processor');
+    $services->alias('silverback.api_components.api_platform.state_processor.component_move', ComponentMoveStateProcessor::class);
 
     $services
         ->set('silverback.api_components.validator.component_position')
@@ -2099,8 +2153,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args(
             [
                 new Reference('silverback.api_components.api_platform.state_processor.component_position_placement.inner'),
-                new Reference('silverback.api_components.helper.component_position_orderer'),
-                new Reference('silverback.api_components.helper.component_position_iri_resolver'),
+                new Reference('silverback.api_components.helper.component_position_placer'),
             ]
         );
     $services->alias(ComponentPositionPlacementStateProcessor::class, 'silverback.api_components.api_platform.state_processor.component_position_placement');

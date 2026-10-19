@@ -152,7 +152,7 @@ final class PublishableTest extends FunctionalTestCase
     }
 
     #[DataProvider('publicationDatesOnly')]
-    public function test_a_user_with_no_draft_access_creating_a_resource_gets_the_published_resource_with_the_publication_date_set_now(string $publishedAt): void
+    public function test_an_anonymous_user_creating_a_resource_gets_the_published_resource_with_the_publication_date_set_now(string $publishedAt): void
     {
         $client = static::createClient();
         $now = new \DateTimeImmutable();
@@ -396,7 +396,7 @@ final class PublishableTest extends FunctionalTestCase
         self::loginAsUser($client);
         [$published] = self::createPublishedWithDraft(new \DateTimeImmutable(self::FUTURE));
 
-        self::requestJsonLd($client, 'GET', self::iriOf($published) . '?' . $queryString);
+        self::requestJsonLd($client, 'GET', self::iriOf($published) . $queryString);
 
         self::assertResponseStatusCodeSame(200);
         self::assertJsonNodeSame('@id', self::iriOf($published));
@@ -409,8 +409,8 @@ final class PublishableTest extends FunctionalTestCase
      */
     public static function publishedFilterQueryStrings(): iterable
     {
-        yield 'null' => ['null'];
-        yield 'published=false' => ['published=false'];
+        yield 'no query string' => [''];
+        yield 'published=false' => ['?published=false'];
     }
 
     public function test_a_publishable_entity_with_customised_fields_can_be_used(): void

@@ -12,8 +12,10 @@
 namespace Silverback\ApiComponentsBundle\Tests\Functional\Route;
 
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\ApiRequestTrait;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\AuthenticationTrait;
+use Silverback\ApiComponentsBundle\Tests\Functional\Trait\CacheControlTrait;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\JsonTrait;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\ManifestTrait;
 
@@ -21,6 +23,7 @@ final class RouteScheduleTest extends FunctionalTestCase
 {
     use ApiRequestTrait;
     use AuthenticationTrait;
+    use CacheControlTrait;
     use JsonTrait;
     use ManifestTrait;
     use RouteSiteTrait;
@@ -151,7 +154,7 @@ final class RouteScheduleTest extends FunctionalTestCase
         self::assertRouteNotLive('/conference/programme');
     }
 
-    public function test_a_nested_static_page_under_a_scheduled_page_data_parent_inherits_the_parent_go_live_date(): void
+    public function test_a_nested_page_under_a_scheduled_parent_page_inherits_the_parent_go_live_date(): void
     {
         $client = static::createClient();
         self::createPageNestedWithinRoute('/conference/programme', '/conference');
@@ -706,5 +709,119 @@ final class RouteScheduleTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(200);
         self::assertJsonNodeExists('member[0]');
+    }
+
+    public function test_an_authenticated_user_without_the_publishable_permission_cannot_resolve_a_draft_route_behind_route_security_they_satisfy(): void
+    {
+        $client = static::createClient();
+        self::loginAsUser($client);
+        self::createRouteWithPage('/user-area/launch');
+        self::setRouteLiveAt('/user-area/launch', null);
+
+        self::requestJsonLd($client, 'GET', '/_/routes//user-area/launch');
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    public function test_an_authenticated_user_without_the_publishable_permission_cannot_get_the_manifest_for_a_scheduled_route(): void
+    {
+        $client = static::createClient();
+        self::loginAsUser($client);
+        self::createPageDataWithRoute('/launch');
+        self::setRouteLiveAt('/launch', new \DateTimeImmutable(self::FUTURE));
+
+        self::requestJsonLd($client, 'GET', '/_/resource_manifest//launch');
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    public function test_the_anonymous_route_collection_is_cached_until_the_next_go_live_moment(): void
+    {
+        $client = static::createClient();
+        self::createRouteWithPage('/launch');
+        self::setRouteLiveAt('/launch', new \DateTimeImmutable('+120 seconds'));
+
+        self::requestJsonLd($client, 'GET', '/_/routes');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertSharedMaxAgeAtMost(120);
+        self::assertSharedMaxAgeAtLeast(100);
+    }
+
+    public function test_the_cache_lifetime_is_capped_at_the_earliest_future_go_live_moment_ignoring_past_ones(): void
+    {
+        $client = static::createClient();
+        self::persistAndFlush(
+            self::newRoute('/launched')->setLiveAt(new \DateTimeImmutable('-1 day')),
+            self::newRoute('/launch')->setLiveAt(new \DateTimeImmutable('+120 seconds')),
+            self::newRoute('/later')->setLiveAt(new \DateTimeImmutable('+1200 seconds')),
+        );
+
+        self::requestJsonLd($client, 'GET', '/_/routes');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertSharedMaxAgeAtMost(120);
+        self::assertSharedMaxAgeAtLeast(100);
+    }
+
+    public function test_a_route_redirecting_to_live_page_data_carries_the_page_data(): void
+    {
+        $client = static::createClient();
+        $pageData = self::createRouteRedirectingToPageData('/old', '/launch');
+
+        self::requestJsonLd($client, 'GET', '/_/routes//old');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeSame('pageData', $pageData);
+    }
+
+    public function test_a_route_redirecting_to_scheduled_page_data_does_not_expose_the_page_data(): void
+    {
+        $client = static::createClient();
+        self::createRouteRedirectingToPageData('/old', '/launch');
+        self::setRouteLiveAt('/launch', new \DateTimeImmutable(self::FUTURE));
+
+        self::requestJsonLd($client, 'GET', '/_/routes//old');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeSame('redirectPath', '/launch');
+        self::assertJsonNodeNotExists('pageData');
+    }
+
+    public function test_a_scheduled_middle_route_and_everything_redirecting_through_it_are_pruned_from_the_redirect_tree(): void
+    {
+        $client = static::createClient();
+        $site = self::createRouteRedirectingThroughAMiddleRouteTo('/old', '/launch');
+        self::setRouteLiveAt($site['middle']->getPath(), new \DateTimeImmutable(self::FUTURE));
+
+        self::requestJsonLd($client, 'GET', self::iriOf($site['final']) . '/redirects');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeSame('path', '/launch');
+        self::assertJsonNodeNotExists('redirectedFrom[0]');
+    }
+
+    public function test_a_live_middle_route_is_kept_in_the_redirect_tree(): void
+    {
+        $client = static::createClient();
+        $site = self::createRouteRedirectingThroughAMiddleRouteTo('/old', '/launch');
+
+        self::requestJsonLd($client, 'GET', self::iriOf($site['final']) . '/redirects');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeSame('redirectedFrom[0].path', $site['middle']->getPath());
+        self::assertJsonNodeSame('redirectedFrom[0].redirectedFrom[0].path', '/old');
+    }
+
+    private static function createRouteRedirectingToPageData(string $path, string $targetPath): string
+    {
+        $template = static::newPage('redirect-target-template', true);
+        $pageData = new PageData();
+        $pageData->page = $template;
+        $target = static::newRoute($targetPath)->setPageData($pageData);
+        $route = static::newRoute($path)->setRedirect($target);
+        static::persistAndFlush($template, $pageData, $target, $route);
+
+        return static::iriOf($pageData);
     }
 }

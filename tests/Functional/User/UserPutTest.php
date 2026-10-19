@@ -28,6 +28,7 @@ final class UserPutTest extends FunctionalTestCase
         self::requestJsonLd($client, 'PUT', self::iriOf($user), ['username' => 'renamed_user']);
 
         self::assertResponseStatusCodeSame(200);
+        self::assertPutResponseIsTheMergedUser(self::iriOf($user), 'renamed_user', 'my_user@example.com', ['ROLE_ADMIN', 'ROLE_USER'], true);
         self::assertUserKeptTheirFields('renamed_user', 'my_user@example.com', 'ROLE_ADMIN', $password);
     }
 
@@ -41,6 +42,7 @@ final class UserPutTest extends FunctionalTestCase
         self::requestJsonLd($client, 'PUT', self::iriOf($user), ['username' => 'renamed_user', 'emailAddress' => 'renamed@example.com']);
 
         self::assertResponseStatusCodeSame(200);
+        self::assertPutResponseIsTheMergedUser(self::iriOf($user), 'renamed_user', 'renamed@example.com', ['ROLE_ADMIN', 'ROLE_USER'], true);
         self::assertUserKeptTheirFields('renamed_user', 'renamed@example.com', 'ROLE_ADMIN', $password);
     }
 
@@ -53,7 +55,31 @@ final class UserPutTest extends FunctionalTestCase
         self::requestJsonLd($client, 'PUT', self::iriOf($user), ['newEmailAddress' => 'changed@example.com']);
 
         self::assertResponseStatusCodeSame(200);
+        self::assertPutResponseIsTheMergedUser(self::iriOf($user), 'new_user', 'user@example.com', ['ROLE_USER'], false);
+        self::assertJsonNodeSame('newEmailAddress', 'changed@example.com');
         self::assertUserKeptTheirFields('new_user', 'user@example.com', 'ROLE_USER', $password);
+    }
+
+    /**
+     * @param list<string> $roles
+     */
+    private static function assertPutResponseIsTheMergedUser(string $iri, string $username, string $emailAddress, array $roles, bool $showsEnabled): void
+    {
+        self::assertJsonMatchesSchemaFile('user.schema.json');
+        self::assertJsonNodeSame('@id', $iri);
+        self::assertJsonNodeSame('@type', 'User');
+        self::assertJsonNodeSame('username', $username);
+        self::assertJsonNodeSame('emailAddress', $emailAddress);
+        self::assertJsonNodeSame('roles', $roles);
+        if ($showsEnabled) {
+            self::assertJsonNodeSame('enabled', true);
+        } else {
+            self::assertJsonNodeNotExists('enabled');
+        }
+        self::assertJsonNodeSame('emailAddressVerified', true);
+        foreach (['password', 'plainPassword', 'newPasswordConfirmationToken', 'emailAddressVerifyToken', 'newEmailConfirmationToken'] as $hidden) {
+            self::assertJsonNodeNotExists($hidden);
+        }
     }
 
     private static function assertUserKeptTheirFields(string $username, string $emailAddress, string $role, string $password): void

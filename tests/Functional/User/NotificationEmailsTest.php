@@ -67,4 +67,41 @@ final class NotificationEmailsTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(200);
         self::assertEmailOfTypeSent('username_changed_notification', 'test.user@example.com');
     }
+
+    public function test_i_receive_an_email_when_my_user_has_been_enabled_by_a_put(): void
+    {
+        $client = static::createClient();
+        self::loginAsSuperAdmin($client);
+        $user = self::createUserWithRole('user@user.co', self::generatedSecret(), 'ROLE_USER');
+        self::disableUser($user);
+
+        self::requestJsonLd($client, 'PUT', self::iriOf($user), ['enabled' => true], self::REFERER);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertEmailOfTypeSent('enabled_notification', 'test.user@example.com');
+    }
+
+    public function test_i_receive_an_email_when_my_username_has_been_changed_by_a_put(): void
+    {
+        $client = static::createClient();
+        self::loginAsSuperAdmin($client);
+        $user = self::createUserWithRole('my_username', self::generatedSecret(), 'ROLE_USER');
+
+        self::requestJsonLd($client, 'PUT', self::iriOf($user), ['username' => 'test.user@example.com'], self::REFERER);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertEmailOfTypeSent('username_changed_notification', 'test.user@example.com');
+    }
+
+    public function test_a_put_that_changes_nothing_a_notification_is_about_sends_no_email(): void
+    {
+        $client = static::createClient();
+        self::loginAsSuperAdmin($client);
+        $user = self::createUserWithRole('my_username', self::generatedSecret(), 'ROLE_USER');
+
+        self::requestJsonLd($client, 'PUT', self::iriOf($user), ['username' => 'my_username', 'enabled' => true], self::REFERER);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertNoEmailSent();
+    }
 }

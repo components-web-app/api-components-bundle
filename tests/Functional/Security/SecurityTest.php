@@ -80,6 +80,43 @@ final class SecurityTest extends FunctionalTestCase
         self::assertJsonNodeExists('member[0]');
     }
 
+    public function test_an_anonymous_route_collection_lists_the_routes_outside_route_security_only(): void
+    {
+        $client = static::createClient();
+        self::persistAndFlush(self::newRoute('/public'), self::newRoute('/user-area'), self::newRoute('/user-area/my-page'));
+
+        self::requestJsonLd($client, 'GET', '/_/routes');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeSame('totalItems', 1);
+        self::assertJsonNodeSame('member[0].path', '/public');
+    }
+
+    public function test_a_user_satisfying_route_security_gets_the_routes_under_it_in_the_route_collection(): void
+    {
+        $client = static::createClient();
+        self::loginAsUser($client);
+        self::persistAndFlush(self::newRoute('/public'), self::newRoute('/user-area'), self::newRoute('/user-area/my-page'));
+
+        self::requestJsonLd($client, 'GET', '/_/routes?order[path]=asc');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeSame('totalItems', 3);
+        self::assertJsonNodeSame('member[0].path', '/public');
+        self::assertJsonNodeSame('member[1].path', '/user-area');
+        self::assertJsonNodeSame('member[2].path', '/user-area/my-page');
+    }
+
+    public function test_a_route_whose_path_only_resembles_a_route_security_pattern_is_public(): void
+    {
+        $client = static::createClient();
+        self::createRouteWithPage('/user-are');
+
+        self::requestJsonLd($client, 'GET', '/_/routes//user-are');
+
+        self::assertResponseStatusCodeSame(200);
+    }
+
     public function test_a_component_in_a_restricted_route_cannot_be_loaded_by_an_anonymous_user(): void
     {
         $client = static::createClient();
@@ -168,10 +205,10 @@ final class SecurityTest extends FunctionalTestCase
     public function test_a_component_forbidden_in_a_static_route_but_allowed_within_page_data_is_allowed(): void
     {
         $client = static::createClient();
-        self::createComponentInRoute('/user-area/my-page');
-        $created = self::createComponentInPageDataRoute('/any-path');
+        $componentIri = self::iriOf(self::createComponentInRoute('/user-area/my-page')['component']);
+        self::placeComponentInPageDataRoute($componentIri, '/any-path');
 
-        self::requestJsonLd($client, 'GET', $created['component']);
+        self::requestJsonLd($client, 'GET', $componentIri);
 
         self::assertResponseStatusCodeSame(200);
     }
@@ -345,6 +382,31 @@ final class SecurityTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(401);
         self::assertResponseCookieExpiresWithin('api_components', 2);
+    }
+
+    public function test_the_mercure_cookie_is_cleared_with_the_jwt_cookie_when_the_authenticated_user_is_deleted_from_the_database(): void
+    {
+        $client = static::createClient();
+        $user = self::loginAsAdmin($client);
+        self::deleteUser($user);
+
+        self::requestJsonLd($client, 'GET', '/me');
+
+        self::assertResponseStatusCodeSame(401);
+        self::assertTrue(self::responseCookie('api_components')->isCleared());
+        self::assertMercureCookieCleared();
+    }
+
+    public function test_a_successful_request_to_me_keeps_the_jwt_cookie(): void
+    {
+        $client = static::createClient();
+        self::loginAsAdmin($client);
+
+        self::requestJsonLd($client, 'GET', '/me');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertResponseHasNoCookie('api_components');
+        self::assertResponseHasNoCookie(self::mercureCookieName());
     }
 
     public function test_me_resolves_the_user_by_username_even_after_the_user_entity_is_recreated_with_a_new_database_id(): void

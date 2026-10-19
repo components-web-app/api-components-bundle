@@ -16,6 +16,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTInvalidEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Cookie\JWTCookieProvider;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\EventListener\Jwt\JWTClearTokenListener;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -100,12 +101,36 @@ class JWTClearTokenListenerTest extends TestCase
         self::assertSame(['api_components', self::MERCURE_COOKIE], $this->cookieNames($response));
     }
 
-    private function buildListener(): JWTClearTokenListener
+    public function test_an_expired_jwt_is_recorded_as_a_cleared_cookie_for_the_profiler(): void
+    {
+        $collectorData = new CwaCollectorData();
+        $this->buildListener($collectorData)->onJwtExpired(new JWTExpiredEvent(new AuthenticationException(), new Response()));
+
+        self::assertTrue($collectorData->isJwtCookieCleared());
+    }
+
+    public function test_an_invalid_jwt_is_recorded_as_a_cleared_cookie_for_the_profiler(): void
+    {
+        $collectorData = new CwaCollectorData();
+        $this->buildListener($collectorData)->onJwtInvalid(new JWTInvalidEvent(new AuthenticationException(), new Response()));
+
+        self::assertTrue($collectorData->isJwtCookieCleared());
+    }
+
+    public function test_a_failed_me_request_is_not_recorded_as_a_cleared_cookie_for_the_profiler(): void
+    {
+        $collectorData = new CwaCollectorData();
+        $this->buildListener($collectorData)->onKernelResponse($this->makeResponseEvent($this->makeMeRequest(['api_components' => 'jwt']), new Response('', Response::HTTP_UNAUTHORIZED)));
+
+        self::assertFalse($collectorData->isJwtCookieCleared());
+    }
+
+    private function buildListener(?CwaCollectorData $collectorData = null): JWTClearTokenListener
     {
         $mercure = $this->createStub(MercureAuthorization::class);
         $mercure->method('getClearAuthorizationCookie')->willReturn(Cookie::create(self::MERCURE_COOKIE, null, 1, '/.well-known/mercure'));
 
-        return new JWTClearTokenListener(new JWTCookieProvider('api_components'), $mercure);
+        return new JWTClearTokenListener(new JWTCookieProvider('api_components'), $mercure, $collectorData);
     }
 
     /**

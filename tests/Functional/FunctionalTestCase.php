@@ -123,6 +123,7 @@ abstract class FunctionalTestCase extends ApiTestCase
     private static function resetTestDoubles(): void
     {
         HubStub::setUnreachable(false);
+        HubStub::failWith(null);
         HubStub::clearPublished();
         UnreachableDatabaseMiddleware::setUnreachable(false);
         RejectedDeleteMiddleware::setRejectDeletes(false);

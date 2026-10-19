@@ -126,6 +126,22 @@ final class OrphanedResourcesTest extends FunctionalTestCase
         self::assertJsonNodeCount('components', 0);
     }
 
+    public function test_a_group_owned_only_by_a_component_placed_on_a_page_is_not_reported_nor_anything_in_it(): void
+    {
+        $client = static::createClient();
+        self::loginAsAdmin($client);
+        self::createRoutedPageWhoseGroupHoldsAComponentOwningAGroup();
+
+        self::requestJsonLd($client, 'POST', '/_/orphaned_resources/scan');
+        self::assertResponseStatusCodeSame(202);
+        self::requestJsonLd($client, 'GET', '/_/orphaned_resources');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeCount('componentGroups', 0);
+        self::assertJsonNodeCount('componentPositions', 0);
+        self::assertJsonNodeCount('components', 0);
+    }
+
     public function test_a_later_scan_replaces_the_stored_report(): void
     {
         $client = static::createClient();
