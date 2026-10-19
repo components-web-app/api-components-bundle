@@ -11,12 +11,16 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Metadata\Factory;
 
+use ApiPlatform\Metadata\IriConverterInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\Page;
+use Silverback\ApiComponentsBundle\Helper\ComponentUsage\ComponentUsageLocator;
 use Silverback\ApiComponentsBundle\Metadata\Factory\ComponentUsageMetadataFactory;
 use Silverback\ApiComponentsBundle\Metadata\PageDataComponentMetadata;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
@@ -92,6 +96,105 @@ final class ComponentUsageMetadataFactoryTest extends TestCase
         self::assertSame(2, $usage->getPageDataCount());
     }
 
+    public function test_the_counts_alone_carry_no_locations(): void
+    {
+        $component = new DummyComponent();
+        $this->entityManager->persist($component);
+        $this->place($component, 1);
+
+        self::assertNull($this->factory()->create($component)->getLocations());
+    }
+
+    public function test_the_locations_list_one_entry_per_counted_position_and_page_data_property(): void
+    {
+        $component = new DummyComponent();
+        $page = new Page();
+        $page->reference = 'template';
+        $page->isTemplate = true;
+        $page->setTitle('Template');
+        $page->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $page->addComponentGroup($group = $this->group());
+        $holding = new PageDataWithComponent();
+        $holding->page = $page;
+        $holding->setTitle('Holding');
+        $holding->component = $component;
+        $holding->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $this->entityManager->persist($component);
+        $this->entityManager->persist($page);
+        $this->entityManager->persist($holding);
+        $position = $this->position($group, $component, 0);
+        $pageDataProvider = $this->createStub(PageDataProvider::class);
+        $pageDataProvider->method('findPageDataComponentMetadata')->willReturn([
+            new PageDataComponentMetadata([$holding], new ArrayCollection(['component'])),
+        ]);
+        $this->entityManager->flush();
+
+        $usage = $this->factory($pageDataProvider)->createWithLocations($component);
+
+        $holdingOn = ['iri' => self::iri($holding), 'title' => 'Holding', 'routePath' => null];
+        self::assertSame(1, $usage->getPositionCount());
+        self::assertSame(1, $usage->getPageDataCount());
+        self::assertSame([
+            [
+                'componentPosition' => self::iri($position),
+                'pageDataProperty' => null,
+                'pageData' => null,
+                'property' => null,
+                'layout' => null,
+                'renderedOn' => [$holdingOn, ['iri' => self::iri($page), 'title' => 'Template', 'routePath' => null]],
+                'renderedOnCount' => 2,
+            ],
+            [
+                'componentPosition' => null,
+                'pageDataProperty' => null,
+                'pageData' => self::iri($holding),
+                'property' => 'component',
+                'layout' => null,
+                'renderedOn' => [$holdingOn],
+                'renderedOnCount' => 1,
+            ],
+        ], $usage->getLocations());
+    }
+
+    public function test_the_locations_of_a_draft_are_those_of_its_published_component(): void
+    {
+        [$published, $draft] = $this->persistPublishedWithDraft(new \DateTime('-1 day'), null);
+        $this->place($published, 1);
+
+        $locations = $this->factory()->createWithLocations($draft)->getLocations() ?? [];
+
+        self::assertCount(1, $locations);
+        self::assertSame(1, $this->factory()->createWithLocations($draft)->getPositionCount());
+    }
+
+    private static function iri(object $resource): string
+    {
+        return \sprintf('/%s/%s', $resource::class, $resource->getId());
+    }
+
+    private function group(): ComponentGroup
+    {
+        $group = new ComponentGroup();
+        $group->reference = 'group-' . bin2hex(random_bytes(4));
+        $group->location = 'group';
+        $group->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $this->entityManager->persist($group);
+
+        return $group;
+    }
+
+    private function position(ComponentGroup $group, AbstractComponent $component, int $sortValue): ComponentPosition
+    {
+        $position = new ComponentPosition();
+        $position->componentGroup = $group;
+        $position->component = $component;
+        $position->sortValue = $sortValue;
+        $position->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $this->entityManager->persist($position);
+
+        return $position;
+    }
+
     private function place(AbstractComponent $component, int $times): void
     {
         $group = new ComponentGroup();
@@ -117,6 +220,15 @@ final class ComponentUsageMetadataFactoryTest extends TestCase
             $pageDataProvider->method('findPageDataComponentMetadata')->willReturn([]);
         }
 
-        return new ComponentUsageMetadataFactory(new ComponentPositionRepository($this->registry), $pageDataProvider, $this->publishableStatusChecker, $this->registry);
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturnCallback(static fn (object $resource): string => self::iri($resource));
+
+        return new ComponentUsageMetadataFactory(
+            new ComponentPositionRepository($this->registry),
+            $pageDataProvider,
+            $this->publishableStatusChecker,
+            $this->registry,
+            new ComponentUsageLocator($this->registry, new PublishableAttributeReader($this->registry), $iriConverter),
+        );
     }
 }

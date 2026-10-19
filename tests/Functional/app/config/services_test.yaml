@@ -15,6 +15,10 @@ services:
         tags:
             - { name: doctrine.middleware }
 
+    Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\QueryCountingMiddleware:
+        tags:
+            - { name: doctrine.middleware }
+
     Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\StateProvider\UnpersistedComponentStateProvider:
         tags: [ 'api_platform.state_provider' ]
 

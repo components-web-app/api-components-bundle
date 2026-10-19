@@ -18,6 +18,7 @@ use ApiPlatform\Test\Client;
 use DAMA\DoctrineTestBundle\Doctrine\DBAL\StaticDriver;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\QueryCountingMiddleware;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\RejectedDeleteMiddleware;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\UnreachableDatabaseMiddleware;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub;
@@ -127,6 +128,7 @@ abstract class FunctionalTestCase extends ApiTestCase
         HubStub::clearPublished();
         UnreachableDatabaseMiddleware::setUnreachable(false);
         RejectedDeleteMiddleware::setRejectDeletes(false);
+        QueryCountingMiddleware::reset();
         MockClientCallback::setCacheUnreachable(false);
         MockClientCallback::clearPurgeRequests();
         SwitchableMailer::setUnreachable(false);

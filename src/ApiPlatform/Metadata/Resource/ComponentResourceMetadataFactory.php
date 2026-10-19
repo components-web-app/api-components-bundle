@@ -67,7 +67,7 @@ class ComponentResourceMetadataFactory implements ResourceMetadataCollectionFact
                 }
                 if ($copyOperation) {
                     $usageOperationName = '_api_' . $usagePath . '_get_usage';
-                    $operations->add($usageOperationName, $copyOperation->withUriTemplate($usagePath)->withName($usageOperationName));
+                    $operations->add($usageOperationName, $copyOperation->withUriTemplate($usagePath)->withName($usageOperationName)->withCacheHeaders(['public' => false, 'no_store' => true]));
 
                     $movePath = \sprintf('/%s/{id}/move', $pathSegmentName);
                     $moveOperationName = '_api_' . $movePath . '_post_move';

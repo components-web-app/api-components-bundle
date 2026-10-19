@@ -11,23 +11,29 @@
 
 namespace Silverback\ApiComponentsBundle\Metadata;
 
+use Silverback\ApiComponentsBundle\Helper\ComponentUsage\ComponentUsageLocations;
+use Symfony\Component\Serializer\Attribute\Context;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 /**
+ * @phpstan-import-type PresentedLocation from ComponentUsageLocations
+ *
  * @author Daniel West <daniel@silverback.is>
  */
 class ComponentUsageMetadata
 {
-    #[Groups(['AbstractComponent:cwa_resource:read'])]
-    private int $positionCount;
-
-    #[Groups(['AbstractComponent:cwa_resource:read'])]
-    private int $pageDataCount;
-
-    public function __construct(?int $positionCount = null, ?int $pageDataCount = null)
-    {
-        $this->positionCount = $positionCount;
-        $this->pageDataCount = $pageDataCount;
+    /**
+     * @param list<PresentedLocation>|null $locations
+     */
+    public function __construct(
+        #[Groups(['AbstractComponent:cwa_resource:read'])]
+        private readonly int $positionCount,
+        #[Groups(['AbstractComponent:cwa_resource:read'])]
+        private readonly int $pageDataCount,
+        #[Groups(['AbstractComponent:cwa_resource:read'])]
+        #[Context(normalizationContext: ['api_sub_level' => true])]
+        private readonly ?array $locations = null,
+    ) {
     }
 
     public function getPositionCount(): int
@@ -44,5 +50,13 @@ class ComponentUsageMetadata
     public function getTotal(): int
     {
         return $this->positionCount + $this->pageDataCount;
+    }
+
+    /**
+     * @return list<PresentedLocation>|null
+     */
+    public function getLocations(): ?array
+    {
+        return $this->locations;
     }
 }
