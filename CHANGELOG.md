@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Added
+- `POST {component IRI}/move` moves a component between component positions and page data component properties in one request and one flush, with the same validation and security as the separate writes; a moved position keeps its IRI and a position moved into a property is removed without deleting its component ([#533](https://github.com/components-web-app/api-components-bundle/pull/533))
+
 ## [2.0.0-alpha.31](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.30...2.0.0-alpha.31) - 2026-10-19
 
 ### Fixed
