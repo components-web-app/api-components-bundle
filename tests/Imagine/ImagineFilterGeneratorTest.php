@@ -23,15 +23,21 @@ use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 
 class ImagineFilterGeneratorTest extends TestCase
 {
+    use MemoryLimitAboveUsageTrait;
+
     private const string PATH = 'uploads/image-1a2b3c4d.jpg';
 
     private string $originalLimit;
+    private string $limit;
+    private string $ceiling;
     private ?string $heldAllocation = null;
 
     protected function setUp(): void
     {
         $this->originalLimit = (string) \ini_get('memory_limit');
-        ini_set('memory_limit', '256M');
+        $this->limit = self::megabytesAboveUsage(256);
+        $this->ceiling = self::megabytesAboveUsage(512);
+        self::setMemoryLimit($this->limit);
     }
 
     protected function tearDown(): void
@@ -54,7 +60,7 @@ class ImagineFilterGeneratorTest extends TestCase
         $url = $this->buildGenerator($filterService, stored: true)->filteredImageUrl(self::PATH, 'thumbnail', 8202, 5468);
 
         self::assertSame('/media/cache/thumbnail/' . self::PATH, $url);
-        self::assertSame('256M', $limitDuringCall);
+        self::assertSame($this->limit, $limitDuringCall);
     }
 
     public function test_an_unstored_filter_that_fits_is_generated_under_the_raised_limit_which_is_then_restored(): void
@@ -70,8 +76,8 @@ class ImagineFilterGeneratorTest extends TestCase
         $url = $this->buildGenerator($filterService)->filteredImageUrl(self::PATH, 'thumbnail', 4000, 3000);
 
         self::assertSame('/media/cache/thumbnail/' . self::PATH, $url);
-        self::assertSame('536870912', $limitDuringCall);
-        self::assertSame('256M', \ini_get('memory_limit'));
+        self::assertSame((string) self::bytesOf($this->ceiling), $limitDuringCall);
+        self::assertSame($this->limit, \ini_get('memory_limit'));
     }
 
     public function test_a_filter_whose_generation_fails_is_skipped_and_logged_and_the_limit_restored(): void
@@ -88,7 +94,7 @@ class ImagineFilterGeneratorTest extends TestCase
         );
 
         self::assertNull($this->buildGenerator($filterService, logger: $logger)->filteredImageUrl(self::PATH, 'thumbnail', 4000, 3000));
-        self::assertSame('256M', \ini_get('memory_limit'));
+        self::assertSame($this->limit, \ini_get('memory_limit'));
     }
 
     public function test_a_stored_filter_that_fails_to_resolve_is_skipped(): void
@@ -136,11 +142,12 @@ class ImagineFilterGeneratorTest extends TestCase
             self::assertSame($error, $exception);
         }
 
-        self::assertSame('256M', \ini_get('memory_limit'));
+        self::assertSame($this->limit, \ini_get('memory_limit'));
     }
 
     public function test_an_unstored_filter_that_cannot_fit_under_the_ceiling_is_skipped_and_logged(): void
     {
+        $ceilingBytes = self::bytesOf($this->ceiling);
         $filterService = $this->createMock(FilterService::class);
         $filterService->expects(self::never())->method('getUrlOfFilteredImage');
 
@@ -152,13 +159,13 @@ class ImagineFilterGeneratorTest extends TestCase
                 && 8202 === $context['width']
                 && 5468 === $context['height']
                 && 8202 * 5468 * 12 * 1048576 / 1000000 <= $context['estimated_bytes'] + 1
-                && 536870912 === $context['memory_limit'])
+                && $ceilingBytes === $context['memory_limit'])
         );
 
         $url = $this->buildGenerator($filterService, logger: $logger)->filteredImageUrl(self::PATH, 'thumbnail', 8202, 5468);
 
         self::assertNull($url);
-        self::assertSame('256M', \ini_get('memory_limit'));
+        self::assertSame($this->limit, \ini_get('memory_limit'));
     }
 
     public function test_a_skipped_filter_needs_no_logger(): void
@@ -178,7 +185,8 @@ class ImagineFilterGeneratorTest extends TestCase
 
     public function test_a_limit_above_the_ceiling_is_kept_and_used_as_the_budget(): void
     {
-        ini_set('memory_limit', '1G');
+        $aboveCeiling = self::megabytesAboveUsage(1024);
+        self::setMemoryLimit($aboveCeiling);
         $limitDuringCall = null;
         $filterService = $this->createStub(FilterService::class);
         $filterService->method('getUrlOfFilteredImage')->willReturnCallback(static function () use (&$limitDuringCall): string {
@@ -188,7 +196,7 @@ class ImagineFilterGeneratorTest extends TestCase
         });
 
         self::assertNotNull($this->buildGenerator($filterService)->filteredImageUrl(self::PATH, 'thumbnail', 7000, 6000));
-        self::assertSame('1G', $limitDuringCall);
+        self::assertSame($aboveCeiling, $limitDuringCall);
     }
 
     #[DataProvider('ceilingsThatDoNotRaise')]
@@ -201,10 +209,10 @@ class ImagineFilterGeneratorTest extends TestCase
 
             return '/media/cache/thumbnail/' . self::PATH;
         });
-        $generator = $this->buildGenerator($filterService, ceiling: $ceiling);
+        $generator = $this->buildGeneratorWithCeiling($filterService, $ceiling);
 
         self::assertNotNull($generator->filteredImageUrl(self::PATH, 'thumbnail', 2000, 1500));
-        self::assertSame('256M', $limitDuringCall);
+        self::assertSame($this->limit, $limitDuringCall);
         self::assertNull($generator->filteredImageUrl(self::PATH, 'thumbnail', 4000, 6000));
     }
 
@@ -228,11 +236,12 @@ class ImagineFilterGeneratorTest extends TestCase
         });
 
         self::assertNotNull($this->buildGenerator($filterService)->filteredImageUrl(self::PATH, 'thumbnail', null, null));
-        self::assertSame('536870912', $limitDuringCall);
+        self::assertSame((string) self::bytesOf($this->ceiling), $limitDuringCall);
     }
 
     public function test_a_limit_that_cannot_be_restored_is_logged(): void
     {
+        $ceilingBytes = self::bytesOf($this->ceiling);
         ini_set('memory_limit', (string) (memory_get_usage(true) + 4194304));
         $previous = (string) \ini_get('memory_limit');
         $filterService = $this->createStub(FilterService::class);
@@ -245,12 +254,12 @@ class ImagineFilterGeneratorTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('warning')->with(
             self::stringContains('could not be restored'),
-            self::callback(static fn (array $context): bool => $previous === $context['previous_memory_limit'] && 536870912 === $context['memory_limit'])
+            self::callback(static fn (array $context): bool => $previous === $context['previous_memory_limit'] && $ceilingBytes === $context['memory_limit'])
         );
 
         $this->buildGenerator($filterService, logger: $logger)->filteredImageUrl(self::PATH, 'thumbnail', 100, 100);
 
-        self::assertSame('536870912', \ini_get('memory_limit'));
+        self::assertSame((string) self::bytesOf($this->ceiling), \ini_get('memory_limit'));
     }
 
     public function test_a_filter_that_is_generated_or_resolved_is_reported_as_resolved_with_its_url(): void
@@ -337,7 +346,12 @@ class ImagineFilterGeneratorTest extends TestCase
         self::assertSame($megabytesPerMegapixel * 1048576 * 45, $generator->estimateBytes(9000, 5000));
     }
 
-    private function buildGenerator(FilterService $filterService, bool $stored = false, ?LoggerInterface $logger = null, ?string $ceiling = '512M', string $driverService = 'liip_imagine.gd'): ImagineFilterGenerator
+    private function buildGenerator(FilterService $filterService, bool $stored = false, ?LoggerInterface $logger = null, string $driverService = 'liip_imagine.gd'): ImagineFilterGenerator
+    {
+        return $this->buildGeneratorWithCeiling($filterService, $this->ceiling, $stored, $logger, $driverService);
+    }
+
+    private function buildGeneratorWithCeiling(FilterService $filterService, ?string $ceiling, bool $stored = false, ?LoggerInterface $logger = null, string $driverService = 'liip_imagine.gd'): ImagineFilterGenerator
     {
         $cacheManager = $this->createStub(CacheManager::class);
         $cacheManager->method('isStored')->willReturn($stored);
