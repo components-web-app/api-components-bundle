@@ -220,6 +220,39 @@ class HttpCachePurgerTest extends TestCase
         );
     }
 
+    public function test_the_resource_tags_are_the_iris_a_write_to_it_purges_without_the_rendered_html_tag_and_without_purging(): void
+    {
+        $purger = $this->createPurger([SiteConfigParameter::class]);
+
+        self::assertSame(
+            ['/_/siteconfigparameter', '/_/siteconfigparameter/maintenanceModeEnabled'],
+            $purger->getResourceTags($this->siteConfigParameter('maintenanceModeEnabled')),
+        );
+        self::assertSame([], $this->purged);
+    }
+
+    public function test_reading_the_resource_tags_leaves_the_tags_collected_in_the_request_for_the_next_propagate(): void
+    {
+        $purger = $this->createPurger([SiteConfigParameter::class]);
+        $purger->add(new HttpCachePurgerUnrelatedResource());
+
+        $purger->getResourceTags($this->siteConfigParameter('maintenanceModeEnabled'));
+        $purger->propagate();
+
+        self::assertSame([['/_/httpcachepurgerunrelatedresource', '/_/httpcachepurgerunrelatedresource/id']], $this->purged);
+    }
+
+    public function test_reading_the_resource_tags_keeps_a_rendered_html_tag_already_collected(): void
+    {
+        $purger = $this->createPurger([SiteConfigParameter::class]);
+        $purger->add($this->siteConfigParameter('siteName'));
+
+        $purger->getResourceTags(new HttpCachePurgerUnrelatedResource());
+        $purger->propagate();
+
+        self::assertContains(HttpCachePurger::RENDERED_HTML_TAG, $this->purged[0]);
+    }
+
     public function test_purging_the_rendered_html_is_recorded_on_the_collector(): void
     {
         $collectorData = new CwaCollectorData();

@@ -7,6 +7,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ### Breaking
 - A `route_security` `route` pattern matches letters only in the same case and every other character byte for byte, in `RouteVoter` and the route list alike: `/User-Area*` no longer restricts `/user-area/x`; a database other than PostgreSQL, MySQL, MariaDB or SQLite is refused when the list applies a rule ([#546](https://github.com/components-web-app/api-components-bundle/pull/546))
 
+### Added
+- `silverback:api-components:maintenance on|off|status` turns the `maintenanceModeEnabled` site config on or off for deploys, then purges `cwa-html` and the site config tags explicitly (exit 1 when the purge or the database fails, 2 for an invalid state); it touches only the site config table, and a site config write no longer looks up `Collection` components ([#550](https://github.com/components-web-app/api-components-bundle/pull/550))
+
 ### Changed
 - A stored imagine variant costs one storage check, not two: `ImagineFilterGenerator` resolves it through the cache manager instead of liip's `FilterService::getUrlOfFilteredImage()`, which checked `isStored()` again, and generates an unstored one with a forced `warmUpCache()` ([#545](https://github.com/components-web-app/api-components-bundle/pull/545))
 - Reading an uploadable resource queries its stored file's file info once per path, the original and every imagine variant together, instead of once for the original and once per filter; `ImagineFilterResult::$generated` tells a variant generated in the call, whose row is then read again ([#547](https://github.com/components-web-app/api-components-bundle/pull/547))
