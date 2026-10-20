@@ -6,6 +6,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Changed
 - A stored imagine variant costs one storage check, not two: `ImagineFilterGenerator` resolves it through the cache manager instead of liip's `FilterService::getUrlOfFilteredImage()`, which checked `isStored()` again, and generates an unstored one with a forced `warmUpCache()` ([#545](https://github.com/components-web-app/api-components-bundle/pull/545))
+- Reading an uploadable resource queries its stored file's file info once per path, the original and every imagine variant together, instead of once for the original and once per filter; `ImagineFilterResult::$generated` tells a variant generated in the call, whose row is then read again ([#547](https://github.com/components-web-app/api-components-bundle/pull/547))
 
 ## [2.0.0-alpha.32](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.31...2.0.0-alpha.32) - 2026-10-19
 
