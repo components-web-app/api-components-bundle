@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Changed
+- A resource manifest builds no media objects for uploadable resources, since none reach its body: no storage call and no file info query per image or imagine variant while building one, and no file info row or variant written as a side effect ([#544](https://github.com/components-web-app/api-components-bundle/pull/544))
+
 ## [2.0.0-alpha.32](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.31...2.0.0-alpha.32) - 2026-10-19
 
 ### Breaking
