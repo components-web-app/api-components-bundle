@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\Event\ResourceChangedEvent;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
@@ -78,8 +79,9 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
             return $this->iriConverter->getIriFromResource($object);
         }
 
+        $isManifest = $context[CwaTagCollector::MANIFEST_CONTEXT_KEY] ?? false;
         $isPublished = $this->publishableStatusChecker->isActivePublishedAt($object);
-        $locationCount = method_exists($object, 'getComponentPositions')
+        $locationCount = !$isManifest && method_exists($object, 'getComponentPositions')
             ? $this->countLocations($object)
             : null;
 
@@ -107,7 +109,7 @@ final class PublishableNormalizer implements NormalizerInterface, NormalizerAwar
             $context[self::ASSOCIATION] = $reverseAssocObject;
         }
 
-        if ($this->publishableStatusChecker->isGranted($object)) {
+        if (!$isManifest && $this->publishableStatusChecker->isGranted($object)) {
             try {
                 $this->validator->validate($object, [PublishableValidator::PUBLISHED_KEY => true]);
             } catch (ValidationException $exception) {

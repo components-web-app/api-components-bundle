@@ -207,6 +207,7 @@ A Route reaches its own page **and every ancestor** through `parentPage`/`parent
 - `pageDataProperty` positions resolve during manifest generation through the `cwa_current_page_data` context key set by `PageDataNormalizer`. Draft components are excluded for anonymous callers.
 - The manifest body contains only IRIs; each follow-up fetch is voter-checked.
 - **A manifest builds no media objects** (#542): `UploadableNormalizer` skips `MediaObjectFactory` under `CwaTagCollector::MANIFEST_CONTEXT_KEY`, because none reach the body, so a manifest makes no storage call and no file info query. `Page\ManifestUploadableTest` pins both with `CountingFilesystemAdapter` (a test double decorating the `local` and `in_memory` adapters) and `QueryCountingMiddleware::queriesOnTable()`.
+- **A manifest neither counts a publishable component's locations nor validates it for publishing** (#542): `PublishableNormalizer` skips `countLocations()` and the `PublishableValidator::PUBLISHED_KEY` validation under `CwaTagCollector::MANIFEST_CONTEXT_KEY`, because both only feed `_metadata`. Anything that changes an IRI still runs there: the draft/published association context, and `ComponentPositionNormalizer`'s draft swap and hidden-publication recording (the manifest's `Expires`). `Page\ManifestPublishableTest` pins the tree, the `Expires` and the queries.
 
 ### Caching
 
