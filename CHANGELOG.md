@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Changed
+- A resource manifest loads its component tree before normalizing it, one fetch-joined query per owner level (pages, layouts, then each level of components) instead of one query per group, position and component ([#548](https://github.com/components-web-app/api-components-bundle/pull/548))
+
 ## [2.0.0-alpha.32](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.31...2.0.0-alpha.32) - 2026-10-19
 
 ### Breaking
