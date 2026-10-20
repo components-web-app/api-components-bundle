@@ -46,7 +46,10 @@ trait PublishableDatabaseTrait
     private PublishableStatusChecker $publishableStatusChecker;
     private PublishableDraftMerger $publishableDraftMerger;
 
-    private function setUpPublishableDatabase(): void
+    /**
+     * @param array<string, mixed> $connectionParameters
+     */
+    private function setUpPublishableDatabase(array $connectionParameters = ['driver' => 'pdo_sqlite', 'memory' => true]): void
     {
         if (!Type::hasType('uuid')) {
             Type::addType('uuid', UuidType::class);
@@ -57,7 +60,7 @@ trait PublishableDatabaseTrait
             __DIR__ . '/../../Functional/TestBundle/Entity',
         ], true);
         $configuration->enableNativeLazyObjects(true);
-        $this->entityManager = new EntityManager(DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $configuration), $configuration);
+        $this->entityManager = new EntityManager(DriverManager::getConnection($connectionParameters, $configuration), $configuration);
         $registry->method('getManagerForClass')->willReturn($this->entityManager);
         $this->registry = $registry;
 
@@ -67,7 +70,12 @@ trait PublishableDatabaseTrait
         $events->addEventListener(Events::loadClassMetadata, new PublishableListener(new PublishableAttributeReader($registry)));
         $events->addEventListener(Events::loadClassMetadata, new UploadableListener(new UploadableAttributeReader($registry, true)));
         $events->addEventListener(Events::loadClassMetadata, new TimestampedListener(new TimestampedAttributeReader($registry)));
-        (new SchemaTool($this->entityManager))->createSchema($this->entityManager->getMetadataFactory()->getAllMetadata());
+        $schemaTool = new SchemaTool($this->entityManager);
+        $allMetadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
+        if (!($connectionParameters['memory'] ?? false)) {
+            $schemaTool->dropSchema($allMetadata);
+        }
+        $schemaTool->createSchema($allMetadata);
 
         $this->publishableStatusChecker = new PublishableStatusChecker($registry, new PublishableAttributeReader($registry), $this->createStub(AuthorizationCheckerInterface::class), 'is_granted("ROLE_ADMIN")');
         $fileManager = new UploadableFileManager(

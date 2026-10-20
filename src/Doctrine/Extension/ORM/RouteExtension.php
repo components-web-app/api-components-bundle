@@ -15,6 +15,7 @@ use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\ResourceAccessCheckerInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteAncestorGateResolver;
@@ -47,14 +48,49 @@ class RouteExtension implements QueryCollectionExtensionInterface
             $this->routeAncestorGateResolver->andWhereNotGated($queryBuilder, $queryNameGenerator, $alias);
         }
 
-        foreach ($this->config ?? [] as $index => $routeConfig) {
-            if ($this->resourceAccessChecker->isGranted($resourceClass, $routeConfig['security'])) {
-                continue;
+        $patterns = [];
+        foreach ($this->config ?? [] as $routeConfig) {
+            if (!$this->resourceAccessChecker->isGranted($resourceClass, $routeConfig['security'])) {
+                $patterns[] = $routeConfig['route'];
             }
-            $param = 'path_' . $index;
-            $queryBuilder
-                ->andWhere(\sprintf("LOWER(%s.path) NOT LIKE :%s ESCAPE '%s'", $alias, $param, RouteSecurityPattern::LIKE_ESCAPE))
-                ->setParameter($param, RouteSecurityPattern::like($routeConfig['route']));
         }
+        if (!$patterns) {
+            return;
+        }
+
+        $manager = $queryBuilder->getEntityManager();
+        $restrictedRouteIds = $this->fetchRouteIdsMatching($manager, $patterns);
+        if (!$restrictedRouteIds) {
+            return;
+        }
+
+        $parameter = $queryNameGenerator->generateParameterName('cwa_restricted_route_ids');
+        $queryBuilder
+            ->andWhere($queryBuilder->expr()->notIn(\sprintf('%s.%s', $alias, $manager->getClassMetadata(Route::class)->getSingleIdentifierFieldName()), ':' . $parameter))
+            ->setParameter($parameter, $restrictedRouteIds);
+    }
+
+    /**
+     * @param non-empty-list<string> $patterns
+     *
+     * @return list<string>
+     */
+    private function fetchRouteIdsMatching(EntityManagerInterface $manager, array $patterns): array
+    {
+        $metadata = $manager->getClassMetadata(Route::class);
+        $connection = $manager->getConnection();
+        $platform = $connection->getDatabasePlatform();
+        $path = $metadata->getColumnName('path');
+
+        $conditions = [];
+        $parameters = [];
+        foreach ($patterns as $index => $pattern) {
+            $conditions[] = RouteSecurityPattern::sqlCondition($platform, $path, ':pattern_' . $index);
+            $parameters['pattern_' . $index] = RouteSecurityPattern::sqlParameter($platform, $pattern);
+        }
+
+        $sql = \sprintf('SELECT %s FROM %s WHERE %s', $metadata->getSingleIdentifierColumnName(), $metadata->getTableName(), implode(' OR ', $conditions));
+
+        return array_map(static fn ($id): string => (string) $id, $connection->executeQuery($sql, $parameters)->fetchFirstColumn());
     }
 }
