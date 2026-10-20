@@ -13,18 +13,21 @@ namespace Silverback\ApiComponentsBundle\Tests\Helper\Page;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\Page\ManifestTreeLoader;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableCustomComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Tests\Helper\OrphanedResource\OrphanedResourceDatabaseTestCase;
 
 class ManifestTreeLoaderTest extends OrphanedResourceDatabaseTestCase
 {
-    public function test_a_routed_pages_tree_is_loaded_in_one_query_per_owner_level_and_then_walked_without_any(): void
+    public function test_a_routed_pages_tree_is_loaded_in_two_queries_per_owner_level_and_then_walked_without_any(): void
     {
         $page = $this->page();
         $layout = $this->layout();
@@ -45,9 +48,9 @@ class ManifestTreeLoaderTest extends OrphanedResourceDatabaseTestCase
 
         $route = $this->entityManager->find(Route::class, $routeId);
         $this->queryLogger->queries = [];
-        (new ManifestTreeLoader($this->registry))->load($route);
+        (new ManifestTreeLoader($this->registry, $this->publishableAttributeReader))->load($route);
 
-        self::assertCount(4, $this->queryLogger->queries, implode("\n", $this->queryLogger->queries));
+        self::assertCount(8, $this->queryLogger->queries, implode("\n", $this->queryLogger->queries));
         $this->queryLogger->queries = [];
         self::assertSame(['nested-0' => 1, 'nested-1' => 1, 'page-group' => 2], $this->walk($route->getPage()->getComponentGroups()));
         self::assertSame(['layout-group' => 1], $this->walk($route->getPage()->layout->getComponentGroups()));
@@ -73,7 +76,7 @@ class ManifestTreeLoaderTest extends OrphanedResourceDatabaseTestCase
         $redirectId = $this->flushAndClear($redirect);
 
         $redirect = $this->entityManager->find(Route::class, $redirectId);
-        (new ManifestTreeLoader($this->registry))->load($redirect);
+        (new ManifestTreeLoader($this->registry, $this->publishableAttributeReader))->load($redirect);
 
         $this->queryLogger->queries = [];
         $pageData = $redirect->getRedirect()->getPageData();
@@ -97,10 +100,10 @@ class ManifestTreeLoaderTest extends OrphanedResourceDatabaseTestCase
 
         $route = $this->entityManager->find(Route::class, $routeId);
         $this->queryLogger->queries = [];
-        (new ManifestTreeLoader($this->registry))->load($route);
+        (new ManifestTreeLoader($this->registry, $this->publishableAttributeReader))->load($route);
 
-        self::assertCount(3, $this->queryLogger->queries, implode("\n", $this->queryLogger->queries));
-        self::assertCount(1, array_filter($this->queryLogger->queries, static fn (string $sql): bool => str_contains($sql, 'LEFT JOIN') && str_contains($sql, 'FROM _acb_page ')));
+        self::assertCount(5, $this->queryLogger->queries, implode("\n", $this->queryLogger->queries));
+        self::assertCount(1, array_filter($this->queryLogger->queries, static fn (string $sql): bool => str_contains($sql, 'LEFT JOIN') && str_contains($sql, 'FROM _acb_page ') && !str_contains($sql, ' CASE ')));
         $this->queryLogger->queries = [];
         self::assertSame(['template-group' => 1], $this->walk($route->getPageData()->page->getComponentGroups()));
         self::assertSame([], $this->queryLogger->queries);
@@ -119,7 +122,96 @@ class ManifestTreeLoaderTest extends OrphanedResourceDatabaseTestCase
 
         $page = $this->entityManager->find(Page::class, $pageId);
         $this->queryLogger->queries = [];
-        (new ManifestTreeLoader($this->registry))->load($page);
+        (new ManifestTreeLoader($this->registry, $this->publishableAttributeReader))->load($page);
+
+        self::assertCount(4, $this->queryLogger->queries, implode("\n", $this->queryLogger->queries));
+    }
+
+    /**
+     * @return iterable<string, array{int}>
+     */
+    public static function publishableComponentCounts(): iterable
+    {
+        yield 'two of each publishable class' => [2];
+        yield 'seven of each publishable class' => [7];
+    }
+
+    #[DataProvider('publishableComponentCounts')]
+    public function test_publishable_components_their_drafts_and_the_drafts_groups_load_in_a_number_of_queries_independent_of_how_many_there_are(int $perClass): void
+    {
+        $page = $this->page();
+        $pageGroup = $this->group('page-group');
+        $page->addComponentGroup($pageGroup);
+        for ($index = 0; $index < $perClass; ++$index) {
+            $component = $this->position($pageGroup, (new DummyPublishableComponent())->setPublishedAt(new \DateTime('-1 day')))->component;
+            $custom = $this->position($pageGroup, (new DummyPublishableCustomComponent())->setCustomPublishedAt(new \DateTime('-1 day')))->component;
+            if (0 === $index % 2) {
+                $draft = $this->persist((new DummyPublishableComponent())->setPublishedResource($component));
+                $draftGroup = $this->group('draft-group-' . $index);
+                $draftGroup->addComponent($draft);
+                $this->position($draftGroup, new DummyComponent());
+                $this->persist((new DummyPublishableCustomComponent())->setCustomPublishedResource($custom));
+            }
+        }
+        $pageId = $this->flushAndClear($page);
+
+        $page = $this->entityManager->find(Page::class, $pageId);
+        $this->queryLogger->queries = [];
+        (new ManifestTreeLoader($this->registry, $this->publishableAttributeReader))->load($page);
+
+        self::assertCount(8, $this->queryLogger->queries, implode("\n", $this->queryLogger->queries));
+        $this->queryLogger->queries = [];
+        $drafts = 0;
+        $draftGroups = [];
+        foreach ($page->getComponentGroups()->first()->componentPositions as $position) {
+            $component = $position->component;
+            $draft = $component instanceof DummyPublishableComponent ? $component->getDraftResource() : $component->getCustomDraftResource();
+            if (null === $draft) {
+                continue;
+            }
+            ++$drafts;
+            self::assertNull($draft instanceof DummyPublishableComponent ? $draft->getDraftResource() : $draft->getCustomDraftResource());
+            $draftGroups += $this->walk($draft->getComponentGroups());
+        }
+        self::assertSame(2 * intdiv($perClass + 1, 2), $drafts);
+        self::assertCount(intdiv($perClass + 1, 2), $draftGroups);
+        self::assertSame([], $this->queryLogger->queries);
+    }
+
+    public function test_a_draft_placed_in_a_position_of_its_own_is_loaded_without_looking_up_a_draft_of_it(): void
+    {
+        $page = $this->page();
+        $pageGroup = $this->group('page-group');
+        $page->addComponentGroup($pageGroup);
+        $published = $this->persist((new DummyPublishableComponent())->setPublishedAt(new \DateTime('-1 day')));
+        $this->position($pageGroup, (new DummyPublishableComponent())->setPublishedResource($published));
+        $pageId = $this->flushAndClear($page);
+
+        $page = $this->entityManager->find(Page::class, $pageId);
+        $this->queryLogger->queries = [];
+        (new ManifestTreeLoader($this->registry, $this->publishableAttributeReader))->load($page);
+
+        self::assertCount(5, $this->queryLogger->queries, implode("\n", $this->queryLogger->queries));
+        $this->queryLogger->queries = [];
+        $draft = $page->getComponentGroups()->first()->componentPositions->first()->component;
+        self::assertInstanceOf(DummyPublishableComponent::class, $draft);
+        self::assertNull($draft->getDraftResource());
+        self::assertSame([], $this->queryLogger->queries);
+    }
+
+    public function test_without_a_publishable_component_class_each_owner_level_is_one_query(): void
+    {
+        $page = $this->page();
+        $pageGroup = $this->group('page-group');
+        $page->addComponentGroup($pageGroup);
+        $this->position($pageGroup, new DummyComponent());
+        $pageId = $this->flushAndClear($page);
+        $metadata = $this->entityManager->getClassMetadata(AbstractComponent::class);
+        $metadata->discriminatorMap = array_filter($metadata->discriminatorMap, fn (string $class): bool => !$this->publishableAttributeReader->isConfigured($class));
+
+        $page = $this->entityManager->find(Page::class, $pageId);
+        $this->queryLogger->queries = [];
+        (new ManifestTreeLoader($this->registry, $this->publishableAttributeReader))->load($page);
 
         self::assertCount(2, $this->queryLogger->queries, implode("\n", $this->queryLogger->queries));
     }
@@ -132,13 +224,16 @@ class ManifestTreeLoaderTest extends OrphanedResourceDatabaseTestCase
         for ($index = 0; $index < 5; ++$index) {
             $this->position($pageGroup, new DummyComponent());
         }
+        for ($index = 0; $index < 3; ++$index) {
+            $this->position($pageGroup, (new DummyPublishableComponent())->setPublishedAt(new \DateTime('-1 day')));
+        }
         $pageId = $this->flushAndClear($page);
 
         $page = $this->entityManager->find(Page::class, $pageId);
         $this->queryLogger->queries = [];
-        (new ManifestTreeLoader($this->registry, 2))->load($page);
+        (new ManifestTreeLoader($this->registry, $this->publishableAttributeReader, 2))->load($page);
 
-        self::assertCount(4, $this->queryLogger->queries, implode("\n", $this->queryLogger->queries));
+        self::assertCount(12, $this->queryLogger->queries, implode("\n", $this->queryLogger->queries));
         self::assertSame(500, ManifestTreeLoader::CHUNK_SIZE);
     }
 
@@ -149,7 +244,7 @@ class ManifestTreeLoaderTest extends OrphanedResourceDatabaseTestCase
         $registry = $this->createMock(ManagerRegistry::class);
         $registry->expects(self::once())->method('getManagerForClass')->with(Page::class)->willReturn($this->createStub(ObjectManager::class));
 
-        (new ManifestTreeLoader($registry))->load($page);
+        (new ManifestTreeLoader($registry, $this->publishableAttributeReader))->load($page);
     }
 
     private function flushAndClear(object $entity): string

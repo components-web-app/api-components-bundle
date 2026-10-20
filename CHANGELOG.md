@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Changed
+- A resource manifest preloads each publishable component's draft link and a swapped-in draft's groups with its component tree: its query count no longer grows with the number of publishable components or drafts (one id and type query per owner level and one query per publishable class present, instead of one per component and per draft) ([#PRNUM](https://github.com/components-web-app/api-components-bundle/pull/PRNUM))
+
 ## [2.0.0-alpha.33](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.32...2.0.0-alpha.33) - 2026-10-20
 
 ### Breaking

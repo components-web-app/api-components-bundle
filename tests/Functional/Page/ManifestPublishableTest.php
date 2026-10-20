@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\Page;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
@@ -107,6 +108,33 @@ final class ManifestPublishableTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(200);
         self::assertSame([], self::countQueries());
         self::assertSame([], array_values(array_filter(QueryCountingMiddleware::queries(), static fn (string $sql): bool => 1 === preg_match('/FROM _acb_component_position t0 WHERE t0\.component_id = \?/', $sql))));
+    }
+
+    /**
+     * @return iterable<string, array{int, int, bool, int}>
+     */
+    public static function publishablePageSizes(): iterable
+    {
+        yield 'anonymous, three components with one draft' => [3, 1, false, 10];
+        yield 'anonymous, twelve components with four drafts' => [12, 4, false, 10];
+        yield 'admin, three components with one draft' => [3, 1, true, 9];
+        yield 'admin, twelve components with four drafts' => [12, 4, true, 9];
+    }
+
+    #[DataProvider('publishablePageSizes')]
+    public function test_a_manifest_of_a_page_of_publishable_components_runs_as_many_queries_however_many_components_and_drafts_it_has(int $components, int $drafts, bool $admin, int $queries): void
+    {
+        $client = static::createClient();
+        if ($admin) {
+            self::loginAsAdmin($client);
+        }
+        self::createPublishablePage('/news', $components, $drafts);
+        QueryCountingMiddleware::reset();
+
+        self::requestJsonLd($client, 'GET', '/_/resource_manifest//news');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertSame($queries, QueryCountingMiddleware::count(), implode("\n", QueryCountingMiddleware::queries()));
     }
 
     public function test_a_publishable_component_fetched_by_an_admin_after_a_manifest_still_has_its_location_count(): void
