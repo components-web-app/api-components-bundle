@@ -490,13 +490,13 @@ class UploadableFileManagerTest extends TestCase
         $cacheControl = new UploadableCacheControl(new FilesystemFactory(new ServiceLocator([])), self::ORIGINAL, self::IMAGINE);
         $generated = [];
         $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willReturnCallback(static function (string $path, string $filter) use ($cacheControl, &$generated): string {
+        $liipCacheManager = $this->createStub(CacheManager::class);
+        $liipCacheManager->method('isStored')->willReturn(true);
+        $liipCacheManager->method('resolve')->willReturnCallback(static function (string $path, string $filter) use ($cacheControl, &$generated): string {
             $generated[$filter] = $cacheControl->forVariantOf($path);
 
             return '/media/cache/' . $filter . '/' . $path;
         });
-        $liipCacheManager = $this->createStub(CacheManager::class);
-        $liipCacheManager->method('isStored')->willReturn(true);
 
         $this->createFileManager($filesystem, null, $cacheControl, new ImagineFilterGenerator($filterService, $liipCacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', null))->storeFilesMetadata($object);
 
@@ -656,13 +656,13 @@ class UploadableFileManagerTest extends TestCase
 
         $generated = [];
         $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willReturnCallback(static function (string $path, string $filter) use (&$generated): string {
+        $liipCacheManager = $this->createStub(CacheManager::class);
+        $liipCacheManager->method('isStored')->willReturn(true);
+        $liipCacheManager->method('resolve')->willReturnCallback(static function (string $path, string $filter) use (&$generated): string {
             $generated[] = $filter . ':' . $path;
 
             return '/media/cache/' . $filter . '/' . $path;
         });
-        $liipCacheManager = $this->createStub(CacheManager::class);
-        $liipCacheManager->method('isStored')->willReturn(true);
 
         $this->createFileManager($filesystem, filterGenerator: new ImagineFilterGenerator($filterService, $liipCacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', null))->storeFilesMetadata($resource);
 
@@ -706,7 +706,7 @@ class UploadableFileManagerTest extends TestCase
         $filesystem->write('photo-aaaaaaaa.png', (string) file_get_contents(__DIR__ . '/../../Functional/assets/files/image.png'));
 
         $filterService = $this->createMock(FilterService::class);
-        $filterService->expects(self::never())->method('getUrlOfFilteredImage');
+        $filterService->expects(self::never())->method('warmUpCache');
         $liipCacheManager = $this->createStub(CacheManager::class);
         $liipCacheManager->method('isStored')->willReturn(true);
 
@@ -731,7 +731,7 @@ class UploadableFileManagerTest extends TestCase
         $resource->filename = 'huge-aaaaaaaa.png';
 
         $filterService = $this->createMock(FilterService::class);
-        $filterService->expects(self::never())->method('getUrlOfFilteredImage');
+        $filterService->expects(self::never())->method('warmUpCache');
         $liipCacheManager = $this->createStub(CacheManager::class);
         $liipCacheManager->method('isStored')->willReturn(false);
         $logger = new _RecordingLogger();

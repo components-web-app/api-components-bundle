@@ -19,6 +19,16 @@ services:
         tags:
             - { name: doctrine.middleware }
 
+    app.counting_filesystem_adapter.in_memory:
+        class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Flysystem\CountingFilesystemAdapter
+        decorates: League\Flysystem\InMemory\InMemoryFilesystemAdapter
+        arguments: ['@.inner']
+
+    app.counting_filesystem_adapter.local:
+        class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Flysystem\CountingFilesystemAdapter
+        decorates: League\Flysystem\Local\LocalFilesystemAdapter
+        arguments: ['@.inner']
+
     Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\StateProvider\UnpersistedComponentStateProvider:
         tags: [ 'api_platform.state_provider' ]
 
