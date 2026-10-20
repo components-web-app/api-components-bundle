@@ -14,6 +14,8 @@ namespace Silverback\ApiComponentsBundle\ApiResource;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceManifestStateProvider;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Security\Voter\ResourceManifestVoter;
 
 /**
@@ -29,5 +31,5 @@ use Silverback\ApiComponentsBundle\Security\Voter\ResourceManifestVoter;
 )]
 class ResourceManifest
 {
-    public object $entity;
+    public Route|AbstractPage $entity;
 }

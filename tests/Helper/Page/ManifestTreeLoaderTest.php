@@ -82,6 +82,30 @@ class ManifestTreeLoaderTest extends OrphanedResourceDatabaseTestCase
         self::assertSame([], $this->queryLogger->queries);
     }
 
+    public function test_a_page_that_is_both_the_template_and_the_parent_of_page_data_is_loaded_once(): void
+    {
+        $template = $this->page();
+        $templateGroup = $this->group('template-group');
+        $template->addComponentGroup($templateGroup);
+        $this->position($templateGroup, new DummyComponent());
+        $pageData = new PageData();
+        $pageData->page = $template;
+        $pageData->setParentPage($template);
+        $this->persist($pageData);
+        $route = $this->persist((new Route())->setPath('/page-data')->setName('page-data')->setPageData($pageData));
+        $routeId = $this->flushAndClear($route);
+
+        $route = $this->entityManager->find(Route::class, $routeId);
+        $this->queryLogger->queries = [];
+        (new ManifestTreeLoader($this->registry))->load($route);
+
+        self::assertCount(3, $this->queryLogger->queries, implode("\n", $this->queryLogger->queries));
+        self::assertCount(1, array_filter($this->queryLogger->queries, static fn (string $sql): bool => str_contains($sql, 'LEFT JOIN') && str_contains($sql, 'FROM _acb_page ')));
+        $this->queryLogger->queries = [];
+        self::assertSame(['template-group' => 1], $this->walk($route->getPageData()->page->getComponentGroups()));
+        self::assertSame([], $this->queryLogger->queries);
+    }
+
     public function test_a_component_placed_inside_a_group_it_owns_is_loaded_once(): void
     {
         $page = $this->page();

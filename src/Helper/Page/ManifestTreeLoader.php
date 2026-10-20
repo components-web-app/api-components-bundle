@@ -17,7 +17,6 @@ use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
-use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
@@ -32,7 +31,7 @@ final class ManifestTreeLoader
     ) {
     }
 
-    public function load(object $root): void
+    public function load(Route|AbstractPage $root): void
     {
         $pages = [];
         $layouts = [];
@@ -58,7 +57,7 @@ final class ManifestTreeLoader
     /**
      * @return list<AbstractPage>
      */
-    private function renderedPages(object $root): array
+    private function renderedPages(Route|AbstractPage $root): array
     {
         $pages = [];
         $seen = [];
@@ -72,9 +71,6 @@ final class ManifestTreeLoader
 
             if ($item instanceof Route) {
                 array_push($queue, ...array_filter([$item->getRedirect(), $item->getPage(), $item->getPageData()]));
-                continue;
-            }
-            if (!$item instanceof AbstractPage) {
                 continue;
             }
             $pages[] = $item;
@@ -120,9 +116,6 @@ final class ManifestTreeLoader
         $components = [];
         foreach ($owners as $owner) {
             foreach ($owner->getComponentGroups() as $group) {
-                if (!$group instanceof ComponentGroup) {
-                    continue;
-                }
                 foreach ($group->componentPositions as $position) {
                     $component = $position->component;
                     if ($component instanceof AbstractComponent) {
