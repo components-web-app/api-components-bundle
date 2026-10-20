@@ -12,8 +12,11 @@
 namespace Silverback\ApiComponentsBundle\Tests\Functional\Collection;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\QueryCountingMiddleware;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\ApiRequestTrait;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\AuthenticationTrait;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\CacheTagsTrait;
@@ -83,6 +86,24 @@ final class CollectionTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(204);
         self::assertCacheTagPurged(self::iriOf($collection));
+    }
+
+    public function test_a_site_config_write_never_looks_up_collection_components_so_it_touches_no_other_table(): void
+    {
+        $client = static::createClient();
+        self::loginAsAdmin($client);
+        $collection = self::createCollection('/_/site_config_parameters');
+        $parameter = (new SiteConfigParameter())->setKey('siteName')->setValue('CWA');
+        self::persistAndFlush($parameter);
+        $table = static::getEntityManager()->getClassMetadata(Collection::class)->getTableName();
+        QueryCountingMiddleware::reset();
+
+        self::requestJsonLd($client, 'PUT', self::iriOf($parameter), ['key' => 'siteName', 'value' => 'Renamed']);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertSame([], QueryCountingMiddleware::queriesOnTable($table));
+        self::assertCacheTagNotPurged(self::iriOf($collection));
+        self::assertCacheTagPurged('cwa-html');
     }
 
     public function test_a_collection_is_fetched_with_the_default_pagination_enabled(): void

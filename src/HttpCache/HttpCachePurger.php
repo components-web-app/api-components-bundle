@@ -169,6 +169,25 @@ class HttpCachePurger implements ResourceChangedPropagatorInterface
         $this->send($tags);
     }
 
+    /**
+     * @return list<string>
+     */
+    public function getResourceTags(object $resource): array
+    {
+        $collectedTags = $this->tags;
+        $collectedRenderedHtml = $this->purgeRenderedHtml;
+        $this->tags = [];
+
+        try {
+            $this->collectResource($resource);
+
+            return array_values($this->tags);
+        } finally {
+            $this->tags = $collectedTags;
+            $this->purgeRenderedHtml = $collectedRenderedHtml;
+        }
+    }
+
     public function getRouteTag(string $path): string
     {
         return $this->iriConverter->getIriFromResource((new Route())->setPath($path), UrlGeneratorInterface::ABS_PATH, null, ['uri_variables' => ['id' => 'id']]);

@@ -13,6 +13,9 @@ namespace Silverback\ApiComponentsBundle\Tests\Serializer\Normalizer;
 
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Validator\ValidatorInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
@@ -21,14 +24,17 @@ use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
+use Silverback\ApiComponentsBundle\Validator\PublishableValidator;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 #[Publishable]
 class _PublishNowStub
@@ -40,8 +46,100 @@ class _PublishNowStub
     public ?self $draftResource = null;
 }
 
+#[Publishable]
+class _PublishableComponentStub
+{
+    public string $id = 'component-id';
+
+    public ?\DateTimeInterface $publishedAt = null;
+
+    public ?self $publishedResource = null;
+
+    public ?self $draftResource = null;
+
+    public function getComponentPositions(): array
+    {
+        return [];
+    }
+}
+
 class PublishableNormalizerTest extends TestCase
 {
+    public function test_a_manifest_neither_counts_a_components_locations_nor_validates_it_for_publishing(): void
+    {
+        $component = new _PublishableComponentStub();
+        $component->draftResource = $draft = new _PublishableComponentStub();
+        $repository = $this->createMock(EntityRepository::class);
+        $repository->expects(self::never())->method('count');
+        $validator = $this->createMock(ValidatorInterface::class);
+        $validator->expects(self::never())->method('validate');
+        $metadataProvider = new ResourceMetadataProvider();
+
+        $context = $this->normalizedContext($component, [CwaTagCollector::MANIFEST_CONTEXT_KEY => true], $repository, $validator, $metadataProvider);
+
+        self::assertSame($draft, $context['PUBLISHABLE_ASSOCIATION']);
+        self::assertTrue($context[CwaTagCollector::MANIFEST_CONTEXT_KEY]);
+        self::assertNull($metadataProvider->findResourceMetadata($component)->getPublishable()?->locationCount);
+    }
+
+    public function test_a_component_outside_a_manifest_has_its_locations_counted_and_is_validated_for_publishing(): void
+    {
+        $component = new _PublishableComponentStub();
+        $component->publishedResource = $published = new _PublishableComponentStub();
+        $repository = $this->createMock(EntityRepository::class);
+        $repository->expects(self::once())->method('count')->with(['component' => $component])->willReturn(3);
+        $validator = $this->createMock(ValidatorInterface::class);
+        $validator->expects(self::once())->method('validate')->with($component, [PublishableValidator::PUBLISHED_KEY => true]);
+        $metadataProvider = new ResourceMetadataProvider();
+
+        $context = $this->normalizedContext($component, [CwaTagCollector::MANIFEST_CONTEXT_KEY => false], $repository, $validator, $metadataProvider);
+
+        self::assertSame($published, $context['PUBLISHABLE_ASSOCIATION']);
+        self::assertSame(3, $metadataProvider->findResourceMetadata($component)->getPublishable()?->locationCount);
+    }
+
+    private function normalizedContext(_PublishableComponentStub $component, array $context, EntityRepository $repository, ValidatorInterface $validator, ResourceMetadataProvider $metadataProvider): array
+    {
+        $statusChecker = $this->createStub(PublishableStatusChecker::class);
+        $statusChecker->method('getAttributeReader')->willReturn(new PublishableAttributeReader($this->createStub(ManagerRegistry::class)));
+        $statusChecker->method('isGranted')->willReturn(true);
+        $statusChecker->method('isActivePublishedAt')->willReturn(true);
+
+        $classMetadata = $this->createStub(ClassMetadata::class);
+        $classMetadata->method('getFieldValue')->willReturnCallback(static fn (object $object, string $field): mixed => $object->{$field});
+        $manager = $this->createStub(EntityManagerInterface::class);
+        $manager->method('getClassMetadata')->willReturn($classMetadata);
+        $manager->method('getRepository')->willReturn($repository);
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn($manager);
+        $pageDataMetadataProvider = $this->createStub(PageDataMetadataProvider::class);
+        $pageDataMetadataProvider->method('createAll')->willReturn([]);
+
+        $received = null;
+        $inner = $this->createStub(NormalizerInterface::class);
+        $inner->method('normalize')->willReturnCallback(static function (mixed $object, ?string $format, array $context) use (&$received): array {
+            $received = $context;
+
+            return [];
+        });
+
+        $normalizer = new PublishableNormalizer(
+            $statusChecker,
+            $registry,
+            new RequestStack(),
+            $validator,
+            $this->createStub(IriConverterInterface::class),
+            $this->createStub(UploadableFileManager::class),
+            $metadataProvider,
+            $this->createStub(EventDispatcherInterface::class),
+            $pageDataMetadataProvider,
+        );
+        $normalizer->setNormalizer($inner);
+        $normalizer->normalize($component, 'jsonld', $context);
+
+        return $received;
+    }
+
     public function test_a_publication_date_of_now_reaches_the_denormalizer_as_the_servers_current_time(): void
     {
         $before = new \DateTimeImmutable();

@@ -33,6 +33,7 @@ use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\EventListener\Console\FixtureLoadListener;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
@@ -256,7 +257,7 @@ class PropagateUpdatesListener implements ResetInterface
             return;
         }
 
-        if (!isset($this->updatedCollectionClassToIriMapping[$resourceClass])) {
+        if (!isset($this->updatedCollectionClassToIriMapping[$resourceClass]) && !is_a($resourceClass, SiteConfigParameter::class, true)) {
             try {
                 $collectionIri = $this->iriConverter->getIriFromResource($resource, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
                 $this->updatedCollectionClassToIriMapping[$resourceClass] = $collectionIri;

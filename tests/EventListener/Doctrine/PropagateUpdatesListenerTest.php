@@ -26,6 +26,7 @@ use Silverback\ApiComponentsBundle\Annotation\Publishable;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\EventListener\Console\FixtureLoadListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
 use Silverback\ApiComponentsBundle\HttpCache\ResourceChangedPropagatorInterface;
@@ -106,6 +107,29 @@ class PropagateUpdatesListenerTest extends TestCase
         $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
     }
 
+    public function test_a_site_config_write_never_looks_up_collection_components_and_still_propagates(): void
+    {
+        $collectionRepository = $this->createMock(EntityRepository::class);
+        $collectionRepository->expects(self::never())->method('findBy');
+        $propagator = $this->createMock(ResourceChangedPropagatorInterface::class);
+        $propagator->expects(self::once())->method('add');
+        $propagator->expects(self::once())->method('propagate');
+        $listener = $this->listener($this->createStub(ComponentPositionRepository::class), $collectionRepository, $propagator, resourceClass: SiteConfigParameter::class);
+
+        $listener->onFlush(new OnFlushEventArgs($this->entityManager([(new SiteConfigParameter())->setKey('maintenanceModeEnabled')], ['value' => [null, 'true']])));
+        $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
+    }
+
+    public function test_a_write_to_a_subclass_of_site_config_never_looks_up_collection_components(): void
+    {
+        $collectionRepository = $this->createMock(EntityRepository::class);
+        $collectionRepository->expects(self::never())->method('findBy');
+        $listener = $this->listener($this->createStub(ComponentPositionRepository::class), $collectionRepository, resourceClass: PropagateUpdatesSiteConfigParameter::class);
+
+        $listener->onFlush(new OnFlushEventArgs($this->entityManager([(new PropagateUpdatesSiteConfigParameter())->setKey('siteName')], ['value' => [null, 'CWA']])));
+        $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
+    }
+
     /**
      * @return iterable<string, array{object, array<string, array<mixed>>, bool}>
      */
@@ -153,14 +177,14 @@ class PropagateUpdatesListenerTest extends TestCase
         $listener->onFlush(new OnFlushEventArgs($this->entityManager([new DummyPublishableComponent()], ['publishedAt' => [null, new \DateTime()]])));
     }
 
-    private function listener(ComponentPositionRepository $positionRepository, EntityRepository $collectionRepository, ?ResourceChangedPropagatorInterface $propagator = null, ?FixtureLoadListener $fixtureLoad = null, ?PublishableAttributeReader $publishableAttributeReader = null): PropagateUpdatesListener
+    private function listener(ComponentPositionRepository $positionRepository, EntityRepository $collectionRepository, ?ResourceChangedPropagatorInterface $propagator = null, ?FixtureLoadListener $fixtureLoad = null, ?PublishableAttributeReader $publishableAttributeReader = null, string $resourceClass = PageData::class): PropagateUpdatesListener
     {
         $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getRepository')->willReturn($collectionRepository);
         $iriConverter = $this->createStub(IriConverterInterface::class);
         $iriConverter->method('getIriFromResource')->willReturn('/page_data/page_datas/1');
         $resourceClassResolver = $this->createStub(ResourceClassResolverInterface::class);
-        $resourceClassResolver->method('getResourceClass')->willReturn(PageData::class);
+        $resourceClassResolver->method('getResourceClass')->willReturn($resourceClass);
         $pageDataProvider = $this->createStub(PageDataProvider::class);
         $pageDataProvider->method('findPageDataComponentMetadata')->willReturn([]);
 
@@ -205,5 +229,9 @@ class PropagateUpdatesListenerTest extends TestCase
 
 #[Publishable]
 class PropagateUpdatesPublishableResource
+{
+}
+
+class PropagateUpdatesSiteConfigParameter extends SiteConfigParameter
 {
 }

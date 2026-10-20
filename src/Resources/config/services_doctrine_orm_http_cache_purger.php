@@ -13,6 +13,7 @@
  * @author Daniel West <daniel@silverback.is>
  */
 
+use Silverback\ApiComponentsBundle\Command\MaintenanceCommand;
 use Silverback\ApiComponentsBundle\Command\PurgeHttpCacheCommand;
 use Silverback\ApiComponentsBundle\Command\PurgeRenderedHtmlCommand;
 use Silverback\ApiComponentsBundle\Command\WarmHttpCacheCommand;
@@ -75,6 +76,17 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('silverback.api_components.http_cache.purger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ]);
     $services->alias(PurgeRenderedHtmlCommand::class, 'silverback.api_components.command.purge_rendered_html');
+
+    $services
+        ->set('silverback.api_components.command.maintenance')
+        ->class(MaintenanceCommand::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference('doctrine'),
+            new Reference('silverback.api_components.http_cache.purger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+        ])
+        ->tag('console.command', ['command' => MaintenanceCommand::NAME]);
+    $services->alias(MaintenanceCommand::class, 'silverback.api_components.command.maintenance');
 
     $services
         ->set(RenderedHtmlPurgeStateProcessor::class)
