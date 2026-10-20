@@ -20,6 +20,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Helper\ComponentUsage\ComponentUsageLocator;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageData;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\PageDataWithComponent;
 use Silverback\ApiComponentsBundle\Tests\Helper\OrphanedResource\OrphanedResourceDatabaseTestCase;
 
@@ -156,6 +157,65 @@ class ComponentUsageLocatorTest extends OrphanedResourceDatabaseTestCase
         self::assertSame('component', $this->locate([$position])[0]['pageDataProperty']);
     }
 
+    public function test_a_dynamic_position_renders_its_fallback_only_on_page_data_whose_property_is_null_or_that_has_no_such_property(): void
+    {
+        $component = $this->persist(new DummyComponent());
+        $template = $this->namedPage('Template', null, true);
+        $position = $this->position($this->groupOf($template), $component);
+        $position->pageDataProperty = 'component';
+        $empty = $this->pageData($template, 'Empty', '/empty');
+        $overriding = $this->pageData($template, 'Overriding', '/overriding');
+        $overriding->component = $this->persist(new DummyComponent());
+        $withoutProperty = new PageData();
+        $withoutProperty->page = $template;
+        $withoutProperty->setTitle('Without property');
+        $this->persist($withoutProperty);
+
+        self::assertSame([
+            ['iri' => $this->iri($empty), 'title' => 'Empty', 'routePath' => '/empty'],
+            ['iri' => $this->iri($template), 'title' => 'Template', 'routePath' => null],
+            ['iri' => $this->iri($withoutProperty), 'title' => 'Without property', 'routePath' => null],
+        ], $this->locate([$position])[0]['renderedOn']);
+    }
+
+    public function test_a_component_reached_through_a_page_data_property_is_not_rendered_where_that_page_data_overrides_a_dynamic_position_on_the_way(): void
+    {
+        $component = $this->persist(new DummyComponent());
+        $container = $this->persist(new DummyComponent());
+        $position = $this->position($this->groupOf($container), $component);
+        $owner = $this->persist(new DummyComponent());
+        $dynamic = $this->position($this->groupOf($owner), $container);
+        $dynamic->pageDataProperty = 'publishableComponent';
+        $template = $this->namedPage('Template', null, true);
+        $kept = $this->pageData($template, 'Kept', '/kept');
+        $kept->component = $owner;
+        $overriding = $this->pageData($template, 'Overriding', '/overriding');
+        $overriding->component = $owner;
+        $published = new DummyPublishableComponent();
+        $published->setPublishedAt(new \DateTime('-1 day'));
+        $overriding->publishableComponent = $this->persist($published);
+
+        self::assertSame([['iri' => $this->iri($kept), 'title' => 'Kept', 'routePath' => '/kept']], $this->locate([$position])[0]['renderedOn']);
+    }
+
+    public function test_the_number_of_queries_is_the_same_however_many_page_data_override_a_dynamic_position(): void
+    {
+        $few = $this->dynamicPositionOverriddenBy(1);
+        $many = $this->dynamicPositionOverriddenBy(5);
+        $this->entityManager->flush();
+
+        $this->queryLogger->queries = [];
+        $fewLocated = $this->locator->locate([$few], []);
+        $fewQueries = \count($this->queryLogger->queries);
+        $this->queryLogger->queries = [];
+        $manyLocated = $this->locator->locate([$many], []);
+        $manyQueries = \count($this->queryLogger->queries);
+
+        self::assertSame(2, $fewLocated[0]['renderedOnCount']);
+        self::assertSame(2, $manyLocated[0]['renderedOnCount']);
+        self::assertSame($fewQueries, $manyQueries);
+    }
+
     public function test_the_number_of_queries_is_the_same_however_deep_the_chain(): void
     {
         $shallow = $this->chain(1);
@@ -184,6 +244,19 @@ class ComponentUsageLocatorTest extends OrphanedResourceDatabaseTestCase
         $this->entityManager->flush();
 
         return $this->locator->locate($positions, []);
+    }
+
+    private function dynamicPositionOverriddenBy(int $overriding): ComponentPosition
+    {
+        $template = $this->namedPage('Template ' . $overriding, null, true);
+        $position = $this->position($this->groupOf($template), $this->persist(new DummyComponent()));
+        $position->pageDataProperty = 'component';
+        $this->pageData($template, 'Empty', null);
+        for ($index = 0; $index < $overriding; ++$index) {
+            $this->pageData($template, 'Overriding ' . $index, null)->component = $this->persist(new DummyComponent());
+        }
+
+        return $position;
     }
 
     private function chain(int $depth): ComponentPosition

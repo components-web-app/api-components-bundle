@@ -227,6 +227,91 @@ final class ComponentUsageLocationsTest extends FunctionalTestCase
         ]);
     }
 
+    public function test_a_dynamic_position_renders_its_fallback_only_on_the_template_and_the_page_data_whose_property_is_null(): void
+    {
+        $component = new DummyComponent();
+        $template = self::templatePage('Event template');
+        $position = self::dynamicPlace($component, self::groupOf($template), 'component');
+        $empty = self::pageData($template, 'Empty', '/empty');
+        $other = self::pageData($template, 'Other', '/other');
+        $other->component = new DummyComponent();
+        self::$site[] = $other->component;
+        $same = self::pageData($template, 'Same', '/same');
+        $same->component = $component;
+        self::saveSite();
+
+        self::requestUsage($component);
+
+        self::assertSame([
+            [
+                'componentPosition' => self::iriOf($position),
+                'pageDataProperty' => 'component',
+                'pageData' => null,
+                'property' => null,
+                'layout' => null,
+                'renderedOn' => [
+                    self::rendered($empty, 'Empty', '/empty'),
+                    self::rendered($template, 'Event template', null),
+                ],
+                'renderedOnCount' => 2,
+            ],
+            [
+                'componentPosition' => null,
+                'pageDataProperty' => null,
+                'pageData' => self::iriOf($same),
+                'property' => 'component',
+                'layout' => null,
+                'renderedOn' => [self::rendered($same, 'Same', '/same')],
+                'renderedOnCount' => 1,
+            ],
+        ], self::lastJson()['locations']);
+        self::assertJsonNodeSame('total', 2);
+    }
+
+    public function test_a_component_inside_a_dynamic_position_s_fallback_does_not_render_on_page_data_that_override_it(): void
+    {
+        $component = new DummyComponent();
+        $container = new DummyComponent();
+        $position = self::place($component, self::groupOf($container));
+        $template = self::templatePage('Event template');
+        self::dynamicPlace($container, self::groupOf($template), 'component');
+        $empty = self::pageData($template, 'Empty', '/empty');
+        $overriding = self::pageData($template, 'Overriding', '/overriding');
+        $overriding->component = new DummyComponent();
+        self::$site[] = $overriding->component;
+        self::saveSite();
+
+        self::requestUsage($component);
+
+        self::assertJsonNodeCount('locations', 1);
+        self::assertJsonNodeSame('locations[0].componentPosition', self::iriOf($position));
+        self::assertJsonNodeSame('locations[0].renderedOn', [
+            self::rendered($empty, 'Empty', '/empty'),
+            self::rendered($template, 'Event template', null),
+        ]);
+        self::assertJsonNodeSame('locations[0].renderedOnCount', 2);
+    }
+
+    public function test_a_dynamic_position_still_renders_its_fallback_where_another_property_of_the_page_data_is_set(): void
+    {
+        $component = new DummyComponent();
+        $template = self::templatePage('Event template');
+        self::dynamicPlace($component, self::groupOf($template), 'component');
+        $pageData = self::pageData($template, 'Launch', '/launch');
+        $published = new DummyPublishableComponent();
+        $published->setPublishedAt(new \DateTime('-1 day'));
+        $pageData->publishableComponent = $published;
+        self::$site[] = $published;
+        self::saveSite();
+
+        self::requestUsage($component);
+
+        self::assertJsonNodeSame('locations[0].renderedOn', [
+            self::rendered($pageData, 'Launch', '/launch'),
+            self::rendered($template, 'Event template', null),
+        ]);
+    }
+
     public function test_a_cycle_already_in_the_database_terminates_and_still_lists_the_pages_it_reaches(): void
     {
         $component = new DummyComponent();
@@ -340,6 +425,36 @@ final class ComponentUsageLocationsTest extends FunctionalTestCase
         self::assertLessThanOrEqual(12, $deepQueries);
     }
 
+    public function test_the_number_of_queries_does_not_grow_with_the_page_data_overriding_a_dynamic_position(): void
+    {
+        $few = self::componentInDynamicPosition(1, 'few');
+        $many = self::componentInDynamicPosition(6, 'many');
+        self::saveSite();
+
+        $fewQueries = self::countQueriesCreatingUsage($few);
+        $manyQueries = self::countQueriesCreatingUsage($many);
+
+        self::assertSame($fewQueries, $manyQueries);
+        self::assertLessThanOrEqual(12, $manyQueries);
+    }
+
+    private static function componentInDynamicPosition(int $overriding, string $name): DummyComponent
+    {
+        $component = new DummyComponent();
+        $container = new DummyComponent();
+        self::place($component, self::groupOf($container, $name));
+        $template = self::templatePage($name . ' template');
+        self::dynamicPlace($container, self::groupOf($template, $name . '-page'), 'component');
+        self::pageData($template, $name . ' empty', '/' . $name);
+        for ($index = 0; $index < $overriding; ++$index) {
+            $pageData = self::pageData($template, $name . ' ' . $index, '/' . $name . '/' . $index);
+            $pageData->component = new DummyComponent();
+            self::$site[] = $pageData->component;
+        }
+
+        return $component;
+    }
+
     private static function componentAtDepth(int $depth, string $name): DummyComponent
     {
         $component = new DummyComponent();
@@ -448,6 +563,15 @@ final class ComponentUsageLocationsTest extends FunctionalTestCase
         self::$site[] = $group;
 
         return $group;
+    }
+
+    private static function dynamicPlace(AbstractComponent $fallback, ComponentGroup $group, string $property): ComponentPosition
+    {
+        $position = self::place($fallback, $group);
+        $position->pageDataClass = PageDataWithComponent::class;
+        $position->pageDataProperty = $property;
+
+        return $position;
     }
 
     private static function place(AbstractComponent $component, ComponentGroup $group, int $sortValue = 0): ComponentPosition

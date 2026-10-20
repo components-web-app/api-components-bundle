@@ -30,6 +30,7 @@ use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
  * @phpstan-import-type PresentedLocation from ComponentUsageLocations
  * @phpstan-import-type RenderedOn from ComponentUsageLocations
  * @phpstan-import-type LayoutUse from ComponentUsageLocations
+ * @phpstan-import-type Walk from ComponentUsageGraph
  *
  * @author Daniel West <daniel@silverback.is>
  */
@@ -59,11 +60,16 @@ final class ComponentUsageLocator
         $walks = [];
         $groups = [];
         $components = [];
+        $properties = [];
         foreach ($positions as $position) {
             $walk = $graph->walkUpFrom($position->componentGroup->getId()->toString());
             $walks[] = $walk;
             array_push($groups, ...$walk['groups']);
             array_push($components, ...$walk['components']);
+            array_push($properties, ...$walk['pageDataProperties']);
+            if (null !== $position->pageDataProperty) {
+                $properties[] = $position->pageDataProperty;
+            }
         }
 
         $pagesByGroup = $this->findPagesByGroup($entityManager, $groups);
@@ -88,20 +94,35 @@ final class ComponentUsageLocator
         }
         $pageDataDetails = $this->findPageData($entityManager, $detailIds);
 
+        $candidates = array_map(static fn (array $details): string => $details['class'], $pageDataDetails);
+        foreach ($pageDataByTemplate as $pageData) {
+            foreach ($pageData as $details) {
+                $candidates[$details['id']] = $details['class'];
+            }
+        }
+        $overrides = $this->findOverriddenProperties($entityManager, array_values(array_unique($properties)), $candidates);
+
         $locations = [];
         foreach ($positions as $index => $position) {
+            $walksFor = $this->walksForPageData($graph, $position, $walks[$index]);
             $renderedOn = [];
             $layouts = [];
             foreach ($walks[$index]['groups'] as $group) {
                 foreach ($pagesByGroup[$group] ?? [] as $page) {
                     $renderedOn[] = $page['renderedOn'];
-                    array_push($renderedOn, ...$pageDataByTemplate[$page['id']] ?? []);
+                    foreach ($pageDataByTemplate[$page['id']] ?? [] as $pageData) {
+                        if (\in_array($group, $walksFor($overrides[$pageData['id']] ?? [])['groups'], true)) {
+                            $renderedOn[] = $pageData['renderedOn'];
+                        }
+                    }
                 }
                 array_push($layouts, ...$layoutsByGroup[$group] ?? []);
             }
             foreach ($walks[$index]['components'] as $component) {
                 foreach ($pageDataIdsByComponent[$component] ?? [] as $pageDataId) {
-                    $renderedOn[] = $pageDataDetails[$pageDataId];
+                    if (\in_array($component, $walksFor($overrides[$pageDataId] ?? [])['components'], true)) {
+                        $renderedOn[] = $pageDataDetails[$pageDataId]['renderedOn'];
+                    }
                 }
             }
             usort($layouts, static fn (array $a, array $b): int => strcmp($a['reference'], $b['reference']) ?: strcmp($a['iri'], $b['iri']));
@@ -123,11 +144,79 @@ final class ComponentUsageLocator
                 'pageData' => $this->iriConverter->getIriFromResource($use['pageData']),
                 'property' => $use['property'],
                 'layout' => null,
-                'renderedOn' => [$pageDataDetails[$use['pageData']->getId()->toString()]],
+                'renderedOn' => [$pageDataDetails[$use['pageData']->getId()->toString()]['renderedOn']],
             ];
         }
 
         return ComponentUsageLocations::present($locations);
+    }
+
+    /**
+     * @param Walk $walk
+     *
+     * @return \Closure(list<string>): Walk
+     */
+    private function walksForPageData(ComponentUsageGraph $graph, ComponentPosition $position, array $walk): \Closure
+    {
+        $memo = [];
+        $group = $position->componentGroup->getId()->toString();
+
+        return static function (array $overridden) use (&$memo, $graph, $position, $walk, $group): array {
+            if ([] === $overridden) {
+                return $walk;
+            }
+            if (\in_array($position->pageDataProperty, $overridden, true)) {
+                return ['groups' => [], 'components' => [], 'pageDataProperties' => []];
+            }
+
+            return $memo[implode(' ', $overridden)] ??= $graph->walkUpFrom($group, $overridden);
+        };
+    }
+
+    /**
+     * @param list<string>                $properties
+     * @param array<string, class-string> $candidates
+     *
+     * @return array<string, list<string>>
+     */
+    private function findOverriddenProperties(EntityManagerInterface $entityManager, array $properties, array $candidates): array
+    {
+        if ([] === $properties) {
+            return [];
+        }
+
+        $overridden = [];
+        foreach ($this->pageDataComponentAssociations($entityManager, declaredOnly: true) as $class => $fields) {
+            $fields = array_values(array_intersect($fields, $properties));
+            $pageDataIds = array_keys(array_filter($candidates, static fn (string $candidate): bool => is_a($candidate, $class, true)));
+            if ([] === $fields || [] === $pageDataIds) {
+                continue;
+            }
+            $queryBuilder = $entityManager->createQueryBuilder()
+                ->select('pd.id AS id')
+                ->from($class, 'pd')
+                ->where('pd.id IN (:ids)')
+                ->setParameter('ids', $pageDataIds, ArrayParameterType::STRING);
+            $isSet = [];
+            foreach ($fields as $index => $field) {
+                $queryBuilder->addSelect(\sprintf('IDENTITY(pd.%s) AS field%d', $field, $index));
+                $isSet[] = \sprintf('pd.%s IS NOT NULL', $field);
+            }
+            $queryBuilder->andWhere(implode(' OR ', $isSet));
+            foreach ($queryBuilder->getQuery()->getResult() as $row) {
+                foreach ($fields as $index => $field) {
+                    if (null !== $row['field' . $index]) {
+                        $overridden[$row['id']->toString()][] = $field;
+                    }
+                }
+            }
+        }
+
+        foreach ($overridden as &$fields) {
+            sort($fields);
+        }
+
+        return $overridden;
     }
 
     private function loadGraph(EntityManagerInterface $entityManager): ComponentUsageGraph
@@ -158,18 +247,18 @@ final class ComponentUsageLocator
             }
         }
 
-        $groupsByComponent = [];
+        $holdersByComponent = [];
         $positionRows = $entityManager->createQueryBuilder()
-            ->select('IDENTITY(p.component) AS component', 'IDENTITY(p.componentGroup) AS grp')
+            ->select('IDENTITY(p.component) AS component', 'IDENTITY(p.componentGroup) AS grp', 'p.pageDataProperty AS pageDataProperty')
             ->from(ComponentPosition::class, 'p')
             ->where(implode(' OR ', $holdsAnOwner))
             ->getQuery()
             ->getResult();
         foreach ($positionRows as $row) {
-            $groupsByComponent[$row['component']][] = $row['grp'];
+            $holdersByComponent[$row['component']][] = ['group' => $row['grp'], 'pageDataProperty' => $row['pageDataProperty']];
         }
 
-        return new ComponentUsageGraph($ownersByGroup, $publishedByComponent, $groupsByComponent);
+        return new ComponentUsageGraph($ownersByGroup, $publishedByComponent, $holdersByComponent);
     }
 
     /**
@@ -259,13 +348,13 @@ final class ComponentUsageLocator
     /**
      * @param list<string> $templates
      *
-     * @return array<string, list<RenderedOn>>
+     * @return array<string, list<array{id: string, class: class-string, renderedOn: RenderedOn}>>
      */
     private function findPageDataByTemplate(EntityManagerInterface $entityManager, array $templates): array
     {
         $byTemplate = [];
         foreach ($this->queryPageData($entityManager, 'IDENTITY(pd.page)', $templates) as $row) {
-            $byTemplate[$row['key']][] = $row['renderedOn'];
+            $byTemplate[$row['key']][] = ['id' => $row['id'], 'class' => $row['class'], 'renderedOn' => $row['renderedOn']];
         }
 
         return $byTemplate;
@@ -274,13 +363,13 @@ final class ComponentUsageLocator
     /**
      * @param list<string> $ids
      *
-     * @return array<string, RenderedOn>
+     * @return array<string, array{class: class-string, renderedOn: RenderedOn}>
      */
     private function findPageData(EntityManagerInterface $entityManager, array $ids): array
     {
         $byId = [];
         foreach ($this->queryPageData($entityManager, 'pd.id', $ids) as $row) {
-            $byId[$row['id']] = $row['renderedOn'];
+            $byId[$row['id']] = ['class' => $row['class'], 'renderedOn' => $row['renderedOn']];
         }
 
         return $byId;
@@ -289,7 +378,7 @@ final class ComponentUsageLocator
     /**
      * @param list<string> $values
      *
-     * @return list<array{id: string, key: string, renderedOn: RenderedOn}>
+     * @return list<array{id: string, key: string, class: class-string, renderedOn: RenderedOn}>
      */
     private function queryPageData(EntityManagerInterface $entityManager, string $column, array $values): array
     {
@@ -316,6 +405,7 @@ final class ComponentUsageLocator
         return array_map(fn (array $row): array => [
             'id' => $row['id']->toString(),
             'key' => (string) $row['keyed'],
+            'class' => $classes[$row['type']],
             'renderedOn' => $this->renderedOn($classes[$row['type']], $row),
         ], $rows);
     }
@@ -359,7 +449,7 @@ final class ComponentUsageLocator
     /**
      * @return array<class-string, non-empty-list<string>>
      */
-    private function pageDataComponentAssociations(EntityManagerInterface $entityManager): array
+    private function pageDataComponentAssociations(EntityManagerInterface $entityManager, bool $declaredOnly = false): array
     {
         $associations = [];
         foreach ($entityManager->getMetadataFactory()->getAllMetadata() as $metadata) {
@@ -367,6 +457,9 @@ final class ComponentUsageLocator
                 continue;
             }
             foreach ($metadata->getAssociationNames() as $field) {
+                if ($declaredOnly && $metadata->isInheritedAssociation($field)) {
+                    continue;
+                }
                 if ($metadata->isAssociationWithSingleJoinColumn($field) && is_a($metadata->getAssociationTargetClass($field), AbstractComponent::class, true)) {
                     $associations[$metadata->getName()][] = $field;
                 }
