@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.33](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.32...2.0.0-alpha.33) - 2026-10-20
+
 ### Breaking
 - A `route_security` `route` pattern matches letters only in the same case and every other character byte for byte, in `RouteVoter` and the route list alike: `/User-Area*` no longer restricts `/user-area/x`; a database other than PostgreSQL, MySQL, MariaDB or SQLite is refused when the list applies a rule ([#546](https://github.com/components-web-app/api-components-bundle/pull/546))
 
