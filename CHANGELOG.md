@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- `GET {component}/usage` lists in `renderedOn` only the page data where a dynamic position's fallback renders: a page data whose property for that position (or one on the way up a nested chain) holds a component is left out, and `renderedOnCount` follows ([#543](https://github.com/components-web-app/api-components-bundle/pull/543))
+
 ## [2.0.0-alpha.32](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.31...2.0.0-alpha.32) - 2026-10-19
 
 ### Breaking
