@@ -142,6 +142,32 @@ final class SecurityTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(401);
     }
 
+    public function test_a_route_security_pattern_does_not_restrict_a_path_with_its_letters_in_another_case(): void
+    {
+        $client = static::createClient();
+        self::createRouteWithPage('/User-Area/x');
+
+        self::requestJsonLd($client, 'GET', '/_/routes');
+        self::assertJsonNodeSame('totalItems', 1);
+        self::assertJsonNodeSame('member[0].path', '/User-Area/x');
+
+        self::requestJsonLd($client, 'GET', '/_/routes//User-Area/x');
+        self::assertResponseStatusCodeSame(200);
+    }
+
+    public function test_a_route_security_pattern_does_not_restrict_a_path_with_an_accented_letter_in_its_place(): void
+    {
+        $client = static::createClient();
+        self::createRouteWithPage('/üser-area/x');
+
+        self::requestJsonLd($client, 'GET', '/_/routes');
+        self::assertJsonNodeSame('totalItems', 1);
+        self::assertJsonNodeSame('member[0].path', '/üser-area/x');
+
+        self::requestJsonLd($client, 'GET', '/_/routes//üser-area/x');
+        self::assertResponseStatusCodeSame(200);
+    }
+
     public function test_a_component_in_a_restricted_route_cannot_be_loaded_by_an_anonymous_user(): void
     {
         $client = static::createClient();
