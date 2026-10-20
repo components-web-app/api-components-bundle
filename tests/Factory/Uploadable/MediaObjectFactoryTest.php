@@ -46,7 +46,7 @@ class MediaObjectFactoryTest extends TestCase
         ?FilesystemProvider $filesystemProvider = null,
         ?Filesystem $filesystem = null,
         ?FlysystemDataLoader $flysystemDataLoader = null,
-        ?FilterService $filterService = null,
+        ?CacheManager $imagineCacheManager = null,
         ?UrlHelper $urlHelper = null,
     ): MediaObjectFactory {
         $fieldConfig = new UploadableField(adapter: 'test_adapter');
@@ -83,6 +83,7 @@ class MediaObjectFactoryTest extends TestCase
         if (null === $fileInfoCacheManager) {
             $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
             $fileInfoCacheManager->method('resolveCache')->willReturn($fileInfo);
+            $fileInfoCacheManager->method('resolveCaches')->willReturn(['' => $fileInfo]);
         }
 
         $apiGenerator = $this->createStub(ApiUrlGenerator::class);
@@ -104,7 +105,7 @@ class MediaObjectFactoryTest extends TestCase
             $this->createStub(FilesystemFactory::class),
             $urlHelper ?? new UrlHelper(new RequestStack()),
             $urlGenerators,
-            $filterService ? $this->storedFilterGenerator($filterService) : null,
+            $imagineCacheManager ? $this->filterGenerator($imagineCacheManager) : null,
         );
     }
 
@@ -139,16 +140,18 @@ class MediaObjectFactoryTest extends TestCase
         $fileInfo = new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100);
         $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
         $fileInfoCacheManager->method('resolveCache')->willReturn($fileInfo);
+        $fileInfoCacheManager->method('resolveCaches')->willReturn(['' => $fileInfo]);
 
-        $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willReturn('/uploads/thumbnail__test-file.png');
+        $imagineCacheManager = $this->createStub(CacheManager::class);
+        $imagineCacheManager->method('isStored')->willReturn(true);
+        $imagineCacheManager->method('resolve')->willReturn('/uploads/thumbnail__test-file.png');
 
         $factory = $this->buildFactory(
             annotationReader: $annotationReader,
             fileInfoCacheManager: $fileInfoCacheManager,
             filesystemProvider: $filesystemProvider,
             filesystem: $filesystem,
-            filterService: $filterService,
+            imagineCacheManager: $imagineCacheManager,
         );
 
         $collection = $factory->createMediaObjects(new \stdClass());
@@ -179,16 +182,18 @@ class MediaObjectFactoryTest extends TestCase
         $fileInfo = new FileInfo(self::FILE_PATH, 'application/pdf', 2048, null, null);
         $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
         $fileInfoCacheManager->method('resolveCache')->willReturn($fileInfo);
+        $fileInfoCacheManager->method('resolveCaches')->willReturn(['' => $fileInfo]);
 
-        $filterService = $this->createMock(FilterService::class);
-        $filterService->expects($this->never())->method('getUrlOfFilteredImage');
+        $imagineCacheManager = $this->createMock(CacheManager::class);
+        $imagineCacheManager->expects($this->never())->method('isStored');
+        $imagineCacheManager->expects($this->never())->method('resolve');
 
         $factory = $this->buildFactory(
             annotationReader: $annotationReader,
             fileInfoCacheManager: $fileInfoCacheManager,
             filesystemProvider: $filesystemProvider,
             filesystem: $filesystem,
-            filterService: $filterService,
+            imagineCacheManager: $imagineCacheManager,
         );
 
         $collection = $factory->createMediaObjects(new \stdClass());
@@ -220,15 +225,16 @@ class MediaObjectFactoryTest extends TestCase
         $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
         $fileInfoCacheManager->method('resolveCache')->willReturn(null);
 
-        $filterService = $this->createMock(FilterService::class);
-        $filterService->expects($this->never())->method('getUrlOfFilteredImage');
+        $imagineCacheManager = $this->createMock(CacheManager::class);
+        $imagineCacheManager->expects($this->never())->method('isStored');
+        $imagineCacheManager->expects($this->never())->method('resolve');
 
         $factory = $this->buildFactory(
             annotationReader: $annotationReader,
             fileInfoCacheManager: $fileInfoCacheManager,
             filesystemProvider: $filesystemProvider,
             filesystem: $filesystem,
-            filterService: $filterService,
+            imagineCacheManager: $imagineCacheManager,
         );
 
         $collection = $factory->createMediaObjects(new \stdClass());
@@ -248,7 +254,7 @@ class MediaObjectFactoryTest extends TestCase
 
         $factory = $this->buildFactory(
             annotationReader: $annotationReader,
-            filterService: null,
+            imagineCacheManager: null,
         );
 
         $collection = $factory->createMediaObjects(new \stdClass());
@@ -280,15 +286,16 @@ class MediaObjectFactoryTest extends TestCase
         $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
         $fileInfoCacheManager->method('resolveCache')->willReturn(null);
 
-        $filterService = $this->createMock(FilterService::class);
-        $filterService->expects($this->never())->method('getUrlOfFilteredImage');
+        $imagineCacheManager = $this->createMock(CacheManager::class);
+        $imagineCacheManager->expects($this->never())->method('isStored');
+        $imagineCacheManager->expects($this->never())->method('resolve');
 
         $factory = $this->buildFactory(
             annotationReader: $annotationReader,
             fileInfoCacheManager: $fileInfoCacheManager,
             filesystemProvider: $filesystemProvider,
             filesystem: $filesystem,
-            filterService: $filterService,
+            imagineCacheManager: $imagineCacheManager,
         );
 
         $collection = $factory->createMediaObjects(new \stdClass());
@@ -310,6 +317,7 @@ class MediaObjectFactoryTest extends TestCase
         $fileInfo = new FileInfo(self::FILE_PATH, 'image/png', 999, 200, 150);
         $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
         $fileInfoCacheManager->method('resolveCache')->willReturn($fileInfo);
+        $fileInfoCacheManager->method('resolveCaches')->willReturn(['' => $fileInfo]);
 
         $factory = $this->buildFactory(
             fileInfoCacheManager: $fileInfoCacheManager,
@@ -355,11 +363,8 @@ class MediaObjectFactoryTest extends TestCase
         $this->assertSame('application/pdf', $mediaObject->mimeType);
     }
 
-    private function storedFilterGenerator(FilterService $filterService): ImagineFilterGenerator
+    private function filterGenerator(CacheManager $imagineCacheManager): ImagineFilterGenerator
     {
-        $cacheManager = $this->createStub(CacheManager::class);
-        $cacheManager->method('isStored')->willReturn(true);
-
-        return new ImagineFilterGenerator($filterService, $cacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', null);
+        return new ImagineFilterGenerator($this->createStub(FilterService::class), $imagineCacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', null);
     }
 }

@@ -17,6 +17,7 @@ use Silverback\ApiComponentsBundle\Annotation\UploadableField;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
@@ -74,6 +75,33 @@ class UploadableNormalizerTest extends TestCase
         $mediaObjectFactory->method('createMediaObjects')->willReturn(new ArrayCollection(['file' => []]));
 
         $this->buildNormalizer(['media' => 'normalized'], $mediaObjectFactory, $metadataProvider)->normalize(new DummyUploadable(), 'jsonld');
+
+        self::assertSame(['media' => 'normalized'], $metadata->getMediaObjects());
+    }
+
+    public function test_a_manifest_builds_no_media_objects_and_still_leaves_out_the_file_fields(): void
+    {
+        $mediaObjectFactory = $this->createMock(MediaObjectFactory::class);
+        $mediaObjectFactory->expects(self::never())->method('createMediaObjects');
+        $metadataProvider = $this->createMock(ResourceMetadataProvider::class);
+        $metadataProvider->expects(self::never())->method('findResourceMetadata');
+
+        $normalized = $this->buildNormalizer(['file' => null, 'filename' => 'image-1a2b3c4d.png', 'other' => 'kept'], $mediaObjectFactory, $metadataProvider)
+            ->normalize(new DummyUploadable(), 'jsonld', [CwaTagCollector::MANIFEST_CONTEXT_KEY => true]);
+
+        self::assertSame(['other' => 'kept'], $normalized);
+    }
+
+    public function test_a_context_with_the_manifest_key_unset_to_false_still_builds_media_objects(): void
+    {
+        $metadata = new ResourceMetadata();
+        $metadataProvider = $this->createStub(ResourceMetadataProvider::class);
+        $metadataProvider->method('findResourceMetadata')->willReturn($metadata);
+        $mediaObjectFactory = $this->createStub(MediaObjectFactory::class);
+        $mediaObjectFactory->method('createMediaObjects')->willReturn(new ArrayCollection(['file' => []]));
+
+        $this->buildNormalizer(['media' => 'normalized'], $mediaObjectFactory, $metadataProvider)
+            ->normalize(new DummyUploadable(), 'jsonld', [CwaTagCollector::MANIFEST_CONTEXT_KEY => false]);
 
         self::assertSame(['media' => 'normalized'], $metadata->getMediaObjects());
     }

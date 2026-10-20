@@ -54,6 +54,14 @@ class FileInfoCacheManager
         $this->repository->deleteByPathsAndFilters($paths, $filters);
     }
 
+    /**
+     * @return array<string, FileInfo> the path's original under '' and each variant under its filter
+     */
+    public function resolveCaches(string $path): array
+    {
+        return $this->repository->findByPathKeyedByFilter($path);
+    }
+
     public function resolveCache(string $path, ?string $filter = null): ?FileInfo
     {
         return $this->repository->findOneByPathAndFilter($path, $filter);
