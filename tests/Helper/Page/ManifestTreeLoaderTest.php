@@ -49,7 +49,7 @@ class ManifestTreeLoaderTest extends OrphanedResourceDatabaseTestCase
 
         self::assertCount(4, $this->queryLogger->queries, implode("\n", $this->queryLogger->queries));
         $this->queryLogger->queries = [];
-        self::assertSame(['page-group' => 2, 'nested-0' => 1, 'nested-1' => 1], $this->walk($route->getPage()->getComponentGroups()));
+        self::assertSame(['nested-0' => 1, 'nested-1' => 1, 'page-group' => 2], $this->walk($route->getPage()->getComponentGroups()));
         self::assertSame(['layout-group' => 1], $this->walk($route->getPage()->layout->getComponentGroups()));
         self::assertSame([], $this->queryLogger->queries);
     }
@@ -154,6 +154,7 @@ class ManifestTreeLoaderTest extends OrphanedResourceDatabaseTestCase
                 $reached += $this->walk($component->getComponentGroups());
             }
         }
+        ksort($reached);
 
         return $reached;
     }
