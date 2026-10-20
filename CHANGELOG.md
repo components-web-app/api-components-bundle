@@ -5,7 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Added
-- `warm-http-cache --requests-per-connection=N` and `http_cache.warm_after_flush.requests_per_connection` send `Connection: close` on every Nth warm request, so a warm through a Kubernetes Service spreads across its pods instead of staying on a few keep-alive connections; off by default ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+- `warm-http-cache --requests-per-connection=N` and `http_cache.warm_after_flush.requests_per_connection` send `Connection: close` on every Nth warm request, so a warm through a Kubernetes Service spreads across its pods instead of staying on a few keep-alive connections; off by default ([#554](https://github.com/components-web-app/api-components-bundle/pull/554))
 
 ## [2.0.0-alpha.33](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.32...2.0.0-alpha.33) - 2026-10-20
 
