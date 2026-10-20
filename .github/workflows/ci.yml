@@ -335,6 +335,75 @@ jobs:
           path: build/logs/phpunit
         continue-on-error: true
 
+  route-security-databases:
+    name: Route security list and voter agree (PostgreSQL, MySQL, MariaDB)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: test
+        ports:
+          - 3306:3306
+        options: --health-cmd "mysqladmin ping -ppassword" --health-interval 5s --health-timeout 5s --health-retries 30
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: password
+          MARIADB_DATABASE: test
+        ports:
+          - 3307:3306
+        options: --health-cmd "healthcheck.sh --connect --innodb_initialized" --health-interval 5s --health-timeout 5s --health-retries 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer
+          extensions: intl, bcmath, mbstring, pdo_sqlite, pdo_pgsql, pdo_mysql
+          coverage: none
+          ini-values: memory_limit=-1
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+      - name: Restore composer cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-route-security-databases-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            composer-route-security-databases-
+        continue-on-error: true
+      - name: Update project dependencies
+        run: composer update --no-progress --ansi --prefer-stable
+      - name: Disable deprecations helper
+        run: echo "SYMFONY_DEPRECATIONS_HELPER=disabled=1" >> $GITHUB_ENV
+      - name: PostgreSQL 16
+        run: vendor/bin/phpunit tests/Doctrine/Extension/ORM/RouteExtensionTest.php
+        env:
+          ROUTE_EXTENSION_DATABASE_URL: postgresql://postgres:password@127.0.0.1:5432/postgres?serverVersion=16
+      - name: MySQL 8.0
+        if: always()
+        run: vendor/bin/phpunit tests/Doctrine/Extension/ORM/RouteExtensionTest.php
+        env:
+          ROUTE_EXTENSION_DATABASE_URL: mysql://root:password@127.0.0.1:3306/test?serverVersion=8.0
+      - name: MariaDB 10.11
+        if: always()
+        run: vendor/bin/phpunit tests/Doctrine/Extension/ORM/RouteExtensionTest.php
+        env:
+          ROUTE_EXTENSION_DATABASE_URL: mariadb://root:password@127.0.0.1:3307/test?serverVersion=10.11.0-MariaDB
+
   phpunit-symfony-next:
     name: PHPUnit (Symfony NEXT ${{ matrix.symfony }}) (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
