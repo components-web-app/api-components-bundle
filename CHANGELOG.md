@@ -4,8 +4,18 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- A `route_security` `route` pattern matches letters only in the same case and every other character byte for byte, in `RouteVoter` and the route list alike: `/User-Area*` no longer restricts `/user-area/x`; a database other than PostgreSQL, MySQL, MariaDB or SQLite is refused when the list applies a rule ([#546](https://github.com/components-web-app/api-components-bundle/pull/546))
+
 ### Changed
 - A resource manifest loads its component tree before normalizing it, one fetch-joined query per owner level (pages, layouts, then each level of components) instead of one query per group, position and component ([#548](https://github.com/components-web-app/api-components-bundle/pull/548))
+
+### Fixed
+- The route list and `RouteVoter` agree on `route_security` for every path on PostgreSQL, MySQL and MariaDB: the list compared through `LOWER()` and the column collation, so it hid routes such as `/üser-area/x` (MySQL folds accents) or a path with the Kelvin sign that the voter still served by IRI ([#546](https://github.com/components-web-app/api-components-bundle/pull/546))
+- `GET {component}/usage` lists in `renderedOn` only the page data where a dynamic position's fallback renders: a page data whose property for that position (or one on the way up a nested chain) holds a component is left out, and `renderedOnCount` follows ([#543](https://github.com/components-web-app/api-components-bundle/pull/543))
+
+### Tooling
+- A CI job runs `RouteExtensionTest` on PostgreSQL 16, MySQL 8.0 and MariaDB 10.11 (`ROUTE_EXTENSION_DATABASE_URL`) ([#546](https://github.com/components-web-app/api-components-bundle/pull/546))
 
 ## [2.0.0-alpha.32](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.31...2.0.0-alpha.32) - 2026-10-19
 
