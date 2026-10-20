@@ -216,6 +216,23 @@ class ComponentUsageLocatorTest extends OrphanedResourceDatabaseTestCase
         self::assertSame($fewQueries, $manyQueries);
     }
 
+    public function test_overrides_cost_one_query_per_class_of_candidate_page_data_and_none_without_a_dynamic_position(): void
+    {
+        $static = $this->dynamicPositionOverriddenBy(1);
+        $static->pageDataProperty = null;
+        $dynamic = $this->dynamicPositionOverriddenBy(1);
+        $this->entityManager->flush();
+
+        $this->queryLogger->queries = [];
+        $this->locator->locate([$static], []);
+        $staticQueries = \count($this->queryLogger->queries);
+        $this->queryLogger->queries = [];
+        $this->locator->locate([$dynamic], []);
+        $dynamicQueries = \count($this->queryLogger->queries);
+
+        self::assertSame($staticQueries + 1, $dynamicQueries);
+    }
+
     public function test_the_number_of_queries_is_the_same_however_deep_the_chain(): void
     {
         $shallow = $this->chain(1);

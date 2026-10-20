@@ -100,7 +100,7 @@ final class ComponentUsageLocator
                 $candidates[$details['id']] = $details['class'];
             }
         }
-        $overrides = $this->findOverriddenProperties($entityManager, array_values(array_unique($properties)), $candidates);
+        $overrides = [] === $properties ? [] : $this->findOverriddenProperties($entityManager, $candidates);
 
         $locations = [];
         foreach ($positions as $index => $position) {
@@ -158,13 +158,10 @@ final class ComponentUsageLocator
      */
     private function walksForPageData(ComponentUsageGraph $graph, ComponentPosition $position, array $walk): \Closure
     {
-        $memo = [];
+        $memo = ['' => $walk];
         $group = $position->componentGroup->getId()->toString();
 
-        return static function (array $overridden) use (&$memo, $graph, $position, $walk, $group): array {
-            if ([] === $overridden) {
-                return $walk;
-            }
+        return static function (array $overridden) use (&$memo, $graph, $position, $group): array {
             if (\in_array($position->pageDataProperty, $overridden, true)) {
                 return ['groups' => [], 'components' => [], 'pageDataProperties' => []];
             }
@@ -174,22 +171,16 @@ final class ComponentUsageLocator
     }
 
     /**
-     * @param list<string>                $properties
      * @param array<string, class-string> $candidates
      *
      * @return array<string, list<string>>
      */
-    private function findOverriddenProperties(EntityManagerInterface $entityManager, array $properties, array $candidates): array
+    private function findOverriddenProperties(EntityManagerInterface $entityManager, array $candidates): array
     {
-        if ([] === $properties) {
-            return [];
-        }
-
         $overridden = [];
-        foreach ($this->pageDataComponentAssociations($entityManager, declaredOnly: true) as $class => $fields) {
-            $fields = array_values(array_intersect($fields, $properties));
-            $pageDataIds = array_keys(array_filter($candidates, static fn (string $candidate): bool => is_a($candidate, $class, true)));
-            if ([] === $fields || [] === $pageDataIds) {
+        foreach ($this->pageDataComponentAssociations($entityManager) as $class => $fields) {
+            $pageDataIds = array_keys($candidates, $class, true);
+            if ([] === $pageDataIds) {
                 continue;
             }
             $queryBuilder = $entityManager->createQueryBuilder()
@@ -197,12 +188,9 @@ final class ComponentUsageLocator
                 ->from($class, 'pd')
                 ->where('pd.id IN (:ids)')
                 ->setParameter('ids', $pageDataIds, ArrayParameterType::STRING);
-            $isSet = [];
             foreach ($fields as $index => $field) {
                 $queryBuilder->addSelect(\sprintf('IDENTITY(pd.%s) AS field%d', $field, $index));
-                $isSet[] = \sprintf('pd.%s IS NOT NULL', $field);
             }
-            $queryBuilder->andWhere(implode(' OR ', $isSet));
             foreach ($queryBuilder->getQuery()->getResult() as $row) {
                 foreach ($fields as $index => $field) {
                     if (null !== $row['field' . $index]) {
@@ -210,10 +198,6 @@ final class ComponentUsageLocator
                     }
                 }
             }
-        }
-
-        foreach ($overridden as &$fields) {
-            sort($fields);
         }
 
         return $overridden;
@@ -449,7 +433,7 @@ final class ComponentUsageLocator
     /**
      * @return array<class-string, non-empty-list<string>>
      */
-    private function pageDataComponentAssociations(EntityManagerInterface $entityManager, bool $declaredOnly = false): array
+    private function pageDataComponentAssociations(EntityManagerInterface $entityManager): array
     {
         $associations = [];
         foreach ($entityManager->getMetadataFactory()->getAllMetadata() as $metadata) {
@@ -457,9 +441,6 @@ final class ComponentUsageLocator
                 continue;
             }
             foreach ($metadata->getAssociationNames() as $field) {
-                if ($declaredOnly && $metadata->isInheritedAssociation($field)) {
-                    continue;
-                }
                 if ($metadata->isAssociationWithSingleJoinColumn($field) && is_a($metadata->getAssociationTargetClass($field), AbstractComponent::class, true)) {
                     $associations[$metadata->getName()][] = $field;
                 }
