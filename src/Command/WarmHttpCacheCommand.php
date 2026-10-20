@@ -42,7 +42,8 @@ class WarmHttpCacheCommand extends Command
             ->addOption('concurrency', null, InputOption::VALUE_REQUIRED, 'The most requests in flight at once', '2')
             ->addOption('max-time', null, InputOption::VALUE_REQUIRED, 'Stop starting requests after this many seconds, and still exit 0')
             ->addOption('timeout', null, InputOption::VALUE_REQUIRED, 'The most seconds one request may take', '30')
-            ->addOption('accept-encoding', null, InputOption::VALUE_REQUIRED, 'The Accept-Encoding to send, or "none"', ModuleRequestHeaders::ACCEPT_ENCODING);
+            ->addOption('accept-encoding', null, InputOption::VALUE_REQUIRED, 'The Accept-Encoding to send, or "none"', ModuleRequestHeaders::ACCEPT_ENCODING)
+            ->addOption('requests-per-connection', null, InputOption::VALUE_REQUIRED, 'Send "Connection: close" on every Nth request, so a new connection is opened about every N requests and a Kubernetes Service spreads them across its pods; 1 opens a new connection for every request. By default connections are kept alive');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -54,6 +55,7 @@ class WarmHttpCacheCommand extends Command
         $maxTime = $input->getOption('max-time');
         $timeout = $input->getOption('timeout');
         $acceptEncoding = $input->getOption('accept-encoding');
+        $requestsPerConnection = $input->getOption('requests-per-connection');
         $acceptEncoding = 'none' === strtolower($acceptEncoding) ? null : $acceptEncoding;
 
         $errors = [];
@@ -70,6 +72,9 @@ class WarmHttpCacheCommand extends Command
         }
         if (null !== $limit && !$this->isWholeNumber($limit)) {
             $errors[] = '--limit must be a whole number of at least 1';
+        }
+        if (null !== $requestsPerConnection && !$this->isWholeNumber($requestsPerConnection)) {
+            $errors[] = '--requests-per-connection must be a whole number of at least 1';
         }
         if (null !== $maxTime && !$this->isPositiveNumber($maxTime)) {
             $errors[] = '--max-time must be a number of seconds greater than 0';
@@ -103,6 +108,7 @@ class WarmHttpCacheCommand extends Command
             null === $maxTime ? null : (float) $maxTime,
             (float) $timeout,
             $acceptEncoding,
+            null === $requestsPerConnection ? null : (int) $requestsPerConnection,
         );
 
         $this->writeSummary($output, \count($paths), $result, $maxTime);
