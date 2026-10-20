@@ -7,6 +7,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ### Added
 - `warm-http-cache --requests-per-connection=N` and `http_cache.warm_after_flush.requests_per_connection` send `Connection: close` on every Nth warm request, so a warm through a Kubernetes Service spreads across its pods instead of staying on a few keep-alive connections; off by default ([#554](https://github.com/components-web-app/api-components-bundle/pull/554))
 
+### Changed
+- A resource manifest preloads each publishable component's draft link and a swapped-in draft's groups with its component tree: its query count no longer grows with the number of publishable components or drafts (one id and type query per owner level and one query per publishable class present, instead of one per component and per draft) ([#555](https://github.com/components-web-app/api-components-bundle/pull/555))
+
 ## [2.0.0-alpha.33](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.32...2.0.0-alpha.33) - 2026-10-20
 
 ### Breaking

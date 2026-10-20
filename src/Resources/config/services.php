@@ -650,7 +650,7 @@ return static function (ContainerConfigurator $configurator) {
     $services
         ->set('silverback.api_components.helper.page.manifest_tree_loader')
         ->class(ManifestTreeLoader::class)
-        ->args([new Reference(ManagerRegistry::class)]);
+        ->args([new Reference(ManagerRegistry::class), new Reference(PublishableAttributeReader::class)]);
     $services->alias(ManifestTreeLoader::class, 'silverback.api_components.helper.page.manifest_tree_loader');
 
     $services

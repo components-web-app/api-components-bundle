@@ -15,6 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Helper\Page\ManifestTreeLoader;
 use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
@@ -31,7 +32,7 @@ class ResourceManifestNormalizerTest extends TestCase
         $calls = [];
         $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getManagerForClass')->willReturn($this->createStub(ObjectManager::class));
-        $loader = new ManifestTreeLoader($registry);
+        $loader = new ManifestTreeLoader($registry, new PublishableAttributeReader($registry));
 
         $inner = $this->createMock(NormalizerInterface::class);
         $inner->expects(self::once())->method('normalize')
@@ -73,7 +74,7 @@ class ResourceManifestNormalizerTest extends TestCase
 
         $manifest = new ResourceManifest();
         $manifest->entity = $page;
-        $normalizer = new ResourceManifestNormalizer(new ManifestTreeLoader($registry));
+        $normalizer = new ResourceManifestNormalizer(new ManifestTreeLoader($registry, new PublishableAttributeReader($registry)));
         $normalizer->setNormalizer($inner);
         $normalizer->normalize($manifest, 'jsonld');
 

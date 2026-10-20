@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Helper\Page;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
@@ -27,6 +28,7 @@ final class ManifestTreeLoader
 
     public function __construct(
         private readonly ManagerRegistry $registry,
+        private readonly PublishableAttributeReader $publishableAttributeReader,
         private readonly int $chunkSize = self::CHUNK_SIZE,
     ) {
     }
@@ -100,6 +102,8 @@ final class ManifestTreeLoader
             return [];
         }
 
+        $drafts = $this->loadPublishableComponentsOf($manager, $class, $owners);
+
         foreach (array_chunk(array_keys($owners), $this->chunkSize) as $ids) {
             $manager->createQueryBuilder()
                 ->select('o', 'g', 'p', 'c')
@@ -113,7 +117,7 @@ final class ManifestTreeLoader
                 ->getResult();
         }
 
-        $components = [];
+        $components = $drafts;
         foreach ($owners as $owner) {
             foreach ($owner->getComponentGroups() as $group) {
                 foreach ($group->componentPositions as $position) {
@@ -126,5 +130,80 @@ final class ManifestTreeLoader
         }
 
         return $components;
+    }
+
+    /**
+     * @param class-string                                 $class
+     * @param array<string, Page|Layout|AbstractComponent> $owners
+     *
+     * @return array<string, AbstractComponent>
+     */
+    private function loadPublishableComponentsOf(EntityManagerInterface $manager, string $class, array $owners): array
+    {
+        $publishableClasses = $this->publishableComponentClasses($manager);
+        if ([] === $publishableClasses) {
+            return [];
+        }
+
+        $type = 'CASE';
+        foreach ($publishableClasses as $index => $publishableClass) {
+            $type .= \sprintf(' WHEN c INSTANCE OF %s THEN %d', $publishableClass, $index + 1);
+        }
+        $type .= ' ELSE 0 END';
+
+        $idsByType = [];
+        foreach (array_chunk(array_keys($owners), $this->chunkSize) as $ids) {
+            $rows = $manager->createQueryBuilder()
+                ->select('c.id AS id', $type . ' AS type')
+                ->from($class, 'o')
+                ->innerJoin('o.componentGroups', 'g')
+                ->innerJoin('g.componentPositions', 'p')
+                ->innerJoin('p.component', 'c')
+                ->where('o.id IN (:ids)')
+                ->andWhere(\sprintf('c INSTANCE OF (%s)', implode(', ', $publishableClasses)))
+                ->setParameter('ids', $ids, ArrayParameterType::STRING)
+                ->getQuery()
+                ->getResult();
+            foreach ($rows as $row) {
+                $idsByType[$row['type']][(string) $row['id']] = true;
+            }
+        }
+
+        $drafts = [];
+        foreach ($idsByType as $type => $componentIds) {
+            $publishableClass = $publishableClasses[$type - 1];
+            $draftField = $this->publishableAttributeReader->getConfiguration($publishableClass)->reverseAssociationName;
+            $metadata = $manager->getClassMetadata($publishableClass);
+            foreach (array_chunk(array_keys($componentIds), $this->chunkSize) as $ids) {
+                $components = $manager->createQueryBuilder()
+                    ->select('c', 'd', 'dd')
+                    ->from($publishableClass, 'c')
+                    ->leftJoin('c.' . $draftField, 'd')
+                    ->leftJoin('d.' . $draftField, 'dd')
+                    ->where('c.id IN (:ids)')
+                    ->setParameter('ids', $ids, ArrayParameterType::STRING)
+                    ->getQuery()
+                    ->getResult();
+                foreach ($components as $component) {
+                    $draft = $metadata->getFieldValue($component, $draftField);
+                    if ($draft instanceof AbstractComponent) {
+                        $drafts[(string) $draft->getId()] = $draft;
+                    }
+                }
+            }
+        }
+
+        return $drafts;
+    }
+
+    /**
+     * @return list<class-string<AbstractComponent>>
+     */
+    private function publishableComponentClasses(EntityManagerInterface $manager): array
+    {
+        return array_values(array_filter(
+            $manager->getClassMetadata(AbstractComponent::class)->discriminatorMap,
+            fn (string $componentClass): bool => $this->publishableAttributeReader->isConfigured($componentClass),
+        ));
     }
 }

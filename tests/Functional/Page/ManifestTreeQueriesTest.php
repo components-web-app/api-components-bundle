@@ -34,7 +34,7 @@ final class ManifestTreeQueriesTest extends FunctionalTestCase
     }
 
     #[DataProvider('pageSizes')]
-    public function test_a_manifest_loads_its_groups_positions_and_components_in_one_query_per_owner_level(int $images, int $nestedImages): void
+    public function test_a_manifest_loads_its_groups_positions_and_components_in_two_queries_per_owner_level(int $images, int $nestedImages): void
     {
         $client = static::createClient();
         self::createImagePageWithNestedGroups('/gallery', $images, $nestedImages);
@@ -44,7 +44,7 @@ final class ManifestTreeQueriesTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(200);
         $treeQueries = self::treeQueries();
-        self::assertCount(4, $treeQueries, implode("\n", $treeQueries));
+        self::assertCount(8, $treeQueries, implode("\n", $treeQueries));
     }
 
     /**
