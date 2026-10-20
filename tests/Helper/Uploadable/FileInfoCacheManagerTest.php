@@ -101,6 +101,16 @@ class FileInfoCacheManagerTest extends TestCase
         self::assertSame(['image/webp', 2048, 640, 480, 'thumbnail'], [$resolved->mimeType, $resolved->fileSize, $resolved->width, $resolved->height, $resolved->filter]);
     }
 
+    public function test_resolving_a_paths_caches_returns_its_original_and_variants_keyed_by_filter(): void
+    {
+        $resolved = $this->manager->resolveCaches('a.png');
+        ksort($resolved);
+
+        self::assertSame(['', 'square', 'thumbnail'], array_keys($resolved));
+        self::assertSame([null, 'square', 'thumbnail'], array_map(static fn (FileInfo $fileInfo): ?string => $fileInfo->filter, array_values($resolved)));
+        self::assertSame([], $this->manager->resolveCaches('d.png'));
+    }
+
     public function test_saving_a_cache_that_already_exists_keeps_the_existing_row(): void
     {
         $this->manager->saveCache(new FileInfo('a.png', 'image/gif', 99, 9, 9, 'thumbnail'));
