@@ -21,21 +21,40 @@ use Doctrine\DBAL\Driver\Statement;
 
 final class QueryCountingMiddleware implements Middleware
 {
-    private static int $count = 0;
+    /**
+     * @var list<string>
+     */
+    private static array $queries = [];
 
     public static function reset(): void
     {
-        self::$count = 0;
+        self::$queries = [];
     }
 
     public static function count(): int
     {
-        return self::$count;
+        return \count(self::$queries);
     }
 
-    public static function record(): void
+    /**
+     * @return list<string>
+     */
+    public static function queries(): array
     {
-        ++self::$count;
+        return self::$queries;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function queriesOnTable(string $table): array
+    {
+        return array_values(array_filter(self::$queries, static fn (string $sql): bool => 1 === preg_match('/\b(?:FROM|INTO|UPDATE|JOIN)\s+"?' . preg_quote($table, '/') . '"?(?:\s|$)/i', $sql)));
+    }
+
+    public static function record(string $sql): void
+    {
+        self::$queries[] = $sql;
     }
 
     public function wrap(Driver $driver): Driver
@@ -46,21 +65,21 @@ final class QueryCountingMiddleware implements Middleware
                 return new class(parent::connect($params)) extends AbstractConnectionMiddleware {
                     public function prepare(string $sql): Statement
                     {
-                        QueryCountingMiddleware::record();
+                        QueryCountingMiddleware::record($sql);
 
                         return parent::prepare($sql);
                     }
 
                     public function query(string $sql): Result
                     {
-                        QueryCountingMiddleware::record();
+                        QueryCountingMiddleware::record($sql);
 
                         return parent::query($sql);
                     }
 
                     public function exec(string $sql): int|string
                     {
-                        QueryCountingMiddleware::record();
+                        QueryCountingMiddleware::record($sql);
 
                         return parent::exec($sql);
                     }
