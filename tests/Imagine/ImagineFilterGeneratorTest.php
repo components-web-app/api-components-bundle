@@ -46,31 +46,81 @@ class ImagineFilterGeneratorTest extends TestCase
         ini_set('memory_limit', $this->originalLimit);
     }
 
-    public function test_a_stored_filter_is_resolved_without_an_estimate_or_a_raised_limit(): void
+    public function test_a_stored_filter_is_resolved_with_one_storage_check_without_generating_or_raising_the_limit(): void
     {
         $limitDuringCall = null;
         $filterService = $this->createMock(FilterService::class);
-        $filterService->expects(self::once())->method('getUrlOfFilteredImage')->with(self::PATH, 'thumbnail')
+        $filterService->expects(self::never())->method('warmUpCache');
+        $filterService->expects(self::never())->method('getUrlOfFilteredImage');
+        $cacheManager = $this->createMock(CacheManager::class);
+        $cacheManager->expects(self::once())->method('isStored')->with(self::PATH, 'thumbnail')->willReturn(true);
+        $cacheManager->expects(self::once())->method('resolve')->with(self::PATH, 'thumbnail')
             ->willReturnCallback(static function () use (&$limitDuringCall): string {
                 $limitDuringCall = \ini_get('memory_limit');
 
                 return '/media/cache/thumbnail/' . self::PATH;
             });
 
-        $url = $this->buildGenerator($filterService, stored: true)->filteredImageUrl(self::PATH, 'thumbnail', 8202, 5468);
+        $result = $this->buildGeneratorWithCacheManager($filterService, $cacheManager)->filter(self::PATH, 'thumbnail', 8202, 5468);
 
-        self::assertSame('/media/cache/thumbnail/' . self::PATH, $url);
+        self::assertSame(ImagineFilterOutcome::Resolved, $result->outcome);
+        self::assertSame('/media/cache/thumbnail/' . self::PATH, $result->url);
         self::assertSame($this->limit, $limitDuringCall);
+    }
+
+    #[DataProvider('memoryLimits')]
+    public function test_an_unstored_filter_is_checked_once_then_generated_and_resolved(?string $memoryLimit): void
+    {
+        if (null !== $memoryLimit) {
+            ini_set('memory_limit', $memoryLimit);
+        }
+        $calls = [];
+        $filterService = $this->createMock(FilterService::class);
+        $filterService->expects(self::never())->method('getUrlOfFilteredImage');
+        $filterService->expects(self::once())->method('warmUpCache')->with(self::PATH, 'thumbnail', null, true)
+            ->willReturnCallback(static function () use (&$calls): bool {
+                $calls[] = 'warmUpCache';
+
+                return true;
+            });
+        $cacheManager = $this->createMock(CacheManager::class);
+        $cacheManager->expects(self::once())->method('isStored')->with(self::PATH, 'thumbnail')
+            ->willReturnCallback(static function () use (&$calls): bool {
+                $calls[] = 'isStored';
+
+                return false;
+            });
+        $cacheManager->expects(self::once())->method('resolve')->with(self::PATH, 'thumbnail')
+            ->willReturnCallback(static function () use (&$calls): string {
+                $calls[] = 'resolve';
+
+                return '/media/cache/thumbnail/' . self::PATH;
+            });
+
+        $result = $this->buildGeneratorWithCacheManager($filterService, $cacheManager)->filter(self::PATH, 'thumbnail', 400, 300);
+
+        self::assertSame(ImagineFilterOutcome::Resolved, $result->outcome);
+        self::assertSame('/media/cache/thumbnail/' . self::PATH, $result->url);
+        self::assertSame(['isStored', 'warmUpCache', 'resolve'], $calls);
+    }
+
+    /**
+     * @return iterable<string, array{?string}>
+     */
+    public static function memoryLimits(): iterable
+    {
+        yield 'a memory limit' => [null];
+        yield 'an unlimited memory limit' => ['-1'];
     }
 
     public function test_an_unstored_filter_that_fits_is_generated_under_the_raised_limit_which_is_then_restored(): void
     {
         $limitDuringCall = null;
         $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willReturnCallback(static function () use (&$limitDuringCall): string {
+        $filterService->method('warmUpCache')->willReturnCallback(static function () use (&$limitDuringCall): bool {
             $limitDuringCall = \ini_get('memory_limit');
 
-            return '/media/cache/thumbnail/' . self::PATH;
+            return true;
         });
 
         $url = $this->buildGenerator($filterService)->filteredImageUrl(self::PATH, 'thumbnail', 4000, 3000);
@@ -84,7 +134,7 @@ class ImagineFilterGeneratorTest extends TestCase
     {
         $filterService = $this->createStub(FilterService::class);
         $failure = new \RuntimeException('heifsave: Unsupported compression');
-        $filterService->method('getUrlOfFilteredImage')->willThrowException($failure);
+        $filterService->method('warmUpCache')->willThrowException($failure);
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::never())->method('warning');
@@ -99,17 +149,21 @@ class ImagineFilterGeneratorTest extends TestCase
 
     public function test_a_stored_filter_that_fails_to_resolve_is_skipped(): void
     {
-        $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willThrowException(new \RuntimeException('resolve failed'));
+        $cacheManager = $this->createStub(CacheManager::class);
+        $cacheManager->method('isStored')->willReturn(true);
+        $cacheManager->method('resolve')->willThrowException(new \RuntimeException('resolve failed'));
 
-        self::assertNull($this->buildGenerator($filterService, stored: true)->filteredImageUrl(self::PATH, 'thumbnail', 4000, 3000));
+        $result = $this->buildGeneratorWithCacheManager($this->createStub(FilterService::class), $cacheManager)->filter(self::PATH, 'thumbnail', 4000, 3000);
+
+        self::assertSame(ImagineFilterOutcome::Failed, $result->outcome);
+        self::assertNull($result->url);
     }
 
     public function test_a_filter_whose_source_image_cannot_be_loaded_is_skipped_with_a_warning(): void
     {
         $filterService = $this->createStub(FilterService::class);
         $missing = new NotLoadableException('Source image not found.');
-        $filterService->method('getUrlOfFilteredImage')->willThrowException($missing);
+        $filterService->method('warmUpCache')->willThrowException($missing);
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::never())->method('error');
@@ -124,7 +178,7 @@ class ImagineFilterGeneratorTest extends TestCase
     public function test_a_failed_filter_needs_no_logger(): void
     {
         $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willThrowException(new \RuntimeException('generation failed'));
+        $filterService->method('warmUpCache')->willThrowException(new \RuntimeException('generation failed'));
 
         self::assertNull($this->buildGenerator($filterService)->filteredImageUrl(self::PATH, 'thumbnail', 4000, 3000));
     }
@@ -133,7 +187,7 @@ class ImagineFilterGeneratorTest extends TestCase
     {
         $filterService = $this->createStub(FilterService::class);
         $error = new \Error('bug');
-        $filterService->method('getUrlOfFilteredImage')->willThrowException($error);
+        $filterService->method('warmUpCache')->willThrowException($error);
 
         try {
             $this->buildGenerator($filterService)->filteredImageUrl(self::PATH, 'thumbnail', 4000, 3000);
@@ -149,7 +203,7 @@ class ImagineFilterGeneratorTest extends TestCase
     {
         $ceilingBytes = self::bytesOf($this->ceiling);
         $filterService = $this->createMock(FilterService::class);
-        $filterService->expects(self::never())->method('getUrlOfFilteredImage');
+        $filterService->expects(self::never())->method('warmUpCache');
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('warning')->with(
@@ -177,7 +231,7 @@ class ImagineFilterGeneratorTest extends TestCase
     {
         ini_set('memory_limit', '-1');
         $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willReturn('/media/cache/thumbnail/' . self::PATH);
+        $filterService->method('warmUpCache')->willReturn(true);
 
         self::assertSame('/media/cache/thumbnail/' . self::PATH, $this->buildGenerator($filterService)->filteredImageUrl(self::PATH, 'thumbnail', 8202, 5468));
         self::assertSame('-1', \ini_get('memory_limit'));
@@ -189,10 +243,10 @@ class ImagineFilterGeneratorTest extends TestCase
         self::setMemoryLimit($aboveCeiling);
         $limitDuringCall = null;
         $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willReturnCallback(static function () use (&$limitDuringCall): string {
+        $filterService->method('warmUpCache')->willReturnCallback(static function () use (&$limitDuringCall): bool {
             $limitDuringCall = \ini_get('memory_limit');
 
-            return '/media/cache/thumbnail/' . self::PATH;
+            return true;
         });
 
         self::assertNotNull($this->buildGenerator($filterService)->filteredImageUrl(self::PATH, 'thumbnail', 7000, 6000));
@@ -204,10 +258,10 @@ class ImagineFilterGeneratorTest extends TestCase
     {
         $limitDuringCall = null;
         $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willReturnCallback(static function () use (&$limitDuringCall): string {
+        $filterService->method('warmUpCache')->willReturnCallback(static function () use (&$limitDuringCall): bool {
             $limitDuringCall = \ini_get('memory_limit');
 
-            return '/media/cache/thumbnail/' . self::PATH;
+            return true;
         });
         $generator = $this->buildGeneratorWithCeiling($filterService, $ceiling);
 
@@ -229,10 +283,10 @@ class ImagineFilterGeneratorTest extends TestCase
     {
         $limitDuringCall = null;
         $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willReturnCallback(static function () use (&$limitDuringCall): string {
+        $filterService->method('warmUpCache')->willReturnCallback(static function () use (&$limitDuringCall): bool {
             $limitDuringCall = \ini_get('memory_limit');
 
-            return '/media/cache/thumbnail/' . self::PATH;
+            return true;
         });
 
         self::assertNotNull($this->buildGenerator($filterService)->filteredImageUrl(self::PATH, 'thumbnail', null, null));
@@ -245,10 +299,10 @@ class ImagineFilterGeneratorTest extends TestCase
         ini_set('memory_limit', (string) (memory_get_usage(true) + 4194304));
         $previous = (string) \ini_get('memory_limit');
         $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willReturnCallback(function (): string {
+        $filterService->method('warmUpCache')->willReturnCallback(function (): bool {
             $this->heldAllocation = str_repeat('x', 16777216);
 
-            return '/media/cache/thumbnail/' . self::PATH;
+            return true;
         });
 
         $logger = $this->createMock(LoggerInterface::class);
@@ -265,7 +319,7 @@ class ImagineFilterGeneratorTest extends TestCase
     public function test_a_filter_that_is_generated_or_resolved_is_reported_as_resolved_with_its_url(): void
     {
         $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willReturn('/media/cache/thumbnail/' . self::PATH);
+        $filterService->method('warmUpCache')->willReturn(true);
 
         $result = $this->buildGenerator($filterService)->filter(self::PATH, 'thumbnail', 4000, 3000);
 
@@ -276,7 +330,7 @@ class ImagineFilterGeneratorTest extends TestCase
     public function test_a_filter_over_the_memory_budget_is_reported_as_skipped(): void
     {
         $filterService = $this->createMock(FilterService::class);
-        $filterService->expects(self::never())->method('getUrlOfFilteredImage');
+        $filterService->expects(self::never())->method('warmUpCache');
 
         $result = $this->buildGenerator($filterService)->filter(self::PATH, 'thumbnail', 8202, 5468);
 
@@ -287,7 +341,7 @@ class ImagineFilterGeneratorTest extends TestCase
     public function test_a_filter_whose_generation_fails_is_reported_as_failed(): void
     {
         $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willThrowException(new \RuntimeException('generation failed'));
+        $filterService->method('warmUpCache')->willThrowException(new \RuntimeException('generation failed'));
 
         $result = $this->buildGenerator($filterService)->filter(self::PATH, 'thumbnail', 4000, 3000);
 
@@ -298,7 +352,7 @@ class ImagineFilterGeneratorTest extends TestCase
     public function test_a_filter_whose_source_image_cannot_be_loaded_is_reported_as_failed(): void
     {
         $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willThrowException(new NotLoadableException('Source image not found.'));
+        $filterService->method('warmUpCache')->willThrowException(new NotLoadableException('Source image not found.'));
 
         $result = $this->buildGenerator($filterService)->filter(self::PATH, 'thumbnail', 4000, 3000);
 
@@ -355,7 +409,13 @@ class ImagineFilterGeneratorTest extends TestCase
     {
         $cacheManager = $this->createStub(CacheManager::class);
         $cacheManager->method('isStored')->willReturn($stored);
+        $cacheManager->method('resolve')->willReturnCallback(static fn (string $path, string $filter): string => '/media/cache/' . $filter . '/' . $path);
 
         return new ImagineFilterGenerator($filterService, $cacheManager, new PhpMemoryLimit(), $driverService, $ceiling, $logger);
+    }
+
+    private function buildGeneratorWithCacheManager(FilterService $filterService, CacheManager $cacheManager): ImagineFilterGenerator
+    {
+        return new ImagineFilterGenerator($filterService, $cacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', $this->ceiling);
     }
 }

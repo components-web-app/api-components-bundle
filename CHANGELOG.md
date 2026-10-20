@@ -8,6 +8,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - A `route_security` `route` pattern matches letters only in the same case and every other character byte for byte, in `RouteVoter` and the route list alike: `/User-Area*` no longer restricts `/user-area/x`; a database other than PostgreSQL, MySQL, MariaDB or SQLite is refused when the list applies a rule ([#546](https://github.com/components-web-app/api-components-bundle/pull/546))
 
 ### Changed
+- A stored imagine variant costs one storage check, not two: `ImagineFilterGenerator` resolves it through the cache manager instead of liip's `FilterService::getUrlOfFilteredImage()`, which checked `isStored()` again, and generates an unstored one with a forced `warmUpCache()` ([#545](https://github.com/components-web-app/api-components-bundle/pull/545))
 - A resource manifest builds no media objects for uploadable resources, since none reach its body: no storage call and no file info query per image or imagine variant while building one, and no file info row or variant written as a side effect ([#544](https://github.com/components-web-app/api-components-bundle/pull/544))
 
 ### Fixed

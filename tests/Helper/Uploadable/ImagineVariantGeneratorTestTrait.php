@@ -79,7 +79,8 @@ trait ImagineVariantGeneratorTestTrait
             return isset($this->stored[$filter . ':' . $path]);
         });
         $filterService = $this->createStub(FilterService::class);
-        $filterService->method('getUrlOfFilteredImage')->willReturnCallback(function (string $path, string $filter): string {
+        $cacheManager->method('resolve')->willReturnCallback(static fn (string $path, string $filter): string => '/media/cache/' . $filter . '/' . $path);
+        $filterService->method('warmUpCache')->willReturnCallback(function (string $path, string $filter): bool {
             $this->generated[] = [$filter, $path, (new \ReflectionProperty(FlysystemDataLoader::class, 'adapter'))->getValue($this->dataLoader)];
             $this->cacheControlAtGeneration[$filter . ':' . $path] = $this->cacheControl->forVariantOf($path);
             if (isset($this->failures[$filter])) {
@@ -90,7 +91,7 @@ trait ImagineVariantGeneratorTestTrait
                 ($this->afterGenerate)();
             }
 
-            return '/media/cache/' . $filter . '/' . $path;
+            return true;
         });
 
         return new ImagineVariantGenerator(
