@@ -203,8 +203,22 @@ class WarmHttpCacheCommandTest extends TestCase
         (new CommandTester($this->command()))->execute([]);
 
         self::assertSame(['accept-encoding: gzip'], $this->requests[0]['headers']['accept-encoding']);
+        foreach ($this->requests as $request) {
+            self::assertArrayNotHasKey('connection', $request['headers']);
+        }
         self::assertSame('http://localhost/_api/_/routes//b', $this->requests[1]['url']);
         self::assertSame('http://localhost/_api/_/resource_manifest//a', $this->requests[2]['url']);
+    }
+
+    public function test_the_requests_per_connection_option_reaches_the_requests(): void
+    {
+        $this->persistRoute('/a');
+        $this->respondWithPage('/a');
+
+        $tester = new CommandTester($this->command());
+
+        self::assertSame(Command::SUCCESS, $tester->execute(['--requests-per-connection' => '2', '--concurrency' => '1']));
+        self::assertSame([[], ['connection: close'], []], array_map(static fn (array $request): array => $request['headers']['connection'] ?? [], $this->requests));
     }
 
     public function test_it_stops_after_the_maximum_time_and_still_succeeds(): void
@@ -264,6 +278,10 @@ class WarmHttpCacheCommandTest extends TestCase
         yield 'text max time' => [['--max-time' => 'soon'], '--max-time must be a number of seconds greater than 0'];
         yield 'zero timeout' => [['--timeout' => '0'], '--timeout must be a number of seconds greater than 0'];
         yield 'relative base url' => [['--base-url' => 'localhost'], '--base-url must be an http or https URL'];
+        yield 'zero requests per connection' => [['--requests-per-connection' => '0'], '--requests-per-connection must be a whole number of at least 1'];
+        yield 'negative requests per connection' => [['--requests-per-connection' => '-1'], '--requests-per-connection must be a whole number of at least 1'];
+        yield 'fractional requests per connection' => [['--requests-per-connection' => '1.5'], '--requests-per-connection must be a whole number of at least 1'];
+        yield 'text requests per connection' => [['--requests-per-connection' => 'all'], '--requests-per-connection must be a whole number of at least 1'];
     }
 
     private function command(string $brotliUncompress = 'brotli_uncompress'): WarmHttpCacheCommand

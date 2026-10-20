@@ -55,7 +55,7 @@ final class HttpCacheWarmer
     /**
      * @param list<string> $paths
      */
-    public function warm(array $paths, string $baseUrl, int $concurrency, ?float $maxTime, float $timeout, ?string $acceptEncoding): HttpCacheWarmResult
+    public function warm(array $paths, string $baseUrl, int $concurrency, ?float $maxTime, float $timeout, ?string $acceptEncoding, ?int $requestsPerConnection = null): HttpCacheWarmResult
     {
         $baseUrl = rtrim($baseUrl, '/');
         $deadline = null === $maxTime ? null : $this->now() + $maxTime;
@@ -77,14 +77,20 @@ final class HttpCacheWarmer
 
         $requests = [];
         $active = [];
+        $started = 0;
         while (!$followUps->isEmpty() || !$routes->isEmpty() || $active) {
             while (\count($active) < $concurrency && (!$followUps->isEmpty() || !$routes->isEmpty())) {
                 if ($this->isPast($deadline)) {
                     break 2;
                 }
                 $item = ($followUps->isEmpty() ? $routes : $followUps)->dequeue();
+                $headers = $this->headers($item, $acceptEncoding);
+                if (null !== $requestsPerConnection && ++$started >= $requestsPerConnection) {
+                    $headers['connection'] = 'close';
+                    $started = 0;
+                }
                 $response = $this->httpClient->request('GET', $baseUrl . $item['iri'], [
-                    'headers' => $this->headers($item, $acceptEncoding),
+                    'headers' => $headers,
                     'max_duration' => $timeout,
                     'user_data' => $item,
                 ]);

@@ -195,7 +195,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
     public function test_an_enabled_warm_after_flush_reaches_the_flusher_and_the_handler(): void
     {
         $config = self::minimalConfig();
-        $config['http_cache']['warm_after_flush'] = ['base_url' => 'https://cache.test', 'max_time' => 15, 'concurrency' => 3, 'timeout' => 9, 'limit' => 50];
+        $config['http_cache']['warm_after_flush'] = ['base_url' => 'https://cache.test', 'max_time' => 15, 'concurrency' => 3, 'timeout' => 9, 'limit' => 50, 'requests_per_connection' => 3];
 
         [$container, $errors] = $this->load($config);
 
@@ -209,6 +209,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame(3, $this->argument($container, $handler, '$concurrency'));
         self::assertSame(9.0, $this->argument($container, $handler, '$timeout'));
         self::assertSame(50, $this->argument($container, $handler, '$limit'));
+        self::assertSame(3, $this->argument($container, $handler, '$requestsPerConnection'));
     }
 
     public function test_with_imagine_enabled_both_filter_callers_generate_through_the_memory_guard(): void

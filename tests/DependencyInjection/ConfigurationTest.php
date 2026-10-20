@@ -457,7 +457,7 @@ class ConfigurationTest extends TestCase
     public function test_the_warm_after_a_flush_is_off_by_default_and_bounded_when_enabled(): void
     {
         self::assertSame(
-            ['enabled' => false, 'base_url' => 'http://localhost', 'max_time' => 60.0, 'concurrency' => 2, 'timeout' => 30.0, 'limit' => null],
+            ['enabled' => false, 'base_url' => 'http://localhost', 'max_time' => 60.0, 'concurrency' => 2, 'timeout' => 30.0, 'limit' => null, 'requests_per_connection' => null],
             $this->process(self::minimalConfig())['http_cache']['warm_after_flush']
         );
 
@@ -469,10 +469,10 @@ class ConfigurationTest extends TestCase
     public function test_the_warm_after_a_flush_can_be_configured(): void
     {
         $config = self::minimalConfig();
-        $config['http_cache']['warm_after_flush'] = ['base_url' => 'https://cache.test', 'max_time' => 15, 'concurrency' => 4, 'timeout' => 10.5, 'limit' => 20];
+        $config['http_cache']['warm_after_flush'] = ['base_url' => 'https://cache.test', 'max_time' => 15, 'concurrency' => 4, 'timeout' => 10.5, 'limit' => 20, 'requests_per_connection' => 1];
 
         self::assertSame(
-            ['base_url' => 'https://cache.test', 'max_time' => 15.0, 'concurrency' => 4, 'timeout' => 10.5, 'limit' => 20, 'enabled' => true],
+            ['base_url' => 'https://cache.test', 'max_time' => 15.0, 'concurrency' => 4, 'timeout' => 10.5, 'limit' => 20, 'requests_per_connection' => 1, 'enabled' => true],
             $this->process($config)['http_cache']['warm_after_flush']
         );
     }
@@ -487,6 +487,8 @@ class ConfigurationTest extends TestCase
         yield 'zero concurrency' => [['concurrency' => 0]];
         yield 'zero timeout' => [['timeout' => 0]];
         yield 'zero limit' => [['limit' => 0]];
+        yield 'zero requests per connection' => [['requests_per_connection' => 0]];
+        yield 'fractional requests per connection' => [['requests_per_connection' => 1.5]];
         yield 'relative base url' => [['base_url' => 'localhost']];
     }
 
