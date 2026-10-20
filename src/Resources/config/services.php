@@ -155,6 +155,7 @@ use Silverback\ApiComponentsBundle\Helper\ComponentUsage\ComponentUsageLocator;
 use Silverback\ApiComponentsBundle\Helper\Form\FormCachePurger;
 use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResourceHelper;
+use Silverback\ApiComponentsBundle\Helper\Page\ManifestTreeLoader;
 use Silverback\ApiComponentsBundle\Helper\Page\PageUiComponentPrefixer;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
@@ -645,6 +646,12 @@ return static function (ContainerConfigurator $configurator) {
         ->class(PageUiComponentPrefixer::class)
         ->args([new Reference(EntityManagerInterface::class)]);
     $services->alias(PageUiComponentPrefixer::class, 'silverback.api_components.helper.page.ui_component_prefixer');
+
+    $services
+        ->set('silverback.api_components.helper.page.manifest_tree_loader')
+        ->class(ManifestTreeLoader::class)
+        ->args([new Reference(ManagerRegistry::class)]);
+    $services->alias(ManifestTreeLoader::class, 'silverback.api_components.helper.page.manifest_tree_loader');
 
     $services
         ->set('silverback.api_components.command.prefix_page_ui_components')

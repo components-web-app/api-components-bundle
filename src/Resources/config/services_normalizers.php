@@ -20,6 +20,7 @@ use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
+use Silverback\ApiComponentsBundle\Helper\Page\ManifestTreeLoader;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
@@ -197,6 +198,7 @@ return static function (ContainerConfigurator $configurator) {
         ->set('silverback.api_components.serializer.normalizer.resource_manifest')
         ->class(ResourceManifestNormalizer::class)
         ->autoconfigure(false)
+        ->args([new Reference(ManifestTreeLoader::class)])
         ->tag('serializer.normalizer', ['priority' => -499]);
     $services->alias(ResourceManifestNormalizer::class, 'silverback.api_components.serializer.normalizer.resource_manifest');
 
