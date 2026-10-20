@@ -16,6 +16,7 @@ final readonly class ImagineFilterResult
     public function __construct(
         public ImagineFilterOutcome $outcome,
         public ?string $url = null,
+        public bool $generated = false,
     ) {
     }
 }

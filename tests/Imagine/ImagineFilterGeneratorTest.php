@@ -65,6 +65,7 @@ class ImagineFilterGeneratorTest extends TestCase
 
         self::assertSame(ImagineFilterOutcome::Resolved, $result->outcome);
         self::assertSame('/media/cache/thumbnail/' . self::PATH, $result->url);
+        self::assertFalse($result->generated);
         self::assertSame($this->limit, $limitDuringCall);
     }
 
@@ -102,6 +103,7 @@ class ImagineFilterGeneratorTest extends TestCase
         self::assertSame(ImagineFilterOutcome::Resolved, $result->outcome);
         self::assertSame('/media/cache/thumbnail/' . self::PATH, $result->url);
         self::assertSame(['isStored', 'warmUpCache', 'resolve'], $calls);
+        self::assertTrue($result->generated);
     }
 
     /**
@@ -336,6 +338,7 @@ class ImagineFilterGeneratorTest extends TestCase
 
         self::assertSame(ImagineFilterOutcome::Skipped, $result->outcome);
         self::assertNull($result->url);
+        self::assertFalse($result->generated);
     }
 
     public function test_a_filter_whose_generation_fails_is_reported_as_failed(): void

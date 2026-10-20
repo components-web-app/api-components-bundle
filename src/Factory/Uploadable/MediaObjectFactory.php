@@ -144,11 +144,11 @@ class MediaObjectFactory
 
         $this->cacheControl?->registerVariantSource($path, $uploadableField);
         foreach ($filters as $filter) {
-            $resolvedPath = $imagineFilterGenerator->filteredImageUrl($path, $filter, $original->width, $original->height);
-            if (null === $resolvedPath) {
+            $result = $imagineFilterGenerator->filter($path, $filter, $original->width, $original->height);
+            if (null === $result->url) {
                 continue;
             }
-            $mediaObjects[] = $this->createFromImagine($imagineFilterGenerator, $this->urlHelper->getAbsoluteUrl($resolvedPath), $path, $filter, $fileInfos[$filter] ?? null);
+            $mediaObjects[] = $this->createFromImagine($imagineFilterGenerator, $this->urlHelper->getAbsoluteUrl($result->url), $path, $filter, $result->generated ? null : ($fileInfos[$filter] ?? null));
         }
 
         return $mediaObjects;

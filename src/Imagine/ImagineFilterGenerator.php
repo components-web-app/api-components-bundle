@@ -129,11 +129,11 @@ final class ImagineFilterGenerator
     {
         $this->filterService->warmUpCache($path, $filter, null, true);
 
-        return $this->resolved($path, $filter);
+        return $this->resolved($path, $filter, true);
     }
 
-    private function resolved(string $path, string $filter): ImagineFilterResult
+    private function resolved(string $path, string $filter, bool $generated = false): ImagineFilterResult
     {
-        return new ImagineFilterResult(ImagineFilterOutcome::Resolved, $this->cacheManager->resolve($path, $filter));
+        return new ImagineFilterResult(ImagineFilterOutcome::Resolved, $this->cacheManager->resolve($path, $filter), $generated);
     }
 }

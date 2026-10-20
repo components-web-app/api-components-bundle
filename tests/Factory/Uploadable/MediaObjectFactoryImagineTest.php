@@ -92,7 +92,7 @@ class MediaObjectFactoryImagineTest extends TestCase
         $dataLoader = $this->createMock(FlysystemDataLoader::class);
         $dataLoader->expects(self::once())->method('setAdapter')->with('test_adapter');
 
-        $mediaObjects = $this->buildFactory($filterService, null, $fileInfoCacheManager, $dataLoader)->createMediaObjects(new \stdClass())->get('file');
+        $mediaObjects = $this->buildFactory($filterService, null, $fileInfoCacheManager, $dataLoader, $this->resolvingFilterGenerator())->createMediaObjects(new \stdClass())->get('file');
 
         self::assertCount(3, $mediaObjects);
         self::assertSame('thumbnail', $mediaObjects[1]->imagineFilter);
@@ -135,6 +135,26 @@ class MediaObjectFactoryImagineTest extends TestCase
         $mediaObjects = $this->buildFactory($this->createStub(FilterService::class), null, $fileInfoCacheManager, null, $this->resolvingFilterGenerator())->createMediaObjects(new \stdClass())->get('file');
 
         self::assertSame([1024, 256, 512], array_map(static fn ($mediaObject): ?int => $mediaObject->fileSize, $mediaObjects));
+    }
+
+    public function test_a_variant_generated_in_the_same_call_is_described_from_the_row_its_generation_wrote_not_the_one_read_before(): void
+    {
+        $fileInfoCacheManager = $this->createMock(FileInfoCacheManager::class);
+        $fileInfoCacheManager->method('resolveCaches')->willReturn([
+            '' => new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100),
+            'thumbnail' => new FileInfo(self::FILE_PATH, 'image/png', 9999, 99, 99, 'thumbnail'),
+            'square' => new FileInfo(self::FILE_PATH, 'image/png', 9999, 99, 99, 'square'),
+        ]);
+        $fileInfoCacheManager->expects(self::exactly(2))->method('resolveCache')->willReturnCallback(
+            static fn (string $path, ?string $filter = null): FileInfo => new FileInfo(self::FILE_PATH, 'image/webp', 256, 30, 30, $filter)
+        );
+        $filterService = $this->createStub(FilterService::class);
+        $filterService->method('warmUpCache')->willReturn(true);
+
+        $mediaObjects = $this->buildFactory($filterService, null, $fileInfoCacheManager)->createMediaObjects(new \stdClass())->get('file');
+
+        self::assertSame([1024, 256, 256], array_map(static fn ($mediaObject): ?int => $mediaObject->fileSize, $mediaObjects));
+        self::assertSame(['image/png', 'image/webp', 'image/webp'], array_map(static fn ($mediaObject): ?string => $mediaObject->mimeType, $mediaObjects));
     }
 
     public function test_a_stored_variant_with_no_file_info_is_described_from_the_stored_file_and_its_file_info_saved(): void
