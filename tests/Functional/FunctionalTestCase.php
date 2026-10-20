@@ -21,6 +21,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\QueryCountingMiddleware;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\RejectedDeleteMiddleware;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\UnreachableDatabaseMiddleware;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Flysystem\CountingFilesystemAdapter;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\KernelHttpClient;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\SwitchableMailer;
@@ -129,6 +130,7 @@ abstract class FunctionalTestCase extends ApiTestCase
         UnreachableDatabaseMiddleware::setUnreachable(false);
         RejectedDeleteMiddleware::setRejectDeletes(false);
         QueryCountingMiddleware::reset();
+        CountingFilesystemAdapter::reset();
         MockClientCallback::setCacheUnreachable(false);
         MockClientCallback::clearPurgeRequests();
         SwitchableMailer::setUnreachable(false);
