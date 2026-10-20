@@ -12,6 +12,9 @@
 namespace Silverback\ApiComponentsBundle\Helper\ComponentUsage;
 
 /**
+ * @phpstan-type Holder array{group: string, pageDataProperty: ?string}
+ * @phpstan-type Walk array{groups: list<string>, components: list<string>, pageDataProperties: list<string>}
+ *
  * @author Daniel West <daniel@silverback.is>
  */
 final readonly class ComponentUsageGraph
@@ -19,22 +22,25 @@ final readonly class ComponentUsageGraph
     /**
      * @param array<string, list<string>> $ownersByGroup
      * @param array<string, string>       $publishedByComponent
-     * @param array<string, list<string>> $groupsByComponent
+     * @param array<string, list<Holder>> $holdersByComponent
      */
     public function __construct(
         private array $ownersByGroup = [],
         private array $publishedByComponent = [],
-        private array $groupsByComponent = [],
+        private array $holdersByComponent = [],
     ) {
     }
 
     /**
-     * @return array{groups: list<string>, components: list<string>}
+     * @param list<string> $overriddenProperties
+     *
+     * @return Walk
      */
-    public function walkUpFrom(string $group): array
+    public function walkUpFrom(string $group, array $overriddenProperties = []): array
     {
         $groups = [];
         $components = [];
+        $properties = [];
         $queue = [$group];
 
         while (null !== ($current = array_shift($queue))) {
@@ -45,15 +51,25 @@ final readonly class ComponentUsageGraph
 
             foreach ($this->ownersByGroup[$current] ?? [] as $owner) {
                 foreach ($this->family($owner) as $member) {
-                    if (!isset($components[$member])) {
-                        $components[$member] = $member;
-                        array_push($queue, ...$this->groupsByComponent[$member] ?? []);
+                    if (isset($components[$member])) {
+                        continue;
+                    }
+                    $components[$member] = $member;
+                    foreach ($this->holdersByComponent[$member] ?? [] as $holder) {
+                        $property = $holder['pageDataProperty'];
+                        if (null !== $property) {
+                            $properties[$property] = $property;
+                            if (\in_array($property, $overriddenProperties, true)) {
+                                continue;
+                            }
+                        }
+                        $queue[] = $holder['group'];
                     }
                 }
             }
         }
 
-        return ['groups' => array_values($groups), 'components' => array_values($components)];
+        return ['groups' => array_values($groups), 'components' => array_values($components), 'pageDataProperties' => array_values($properties)];
     }
 
     /**
