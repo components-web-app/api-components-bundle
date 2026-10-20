@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
+use Silverback\ApiComponentsBundle\Helper\Page\ManifestTreeLoader;
 use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\Trait\ManifestDepthGroupTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
@@ -28,11 +29,16 @@ class ResourceManifestNormalizer implements NormalizerInterface, NormalizerAware
 
     private const ALREADY_CALLED = 'RESOURCE_MANIFEST_NORMALIZER_ALREADY_CALLED';
 
+    public function __construct(private readonly ManifestTreeLoader $treeLoader)
+    {
+    }
+
     public function normalize($object, $format = null, array $context = []): float|array|\ArrayObject|bool|int|string|null
     {
         $context[self::ALREADY_CALLED] = true;
         $context[CwaTagCollector::MANIFEST_CONTEXT_KEY] = true;
 
+        $this->treeLoader->load($object->entity);
         $normalized = $this->normalizer->normalize($object->entity, $format, $context);
 
         if (isset($normalized['@id']) && str_contains($normalized['@id'], '/resource_manifest/')) {
