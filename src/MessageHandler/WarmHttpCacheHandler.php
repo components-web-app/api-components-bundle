@@ -27,6 +27,7 @@ final readonly class WarmHttpCacheHandler
         private float $maxTime = 60.0,
         private float $timeout = 30.0,
         private ?int $limit = null,
+        private ?int $requestsPerConnection = null,
         private ?LoggerInterface $logger = null,
     ) {
     }
@@ -46,7 +47,7 @@ final readonly class WarmHttpCacheHandler
             return null;
         }
 
-        $result = $this->httpCacheWarmer->warm($paths, $this->baseUrl, $this->concurrency, $this->maxTime, $this->timeout, $message->acceptEncoding);
+        $result = $this->httpCacheWarmer->warm($paths, $this->baseUrl, $this->concurrency, $this->maxTime, $this->timeout, $message->acceptEncoding, $this->requestsPerConnection);
 
         $this->logger?->info(\sprintf(
             'Warmed %d %s after the HTTP cache flush with Accept-Encoding %s: %d requests, %d hits, %d misses, %d failed%s',

@@ -99,6 +99,28 @@ class WarmHttpCacheHandlerTest extends TestCase
         self::assertSame(7.5, $this->requests[0]['max_duration']);
     }
 
+    public function test_by_default_no_request_asks_to_close_its_connection(): void
+    {
+        $this->persistRoute('/');
+
+        ($this->handler())(new WarmHttpCacheMessage('gzip'));
+
+        self::assertCount(2, $this->requests);
+        foreach ($this->requests as $request) {
+            self::assertArrayNotHasKey('connection', $request['headers']);
+        }
+    }
+
+    public function test_the_requests_per_connection_are_passed_to_the_warm(): void
+    {
+        $this->persistRoute('/');
+
+        ($this->handler(requestsPerConnection: 2))(new WarmHttpCacheMessage('gzip'));
+
+        self::assertArrayNotHasKey('connection', $this->requests[0]['headers']);
+        self::assertSame(['connection: close'], $this->requests[1]['headers']['connection']);
+    }
+
     public function test_it_stops_at_the_maximum_time_and_says_so(): void
     {
         $this->persistRoute('/');
@@ -130,7 +152,7 @@ class WarmHttpCacheHandlerTest extends TestCase
         self::assertTrue($this->logs->hasRecordThatContains('There is no public route to warm after the HTTP cache flush', Level::Info));
     }
 
-    private function handler(?int $limit = null, float $maxTime = 60.0, float $timeout = 30.0, float $secondsPerRequest = 0.0, string $brotliUncompress = 'brotli_uncompress'): WarmHttpCacheHandler
+    private function handler(?int $limit = null, float $maxTime = 60.0, float $timeout = 30.0, float $secondsPerRequest = 0.0, string $brotliUncompress = 'brotli_uncompress', ?int $requestsPerConnection = null): WarmHttpCacheHandler
     {
         $accessChecker = $this->createStub(ResourceAccessCheckerInterface::class);
         $accessChecker->method('isGranted')->willReturn(false);
@@ -155,6 +177,7 @@ class WarmHttpCacheHandlerTest extends TestCase
             $maxTime,
             $timeout,
             $limit,
+            $requestsPerConnection,
             new Logger('test', [$this->logs]),
         );
     }

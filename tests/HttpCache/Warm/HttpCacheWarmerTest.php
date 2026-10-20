@@ -409,6 +409,38 @@ class HttpCacheWarmerTest extends TestCase
         }
     }
 
+    public function test_a_cap_on_requests_per_connection_asks_every_nth_request_to_close_its_connection_and_changes_no_other_header(): void
+    {
+        $this->route('/a');
+        $this->manifest('/a', [
+            $this->node('/_api/_/routes//a', [
+                $this->node('/_api/_/pages/p1'),
+                $this->node('/_api/_/layouts/l1'),
+                $this->node('/_api/_/component_groups/g1'),
+            ]),
+        ]);
+
+        $this->warm(['/a'], concurrency: 1, requestsPerConnection: 2);
+
+        self::assertSame([null, 'close', null, 'close', null], array_map(static fn (array $request): ?string => $request['headers']['connection'] ?? null, $this->requests));
+        $closing = $this->requests[1];
+        unset($closing['headers']['connection']);
+        self::assertSame($this->expected('/_api/_/resource_manifest//a', '/a', null), $closing);
+    }
+
+    public function test_one_request_per_connection_asks_every_request_to_close_its_connection(): void
+    {
+        $this->route('/a');
+        $this->manifest('/a', [$this->node('/_api/_/routes//a', [$this->node('/_api/_/pages/p1')])]);
+
+        $this->warm(['/a', '/b'], concurrency: 2, requestsPerConnection: 1);
+
+        self::assertCount(5, $this->requests);
+        foreach ($this->requests as $request) {
+            self::assertSame('close', $request['headers']['connection'] ?? null, $request['url']);
+        }
+    }
+
     public function test_the_request_carries_the_timeout_as_its_maximum_duration(): void
     {
         $durations = [];
@@ -451,7 +483,7 @@ class HttpCacheWarmerTest extends TestCase
     /**
      * @param list<string> $paths
      */
-    private function warm(array $paths, string $baseUrl = 'http://localhost', int $concurrency = 2, ?float $maxTime = null, ?string $acceptEncoding = 'gzip', string $brotliUncompress = 'brotli_uncompress'): HttpCacheWarmResult
+    private function warm(array $paths, string $baseUrl = 'http://localhost', int $concurrency = 2, ?float $maxTime = null, ?string $acceptEncoding = 'gzip', string $brotliUncompress = 'brotli_uncompress', ?int $requestsPerConnection = null): HttpCacheWarmResult
     {
         $client = new MockHttpClient(function (string $method, string $url, array $options): MockResponse {
             $headers = [];
@@ -473,7 +505,7 @@ class HttpCacheWarmerTest extends TestCase
         $iriConverter = $this->createStub(IriConverterInterface::class);
         $iriConverter->method('getIriFromResource')->willReturnCallback(static fn (Route $route) => '/_api/_/routes/' . $route->getPath());
 
-        return (new HttpCacheWarmer($client, $iriConverter, $this->clock, $brotliUncompress))->warm($paths, $baseUrl, $concurrency, $maxTime, 30.0, $acceptEncoding);
+        return (new HttpCacheWarmer($client, $iriConverter, $this->clock, $brotliUncompress))->warm($paths, $baseUrl, $concurrency, $maxTime, 30.0, $acceptEncoding, $requestsPerConnection);
     }
 
     private function route(string $path): void

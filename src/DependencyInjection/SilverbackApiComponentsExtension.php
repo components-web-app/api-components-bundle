@@ -158,6 +158,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$maxTime', $warmAfterFlush['max_time']);
         $definition->setArgument('$timeout', $warmAfterFlush['timeout']);
         $definition->setArgument('$limit', $warmAfterFlush['limit']);
+        $definition->setArgument('$requestsPerConnection', $warmAfterFlush['requests_per_connection']);
         if ($warmAfterFlush['enabled']) {
             $container->getDefinition('silverback.api_components.http_cache.flusher')->setArgument('$warmDispatcher', new Reference('silverback.api_components.http_cache.warm_dispatcher'));
         }
