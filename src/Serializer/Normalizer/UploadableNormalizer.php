@@ -15,6 +15,7 @@ use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\HttpCache\CwaTagCollector;
 use Silverback\ApiComponentsBundle\Model\Uploadable\DataUriFile;
 use Silverback\ApiComponentsBundle\Model\Uploadable\UploadedDataUriFile;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
@@ -143,7 +144,7 @@ final class UploadableNormalizer implements DenormalizerInterface, DenormalizerA
     {
         $context[self::ALREADY_CALLED][] = $this->propertyAccessor->getValue($object, 'id');
 
-        $mediaObjects = $this->mediaObjectFactory->createMediaObjects($object);
+        $mediaObjects = ($context[CwaTagCollector::MANIFEST_CONTEXT_KEY] ?? false) ? null : $this->mediaObjectFactory->createMediaObjects($object);
         if ($mediaObjects) {
             $mediaObjects = $this->normalizer->normalize(
                 $mediaObjects,

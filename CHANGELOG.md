@@ -9,6 +9,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Changed
 - A stored imagine variant costs one storage check, not two: `ImagineFilterGenerator` resolves it through the cache manager instead of liip's `FilterService::getUrlOfFilteredImage()`, which checked `isStored()` again, and generates an unstored one with a forced `warmUpCache()` ([#545](https://github.com/components-web-app/api-components-bundle/pull/545))
+- A resource manifest builds no media objects for uploadable resources, since none reach its body: no storage call and no file info query per image or imagine variant while building one, and no file info row or variant written as a side effect ([#544](https://github.com/components-web-app/api-components-bundle/pull/544))
 
 ### Fixed
 - The route list and `RouteVoter` agree on `route_security` for every path on PostgreSQL, MySQL and MariaDB: the list compared through `LOWER()` and the column collation, so it hid routes such as `/üser-area/x` (MySQL folds accents) or a path with the Kelvin sign that the voter still served by IRI ([#546](https://github.com/components-web-app/api-components-bundle/pull/546))
