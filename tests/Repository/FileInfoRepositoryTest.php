@@ -64,6 +64,35 @@ class FileInfoRepositoryTest extends OrphanedResourceDatabaseTestCase
         self::assertSame(0, $this->entityManager->getUnitOfWork()->size());
     }
 
+    public function test_a_paths_original_and_variants_are_found_in_one_query_keyed_by_filter(): void
+    {
+        $this->entityManager->persist(new FileInfo('served.png', 'image/png', 2048, 640, 480, null));
+        $this->entityManager->persist(new FileInfo('served.png', 'image/png', 512, 100, 75, 'thumbnail'));
+        $this->entityManager->persist(new FileInfo('served.png', 'image/webp', 256, 80, 80, 'square_thumbnail'));
+        $this->entityManager->persist(new FileInfo('other.png', 'image/png', 1, 1, 1, null));
+        $this->entityManager->persist(new FileInfo('other.png', 'image/png', 1, 1, 1, 'thumbnail'));
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+        $this->queryLogger->queries = [];
+
+        $fileInfos = (new FileInfoRepository($this->registry))->findByPathKeyedByFilter('served.png');
+        ksort($fileInfos);
+
+        self::assertSame(['', 'square_thumbnail', 'thumbnail'], array_keys($fileInfos));
+        self::assertSame([2048, 256, 512], array_map(static fn (FileInfo $fileInfo): int => $fileInfo->fileSize, array_values($fileInfos)));
+        self::assertSame(['served.png'], array_values(array_unique(array_map(static fn (FileInfo $fileInfo): string => $fileInfo->path, $fileInfos))));
+        self::assertNull($fileInfos['']->filter);
+        self::assertCount(1, $this->queryLogger->queries);
+    }
+
+    public function test_a_path_with_no_file_info_has_none_keyed_by_filter(): void
+    {
+        $this->entityManager->persist(new FileInfo('other.png', 'image/png', 1, 1, 1, null));
+        $this->entityManager->flush();
+
+        self::assertSame([], (new FileInfoRepository($this->registry))->findByPathKeyedByFilter('served.png'));
+    }
+
     public function test_the_schema_has_a_unique_index_on_path_and_filter_with_a_non_null_filter_column(): void
     {
         $metadata = $this->entityManager->getClassMetadata(FileInfo::class);

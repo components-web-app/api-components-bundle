@@ -65,6 +65,7 @@ class MediaObjectFactoryUrlGeneratorTest extends TestCase
         $fileInfo = new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100);
         $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
         $fileInfoCacheManager->method('resolveCache')->willReturn($fileInfo);
+        $fileInfoCacheManager->method('resolveCaches')->willReturn(['' => $fileInfo]);
 
         $apiGenerator = $this->createStub(ApiUrlGenerator::class);
         $apiGenerator->method('generateUrl')->willReturn('http://example.com/api/download');

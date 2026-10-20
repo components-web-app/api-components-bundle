@@ -84,13 +84,10 @@ class MediaObjectFactoryImagineTest extends TestCase
         $filterService->method('warmUpCache')->willReturn(true);
 
         $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
-        $fileInfoCacheManager->method('resolveCache')->willReturnCallback(
-            static fn (string $path, ?string $filter = null): ?FileInfo => match ($filter) {
-                null => new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100),
-                'square' => new FileInfo(self::FILE_PATH, 'image/png', 512, 50, 50, 'square'),
-                default => null,
-            }
-        );
+        $fileInfoCacheManager->method('resolveCaches')->willReturn([
+            '' => new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100),
+            'square' => new FileInfo(self::FILE_PATH, 'image/png', 512, 50, 50, 'square'),
+        ]);
 
         $dataLoader = $this->createMock(FlysystemDataLoader::class);
         $dataLoader->expects(self::once())->method('setAdapter')->with('test_adapter');
@@ -106,6 +103,40 @@ class MediaObjectFactoryImagineTest extends TestCase
         self::assertSame('image/png', $mediaObjects[2]->mimeType);
     }
 
+    public function test_the_original_and_every_variant_are_described_from_one_file_info_lookup_for_the_path(): void
+    {
+        $fileInfoCacheManager = $this->createMock(FileInfoCacheManager::class);
+        $fileInfoCacheManager->expects(self::once())->method('resolveCaches')->with(self::FILE_PATH)->willReturn([
+            '' => new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100),
+            'thumbnail' => new FileInfo(self::FILE_PATH, 'image/webp', 256, 30, 30, 'thumbnail'),
+            'square' => new FileInfo(self::FILE_PATH, 'image/png', 512, 50, 50, 'square'),
+        ]);
+        $fileInfoCacheManager->expects(self::never())->method('resolveCache');
+        $fileInfoCacheManager->expects(self::never())->method('saveCache');
+
+        $mediaObjects = $this->buildFactory($this->createStub(FilterService::class), null, $fileInfoCacheManager, null, $this->resolvingFilterGenerator())->createMediaObjects(new \stdClass())->get('file');
+
+        self::assertSame([null, 'thumbnail', 'square'], array_map(static fn ($mediaObject): ?string => $mediaObject->imagineFilter, $mediaObjects));
+        self::assertSame([1024, 256, 512], array_map(static fn ($mediaObject): ?int => $mediaObject->fileSize, $mediaObjects));
+        self::assertSame(['image/png', 'image/webp', 'image/png'], array_map(static fn ($mediaObject): ?string => $mediaObject->mimeType, $mediaObjects));
+        self::assertSame([100, 30, 50], array_map(static fn ($mediaObject): ?int => $mediaObject->width, $mediaObjects));
+    }
+
+    public function test_a_variant_missing_from_the_paths_file_info_is_looked_up_on_its_own_as_it_may_have_just_been_generated(): void
+    {
+        $fileInfoCacheManager = $this->createMock(FileInfoCacheManager::class);
+        $fileInfoCacheManager->method('resolveCaches')->willReturn([
+            '' => new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100),
+            'square' => new FileInfo(self::FILE_PATH, 'image/png', 512, 50, 50, 'square'),
+        ]);
+        $fileInfoCacheManager->expects(self::once())->method('resolveCache')->with(self::FILE_PATH, 'thumbnail')
+            ->willReturn(new FileInfo(self::FILE_PATH, 'image/webp', 256, 30, 30, 'thumbnail'));
+
+        $mediaObjects = $this->buildFactory($this->createStub(FilterService::class), null, $fileInfoCacheManager, null, $this->resolvingFilterGenerator())->createMediaObjects(new \stdClass())->get('file');
+
+        self::assertSame([1024, 256, 512], array_map(static fn ($mediaObject): ?int => $mediaObject->fileSize, $mediaObjects));
+    }
+
     public function test_a_stored_variant_with_no_file_info_is_described_from_the_stored_file_and_its_file_info_saved(): void
     {
         $cache = new Filesystem(new InMemoryFilesystemAdapter());
@@ -114,13 +145,10 @@ class MediaObjectFactoryImagineTest extends TestCase
         $cache->write('media/cache/square/' . self::FILE_PATH, $this->png(10, 10));
 
         $fileInfoCacheManager = $this->createMock(FileInfoCacheManager::class);
-        $fileInfoCacheManager->method('resolveCache')->willReturnCallback(
-            static fn (string $path, ?string $filter = null): ?FileInfo => match ($filter) {
-                null => new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100),
-                'square' => new FileInfo(self::FILE_PATH, 'image/png', 512, 50, 50, 'square'),
-                default => null,
-            }
-        );
+        $fileInfoCacheManager->method('resolveCaches')->willReturn([
+            '' => new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100),
+            'square' => new FileInfo(self::FILE_PATH, 'image/png', 512, 50, 50, 'square'),
+        ]);
         $fileInfoCacheManager->expects(self::once())->method('saveCache')->with(self::callback(
             static fn (FileInfo $fileInfo): bool => self::FILE_PATH === $fileInfo->path
                 && 'thumbnail' === $fileInfo->filter
@@ -143,9 +171,7 @@ class MediaObjectFactoryImagineTest extends TestCase
     public function test_a_variant_with_no_file_info_that_cannot_be_read_has_unknown_dimensions(): void
     {
         $fileInfoCacheManager = $this->createMock(FileInfoCacheManager::class);
-        $fileInfoCacheManager->method('resolveCache')->willReturnCallback(
-            static fn (string $path, ?string $filter = null): ?FileInfo => null === $filter ? new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100) : null
-        );
+        $fileInfoCacheManager->method('resolveCaches')->willReturn(['' => new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100)]);
         $fileInfoCacheManager->expects(self::never())->method('saveCache');
 
         $mediaObjects = $this->buildFactory($this->createStub(FilterService::class), null, $fileInfoCacheManager, null, $this->readableFilterGenerator(new Filesystem(new InMemoryFilesystemAdapter())))->createMediaObjects(new \stdClass())->get('file');
@@ -163,9 +189,7 @@ class MediaObjectFactoryImagineTest extends TestCase
         $cache->write('media/cache/thumbnail/' . self::FILE_PATH, 'not an image');
 
         $fileInfoCacheManager = $this->createMock(FileInfoCacheManager::class);
-        $fileInfoCacheManager->method('resolveCache')->willReturnCallback(
-            static fn (string $path, ?string $filter = null): ?FileInfo => null === $filter ? new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100) : null
-        );
+        $fileInfoCacheManager->method('resolveCaches')->willReturn(['' => new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100)]);
         $fileInfoCacheManager->expects(self::never())->method('saveCache');
 
         $mediaObjects = $this->buildFactory($this->createStub(FilterService::class), null, $fileInfoCacheManager, null, $this->readableFilterGenerator($cache))->createMediaObjects(new \stdClass())->get('file');
@@ -188,6 +212,15 @@ class MediaObjectFactoryImagineTest extends TestCase
         $this->buildFactory($filterService, null, field: new UploadableField(adapter: 'test_adapter', imagineFilters: ['thumbnail', 'square'], imagineCacheControl: 'public, max-age=600'), cacheControl: $cacheControl)->createMediaObjects(new \stdClass());
 
         self::assertSame(['thumbnail' => 'public, max-age=600', 'square' => 'public, max-age=600'], $generated);
+    }
+
+    private function resolvingFilterGenerator(): ImagineFilterGenerator
+    {
+        $cacheManager = $this->createStub(CacheManager::class);
+        $cacheManager->method('isStored')->willReturn(true);
+        $cacheManager->method('resolve')->willReturnCallback(static fn (string $path, string $filter): string => '/media/cache/' . $filter . '/' . $path);
+
+        return new ImagineFilterGenerator($this->createStub(FilterService::class), $cacheManager, new PhpMemoryLimit(), 'liip_imagine.gd', null);
     }
 
     private function readableFilterGenerator(Filesystem $cache): ImagineFilterGenerator
@@ -234,7 +267,7 @@ class MediaObjectFactoryImagineTest extends TestCase
 
         if (null === $fileInfoCacheManager) {
             $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
-            $fileInfoCacheManager->method('resolveCache')->willReturn(new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100));
+            $fileInfoCacheManager->method('resolveCaches')->willReturn(['' => new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100)]);
         }
 
         $apiGenerator = $this->createStub(ApiUrlGenerator::class);

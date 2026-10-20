@@ -83,6 +83,7 @@ class MediaObjectFactoryTest extends TestCase
         if (null === $fileInfoCacheManager) {
             $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
             $fileInfoCacheManager->method('resolveCache')->willReturn($fileInfo);
+            $fileInfoCacheManager->method('resolveCaches')->willReturn(['' => $fileInfo]);
         }
 
         $apiGenerator = $this->createStub(ApiUrlGenerator::class);
@@ -139,6 +140,7 @@ class MediaObjectFactoryTest extends TestCase
         $fileInfo = new FileInfo(self::FILE_PATH, 'image/png', 1024, 100, 100);
         $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
         $fileInfoCacheManager->method('resolveCache')->willReturn($fileInfo);
+        $fileInfoCacheManager->method('resolveCaches')->willReturn(['' => $fileInfo]);
 
         $imagineCacheManager = $this->createStub(CacheManager::class);
         $imagineCacheManager->method('isStored')->willReturn(true);
@@ -180,6 +182,7 @@ class MediaObjectFactoryTest extends TestCase
         $fileInfo = new FileInfo(self::FILE_PATH, 'application/pdf', 2048, null, null);
         $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
         $fileInfoCacheManager->method('resolveCache')->willReturn($fileInfo);
+        $fileInfoCacheManager->method('resolveCaches')->willReturn(['' => $fileInfo]);
 
         $imagineCacheManager = $this->createMock(CacheManager::class);
         $imagineCacheManager->expects($this->never())->method('isStored');
@@ -314,6 +317,7 @@ class MediaObjectFactoryTest extends TestCase
         $fileInfo = new FileInfo(self::FILE_PATH, 'image/png', 999, 200, 150);
         $fileInfoCacheManager = $this->createStub(FileInfoCacheManager::class);
         $fileInfoCacheManager->method('resolveCache')->willReturn($fileInfo);
+        $fileInfoCacheManager->method('resolveCaches')->willReturn(['' => $fileInfo]);
 
         $factory = $this->buildFactory(
             fileInfoCacheManager: $fileInfoCacheManager,

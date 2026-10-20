@@ -41,6 +41,19 @@ class FileInfoRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return array<string, FileInfo> the path's original under '' and each variant under its filter
+     */
+    public function findByPathKeyedByFilter(string $path): array
+    {
+        $fileInfos = [];
+        foreach ($this->findBy(['path' => $path]) as $fileInfo) {
+            $fileInfos[$fileInfo->filter ?? ''] = $fileInfo;
+        }
+
+        return $fileInfos;
+    }
+
+    /**
      * @return list<string>
      */
     public function findPaths(): array
