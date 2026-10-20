@@ -9,6 +9,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Fixed
 - The route list and `RouteVoter` agree on `route_security` for every path on PostgreSQL, MySQL and MariaDB: the list compared through `LOWER()` and the column collation, so it hid routes such as `/üser-area/x` (MySQL folds accents) or a path with the Kelvin sign that the voter still served by IRI ([#546](https://github.com/components-web-app/api-components-bundle/pull/546))
+- `GET {component}/usage` lists in `renderedOn` only the page data where a dynamic position's fallback renders: a page data whose property for that position (or one on the way up a nested chain) holds a component is left out, and `renderedOnCount` follows ([#543](https://github.com/components-web-app/api-components-bundle/pull/543))
 
 ### Tooling
 - A CI job runs `RouteExtensionTest` on PostgreSQL 16, MySQL 8.0 and MariaDB 10.11 (`ROUTE_EXTENSION_DATABASE_URL`) ([#546](https://github.com/components-web-app/api-components-bundle/pull/546))
