@@ -38,7 +38,10 @@ use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\MockHub;
 use Symfony\Component\Mercure\Update;
+use Symfony\Component\RateLimiter\LimiterInterface;
+use Symfony\Component\RateLimiter\RateLimit;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\RateLimiter\Storage\CacheStorage;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
@@ -187,6 +190,37 @@ class RealtimeEventStateProcessorTest extends TestCase
         }
     }
 
+    public function test_the_retry_after_is_never_less_than_a_second(): void
+    {
+        $limiter = $this->createStub(LimiterInterface::class);
+        $limiter->method('consume')->willReturn(new RateLimit(0, new \DateTimeImmutable('-1 second'), false, 20));
+        $factory = $this->createStub(RateLimiterFactoryInterface::class);
+        $factory->method('create')->willReturn($limiter);
+
+        try {
+            $this->processor(rateLimiterFactory: $factory)->process(null, new Post(), [], ['request' => $this->request('{"clientId": "' . self::CLIENT_ID . '", "event": "presence"}')]);
+            self::fail('The event should have been refused');
+        } catch (TooManyRequestsHttpException $exception) {
+            self::assertSame(['Retry-After' => 1], $exception->getHeaders());
+            self::assertSame(RealtimeEventStateProcessor::TOO_MANY_REQUESTS_MESSAGE, $exception->getMessage());
+        }
+    }
+
+    public function test_the_retry_after_counts_the_seconds_to_the_limiters_next_token(): void
+    {
+        $limiter = $this->createStub(LimiterInterface::class);
+        $limiter->method('consume')->willReturn(new RateLimit(0, new \DateTimeImmutable('@' . (time() + 30)), false, 20));
+        $factory = $this->createStub(RateLimiterFactoryInterface::class);
+        $factory->method('create')->willReturn($limiter);
+
+        try {
+            $this->processor(rateLimiterFactory: $factory)->process(null, new Post(), [], ['request' => $this->request('{"clientId": "' . self::CLIENT_ID . '", "event": "presence"}')]);
+            self::fail('The event should have been refused');
+        } catch (TooManyRequestsHttpException $exception) {
+            self::assertEqualsWithDelta(30, $exception->getHeaders()['Retry-After'], 1);
+        }
+    }
+
     public function test_a_publish_the_hub_refuses_is_logged_and_is_a_502(): void
     {
         $this->publishFailure = new MercureRuntimeException('Failed to send an update.');
@@ -321,7 +355,7 @@ class RealtimeEventStateProcessorTest extends TestCase
         return new RateLimiterFactory(RealtimeEventStateProcessor::RATE_LIMITER_CONFIG, $this->storage);
     }
 
-    private function processor(?string $hubName = null, string $userIri = '/users/1', bool $logger = true): RealtimeEventStateProcessor
+    private function processor(?string $hubName = null, string $userIri = '/users/1', bool $logger = true, ?RateLimiterFactoryInterface $rateLimiterFactory = null): RealtimeEventStateProcessor
     {
         $authorization = $this->createStub(MercureAuthorization::class);
         $authorization->method('getRealtimeTopic')->willReturn(self::TOPIC);
@@ -331,7 +365,7 @@ class RealtimeEventStateProcessorTest extends TestCase
         return new RealtimeEventStateProcessor(
             $authorization,
             new HubRegistry($this->hub('default'), ['default' => $this->hub('default'), 'other' => $this->hub('other')]),
-            $this->rateLimiterFactory(),
+            $rateLimiterFactory ?? $this->rateLimiterFactory(),
             new RealtimeUserResolver($this->tokenStorage, $iriConverter),
             new MockClock(new \DateTimeImmutable('2026-10-21T10:00:00.250+00:00')),
             $hubName,

@@ -46,12 +46,7 @@ final readonly class RealtimeEventRequest
             throw new HttpException(Response::HTTP_REQUEST_ENTITY_TOO_LARGE, self::TOO_LARGE_MESSAGE);
         }
 
-        try {
-            $body = json_decode($content, false, 512, \JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
-            throw self::invalid([['', self::INVALID_BODY_MESSAGE]]);
-        }
-
+        $body = json_decode($content);
         if (!$body instanceof \stdClass) {
             throw self::invalid([['', self::INVALID_BODY_MESSAGE]]);
         }
@@ -65,7 +60,7 @@ final readonly class RealtimeEventRequest
             return new self($clientId, $event, $iri, $fields[self::DATA] ?? null);
         }
 
-        throw self::invalid(array_values(array_filter([null === $clientId ? [self::CLIENT_ID, self::CLIENT_ID_MESSAGE] : null, null === $event ? [self::EVENT, self::EVENT_MESSAGE] : null, null === $iri || \is_string($iri) ? null : [self::IRI, self::IRI_MESSAGE]])));
+        throw self::invalid(array_filter([null === $clientId ? [self::CLIENT_ID, self::CLIENT_ID_MESSAGE] : null, null === $event ? [self::EVENT, self::EVENT_MESSAGE] : null, null === $iri || \is_string($iri) ? null : [self::IRI, self::IRI_MESSAGE]]));
     }
 
     public static function isClientId(string $value): bool
@@ -84,7 +79,7 @@ final readonly class RealtimeEventRequest
     }
 
     /**
-     * @param list<array{string, string}> $violations
+     * @param array<array{string, string}> $violations
      */
     private static function invalid(array $violations): ValidationException
     {

@@ -68,8 +68,9 @@ class PublishableAwareHub implements RemoteHubInterface
 
     public function publish(Update $update): string
     {
-        $data = $update->getData() ? json_decode($update->getData(), true, 512, \JSON_THROW_ON_ERROR) : null;
-        $iri = \is_array($data) && \array_key_exists('@id', $data) ? $data['@id'] : null;
+        $decoded = $update->getData() ? json_decode($update->getData(), true, flags: \JSON_THROW_ON_ERROR) : null;
+        $data = \is_array($decoded) ? $decoded : [];
+        $iri = \array_key_exists('@id', $data) ? $data['@id'] : null;
         if (!\is_string($iri) || $this->isPublicDelete($update, $data)) {
             return $this->decorated->publish($update);
         }
