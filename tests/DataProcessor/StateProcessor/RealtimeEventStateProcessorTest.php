@@ -22,6 +22,7 @@ use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\RealtimeHubC
 use Silverback\ApiComponentsBundle\Helper\Realtime\LastWriteResolver;
 use Silverback\ApiComponentsBundle\Helper\Realtime\RealtimeUserResolver;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
+use Silverback\ApiComponentsBundle\Realtime\RealtimeEventRequest;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Config\FileLocator;
@@ -291,7 +292,17 @@ class RealtimeEventStateProcessorTest extends TestCase
         self::assertCount(1, $this->published['default']);
     }
 
-    public function test_a_cross_site_request_is_refused_before_anything_is_read_or_counted(): void
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function textContentTypes(): iterable
+    {
+        yield 'text/plain, as navigator.sendBeacon sends a string' => ['text/plain;charset=UTF-8'];
+        yield 'text/plain with no charset' => ['text/plain'];
+    }
+
+    #[DataProvider('textContentTypes')]
+    public function test_a_cross_site_text_body_is_refused_before_anything_is_read_or_counted(string $contentType): void
     {
         $clientLimiter = $this->createMock(RateLimiterFactoryInterface::class);
         $clientLimiter->expects(self::never())->method('create');
@@ -299,13 +310,56 @@ class RealtimeEventStateProcessorTest extends TestCase
         $userLimiter->expects(self::never())->method('create');
 
         try {
-            $this->processor(clientRateLimiterFactory: $clientLimiter, userRateLimiterFactory: $userLimiter)->process(null, new Post(), [], ['request' => $this->request('{"event": "presence"}', 'cross-site', 'text/plain')]);
-            self::fail('The cross-site request should have been refused');
+            $this->processor(clientRateLimiterFactory: $clientLimiter, userRateLimiterFactory: $userLimiter)->process(null, new Post(), [], ['request' => $this->request(self::leftBody(), 'cross-site', $contentType)]);
+            self::fail('The cross-site text body should have been refused');
         } catch (AccessDeniedHttpException $exception) {
             self::assertSame(RealtimeEventStateProcessor::CROSS_SITE_MESSAGE, $exception->getMessage());
         }
 
         self::assertSame([], $this->published['default']);
+    }
+
+    public function test_a_cross_site_text_body_is_refused_before_its_size_is_considered(): void
+    {
+        $this->expectException(AccessDeniedHttpException::class);
+        $this->expectExceptionMessage(RealtimeEventStateProcessor::CROSS_SITE_MESSAGE);
+
+        $this->processor()->process(null, new Post(), [], ['request' => $this->request(str_repeat('x', RealtimeEventRequest::MAX_BYTES + 1), 'cross-site', 'text/plain')]);
+    }
+
+    public function test_a_cross_site_text_body_is_refused_whoever_sends_it(): void
+    {
+        $this->tokenStorage->setToken(null);
+
+        $this->expectException(AccessDeniedHttpException::class);
+        $this->expectExceptionMessage(RealtimeEventStateProcessor::CROSS_SITE_MESSAGE);
+
+        $this->processor()->process(null, new Post(), [], ['request' => $this->request(self::leftBody(), 'cross-site', 'text/plain')]);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function jsonContentTypes(): iterable
+    {
+        yield 'application/json' => ['application/json'];
+        yield 'application/ld+json' => ['application/ld+json'];
+    }
+
+    #[DataProvider('jsonContentTypes')]
+    public function test_a_cross_site_json_body_is_published_because_cors_decides_it_before_it_is_sent(string $contentType): void
+    {
+        $this->processor()->process(null, new Post(), [], ['request' => $this->request(self::body(), 'cross-site', $contentType)]);
+
+        self::assertCount(1, $this->published['default']);
+    }
+
+    #[DataProvider('fetchSites')]
+    public function test_a_text_presence_event_leaving_that_is_not_cross_site_is_published(?string $fetchSite): void
+    {
+        $this->processor()->process(null, new Post(), [], ['request' => $this->request(self::leftBody(), $fetchSite, 'text/plain;charset=UTF-8')]);
+
+        self::assertCount(1, $this->published['default']);
     }
 
     public function test_a_presence_event_leaving_sent_as_text_by_send_beacon_is_published(): void
@@ -530,6 +584,11 @@ class RealtimeEventStateProcessorTest extends TestCase
     private static function body(string $clientId = self::CLIENT_ID): string
     {
         return '{"clientId": "' . $clientId . '", "event": "presence"}';
+    }
+
+    private static function leftBody(): string
+    {
+        return '{"clientId": "' . self::CLIENT_ID . '", "event": "presence", "data": {"page": "/_/pages/1", "state": "left"}}';
     }
 
     private static function clientId(int $i): string

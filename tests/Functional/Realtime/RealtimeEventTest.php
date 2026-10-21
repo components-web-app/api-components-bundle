@@ -308,28 +308,43 @@ final class RealtimeEventTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(202);
     }
 
-    public function test_a_cross_site_request_is_refused_and_publishes_nothing(): void
+    public function test_a_cross_site_text_presence_event_leaving_is_refused_and_publishes_and_counts_nothing(): void
+    {
+        $client = static::createClient();
+        $admin = self::loginAsAdmin($client);
+        HubStub::clearPublished();
+
+        $client->request('POST', self::ENDPOINT, ['headers' => ['accept' => 'application/ld+json', 'content-type' => self::BEACON_CONTENT_TYPE, 'origin' => 'https://attacker.example', 'sec-fetch-site' => 'cross-site'], 'body' => self::leftBody()]);
+
+        self::assertResponseStatusCodeSame(403);
+        self::assertNoMercureUpdatePublished();
+        self::assertSame(20, self::remainingTokens('silverback.api_components.realtime.client_rate_limiter', RealtimeEventStateProcessor::clientRateLimiterKey(self::iriOf($admin), self::CLIENT_ID)));
+        self::assertSame(60, self::remainingTokens('silverback.api_components.realtime.user_rate_limiter', self::iriOf($admin)));
+    }
+
+    public function test_a_cross_site_json_event_is_accepted_and_published(): void
     {
         $client = static::createClient();
         self::loginAsAdmin($client);
         HubStub::clearPublished();
 
-        $client->request('POST', self::ENDPOINT, ['headers' => ['accept' => 'application/ld+json', 'content-type' => self::BEACON_CONTENT_TYPE, 'origin' => 'https://attacker.example', 'sec-fetch-site' => 'cross-site'], 'body' => self::body()]);
+        $client->request('POST', self::ENDPOINT, ['headers' => ['accept' => 'application/ld+json', 'content-type' => 'application/json', 'origin' => 'https://admin.example', 'sec-fetch-site' => 'cross-site'], 'body' => self::body()]);
 
-        self::assertResponseStatusCodeSame(403);
-        self::assertNoMercureUpdatePublished();
+        self::assertResponseStatusCodeSame(202);
+        self::assertCount(1, self::mercureUpdates());
     }
 
-    public function test_a_same_site_request_is_accepted(): void
+    public function test_a_same_site_text_presence_event_leaving_is_accepted_and_counted(): void
     {
         $client = static::createClient();
-        self::loginAsAdmin($client);
+        $admin = self::loginAsAdmin($client);
         HubStub::clearPublished();
 
         $client->request('POST', self::ENDPOINT, ['headers' => ['accept' => 'application/ld+json', 'content-type' => self::BEACON_CONTENT_TYPE, 'origin' => 'http://app.example.com', 'sec-fetch-site' => 'same-site'], 'body' => self::leftBody()]);
 
         self::assertResponseStatusCodeSame(202);
         self::assertCount(1, self::mercureUpdates());
+        self::assertSame(19, self::remainingTokens('silverback.api_components.realtime.client_rate_limiter', RealtimeEventStateProcessor::clientRateLimiterKey(self::iriOf($admin), self::CLIENT_ID)));
     }
 
     public function test_a_publish_the_hub_refuses_is_logged_and_still_accepted(): void
@@ -403,6 +418,14 @@ final class RealtimeEventTest extends FunctionalTestCase
     private static function drainUserRateLimit(string $userIri, int $bursts): void
     {
         self::drainRateLimit('silverback.api_components.realtime.user_rate_limiter', $userIri, 60, $bursts);
+    }
+
+    private static function remainingTokens(string $limiterId, string $key): int
+    {
+        $limiter = static::getContainer()->get($limiterId);
+        \assert($limiter instanceof RateLimiterFactory);
+
+        return $limiter->create($key)->consume(0)->getRemainingTokens();
     }
 
     private static function drainRateLimit(string $limiterId, string $key, int $burst, int $bursts): void

@@ -51,7 +51,7 @@ final class RealtimeEventStateProcessor implements ProcessorInterface
     ];
     public const string RATE_LIMITER_POOL = 'silverback.api_components.realtime.rate_limiter_cache';
     public const string TOO_MANY_REQUESTS_MESSAGE = 'Too many real-time events from this user.';
-    public const string CROSS_SITE_MESSAGE = 'A real-time event cannot be sent from another site.';
+    public const string CROSS_SITE_MESSAGE = 'A real-time event cannot be sent as text/plain from another site.';
     private const string FETCH_SITE_HEADER = 'Sec-Fetch-Site';
     private const string CROSS_SITE = 'cross-site';
 
@@ -78,7 +78,7 @@ final class RealtimeEventStateProcessor implements ProcessorInterface
             throw new UnsupportedMediaTypeHttpException(RealtimeEventRequest::UNSUPPORTED_MEDIA_TYPE_MESSAGE);
         }
 
-        if (self::CROSS_SITE === $request->headers->get(self::FETCH_SITE_HEADER)) {
+        if (self::CROSS_SITE === $request->headers->get(self::FETCH_SITE_HEADER) && RealtimeEventRequest::isText($request)) {
             throw new AccessDeniedHttpException(self::CROSS_SITE_MESSAGE);
         }
 

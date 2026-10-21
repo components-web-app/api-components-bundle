@@ -56,8 +56,7 @@ final readonly class RealtimeEventRequest
             throw new HttpException(Response::HTTP_REQUEST_ENTITY_TOO_LARGE, self::TOO_LARGE_MESSAGE);
         }
 
-        $format = $request->getContentTypeFormat();
-        if (!\in_array($format, self::JSON_FORMATS, true) && !(self::BEACON_FORMAT === $format && self::isPresenceLeft($content))) {
+        if (!\in_array($request->getContentTypeFormat(), self::JSON_FORMATS, true) && !(self::isText($request) && self::isPresenceLeft($content))) {
             throw new UnsupportedMediaTypeHttpException(self::UNSUPPORTED_MEDIA_TYPE_MESSAGE);
         }
 
@@ -87,6 +86,11 @@ final readonly class RealtimeEventRequest
         }
 
         throw self::invalid(array_filter([null === $clientId ? [self::CLIENT_ID, self::CLIENT_ID_MESSAGE] : null, null === $event ? [self::EVENT, self::EVENT_MESSAGE] : null, null === $iri || \is_string($iri) ? null : [self::IRI, self::IRI_MESSAGE], $encodable ? null : [self::DATA, self::DATA_MESSAGE]]));
+    }
+
+    public static function isText(Request $request): bool
+    {
+        return self::BEACON_FORMAT === $request->getContentTypeFormat();
     }
 
     public static function isClientId(string $value): bool

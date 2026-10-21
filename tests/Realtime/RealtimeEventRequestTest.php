@@ -243,6 +243,26 @@ class RealtimeEventRequestTest extends TestCase
         }
     }
 
+    /**
+     * @return iterable<string, array{string|null, bool}>
+     */
+    public static function textBodies(): iterable
+    {
+        yield 'text/plain, as navigator.sendBeacon sends a string' => ['text/plain;charset=UTF-8', true];
+        yield 'text/plain with no charset' => ['text/plain', true];
+        yield 'application/json' => ['application/json', false];
+        yield 'application/ld+json' => ['application/ld+json', false];
+        yield 'a form' => ['application/x-www-form-urlencoded', false];
+        yield 'multipart' => ['multipart/form-data; boundary=x', false];
+        yield 'no content type' => [null, false];
+    }
+
+    #[DataProvider('textBodies')]
+    public function test_a_body_is_text_only_when_its_content_type_is_text_plain(?string $contentType, bool $expected): void
+    {
+        self::assertSame($expected, RealtimeEventRequest::isText(self::request($contentType, '')));
+    }
+
     public function test_a_text_presence_event_leaving_is_still_validated(): void
     {
         try {
