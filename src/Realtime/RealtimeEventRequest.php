@@ -29,6 +29,7 @@ final readonly class RealtimeEventRequest
     public const string CLIENT_ID_MESSAGE = 'This value should be a UUID.';
     public const string EVENT_MESSAGE = 'This value should be a lowercase event name of at most 64 characters starting with a letter, using only a-z, 0-9, "_", ".", ":" and "-".';
     public const string IRI_MESSAGE = 'This value should be of type string.';
+    public const string DATA_MESSAGE = 'This value should not contain a number too large to be represented.';
     private const string UUID_PATTERN = '/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i';
     private const string EVENT_PATTERN = '/\A[a-z][a-z0-9_.:-]{0,63}\z/';
 
@@ -55,12 +56,14 @@ final readonly class RealtimeEventRequest
         $clientId = self::matching($fields, self::CLIENT_ID, self::UUID_PATTERN);
         $event = self::matching($fields, self::EVENT, self::EVENT_PATTERN);
         $iri = $fields[self::IRI] ?? null;
+        $data = $fields[self::DATA] ?? null;
+        $encodable = false !== json_encode($data);
 
-        if (null !== $clientId && null !== $event && (null === $iri || \is_string($iri))) {
-            return new self($clientId, $event, $iri, $fields[self::DATA] ?? null);
+        if (null !== $clientId && null !== $event && (null === $iri || \is_string($iri)) && $encodable) {
+            return new self($clientId, $event, $iri, $data);
         }
 
-        throw self::invalid(array_filter([null === $clientId ? [self::CLIENT_ID, self::CLIENT_ID_MESSAGE] : null, null === $event ? [self::EVENT, self::EVENT_MESSAGE] : null, null === $iri || \is_string($iri) ? null : [self::IRI, self::IRI_MESSAGE]]));
+        throw self::invalid(array_filter([null === $clientId ? [self::CLIENT_ID, self::CLIENT_ID_MESSAGE] : null, null === $event ? [self::EVENT, self::EVENT_MESSAGE] : null, null === $iri || \is_string($iri) ? null : [self::IRI, self::IRI_MESSAGE], $encodable ? null : [self::DATA, self::DATA_MESSAGE]]));
     }
 
     public static function isClientId(string $value): bool

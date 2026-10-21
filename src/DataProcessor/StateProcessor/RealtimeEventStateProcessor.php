@@ -42,8 +42,12 @@ final class RealtimeEventStateProcessor implements ProcessorInterface
         'limit' => 20,
         'rate' => ['interval' => '1 second', 'amount' => 10],
     ];
+    public const string RATE_LIMITER_POOL = 'silverback.api_components.realtime.rate_limiter_cache';
     public const string PUBLISH_FAILED_MESSAGE = 'The real-time event could not be published.';
-    public const string TOO_MANY_REQUESTS_MESSAGE = 'Too many real-time events from this client.';
+    public const string TOO_MANY_REQUESTS_MESSAGE = 'Too many real-time events from this user.';
+    public const string CROSS_SITE_MESSAGE = 'A real-time event cannot be sent from another site.';
+    private const string FETCH_SITE_HEADER = 'Sec-Fetch-Site';
+    private const string CROSS_SITE = 'cross-site';
 
     public function __construct(
         private readonly MercureAuthorization $mercureAuthorization,
@@ -56,14 +60,13 @@ final class RealtimeEventStateProcessor implements ProcessorInterface
     ) {
     }
 
-    public static function rateLimiterKey(string $userId, string $clientId): string
-    {
-        return $userId . ' ' . $clientId;
-    }
-
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): null
     {
         $request = $context['request'] ?? null;
+        if ($request instanceof Request && self::CROSS_SITE === $request->headers->get(self::FETCH_SITE_HEADER)) {
+            throw new AccessDeniedHttpException(self::CROSS_SITE_MESSAGE);
+        }
+
         $event = RealtimeEventRequest::fromContent($request instanceof Request ? $request->getContent() : '');
 
         $user = $this->userResolver->resolve();
@@ -71,7 +74,7 @@ final class RealtimeEventStateProcessor implements ProcessorInterface
             throw new AccessDeniedHttpException();
         }
 
-        $limit = $this->rateLimiterFactory->create(self::rateLimiterKey($user['id'], $event->clientId))->consume();
+        $limit = $this->rateLimiterFactory->create($user['id'])->consume();
         if (!$limit->isAccepted()) {
             throw new TooManyRequestsHttpException(max(1, $limit->getRetryAfter()->getTimestamp() - time()), self::TOO_MANY_REQUESTS_MESSAGE);
         }

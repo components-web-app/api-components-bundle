@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Tests\DataProcessor\StateProcessor;
 use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Validator\Exception\ValidationException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RealtimeEventStateProcessor;
@@ -23,7 +24,6 @@ use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
@@ -155,29 +155,48 @@ class RealtimeEventStateProcessorTest extends TestCase
         self::assertCount(20, $this->published['default']);
     }
 
-    public function test_the_limit_is_per_user_and_client(): void
+    public function test_a_new_client_id_does_not_reset_the_users_limit(): void
+    {
+        $processor = $this->processor();
+        for ($i = 0; $i < 20; ++$i) {
+            $processor->process(null, new Post(), [], ['request' => $this->request('{"clientId": "' . \sprintf('%08x', $i) . '-2c4d-4e5f-8a6b-7c8d9e0f1a2b", "event": "presence"}')]);
+        }
+
+        try {
+            $processor->process(null, new Post(), [], ['request' => $this->request('{"clientId": "1b9f7a3e-2c4d-4e5f-8a6b-7c8d9e0f1a2b", "event": "presence"}')]);
+            self::fail('A new client id should not have reset the limit');
+        } catch (TooManyRequestsHttpException) {
+        }
+
+        self::assertCount(20, $this->published['default']);
+    }
+
+    public function test_another_user_is_not_limited_by_the_first_users_events(): void
     {
         $processor = $this->processor();
         for ($i = 0; $i < 20; ++$i) {
             $processor->process(null, new Post(), [], ['request' => $this->request('{"clientId": "' . self::CLIENT_ID . '", "event": "presence"}')]);
         }
 
-        $processor->process(null, new Post(), [], ['request' => $this->request('{"clientId": "1b9f7a3e-2c4d-4e5f-8a6b-7c8d9e0f1a2b", "event": "presence"}')]);
         $this->tokenStorage->setToken(new UsernamePasswordToken((new User())->setUsername('other'), 'main', ['ROLE_ADMIN']));
         $this->processor(userIri: '/users/2')->process(null, new Post(), [], ['request' => $this->request('{"clientId": "' . self::CLIENT_ID . '", "event": "presence"}')]);
 
-        self::assertCount(22, $this->published['default']);
+        self::assertCount(21, $this->published['default']);
     }
 
-    public function test_the_rate_limiter_key_names_the_user_and_the_client(): void
+    public function test_the_rate_limiter_is_keyed_by_the_users_iri(): void
     {
-        self::assertSame('/users/1 ' . self::CLIENT_ID, RealtimeEventStateProcessor::rateLimiterKey('/users/1', self::CLIENT_ID));
+        $this->rateLimiterFactory()->create('/users/1')->reserve(20);
+
+        $this->expectException(TooManyRequestsHttpException::class);
+
+        $this->processor()->process(null, new Post(), [], ['request' => $this->request('{"clientId": "' . self::CLIENT_ID . '", "event": "presence"}')]);
     }
 
     public function test_the_retry_after_is_the_seconds_until_the_limiter_admits_another_event(): void
     {
         $processor = $this->processor();
-        $limiter = $this->rateLimiterFactory()->create(RealtimeEventStateProcessor::rateLimiterKey('/users/1', self::CLIENT_ID));
+        $limiter = $this->rateLimiterFactory()->create('/users/1');
         for ($i = 0; $i < 3; ++$i) {
             $limiter->reserve(20);
         }
@@ -219,6 +238,40 @@ class RealtimeEventStateProcessorTest extends TestCase
         } catch (TooManyRequestsHttpException $exception) {
             self::assertEqualsWithDelta(30, $exception->getHeaders()['Retry-After'], 1);
         }
+    }
+
+    public function test_a_cross_site_request_is_refused_before_anything_is_read_or_counted(): void
+    {
+        $limiter = $this->createMock(RateLimiterFactoryInterface::class);
+        $limiter->expects(self::never())->method('create');
+
+        try {
+            $this->processor(rateLimiterFactory: $limiter)->process(null, new Post(), [], ['request' => $this->request('{"event": "presence"}', 'cross-site')]);
+            self::fail('The cross-site request should have been refused');
+        } catch (AccessDeniedHttpException $exception) {
+            self::assertSame(RealtimeEventStateProcessor::CROSS_SITE_MESSAGE, $exception->getMessage());
+        }
+
+        self::assertSame([], $this->published['default']);
+    }
+
+    /**
+     * @return iterable<string, array{string|null}>
+     */
+    public static function fetchSites(): iterable
+    {
+        yield 'same-origin' => ['same-origin'];
+        yield 'same-site' => ['same-site'];
+        yield 'none, a request the user started' => ['none'];
+        yield 'no Sec-Fetch-Site, from a browser that does not send it' => [null];
+    }
+
+    #[DataProvider('fetchSites')]
+    public function test_a_request_that_is_not_cross_site_is_published(?string $fetchSite): void
+    {
+        $this->processor()->process(null, new Post(), [], ['request' => $this->request('{"clientId": "' . self::CLIENT_ID . '", "event": "presence"}', $fetchSite)]);
+
+        self::assertCount(1, $this->published['default']);
     }
 
     public function test_a_publish_the_hub_refuses_is_logged_and_is_a_502(): void
@@ -296,7 +349,7 @@ class RealtimeEventStateProcessorTest extends TestCase
         self::assertSame(ContainerInterface::NULL_ON_INVALID_REFERENCE, $definition->getArgument('$logger')->getInvalidBehavior());
     }
 
-    public function test_the_rate_limiter_stores_its_buckets_in_its_own_cache_pool_with_no_lock(): void
+    public function test_the_rate_limiter_stores_its_buckets_in_its_own_cache_pool_with_no_lock_and_leaves_the_pool_to_framework(): void
     {
         $container = $this->loadContainer();
 
@@ -308,10 +361,7 @@ class RealtimeEventStateProcessorTest extends TestCase
         self::assertSame(CacheStorage::class, $storage->getClass());
         self::assertSame('silverback.api_components.realtime.rate_limiter_cache', (string) $storage->getArgument(0));
 
-        $pool = $container->getDefinition('silverback.api_components.realtime.rate_limiter_cache');
-        self::assertInstanceOf(ChildDefinition::class, $pool);
-        self::assertSame('cache.app', $pool->getParent());
-        self::assertTrue($pool->hasTag('cache.pool'));
+        self::assertFalse($container->has('silverback.api_components.realtime.rate_limiter_cache'));
     }
 
     public function test_the_realtime_helpers_read_the_token_and_the_current_request(): void
@@ -345,9 +395,14 @@ class RealtimeEventStateProcessorTest extends TestCase
         return $container;
     }
 
-    private function request(string $content): Request
+    private function request(string $content, ?string $fetchSite = null): Request
     {
-        return Request::create('/_/realtime', 'POST', server: ['CONTENT_TYPE' => 'text/plain;charset=UTF-8'], content: $content);
+        $server = ['CONTENT_TYPE' => 'text/plain;charset=UTF-8'];
+        if (null !== $fetchSite) {
+            $server['HTTP_SEC_FETCH_SITE'] = $fetchSite;
+        }
+
+        return Request::create('/_/realtime', 'POST', server: $server, content: $content);
     }
 
     private function rateLimiterFactory(): RateLimiterFactory

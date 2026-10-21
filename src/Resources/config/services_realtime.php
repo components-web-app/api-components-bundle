@@ -45,11 +45,6 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(LastWriteResolver::class, 'silverback.api_components.helper.realtime.last_write_resolver');
 
     $services
-        ->set('silverback.api_components.realtime.rate_limiter_cache')
-        ->parent('cache.app')
-        ->tag('cache.pool');
-
-    $services
         ->set('silverback.api_components.realtime.rate_limiter_storage')
         ->class(CacheStorage::class)
         ->autoconfigure(false)

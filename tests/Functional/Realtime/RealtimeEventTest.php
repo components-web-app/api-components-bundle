@@ -16,7 +16,6 @@ use Monolog\Level;
 use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Ramsey\Uuid\Uuid;
-use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RealtimeEventStateProcessor;
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\ApiRequestTrait;
@@ -179,6 +178,7 @@ final class RealtimeEventTest extends FunctionalTestCase
         yield 'no event' => ['{' . $clientId . '}', ['event']];
         yield 'an event that is not a short lowercase token' => ['{' . $clientId . ', "event": "Presence Update"}', ['event']];
         yield 'an iri that is not a string' => ['{' . $clientId . ', "event": "presence", "iri": 1}', ['iri']];
+        yield 'data with a number too large to represent' => ['{' . $clientId . ', "event": "presence", "data": {"x": 1e999}}', ['data']];
         yield 'every field' => ['{"clientId": 1, "event": 1, "iri": []}', ['clientId', 'event', 'iri']];
     }
 
@@ -198,28 +198,67 @@ final class RealtimeEventTest extends FunctionalTestCase
         self::assertNoMercureUpdatePublished();
     }
 
-    public function test_a_client_over_its_rate_limit_is_a_429_with_retry_after_and_publishes_nothing(): void
+    public function test_a_user_over_the_rate_limit_is_a_429_with_the_seconds_until_the_next_event_and_publishes_nothing(): void
     {
         $client = static::createClient();
         $admin = self::loginAsAdmin($client);
-        $clientId = Uuid::uuid4()->toString();
-        $limiter = static::getContainer()->get('silverback.api_components.realtime.rate_limiter');
-        \assert($limiter instanceof RateLimiterFactory);
-        $bucket = $limiter->create(RealtimeEventStateProcessor::rateLimiterKey(self::iriOf($admin), $clientId));
-        for ($i = 0; $i < 5; ++$i) {
-            $bucket->reserve(20);
-        }
-        static::rebootKernel();
+        self::drainRateLimit(self::iriOf($admin), 6);
 
-        self::send($client, self::body($clientId));
+        self::send($client, self::body());
 
         self::assertResponseStatusCodeSame(429);
-        self::assertGreaterThanOrEqual(1, (int) self::getClient()->getResponse()->headers->get('retry-after'));
+        self::assertEqualsWithDelta(10, (int) self::getClient()->getResponse()->headers->get('retry-after'), 2);
         self::assertNoMercureUpdatePublished();
+    }
+
+    public function test_a_new_client_id_does_not_escape_the_users_rate_limit(): void
+    {
+        $client = static::createClient();
+        $admin = self::loginAsAdmin($client);
+        self::drainRateLimit(self::iriOf($admin), 2);
+
+        foreach ([Uuid::uuid4()->toString(), Uuid::uuid4()->toString()] as $clientId) {
+            self::send($client, self::body($clientId));
+
+            self::assertResponseStatusCodeSame(429);
+        }
+        self::assertNoMercureUpdatePublished();
+    }
+
+    public function test_another_admin_is_not_limited_by_the_first_admins_events(): void
+    {
+        $client = static::createClient();
+        $admin = self::createUser(['ROLE_ADMIN'], 'first_admin', 'first@example.com');
+        self::drainRateLimit(self::iriOf($admin), 2);
+        self::loginAsAdmin($client);
 
         self::send($client, self::body());
 
         self::assertResponseStatusCodeSame(202);
+    }
+
+    public function test_a_cross_site_request_is_refused_and_publishes_nothing(): void
+    {
+        $client = static::createClient();
+        self::loginAsAdmin($client);
+        HubStub::clearPublished();
+
+        $client->request('POST', self::ENDPOINT, ['headers' => ['accept' => 'application/ld+json', 'content-type' => self::BEACON_CONTENT_TYPE, 'origin' => 'https://attacker.example', 'sec-fetch-site' => 'cross-site'], 'body' => self::body()]);
+
+        self::assertResponseStatusCodeSame(403);
+        self::assertNoMercureUpdatePublished();
+    }
+
+    public function test_a_same_site_request_is_accepted(): void
+    {
+        $client = static::createClient();
+        self::loginAsAdmin($client);
+        HubStub::clearPublished();
+
+        $client->request('POST', self::ENDPOINT, ['headers' => ['accept' => 'application/ld+json', 'content-type' => self::BEACON_CONTENT_TYPE, 'origin' => 'http://app.example.com', 'sec-fetch-site' => 'same-site'], 'body' => self::body()]);
+
+        self::assertResponseStatusCodeSame(202);
+        self::assertCount(1, self::mercureUpdates());
     }
 
     public function test_a_publish_the_hub_refuses_is_a_502_and_is_logged(): void
@@ -282,6 +321,17 @@ final class RealtimeEventTest extends FunctionalTestCase
         }
 
         return $client->request('POST', self::ENDPOINT, ['headers' => $headers, 'body' => $body]);
+    }
+
+    private static function drainRateLimit(string $userIri, int $bucketsOfTwenty): void
+    {
+        $limiter = static::getContainer()->get('silverback.api_components.realtime.rate_limiter');
+        \assert($limiter instanceof RateLimiterFactory);
+        $bucket = $limiter->create($userIri);
+        for ($i = 0; $i < $bucketsOfTwenty; ++$i) {
+            $bucket->reserve(20);
+        }
+        static::rebootKernel();
     }
 
     private static function body(?string $clientId = null): string

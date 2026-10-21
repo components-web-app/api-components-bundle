@@ -396,6 +396,18 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $config = $this->processConfiguration($configuration, $configs);
         $this->prependApiPlatformConfig($container, $config);
         $this->prependDoctrineConfiguration($container);
+        $this->prependFrameworkConfiguration($container);
+    }
+
+    private function prependFrameworkConfiguration(ContainerBuilder $container): void
+    {
+        $container->prependExtensionConfig('framework', [
+            'cache' => [
+                'pools' => [
+                    RealtimeEventStateProcessor::RATE_LIMITER_POOL => ['adapter' => 'cache.app'],
+                ],
+            ],
+        ]);
     }
 
     private function prependDoctrineConfiguration(ContainerBuilder $container): void

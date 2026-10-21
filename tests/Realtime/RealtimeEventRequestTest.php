@@ -136,10 +136,13 @@ class RealtimeEventRequestTest extends TestCase
         yield 'an event of sixty five characters' => ['{"clientId": "' . $id . '", "event": "a' . str_repeat('b', 64) . '"}', [['event', RealtimeEventRequest::EVENT_MESSAGE]]];
         yield 'an event that is not a string' => ['{"clientId": "' . $id . '", "event": ["presence"]}', [['event', RealtimeEventRequest::EVENT_MESSAGE]]];
         yield 'an iri that is not a string' => ['{"clientId": "' . $id . '", "event": "presence", "iri": 1}', [['iri', RealtimeEventRequest::IRI_MESSAGE]]];
-        yield 'every violation at once' => ['{"clientId": "x", "event": "X", "iri": {}}', [
+        yield 'data with a number too large to encode again' => ['{"clientId": "' . $id . '", "event": "presence", "data": {"x": 1e999}}', [['data', RealtimeEventRequest::DATA_MESSAGE]]];
+        yield 'data that is a negative number too large to encode again' => ['{"clientId": "' . $id . '", "event": "presence", "data": [-1e999]}', [['data', RealtimeEventRequest::DATA_MESSAGE]]];
+        yield 'every violation at once' => ['{"clientId": "x", "event": "X", "iri": {}, "data": 1e999}', [
             ['clientId', RealtimeEventRequest::CLIENT_ID_MESSAGE],
             ['event', RealtimeEventRequest::EVENT_MESSAGE],
             ['iri', RealtimeEventRequest::IRI_MESSAGE],
+            ['data', RealtimeEventRequest::DATA_MESSAGE],
         ]];
     }
 
