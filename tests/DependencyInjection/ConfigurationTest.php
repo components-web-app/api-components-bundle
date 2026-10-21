@@ -412,6 +412,28 @@ class ConfigurationTest extends TestCase
         self::assertSame(['enabled' => false], $this->process($config)['realtime']);
     }
 
+    /**
+     * @return iterable<string, array{mixed}>
+     */
+    public static function realtimeConfigsFromTheEnvironment(): iterable
+    {
+        yield 'enabled from an env var' => [['enabled' => '%env(bool:CWA_REALTIME_ENABLED)%']];
+        yield 'the node from an env var' => ['%env(bool:CWA_REALTIME_ENABLED)%'];
+        yield 'enabled as a string' => [['enabled' => 'true']];
+    }
+
+    #[DataProvider('realtimeConfigsFromTheEnvironment')]
+    public function test_the_realtime_switch_must_be_a_literal_boolean(mixed $realtime): void
+    {
+        $config = self::minimalConfig();
+        $config['realtime'] = $realtime;
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('realtime.enabled is fixed when the container is compiled, so it must be a literal boolean, not an environment variable.');
+
+        $this->process($config);
+    }
+
     public function test_fixture_assets_have_no_store_by_default(): void
     {
         self::assertSame(

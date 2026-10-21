@@ -20,6 +20,13 @@ final class RealtimePublishClient
 
     public static function bound(?HttpClientInterface $client = null): HttpClientInterface
     {
-        return ($client ?? HttpClient::create())->withOptions(['timeout' => self::TIMEOUT_SECONDS, 'max_duration' => self::TIMEOUT_SECONDS]);
+        $client ??= HttpClient::create();
+        $options = ['timeout' => self::TIMEOUT_SECONDS, 'max_duration' => self::TIMEOUT_SECONDS];
+
+        try {
+            return $client->withOptions($options + ['max_retries' => 0]);
+        } catch (\InvalidArgumentException) {
+            return $client->withOptions($options);
+        }
     }
 }

@@ -14,7 +14,11 @@ namespace Silverback\ApiComponentsBundle\Tests\Realtime;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Realtime\RealtimePublishClient;
 use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\NativeHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Component\HttpClient\Retry\GenericRetryStrategy;
+use Symfony\Component\HttpClient\RetryableHttpClient;
+use Symfony\Component\HttpClient\TraceableHttpClient;
 use Symfony\Component\Mercure\Hub;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Update;
@@ -53,6 +57,51 @@ class RealtimePublishClientTest extends TestCase
         $client->request('POST', 'https://hub.example/.well-known/mercure');
 
         self::assertNotSame(1.0, $options['max_duration']);
+    }
+
+    public function test_a_publish_through_a_retrying_client_is_one_attempt(): void
+    {
+        $requests = 0;
+        $client = new RetryableHttpClient(new MockHttpClient(static function () use (&$requests): MockResponse {
+            ++$requests;
+
+            return new MockResponse('', ['http_code' => 503]);
+        }), new GenericRetryStrategy(delayMs: 0), 3);
+
+        $hub = new Hub('https://hub.example/.well-known/mercure', new StaticTokenProvider(self::JWT), null, null, RealtimePublishClient::bound($client));
+
+        try {
+            $hub->publish(new Update('https://example.com/_/realtime', '{}', true));
+            self::fail('The publish should have failed.');
+        } catch (\Throwable) {
+        }
+
+        self::assertSame(1, $requests);
+    }
+
+    public function test_a_retrying_client_under_a_decorator_is_bounded_to_one_attempt(): void
+    {
+        $requests = 0;
+        $client = new TraceableHttpClient(new RetryableHttpClient(new MockHttpClient(static function () use (&$requests): MockResponse {
+            ++$requests;
+
+            return new MockResponse('', ['http_code' => 503]);
+        }), new GenericRetryStrategy(delayMs: 0), 3));
+
+        $response = RealtimePublishClient::bound($client)->request('POST', 'https://hub.example/.well-known/mercure');
+
+        self::assertSame(503, $response->getStatusCode());
+        self::assertSame(1, $requests);
+    }
+
+    public function test_a_client_that_refuses_unknown_options_is_still_bounded(): void
+    {
+        $bound = RealtimePublishClient::bound(new NativeHttpClient());
+        $defaults = (new \ReflectionProperty(NativeHttpClient::class, 'defaultOptions'))->getValue($bound);
+
+        self::assertSame(1.0, $defaults['timeout']);
+        self::assertSame(1.0, $defaults['max_duration']);
+        self::assertArrayNotHasKey('max_retries', $defaults);
     }
 
     public function test_with_no_client_the_bounded_client_is_a_new_one(): void

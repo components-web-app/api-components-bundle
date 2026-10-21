@@ -28,6 +28,7 @@ use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Exception\InvalidArgumentException as MimeInvalidArgumentException;
@@ -369,8 +370,12 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->arrayNode('realtime')
-                    ->info('The admin real-time channel, POST /_/realtime. Disabled, the endpoint is a 404 and no subscriber cookie grants its topic.')
+                    ->info('The admin real-time channel, POST /_/realtime. Disabled, the endpoint is a 404 and no subscriber cookie grants its topic. Fixed when the container is compiled: `enabled` must be a literal boolean, never an environment variable.')
                     ->canBeDisabled()
+                    ->beforeNormalization()
+                        ->ifTrue(static fn (mixed $value): bool => \is_string($value) || (\is_array($value) && \is_string($value['enabled'] ?? null)))
+                        ->then(static fn (): never => throw new InvalidConfigurationException('realtime.enabled is fixed when the container is compiled, so it must be a literal boolean, not an environment variable.'))
+                    ->end()
                 ->end()
             ->end();
     }

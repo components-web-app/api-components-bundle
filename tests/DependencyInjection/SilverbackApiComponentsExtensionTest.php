@@ -74,6 +74,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PageUiComponentNormalizer;
 use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImageValidator;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\Configuration as FrameworkConfiguration;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -183,6 +184,17 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         (new SilverbackApiComponentsExtension())->prepend($container);
 
         return array_map('realpath', array_merge(...array_column(array_column($container->getExtensionConfig('api_platform'), 'mapping'), 'paths')));
+    }
+
+    public function test_the_realtime_switch_from_an_env_var_is_refused_by_name_when_mapping_api_platform(): void
+    {
+        $config = self::minimalConfig();
+        $config['realtime'] = ['enabled' => '%env(bool:CWA_REALTIME_ENABLED)%'];
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('realtime.enabled is fixed when the container is compiled');
+
+        self::apiPlatformMappingPaths($config);
     }
 
     public function test_the_realtime_rate_limiter_pool_is_a_framework_pool_over_cache_app_by_default(): void
