@@ -20,11 +20,11 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use ApiPlatform\Metadata\Resource\ResourceNameCollection;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentsBundle\ApiResource\RealtimeEvent;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
+use Silverback\ApiComponentsBundle\Realtime\ApiResource\RealtimeEvent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -229,6 +229,16 @@ class MercureAuthorizationTest extends TestCase
         $authorization->getSubscribeTopics();
     }
 
+    public function test_with_the_realtime_channel_switched_off_no_caller_is_granted_its_topic_or_asked_about_it(): void
+    {
+        $checker = $this->createMock(AuthorizationCheckerInterface::class);
+        $checker->expects(self::never())->method('isGranted');
+        $metadata = [Layout::class => [new Get(uriTemplate: '/layouts/{id}', class: Layout::class, name: 'layout_get', mercure: true)]];
+        $authorization = $this->createAuthorization($metadata, ['layout_get' => '/layouts/{id}'], authorizationChecker: $checker, realtimeEnabled: false);
+
+        self::assertSame(['http://example.com/layouts/:id\\?'], $authorization->getSubscribeTopics());
+    }
+
     public function test_the_cookie_grants_the_realtime_topic_as_a_url_pattern_with_no_query(): void
     {
         $checker = $this->createStub(AuthorizationCheckerInterface::class);
@@ -339,6 +349,7 @@ class MercureAuthorizationTest extends TestCase
         ?PublishableStatusChecker $publishableStatusChecker = null,
         int $cookieLifetime = 604800,
         ?AuthorizationCheckerInterface $authorizationChecker = null,
+        ?bool $realtimeEnabled = null,
     ): MercureAuthorization {
         if (null === $resourceNames) {
             $resourceNames = $this->createStub(ResourceNameCollectionFactoryInterface::class);
@@ -382,6 +393,9 @@ class MercureAuthorizationTest extends TestCase
             $router,
             $cookieLifetime,
             $cookieSameSite,
+            null,
+            false,
+            ...(null === $realtimeEnabled ? [] : [$realtimeEnabled]),
         );
     }
 }

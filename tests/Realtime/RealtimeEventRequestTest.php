@@ -15,7 +15,9 @@ use ApiPlatform\Validator\Exception\ValidationException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Realtime\RealtimeEventRequest;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 
 class RealtimeEventRequestTest extends TestCase
 {
@@ -162,6 +164,137 @@ class RealtimeEventRequestTest extends TestCase
             }
             self::assertSame($expected, $violations);
         }
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function jsonContentTypes(): iterable
+    {
+        yield 'application/json' => ['application/json'];
+        yield 'application/json with a charset' => ['application/json; charset=utf-8'];
+        yield 'application/ld+json' => ['application/ld+json'];
+    }
+
+    #[DataProvider('jsonContentTypes')]
+    public function test_a_json_body_is_read_whatever_its_event(string $contentType): void
+    {
+        $event = RealtimeEventRequest::fromRequest(self::request($contentType, '{"clientId": "' . self::CLIENT_ID . '", "event": "tiptap:selection", "iri": "/component/dummy_components/1", "data": {"from": 3}}'));
+
+        self::assertSame(self::CLIENT_ID, $event->clientId);
+        self::assertSame('tiptap:selection', $event->event);
+        self::assertSame('/component/dummy_components/1', $event->iri);
+        self::assertSame('{"from":3}', json_encode($event->data, \JSON_THROW_ON_ERROR));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function beaconContentTypes(): iterable
+    {
+        yield 'text/plain, as navigator.sendBeacon sends a string' => ['text/plain;charset=UTF-8'];
+        yield 'text/plain with no charset' => ['text/plain'];
+    }
+
+    #[DataProvider('beaconContentTypes')]
+    public function test_a_text_body_is_read_when_it_is_a_presence_event_leaving(string $contentType): void
+    {
+        $event = RealtimeEventRequest::fromRequest(self::request($contentType, '{"clientId": "' . self::CLIENT_ID . '", "event": "presence", "data": {"page": "/_/pages/1", "state": "left"}}'));
+
+        self::assertSame(self::CLIENT_ID, $event->clientId);
+        self::assertSame('presence', $event->event);
+        self::assertSame('{"page":"\/_\/pages\/1","state":"left"}', json_encode($event->data, \JSON_THROW_ON_ERROR));
+    }
+
+    /**
+     * @return iterable<string, array{string|null, string}>
+     */
+    public static function unsupportedBodies(): iterable
+    {
+        $id = self::CLIENT_ID;
+
+        yield 'a text presence event that is not leaving' => ['text/plain;charset=UTF-8', '{"clientId": "' . $id . '", "event": "presence", "data": {"state": "editing"}}'];
+        yield 'a text presence event with no state' => ['text/plain;charset=UTF-8', '{"clientId": "' . $id . '", "event": "presence", "data": {"page": "/_/pages/1"}}'];
+        yield 'a text presence event with no data' => ['text/plain;charset=UTF-8', '{"clientId": "' . $id . '", "event": "presence"}'];
+        yield 'a text presence event whose data is a list' => ['text/plain;charset=UTF-8', '{"clientId": "' . $id . '", "event": "presence", "data": ["left"]}'];
+        yield 'a text presence event whose state is not the string left' => ['text/plain;charset=UTF-8', '{"clientId": "' . $id . '", "event": "presence", "data": {"state": ["left"]}}'];
+        yield 'a text presence event whose data is a list of objects leaving' => ['text/plain;charset=UTF-8', '{"clientId": "' . $id . '", "event": "presence", "data": [{"state": "left"}]}'];
+        yield 'a text presence event whose state is nested deeper' => ['text/plain;charset=UTF-8', '{"clientId": "' . $id . '", "event": "presence", "data": {"page": {"state": "left"}}}'];
+        yield 'a text presence event listed with others' => ['text/plain;charset=UTF-8', '[{"clientId": "' . $id . '", "event": "presence", "data": {"state": "left"}}]'];
+        yield 'a text event leaving that is not presence' => ['text/plain;charset=UTF-8', '{"clientId": "' . $id . '", "event": "tiptap:selection", "data": {"state": "left"}}'];
+        yield 'a text body with no event' => ['text/plain;charset=UTF-8', '{"clientId": "' . $id . '", "data": {"state": "left"}}'];
+        yield 'a text body that is not json' => ['text/plain;charset=UTF-8', 'presence left'];
+        yield 'a text body that is a list' => ['text/plain;charset=UTF-8', '["presence", "left"]'];
+        yield 'an empty text body' => ['text/plain;charset=UTF-8', ''];
+        yield 'a form' => ['application/x-www-form-urlencoded', '{"clientId": "' . $id . '", "event": "presence", "data": {"state": "left"}}'];
+        yield 'multipart' => ['multipart/form-data; boundary=x', '{"clientId": "' . $id . '", "event": "presence", "data": {"state": "left"}}'];
+        yield 'no content type' => [null, '{"clientId": "' . $id . '", "event": "presence", "data": {"state": "left"}}'];
+    }
+
+    #[DataProvider('unsupportedBodies')]
+    public function test_any_other_body_is_refused_with_415(?string $contentType, string $content): void
+    {
+        try {
+            RealtimeEventRequest::fromRequest(self::request($contentType, $content));
+            self::fail('The body should have been refused');
+        } catch (UnsupportedMediaTypeHttpException $exception) {
+            self::assertSame(415, $exception->getStatusCode());
+            self::assertSame(RealtimeEventRequest::UNSUPPORTED_MEDIA_TYPE_MESSAGE, $exception->getMessage());
+        }
+    }
+
+    public function test_a_text_presence_event_leaving_is_still_validated(): void
+    {
+        try {
+            RealtimeEventRequest::fromRequest(self::request('text/plain', '{"clientId": "tab-1", "event": "presence", "data": {"state": "left"}}'));
+            self::fail('The body should have been refused');
+        } catch (ValidationException $exception) {
+            self::assertSame(['clientId'], array_map(static fn ($violation): string => $violation->getPropertyPath(), iterator_to_array($exception->getConstraintViolationList(), false)));
+        }
+    }
+
+    public function test_an_invalid_json_body_is_a_violation_not_a_415(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        RealtimeEventRequest::fromRequest(self::request('application/json', '{"event": "presence"}'));
+    }
+
+    /**
+     * @return iterable<string, array{string|null}>
+     */
+    public static function anyContentType(): iterable
+    {
+        yield 'text/plain' => ['text/plain'];
+        yield 'application/json' => ['application/json'];
+        yield 'no content type' => [null];
+    }
+
+    public function test_a_request_body_of_exactly_the_maximum_size_is_read(): void
+    {
+        self::assertSame('presence', RealtimeEventRequest::fromRequest(self::request('application/json', self::bodyOfLength(RealtimeEventRequest::MAX_BYTES)))->event);
+    }
+
+    #[DataProvider('anyContentType')]
+    public function test_a_body_over_the_maximum_size_is_a_413_before_its_content_type_is_considered(?string $contentType): void
+    {
+        try {
+            RealtimeEventRequest::fromRequest(self::request($contentType, str_repeat('x', RealtimeEventRequest::MAX_BYTES + 1)));
+            self::fail('The body should have been refused');
+        } catch (HttpException $exception) {
+            self::assertSame(413, $exception->getStatusCode());
+            self::assertSame(RealtimeEventRequest::TOO_LARGE_MESSAGE, $exception->getMessage());
+        }
+    }
+
+    private static function request(?string $contentType, string $content): Request
+    {
+        $request = Request::create('/_/realtime', 'POST', server: ['CONTENT_TYPE' => (string) $contentType], content: $content);
+        if (null === $contentType) {
+            $request->headers->remove('Content-Type');
+        }
+
+        return $request;
     }
 
     private static function bodyOfLength(int $length): string

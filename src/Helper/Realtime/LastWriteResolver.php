@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Helper\Realtime;
 
+use Psr\Clock\ClockInterface;
 use Silverback\ApiComponentsBundle\Mercure\AnonymousResourceReader;
 use Silverback\ApiComponentsBundle\Realtime\RealtimeEventRequest;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -18,15 +19,17 @@ use Symfony\Component\HttpFoundation\RequestStack;
 final readonly class LastWriteResolver
 {
     public const string HEADER = 'X-CWA-Client-Id';
+    public const string AT_ATTRIBUTE = '_cwa_last_write_at';
 
     public function __construct(
         private RequestStack $requestStack,
         private RealtimeUserResolver $userResolver,
+        private ClockInterface $clock,
     ) {
     }
 
     /**
-     * @return array{clientId: string, userId: string}|null
+     * @return array{clientId: string, userId: string, at: string}|null
      */
     public function resolve(): ?array
     {
@@ -41,6 +44,12 @@ final readonly class LastWriteResolver
             return null;
         }
 
-        return ['clientId' => $clientId, 'userId' => $user['id']];
+        $at = $request->attributes->get(self::AT_ATTRIBUTE);
+        if (!\is_string($at)) {
+            $at = $this->clock->now()->format(\DateTimeInterface::RFC3339_EXTENDED);
+            $request->attributes->set(self::AT_ATTRIBUTE, $at);
+        }
+
+        return ['clientId' => $clientId, 'userId' => $user['id'], 'at' => $at];
     }
 }

@@ -19,13 +19,13 @@ use Silverback\ApiComponentsBundle\Helper\Realtime\RealtimeUserResolver;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Realtime\RealtimeEventRequest;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
+use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 use Symfony\Component\Mercure\Exception\RuntimeException as MercureRuntimeException;
-use Symfony\Component\Mercure\HubRegistry;
+use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
+use Symfony\Component\RateLimiter\RateLimit;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientExceptionInterface;
 
@@ -35,15 +35,21 @@ use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientExcep
 final class RealtimeEventStateProcessor implements ProcessorInterface
 {
     public const string TYPE = 'CwaRealtimeEvent';
+    public const int VERSION = 1;
     public const int LIFETIME_SECONDS = 45;
-    public const array RATE_LIMITER_CONFIG = [
-        'id' => 'cwa_realtime',
+    public const array CLIENT_RATE_LIMITER_CONFIG = [
+        'id' => 'cwa_realtime_client',
         'policy' => 'token_bucket',
         'limit' => 20,
         'rate' => ['interval' => '1 second', 'amount' => 10],
     ];
+    public const array USER_RATE_LIMITER_CONFIG = [
+        'id' => 'cwa_realtime_user',
+        'policy' => 'token_bucket',
+        'limit' => 60,
+        'rate' => ['interval' => '1 second', 'amount' => 30],
+    ];
     public const string RATE_LIMITER_POOL = 'silverback.api_components.realtime.rate_limiter_cache';
-    public const string PUBLISH_FAILED_MESSAGE = 'The real-time event could not be published.';
     public const string TOO_MANY_REQUESTS_MESSAGE = 'Too many real-time events from this user.';
     public const string CROSS_SITE_MESSAGE = 'A real-time event cannot be sent from another site.';
     private const string FETCH_SITE_HEADER = 'Sec-Fetch-Site';
@@ -51,38 +57,45 @@ final class RealtimeEventStateProcessor implements ProcessorInterface
 
     public function __construct(
         private readonly MercureAuthorization $mercureAuthorization,
-        private readonly HubRegistry $hubRegistry,
-        private readonly RateLimiterFactoryInterface $rateLimiterFactory,
+        private readonly HubInterface $hub,
+        private readonly RateLimiterFactoryInterface $clientRateLimiterFactory,
+        private readonly RateLimiterFactoryInterface $userRateLimiterFactory,
         private readonly RealtimeUserResolver $userResolver,
         private readonly ClockInterface $clock,
-        private readonly ?string $hubName = null,
         private readonly ?LoggerInterface $logger = null,
     ) {
     }
 
+    public static function clientRateLimiterKey(string $userId, string $clientId): string
+    {
+        return $userId . ' ' . $clientId;
+    }
+
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): null
     {
-        $request = $context['request'] ?? null;
-        if ($request instanceof Request && self::CROSS_SITE === $request->headers->get(self::FETCH_SITE_HEADER)) {
+        $request = \array_key_exists('request', $context) ? $context['request'] : null;
+        if (!$request instanceof Request) {
+            throw new UnsupportedMediaTypeHttpException(RealtimeEventRequest::UNSUPPORTED_MEDIA_TYPE_MESSAGE);
+        }
+
+        if (self::CROSS_SITE === $request->headers->get(self::FETCH_SITE_HEADER)) {
             throw new AccessDeniedHttpException(self::CROSS_SITE_MESSAGE);
         }
 
-        $event = RealtimeEventRequest::fromContent($request instanceof Request ? $request->getContent() : '');
+        $event = RealtimeEventRequest::fromRequest($request);
 
         $user = $this->userResolver->resolve();
         if (null === $user) {
             throw new AccessDeniedHttpException();
         }
 
-        $limit = $this->rateLimiterFactory->create($user['id'])->consume();
-        if (!$limit->isAccepted()) {
-            throw new TooManyRequestsHttpException(max(1, $limit->getRetryAfter()->getTimestamp() - time()), self::TOO_MANY_REQUESTS_MESSAGE);
-        }
+        $this->consumeRateLimits($user['id'], $event->clientId);
 
         $sentAt = $this->clock->now();
         $topic = $this->mercureAuthorization->getRealtimeTopic();
         $update = new Update($topic, json_encode([
             '@type' => self::TYPE,
+            'v' => self::VERSION,
             'clientId' => $event->clientId,
             'user' => $user,
             'event' => $event->event,
@@ -93,7 +106,7 @@ final class RealtimeEventStateProcessor implements ProcessorInterface
         ], \JSON_THROW_ON_ERROR), true);
 
         try {
-            $this->hubRegistry->getHub($this->hubName)->publish($update);
+            $this->hub->publish($update);
         } catch (MercureRuntimeException|HttpClientExceptionInterface $exception) {
             $this->logger?->error(\sprintf('The real-time event "%s" could not be published on "%s": %s', $event->event, $topic, $exception->getMessage()), [
                 'topics' => [$topic],
@@ -101,10 +114,21 @@ final class RealtimeEventStateProcessor implements ProcessorInterface
                 'clientId' => $event->clientId,
                 'exception' => $exception,
             ]);
-
-            throw new HttpException(Response::HTTP_BAD_GATEWAY, self::PUBLISH_FAILED_MESSAGE);
         }
 
         return null;
+    }
+
+    private function consumeRateLimits(string $userId, string $clientId): void
+    {
+        $limits = [
+            $this->clientRateLimiterFactory->create(self::clientRateLimiterKey($userId, $clientId))->consume(),
+            $this->userRateLimiterFactory->create($userId)->consume(),
+        ];
+        $retryAfter = array_map(static fn (RateLimit $limit): int => $limit->getRetryAfter()->getTimestamp(), array_filter($limits, static fn (RateLimit $limit): bool => !$limit->isAccepted()));
+
+        if ([] !== $retryAfter) {
+            throw new TooManyRequestsHttpException(max(1, max($retryAfter) - time()), self::TOO_MANY_REQUESTS_MESSAGE);
+        }
     }
 }

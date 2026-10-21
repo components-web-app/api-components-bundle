@@ -11,13 +11,13 @@
 
 use ApiPlatform\Metadata\IriConverterInterface;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RealtimeEventStateProcessor;
+use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\RealtimeHubCompilerPass;
 use Silverback\ApiComponentsBundle\Helper\Realtime\LastWriteResolver;
 use Silverback\ApiComponentsBundle\Helper\Realtime\RealtimeUserResolver;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\CacheStorage;
 
@@ -41,6 +41,7 @@ return static function (ContainerConfigurator $configurator) {
         ->args([
             new Reference('request_stack'),
             new Reference('silverback.api_components.helper.realtime.user_resolver'),
+            new Reference('clock'),
         ]);
     $services->alias(LastWriteResolver::class, 'silverback.api_components.helper.realtime.last_write_resolver');
 
@@ -51,11 +52,21 @@ return static function (ContainerConfigurator $configurator) {
         ->args([new Reference('silverback.api_components.realtime.rate_limiter_cache')]);
 
     $services
-        ->set('silverback.api_components.realtime.rate_limiter')
+        ->set('silverback.api_components.realtime.client_rate_limiter')
         ->class(RateLimiterFactory::class)
         ->autoconfigure(false)
         ->args([
-            RealtimeEventStateProcessor::RATE_LIMITER_CONFIG,
+            RealtimeEventStateProcessor::CLIENT_RATE_LIMITER_CONFIG,
+            new Reference('silverback.api_components.realtime.rate_limiter_storage'),
+            null,
+        ]);
+
+    $services
+        ->set('silverback.api_components.realtime.user_rate_limiter')
+        ->class(RateLimiterFactory::class)
+        ->autoconfigure(false)
+        ->args([
+            RealtimeEventStateProcessor::USER_RATE_LIMITER_CONFIG,
             new Reference('silverback.api_components.realtime.rate_limiter_storage'),
             null,
         ]);
@@ -65,11 +76,11 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->args([
             '$mercureAuthorization' => new Reference(MercureAuthorization::class),
-            '$hubRegistry' => new Reference(HubRegistry::class),
-            '$rateLimiterFactory' => new Reference('silverback.api_components.realtime.rate_limiter'),
+            '$hub' => new Reference(RealtimeHubCompilerPass::HUB_ID),
+            '$clientRateLimiterFactory' => new Reference('silverback.api_components.realtime.client_rate_limiter'),
+            '$userRateLimiterFactory' => new Reference('silverback.api_components.realtime.user_rate_limiter'),
             '$userResolver' => new Reference('silverback.api_components.helper.realtime.user_resolver'),
             '$clock' => new Reference('clock'),
-            '$hubName' => null,
             '$logger' => new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ])
         ->tag('api_platform.state_processor');

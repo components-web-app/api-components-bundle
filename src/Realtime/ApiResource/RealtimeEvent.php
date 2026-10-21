@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Silverback\ApiComponentsBundle\ApiResource;
+namespace Silverback\ApiComponentsBundle\Realtime\ApiResource;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;

@@ -12,8 +12,10 @@
 namespace Silverback\ApiComponentsBundle\Realtime;
 
 use ApiPlatform\Validator\Exception\ValidationException;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 
@@ -30,6 +32,12 @@ final readonly class RealtimeEventRequest
     public const string EVENT_MESSAGE = 'This value should be a lowercase event name of at most 64 characters starting with a letter, using only a-z, 0-9, "_", ".", ":" and "-".';
     public const string IRI_MESSAGE = 'This value should be of type string.';
     public const string DATA_MESSAGE = 'This value should not contain a number too large to be represented.';
+    public const string UNSUPPORTED_MEDIA_TYPE_MESSAGE = 'A real-time event must be sent as application/json; only a presence event whose data.state is "left" may be sent as text/plain.';
+    private const array JSON_FORMATS = ['json', 'jsonld'];
+    private const string BEACON_FORMAT = 'txt';
+    private const string PRESENCE_EVENT = 'presence';
+    private const string STATE = 'state';
+    private const string LEFT_STATE = 'left';
     private const string UUID_PATTERN = '/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i';
     private const string EVENT_PATTERN = '/\A[a-z][a-z0-9_.:-]{0,63}\z/';
 
@@ -39,6 +47,21 @@ final readonly class RealtimeEventRequest
         public ?string $iri,
         public mixed $data,
     ) {
+    }
+
+    public static function fromRequest(Request $request): self
+    {
+        $content = $request->getContent();
+        if (\strlen($content) > self::MAX_BYTES) {
+            throw new HttpException(Response::HTTP_REQUEST_ENTITY_TOO_LARGE, self::TOO_LARGE_MESSAGE);
+        }
+
+        $format = $request->getContentTypeFormat();
+        if (!\in_array($format, self::JSON_FORMATS, true) && !(self::BEACON_FORMAT === $format && self::isPresenceLeft($content))) {
+            throw new UnsupportedMediaTypeHttpException(self::UNSUPPORTED_MEDIA_TYPE_MESSAGE);
+        }
+
+        return self::fromContent($content);
     }
 
     public static function fromContent(string $content): self
@@ -69,6 +92,13 @@ final readonly class RealtimeEventRequest
     public static function isClientId(string $value): bool
     {
         return 1 === preg_match(self::UUID_PATTERN, $value);
+    }
+
+    private static function isPresenceLeft(string $content): bool
+    {
+        $body = [json_decode($content, true)];
+
+        return [self::PRESENCE_EVENT] === array_column($body, self::EVENT) && [self::LEFT_STATE] === array_column(array_column($body, self::DATA), self::STATE);
     }
 
     /**

@@ -15,8 +15,8 @@ use ApiPlatform\Metadata\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
-use Silverback\ApiComponentsBundle\ApiResource\RealtimeEvent;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Realtime\ApiResource\RealtimeEvent;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -46,6 +46,7 @@ class MercureAuthorization
         private readonly string $cookieSameSite = Cookie::SAMESITE_STRICT,
         private readonly ?string $hubName = null,
         private readonly bool $secureSubscriptions = false,
+        private readonly bool $realtimeEnabled = true,
     ) {
     }
 
@@ -77,7 +78,7 @@ class MercureAuthorization
 
         $topics = array_merge([], ...$subscribeIris);
 
-        if ($this->isRealtimeGranted()) {
+        if ($this->realtimeEnabled && $this->isRealtimeGranted()) {
             $topics[] = $this->getRealtimeTopic() . self::EMPTY_QUERY;
         }
 

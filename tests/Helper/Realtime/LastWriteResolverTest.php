@@ -18,6 +18,7 @@ use Silverback\ApiComponentsBundle\Helper\Realtime\LastWriteResolver;
 use Silverback\ApiComponentsBundle\Helper\Realtime\RealtimeUserResolver;
 use Silverback\ApiComponentsBundle\Mercure\AnonymousResourceReader;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
@@ -26,6 +27,47 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 class LastWriteResolverTest extends TestCase
 {
     private const string CLIENT_ID = '0b9f7a3e-2c4d-4e5f-8a6b-7c8d9e0f1a2b';
+    private const string NOW = '2026-10-21T10:00:00.250+00:00';
+    private const string AT = '2026-10-21T10:00:00.250+00:00';
+
+    public function test_every_resource_of_one_write_is_attributed_to_the_time_of_the_first_one_attributed(): void
+    {
+        $clock = new MockClock(self::NOW);
+        $requestStack = new RequestStack();
+        $requestStack->push($this->request('PATCH', self::CLIENT_ID));
+        $resolver = new LastWriteResolver($requestStack, $this->userResolver(true), $clock);
+
+        $first = $resolver->resolve();
+        $clock->sleep(1.5);
+
+        self::assertSame(self::AT, $first['at'] ?? null);
+        self::assertSame($first, $resolver->resolve());
+    }
+
+    public function test_each_write_is_attributed_to_its_own_time_on_the_server_with_milliseconds(): void
+    {
+        $clock = new MockClock(new \DateTimeImmutable('2026-10-21T12:00:00.123456+02:00'));
+        $requestStack = new RequestStack();
+        $resolver = new LastWriteResolver($requestStack, $this->userResolver(true), $clock);
+
+        $requestStack->push($this->request('PATCH', self::CLIENT_ID));
+        $first = $resolver->resolve();
+        $requestStack->pop();
+        $clock->sleep(0.25);
+        $requestStack->push($this->request('PATCH', self::CLIENT_ID));
+
+        self::assertSame('2026-10-21T12:00:00.123+02:00', $first['at'] ?? null);
+        self::assertSame('2026-10-21T12:00:00.373+02:00', $resolver->resolve()['at'] ?? null);
+    }
+
+    public function test_a_write_that_is_not_attributed_records_no_time(): void
+    {
+        $request = $this->request('PATCH', 'tab-1');
+
+        $this->resolver($request)->resolve();
+
+        self::assertSame([], $request->attributes->all());
+    }
 
     public function test_the_header_is_named_x_cwa_client_id(): void
     {
@@ -46,12 +88,12 @@ class LastWriteResolverTest extends TestCase
     #[DataProvider('unsafeMethods')]
     public function test_a_write_carrying_a_client_id_is_attributed_to_that_client_and_the_signed_in_user(string $method): void
     {
-        self::assertSame(['clientId' => self::CLIENT_ID, 'userId' => '/users/1'], $this->resolver($this->request($method, self::CLIENT_ID))->resolve());
+        self::assertSame(['clientId' => self::CLIENT_ID, 'userId' => '/users/1', 'at' => self::AT], $this->resolver($this->request($method, self::CLIENT_ID))->resolve());
     }
 
     public function test_the_client_id_is_kept_as_sent(): void
     {
-        self::assertSame(['clientId' => strtoupper(self::CLIENT_ID), 'userId' => '/users/1'], $this->resolver($this->request('PATCH', strtoupper(self::CLIENT_ID)))->resolve());
+        self::assertSame(['clientId' => strtoupper(self::CLIENT_ID), 'userId' => '/users/1', 'at' => self::AT], $this->resolver($this->request('PATCH', strtoupper(self::CLIENT_ID)))->resolve());
     }
 
     /**
@@ -94,12 +136,12 @@ class LastWriteResolverTest extends TestCase
         $requestStack->push($this->request('PATCH', self::CLIENT_ID));
         $requestStack->push(Request::create('/component/dummy_components/1', 'POST'));
 
-        self::assertNull((new LastWriteResolver($requestStack, $this->userResolver(true)))->resolve());
+        self::assertNull((new LastWriteResolver($requestStack, $this->userResolver(true), new MockClock(self::NOW)))->resolve());
     }
 
     public function test_nothing_is_attributed_outside_a_request(): void
     {
-        self::assertNull((new LastWriteResolver(new RequestStack(), $this->userResolver(true)))->resolve());
+        self::assertNull((new LastWriteResolver(new RequestStack(), $this->userResolver(true), new MockClock(self::NOW)))->resolve());
     }
 
     public function test_an_anonymous_write_is_not_attributed(): void
@@ -107,7 +149,7 @@ class LastWriteResolverTest extends TestCase
         $requestStack = new RequestStack();
         $requestStack->push($this->request('POST', self::CLIENT_ID));
 
-        self::assertNull((new LastWriteResolver($requestStack, $this->userResolver(false)))->resolve());
+        self::assertNull((new LastWriteResolver($requestStack, $this->userResolver(false), new MockClock(self::NOW)))->resolve());
     }
 
     private function request(string $method, string $clientId): Request
@@ -123,7 +165,7 @@ class LastWriteResolverTest extends TestCase
         $requestStack = new RequestStack();
         $requestStack->push($request);
 
-        return new LastWriteResolver($requestStack, $this->userResolver(true));
+        return new LastWriteResolver($requestStack, $this->userResolver(true), new MockClock(self::NOW));
     }
 
     private function userResolver(bool $signedIn): RealtimeUserResolver

@@ -389,6 +389,29 @@ class ConfigurationTest extends TestCase
         );
     }
 
+    public function test_the_realtime_channel_is_enabled_by_default(): void
+    {
+        self::assertSame(['enabled' => true], $this->process(self::minimalConfig())['realtime']);
+    }
+
+    /**
+     * @return iterable<string, array{mixed}>
+     */
+    public static function disabledRealtimeConfigs(): iterable
+    {
+        yield 'enabled: false' => [['enabled' => false]];
+        yield 'false' => [false];
+    }
+
+    #[DataProvider('disabledRealtimeConfigs')]
+    public function test_the_realtime_channel_can_be_switched_off(mixed $realtime): void
+    {
+        $config = self::minimalConfig();
+        $config['realtime'] = $realtime;
+
+        self::assertSame(['enabled' => false], $this->process($config)['realtime']);
+    }
+
     public function test_fixture_assets_have_no_store_by_default(): void
     {
         self::assertSame(

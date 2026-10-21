@@ -25,6 +25,7 @@ use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataI
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
@@ -179,13 +180,13 @@ class PersistedNormalizerTest extends TestCase
 
         $this->lastWriteNormalizer($resourceMetadata, Request::create('/component/dummy_components/1', 'PATCH'))->normalize(new DummyComponent(), 'jsonld');
 
-        self::assertSame(['clientId' => '0b9f7a3e-2c4d-4e5f-8a6b-7c8d9e0f1a2b', 'userId' => '/users/1'], $resourceMetadata->getLastWrite());
+        self::assertSame(['clientId' => '0b9f7a3e-2c4d-4e5f-8a6b-7c8d9e0f1a2b', 'userId' => '/users/1', 'at' => '2026-10-21T10:00:00.250+00:00'], $resourceMetadata->getLastWrite());
     }
 
     public function test_a_read_clears_a_last_write_left_in_the_metadata(): void
     {
         $resourceMetadata = new ResourceMetadata();
-        $resourceMetadata->setLastWrite(['clientId' => '0b9f7a3e-2c4d-4e5f-8a6b-7c8d9e0f1a2b', 'userId' => '/users/1']);
+        $resourceMetadata->setLastWrite(['clientId' => '0b9f7a3e-2c4d-4e5f-8a6b-7c8d9e0f1a2b', 'userId' => '/users/1', 'at' => '2026-10-21T10:00:00.250+00:00']);
 
         $this->lastWriteNormalizer($resourceMetadata, Request::create('/component/dummy_components/1', 'GET'))->normalize(new DummyComponent(), 'jsonld');
 
@@ -213,7 +214,7 @@ class PersistedNormalizerTest extends TestCase
         $iriConverter->method('getIriFromResource')->willReturn('/users/1');
         $this->resourceMetadataMock->method('findResourceMetadata')->willReturn($resourceMetadata);
 
-        $normalizer = new PersistedNormalizer($this->entityManagerMock, $this->resourceClassResolverMock, $this->resourceMetadataMock, new LastWriteResolver($requestStack, new RealtimeUserResolver($tokenStorage, $iriConverter)));
+        $normalizer = new PersistedNormalizer($this->entityManagerMock, $this->resourceClassResolverMock, $this->resourceMetadataMock, new LastWriteResolver($requestStack, new RealtimeUserResolver($tokenStorage, $iriConverter), new MockClock('2026-10-21T10:00:00.250+00:00')));
         $normalizer->setNormalizer($this->normalizerMock);
 
         return $normalizer;

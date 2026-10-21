@@ -17,6 +17,7 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourc
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\ImagineGenerateCommand;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RealtimeEventStateProcessor;
+use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\RealtimeHubCompilerPass;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
@@ -278,9 +279,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$cookieSameSite', $config['mercure']['cookie']['samesite']);
         $definition->setArgument('$hubName', $config['mercure']['hub_name']);
         $definition->setArgument('$secureSubscriptions', $config['mercure']['secure_subscriptions']);
+        $definition->setArgument('$realtimeEnabled', $config['realtime']['enabled']);
 
-        $definition = $container->findDefinition(RealtimeEventStateProcessor::class);
-        $definition->setArgument('$hubName', $config['mercure']['hub_name']);
+        $container->setParameter(RealtimeHubCompilerPass::HUB_NAME_PARAMETER, $config['mercure']['hub_name']);
     }
 
     private function setEmailVerificationArguments(ContainerBuilder $container, array $userConfig): void
@@ -433,6 +434,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             $srcBase . '/Model/Uploadable',
             $srcBase . '/Metadata',
         ];
+        if ($config['realtime']['enabled']) {
+            $mappingPaths[] = $srcBase . '/Realtime/ApiResource';
+        }
 
         $componentDirMap = [
             'form' => $srcBase . '/Entity/Component',

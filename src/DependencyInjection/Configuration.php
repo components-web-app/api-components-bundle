@@ -52,6 +52,7 @@ class Configuration implements ConfigurationInterface
             ->end();
 
         $this->addMercureNode($rootNode);
+        $this->addRealtimeNode($rootNode);
         $this->addRouteSecurityNode($rootNode);
         $this->addRoutableSecurityNode($rootNode);
         $this->addRefreshTokenNode($rootNode);
@@ -359,6 +360,17 @@ class Configuration implements ConfigurationInterface
                             ->end()
                         ->end()
                     ->end()
+                ->end()
+            ->end();
+    }
+
+    private function addRealtimeNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('realtime')
+                    ->info('The admin real-time channel, POST /_/realtime. Disabled, the endpoint is a 404 and no subscriber cookie grants its topic.')
+                    ->canBeDisabled()
                 ->end()
             ->end();
     }
