@@ -13,6 +13,8 @@ namespace Silverback\ApiComponentsBundle\Tests\Mercure;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
@@ -22,7 +24,9 @@ use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
+use Silverback\ApiComponentsBundle\Realtime\ApiResource\RealtimeEvent;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
+use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -38,6 +42,7 @@ use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationCredentialsNotFoundException;
 
 class MercureAuthorizationTest extends TestCase
 {
@@ -148,6 +153,107 @@ class MercureAuthorizationTest extends TestCase
         );
     }
 
+    public function test_the_realtime_topic_is_the_absolute_url_of_the_realtime_operations_route(): void
+    {
+        $authorization = $this->createAuthorization(
+            [RealtimeEvent::class => [self::realtimeOperation()]],
+            [RealtimeEvent::OPERATION_NAME => '/_/realtime.{_format}'],
+        );
+
+        self::assertSame('http://example.com/_/realtime', $authorization->getRealtimeTopic());
+    }
+
+    public function test_the_realtime_topic_includes_the_prefix_the_application_imports_api_platform_routes_under(): void
+    {
+        $authorization = $this->createAuthorization(
+            [RealtimeEvent::class => [self::realtimeOperation()]],
+            [RealtimeEvent::OPERATION_NAME => '/_api/_/realtime.{_format}'],
+        );
+
+        self::assertSame('http://example.com/_api/_/realtime', $authorization->getRealtimeTopic());
+    }
+
+    public function test_a_caller_granted_the_realtime_operations_security_is_granted_the_realtime_topic_after_every_resource_topic(): void
+    {
+        $checker = $this->createMock(AuthorizationCheckerInterface::class);
+        $checker->expects(self::once())->method('isGranted')->with(new Expression(RealtimeEvent::SECURITY))->willReturn(true);
+        $authorization = $this->createAuthorization(
+            [
+                Layout::class => [new Get(uriTemplate: '/layouts/{id}', class: Layout::class, name: 'layout_get', mercure: true)],
+                RealtimeEvent::class => [self::realtimeOperation()],
+            ],
+            ['layout_get' => '/layouts/{id}', RealtimeEvent::OPERATION_NAME => '/_/realtime.{_format}'],
+            authorizationChecker: $checker,
+        );
+
+        self::assertSame(['http://example.com/layouts/:id\\?', 'http://example.com/_/realtime\\?'], $authorization->getSubscribeTopics());
+    }
+
+    public function test_a_caller_not_granted_the_realtime_operations_security_is_not_granted_the_realtime_topic(): void
+    {
+        $checker = $this->createMock(AuthorizationCheckerInterface::class);
+        $checker->expects(self::once())->method('isGranted')->with(new Expression(RealtimeEvent::SECURITY))->willReturn(false);
+        $authorization = $this->createAuthorization(
+            [RealtimeEvent::class => [self::realtimeOperation()]],
+            [RealtimeEvent::OPERATION_NAME => '/_/realtime.{_format}'],
+            authorizationChecker: $checker,
+        );
+
+        self::assertSame([], $authorization->getSubscribeTopics());
+    }
+
+    public function test_a_caller_with_no_token_is_not_granted_the_realtime_topic(): void
+    {
+        $checker = $this->createStub(AuthorizationCheckerInterface::class);
+        $checker->method('isGranted')->willThrowException(new AuthenticationCredentialsNotFoundException());
+        $authorization = $this->createAuthorization(
+            [RealtimeEvent::class => [self::realtimeOperation()]],
+            [RealtimeEvent::OPERATION_NAME => '/_/realtime.{_format}'],
+            authorizationChecker: $checker,
+        );
+
+        self::assertSame([], $authorization->getSubscribeTopics());
+    }
+
+    public function test_the_realtime_topic_is_granted_only_on_its_own_security_never_on_an_error_evaluating_it(): void
+    {
+        $checker = $this->createStub(AuthorizationCheckerInterface::class);
+        $checker->method('isGranted')->willThrowException(new \RuntimeException('broken'));
+        $authorization = $this->createAuthorization(
+            [RealtimeEvent::class => [self::realtimeOperation()]],
+            [RealtimeEvent::OPERATION_NAME => '/_/realtime.{_format}'],
+            authorizationChecker: $checker,
+        );
+
+        $this->expectException(\RuntimeException::class);
+        $authorization->getSubscribeTopics();
+    }
+
+    public function test_with_the_realtime_channel_switched_off_no_caller_is_granted_its_topic_or_asked_about_it(): void
+    {
+        $checker = $this->createMock(AuthorizationCheckerInterface::class);
+        $checker->expects(self::never())->method('isGranted');
+        $metadata = [Layout::class => [new Get(uriTemplate: '/layouts/{id}', class: Layout::class, name: 'layout_get', mercure: true)]];
+        $authorization = $this->createAuthorization($metadata, ['layout_get' => '/layouts/{id}'], authorizationChecker: $checker, realtimeEnabled: false);
+
+        self::assertSame(['http://example.com/layouts/:id\\?'], $authorization->getSubscribeTopics());
+    }
+
+    public function test_the_cookie_grants_the_realtime_topic_as_a_url_pattern_with_no_query(): void
+    {
+        $checker = $this->createStub(AuthorizationCheckerInterface::class);
+        $checker->method('isGranted')->willReturn(true);
+        $authorization = $this->createAuthorization(
+            [RealtimeEvent::class => [self::realtimeOperation()]],
+            [RealtimeEvent::OPERATION_NAME => '/_/realtime.{_format}'],
+            authorizationChecker: $checker,
+        );
+
+        $payload = json_decode(base64_decode(strtr(explode('.', (string) $authorization->getAuthorizationCookie()->getValue())[1], '-_', '+/'), true), true);
+
+        self::assertSame([['match' => 'http://example.com/_/realtime\\?', 'match_type' => 'urlpattern']], $payload['authorization_details'][0]['topics']);
+    }
+
     public function test_the_cookie_and_its_token_expire_after_the_refresh_token_ttl(): void
     {
         $authorization = $this->createAuthorization(
@@ -224,9 +330,14 @@ class MercureAuthorizationTest extends TestCase
         self::assertTrue($authorization->getClearAuthorizationCookie()->isCleared());
     }
 
+    private static function realtimeOperation(): Post
+    {
+        return new Post(uriTemplate: '/realtime', class: RealtimeEvent::class, name: RealtimeEvent::OPERATION_NAME, routePrefix: '/_', security: RealtimeEvent::SECURITY);
+    }
+
     /**
-     * @param array<class-string, list<Get>> $operations
-     * @param array<string, string>          $routes
+     * @param array<class-string, list<Operation>> $operations
+     * @param array<string, string>                $routes
      */
     private function createAuthorization(
         array $operations,
@@ -237,6 +348,8 @@ class MercureAuthorizationTest extends TestCase
         ?ResourceNameCollectionFactoryInterface $resourceNames = null,
         ?PublishableStatusChecker $publishableStatusChecker = null,
         int $cookieLifetime = 604800,
+        ?AuthorizationCheckerInterface $authorizationChecker = null,
+        ?bool $realtimeEnabled = null,
     ): MercureAuthorization {
         if (null === $resourceNames) {
             $resourceNames = $this->createStub(ResourceNameCollectionFactoryInterface::class);
@@ -276,10 +389,13 @@ class MercureAuthorizationTest extends TestCase
             new RequestContext(host: 'example.com'),
             new Authorization(new HubRegistry($hub)),
             $requestStack,
-            $this->createStub(AuthorizationCheckerInterface::class),
+            $authorizationChecker ?? $this->createStub(AuthorizationCheckerInterface::class),
             $router,
             $cookieLifetime,
             $cookieSameSite,
+            null,
+            false,
+            ...(null === $realtimeEnabled ? [] : [$realtimeEnabled]),
         );
     }
 }

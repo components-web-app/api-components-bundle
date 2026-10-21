@@ -69,7 +69,7 @@ abstract class FunctionalTestCase extends ApiTestCase
     }
 
     /**
-     * @param array{environment?: string, debug?: bool, routePrefix?: string, profilerCollect?: bool} $options
+     * @param array{environment?: string, debug?: bool, routePrefix?: string, profilerCollect?: bool, realtimeEnabled?: bool} $options
      */
     protected static function createKernel(array $options = []): KernelInterface
     {
@@ -78,7 +78,7 @@ abstract class FunctionalTestCase extends ApiTestCase
         $environment = $options['environment'] ?? $_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? 'test';
         $debug = $options['debug'] ?? (bool) ($_ENV['APP_DEBUG'] ?? $_SERVER['APP_DEBUG'] ?? false);
 
-        return new static::$class($environment, $debug, $options['routePrefix'] ?? '', $options['profilerCollect'] ?? true);
+        return new static::$class($environment, $debug, $options['routePrefix'] ?? '', $options['profilerCollect'] ?? true, $options['realtimeEnabled'] ?? true);
     }
 
     protected static function getEntityManager(): EntityManagerInterface

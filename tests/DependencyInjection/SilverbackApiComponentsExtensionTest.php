@@ -21,6 +21,8 @@ use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\DeduplicateFileInfoCommand;
 use Silverback\ApiComponentsBundle\Command\ImagineGenerateCommand;
 use Silverback\ApiComponentsBundle\Command\PrefixPageUiComponentsCommand;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RealtimeEventStateProcessor;
+use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\RealtimeHubCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\SilverbackApiComponentsExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
@@ -71,6 +73,9 @@ use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PageUiComponentNormalizer;
 use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImageValidator;
+use Symfony\Bundle\FrameworkBundle\DependencyInjection\Configuration as FrameworkConfiguration;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
@@ -148,6 +153,77 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         $enabled = array_column($container->getExtensionConfig('api_platform'), 'use_symfony_listeners');
 
         self::assertSame([], $enabled);
+    }
+
+    public function test_api_platform_maps_the_realtime_resource_by_default(): void
+    {
+        self::assertContains(realpath(__DIR__ . '/../../src/Realtime/ApiResource'), self::apiPlatformMappingPaths(self::minimalConfig()));
+    }
+
+    public function test_api_platform_does_not_map_the_realtime_resource_when_the_channel_is_switched_off(): void
+    {
+        $config = self::minimalConfig();
+        $config['realtime'] = ['enabled' => false];
+
+        $paths = self::apiPlatformMappingPaths($config);
+
+        self::assertNotContains(realpath(__DIR__ . '/../../src/Realtime/ApiResource'), $paths);
+        self::assertContains(realpath(__DIR__ . '/../../src/ApiResource'), $paths);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     *
+     * @return list<string|false>
+     */
+    private static function apiPlatformMappingPaths(array $config): array
+    {
+        $container = new ContainerBuilder();
+        $container->prependExtensionConfig('silverback_api_components', $config);
+
+        (new SilverbackApiComponentsExtension())->prepend($container);
+
+        return array_map('realpath', array_merge(...array_column(array_column($container->getExtensionConfig('api_platform'), 'mapping'), 'paths')));
+    }
+
+    public function test_the_realtime_switch_from_an_env_var_is_refused_by_name_when_mapping_api_platform(): void
+    {
+        $config = self::minimalConfig();
+        $config['realtime'] = ['enabled' => '%env(bool:CWA_REALTIME_ENABLED)%'];
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('realtime.enabled is fixed when the container is compiled');
+
+        self::apiPlatformMappingPaths($config);
+    }
+
+    public function test_the_realtime_rate_limiter_pool_is_a_framework_pool_over_cache_app_by_default(): void
+    {
+        self::assertSame(['cache.app'], self::frameworkPoolAdapters([])[RealtimeEventStateProcessor::RATE_LIMITER_POOL]);
+    }
+
+    public function test_an_application_can_point_the_realtime_rate_limiter_pool_at_another_adapter(): void
+    {
+        $pools = self::frameworkPoolAdapters(['cache' => ['pools' => [RealtimeEventStateProcessor::RATE_LIMITER_POOL => ['adapter' => 'cache.adapter.redis']]]]);
+
+        self::assertSame(['cache.adapter.redis'], $pools[RealtimeEventStateProcessor::RATE_LIMITER_POOL]);
+    }
+
+    /**
+     * @param array<string, mixed> $applicationConfig
+     *
+     * @return array<string, list<string>>
+     */
+    private static function frameworkPoolAdapters(array $applicationConfig): array
+    {
+        $container = new ContainerBuilder();
+        $container->prependExtensionConfig('silverback_api_components', self::minimalConfig());
+
+        (new SilverbackApiComponentsExtension())->prepend($container);
+
+        $pools = (new Processor())->processConfiguration(new FrameworkConfiguration(false), [...$container->getExtensionConfig('framework'), $applicationConfig])['cache']['pools'];
+
+        return array_map(static fn (array $pool): array => $pool['adapters'] ?? [$pool['adapter']], $pools);
     }
 
     private function load(array $config, bool $imagineEnabled = false): array
@@ -452,6 +528,9 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame('cookieLifetime', new \ReflectionMethod(MercureAuthorization::class, '__construct')->getParameters()[8]->getName());
         self::assertSame(Cookie::SAMESITE_STRICT, $this->argument($container, MercureAuthorization::class, '$cookieSameSite'));
         self::assertNull($this->argument($container, MercureAuthorization::class, '$hubName'));
+        self::assertNull($container->getParameter(RealtimeHubCompilerPass::HUB_NAME_PARAMETER));
+        self::assertTrue($this->argument($container, MercureAuthorization::class, '$realtimeEnabled'));
+        self::assertTrue($container->hasDefinition(RealtimeEventStateProcessor::class));
         self::assertFalse($this->argument($container, MercureAuthorization::class, '$secureSubscriptions'));
 
         self::assertSame(
@@ -480,6 +559,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         $config['routable_security'] = "is_granted('ROLE_ADMIN')";
         $config['route_security'] = [['route' => '/user-area*', 'security' => "is_granted('ROLE_USER')"]];
         $config['mercure'] = ['hub_name' => 'default', 'secure_subscriptions' => true, 'cookie' => ['samesite' => Cookie::SAMESITE_LAX]];
+        $config['realtime'] = ['enabled' => false];
         $config['http_cache'] = ['personalised_resource_classes' => [Route::class], 'scheduled_expiry_resource_classes' => [ResourceManifest::class], 'purge_rendered_html_classes' => [ComponentPosition::class]];
         $config['user']['password_reset'] = ['repeat_ttl_seconds' => 60, 'request_timeout_seconds' => 120];
         $config['user']['new_email_confirmation'] = ['request_timeout_seconds' => 180, 'repeat_ttl_seconds' => 240];
@@ -505,6 +585,8 @@ class SilverbackApiComponentsExtensionTest extends TestCase
 
         self::assertSame(Cookie::SAMESITE_LAX, $this->argument($container, MercureAuthorization::class, '$cookieSameSite'));
         self::assertSame('default', $this->argument($container, MercureAuthorization::class, '$hubName'));
+        self::assertSame('default', $container->getParameter(RealtimeHubCompilerPass::HUB_NAME_PARAMETER));
+        self::assertFalse($this->argument($container, MercureAuthorization::class, '$realtimeEnabled'));
         self::assertTrue($this->argument($container, MercureAuthorization::class, '$secureSubscriptions'));
         self::assertSame([Route::class], $this->argument($container, 'silverback.api_components.event_listener.api.cache_headers', '$personalisedResourceClasses'));
         self::assertSame([ResourceManifest::class], $this->argument($container, 'silverback.api_components.event_listener.api.cache_headers', '$scheduledExpiryResourceClasses'));

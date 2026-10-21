@@ -16,6 +16,7 @@ use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
+use Silverback\ApiComponentsBundle\Realtime\ApiResource\RealtimeEvent;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -45,6 +46,7 @@ class MercureAuthorization
         private readonly string $cookieSameSite = Cookie::SAMESITE_STRICT,
         private readonly ?string $hubName = null,
         private readonly bool $secureSubscriptions = false,
+        private readonly bool $realtimeEnabled = true,
     ) {
     }
 
@@ -74,7 +76,33 @@ class MercureAuthorization
             }
         }
 
-        return array_merge([], ...$subscribeIris);
+        $topics = array_merge([], ...$subscribeIris);
+
+        if ($this->realtimeEnabled && $this->isRealtimeGranted()) {
+            $topics[] = $this->getRealtimeTopic() . self::EMPTY_QUERY;
+        }
+
+        return $topics;
+    }
+
+    public function getRealtimeTopic(): string
+    {
+        $operation = $this->resourceMetadataCollectionFactory->create(RealtimeEvent::class)->getOperation(RealtimeEvent::OPERATION_NAME);
+
+        if (!$operation instanceof HttpOperation) {
+            throw new \LogicException(\sprintf('The real-time event resource "%s" has no HTTP operation.', RealtimeEvent::class));
+        }
+
+        return $this->buildAbsoluteUrl() . $this->getOperationUrlPattern($operation);
+    }
+
+    private function isRealtimeGranted(): bool
+    {
+        try {
+            return $this->authorizationChecker->isGranted(new Expression(RealtimeEvent::SECURITY));
+        } catch (AuthenticationCredentialsNotFoundException) {
+            return false;
+        }
     }
 
     private function getSubscribeIrisForResource(string $resourceClass): ?array

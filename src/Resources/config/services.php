@@ -1081,6 +1081,7 @@ return static function (ContainerConfigurator $configurator) {
                 '',
                 null,
                 false,
+                true,
             ]
         );
     $services->alias(MercureAuthorization::class, 'silverback.api_components.mercure.authorization');

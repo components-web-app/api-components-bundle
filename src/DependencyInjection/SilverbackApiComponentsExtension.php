@@ -16,6 +16,8 @@ use Ramsey\Uuid\Doctrine\UuidType;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\ImagineGenerateCommand;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RealtimeEventStateProcessor;
+use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\RealtimeHubCompilerPass;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
@@ -277,6 +279,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$cookieSameSite', $config['mercure']['cookie']['samesite']);
         $definition->setArgument('$hubName', $config['mercure']['hub_name']);
         $definition->setArgument('$secureSubscriptions', $config['mercure']['secure_subscriptions']);
+        $definition->setArgument('$realtimeEnabled', $config['realtime']['enabled']);
+
+        $container->setParameter(RealtimeHubCompilerPass::HUB_NAME_PARAMETER, $config['mercure']['hub_name']);
     }
 
     private function setEmailVerificationArguments(ContainerBuilder $container, array $userConfig): void
@@ -378,6 +383,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $loader->load('services_doctrine_orm_mercure_publisher.php');
         $loader->load('services_orphaned_resources.php');
         $loader->load('services_orphaned_files.php');
+        $loader->load('services_realtime.php');
 
         if (class_exists(\Symfony\Bundle\MakerBundle\Maker\AbstractMaker::class)) {
             $loader->load('services_maker.php');
@@ -391,6 +397,18 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $config = $this->processConfiguration($configuration, $configs);
         $this->prependApiPlatformConfig($container, $config);
         $this->prependDoctrineConfiguration($container);
+        $this->prependFrameworkConfiguration($container);
+    }
+
+    private function prependFrameworkConfiguration(ContainerBuilder $container): void
+    {
+        $container->prependExtensionConfig('framework', [
+            'cache' => [
+                'pools' => [
+                    RealtimeEventStateProcessor::RATE_LIMITER_POOL => ['adapter' => 'cache.app'],
+                ],
+            ],
+        ]);
     }
 
     private function prependDoctrineConfiguration(ContainerBuilder $container): void
@@ -416,6 +434,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
             $srcBase . '/Model/Uploadable',
             $srcBase . '/Metadata',
         ];
+        if ($config['realtime']['enabled']) {
+            $mappingPaths[] = $srcBase . '/Realtime/ApiResource';
+        }
 
         $componentDirMap = [
             'form' => $srcBase . '/Entity/Component',

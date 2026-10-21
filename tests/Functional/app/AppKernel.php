@@ -27,7 +27,7 @@ class AppKernel extends Kernel
 
     private const CONFIG_EXTS = '.{php,xml,yaml,yml}';
 
-    public function __construct(string $environment, bool $debug, private readonly string $routePrefix = '', private readonly bool $profilerCollect = true)
+    public function __construct(string $environment, bool $debug, private readonly string $routePrefix = '', private readonly bool $profilerCollect = true, private readonly bool $realtimeEnabled = true)
     {
         parent::__construct($environment, $debug);
 
@@ -46,7 +46,7 @@ class AppKernel extends Kernel
 
     public function getCacheDir(): string
     {
-        return $this->getVarDir() . '/cache/' . $this->environment . self::symfonyListenersSuffix() . $this->getRoutePrefixSuffix() . ($this->profilerCollect ? '' : '_no_profiler_collect');
+        return $this->getVarDir() . '/cache/' . $this->environment . self::symfonyListenersSuffix() . $this->getRoutePrefixSuffix() . ($this->profilerCollect ? '' : '_no_profiler_collect') . $this->getRealtimeSuffix();
     }
 
     public static function useSymfonyListeners(): ?bool
@@ -82,7 +82,12 @@ class AppKernel extends Kernel
 
     protected function getContainerClass(): string
     {
-        return parent::getContainerClass() . $this->getRoutePrefixSuffix();
+        return parent::getContainerClass() . $this->getRoutePrefixSuffix() . $this->getRealtimeSuffix();
+    }
+
+    private function getRealtimeSuffix(): string
+    {
+        return $this->realtimeEnabled ? '' : '_realtime_disabled';
     }
 
     private function getRoutePrefixSuffix(): string
@@ -127,6 +132,10 @@ class AppKernel extends Kernel
 
         if (!$this->profilerCollect) {
             $container->extension('framework', ['profiler' => ['collect' => false]]);
+        }
+
+        if (!$this->realtimeEnabled) {
+            $container->extension('silverback_api_components', ['realtime' => ['enabled' => false]]);
         }
 
         if (null !== $useSymfonyListeners = self::useSymfonyListeners()) {

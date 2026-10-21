@@ -26,6 +26,7 @@ class ResetInterfaceServicesTest extends TestCase
         'services_doctrine_orm_mercure_publisher.php',
         'services_orphaned_resources.php',
         'services_orphaned_files.php',
+        'services_realtime.php',
         'services_maker.php',
     ];
 
