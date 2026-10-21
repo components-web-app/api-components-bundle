@@ -16,6 +16,7 @@ use Ramsey\Uuid\Doctrine\UuidType;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\ImagineGenerateCommand;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RealtimeEventStateProcessor;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
@@ -277,6 +278,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$cookieSameSite', $config['mercure']['cookie']['samesite']);
         $definition->setArgument('$hubName', $config['mercure']['hub_name']);
         $definition->setArgument('$secureSubscriptions', $config['mercure']['secure_subscriptions']);
+
+        $definition = $container->findDefinition(RealtimeEventStateProcessor::class);
+        $definition->setArgument('$hubName', $config['mercure']['hub_name']);
     }
 
     private function setEmailVerificationArguments(ContainerBuilder $container, array $userConfig): void
@@ -378,6 +382,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $loader->load('services_doctrine_orm_mercure_publisher.php');
         $loader->load('services_orphaned_resources.php');
         $loader->load('services_orphaned_files.php');
+        $loader->load('services_realtime.php');
 
         if (class_exists(\Symfony\Bundle\MakerBundle\Maker\AbstractMaker::class)) {
             $loader->load('services_maker.php');

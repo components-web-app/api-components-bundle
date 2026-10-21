@@ -54,6 +54,9 @@ class ResourceMetadata implements ResourceMetadataInterface
     #[Groups('cwa_resource:metadata')]
     private ?string $effectiveLiveAt = null;
 
+    #[Groups('cwa_resource:metadata')]
+    private ?array $lastWrite = null;
+
     public function getResourceMetadata(): ?ResourceMetadataInterface
     {
         return $this;
@@ -176,5 +179,15 @@ class ResourceMetadata implements ResourceMetadataInterface
     public function setMercureSubscribeTopics(?array $mercureSubscribeTopics): void
     {
         $this->mercureSubscribeTopics = $mercureSubscribeTopics;
+    }
+
+    public function getLastWrite(): ?array
+    {
+        return $this->lastWrite;
+    }
+
+    public function setLastWrite(?array $lastWrite): void
+    {
+        $this->lastWrite = $lastWrite;
     }
 }

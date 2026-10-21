@@ -4,6 +4,12 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Added
+- `POST /_/realtime`, an admin real-time channel: an admin's `{clientId, event, iri?, data?}` (JSON or `text/plain`, so `navigator.sendBeacon` can send it; 16 KB at most) is published privately, with no SSE type, as a `CwaRealtimeEvent` on one site-wide topic that only admins' subscriber cookies grant; nothing is stored, 422 per invalid field, 413 over 16 KB, 429 with `Retry-After` past a burst of 20 or 10 a second per user and client, 502 when the hub refuses it. A write carrying `X-CWA-Client-Id` echoes `_metadata.lastWrite: {clientId, userId}` in the writer's response and the private `?draft=1` update, never the public one ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+
+### Changed
+- `symfony/rate-limiter` (`^7.4 || ^8.1`) is now a runtime requirement, for the real-time channel's limit ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+
 ## [2.0.0-alpha.34](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.33...2.0.0-alpha.34) - 2026-10-20
 
 ### Added

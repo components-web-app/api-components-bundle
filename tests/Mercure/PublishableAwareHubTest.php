@@ -14,6 +14,7 @@ namespace Silverback\ApiComponentsBundle\Tests\Mercure;
 use ApiPlatform\Metadata\Exception\ItemNotFoundException;
 use ApiPlatform\Metadata\IriConverterInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RequiresMethod;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
@@ -183,5 +184,29 @@ class PublishableAwareHubTest extends TestCase
         $hub->publish($this->update(data: ['@id' => '/component/1'], topic: 'https://example.com/component/1?draft=1'));
 
         self::assertTrue($this->published[0]->isPrivate());
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function dataWithNoResourceId(): iterable
+    {
+        yield 'a realtime event' => ['{"@type":"CwaRealtimeEvent","clientId":"0b9f7a3e-2c4d-4e5f-8a6b-7c8d9e0f1a2b","event":"presence"}'];
+        yield 'an @id that is not a string' => ['{"@id":1,"reference":"x"}'];
+        yield 'a list' => ['["/component/1"]'];
+        yield 'a string' => ['"/component/1"'];
+    }
+
+    #[DataProvider('dataWithNoResourceId')]
+    public function test_an_update_whose_data_names_no_resource_is_published_unchanged_without_resolving_an_iri(string $data): void
+    {
+        $iriConverter = $this->createMock(IriConverterInterface::class);
+        $iriConverter->expects(self::never())->method('getResourceFromIri');
+        $hub = new PublishableAwareHub($this->mockHub(), $this->createStub(PublishableStatusChecker::class), $iriConverter);
+        $update = new Update(topics: ['https://example.com/_/realtime'], data: $data, private: true);
+
+        $hub->publish($update);
+
+        self::assertSame([$update], $this->published);
     }
 }

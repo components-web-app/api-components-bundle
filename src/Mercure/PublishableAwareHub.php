@@ -68,17 +68,21 @@ class PublishableAwareHub implements RemoteHubInterface
 
     public function publish(Update $update): string
     {
-        if ($update->getData() && ($data = json_decode($update->getData(), true, 512, \JSON_THROW_ON_ERROR)) && !$this->isPublicDelete($update, $data)) {
-            try {
-                $resource = $this->iriConverter->getResourceFromIri($data['@id']);
-            } catch (ItemNotFoundException $e) {
-                return $this->decorated->publish($update);
-            }
+        $data = $update->getData() ? json_decode($update->getData(), true, 512, \JSON_THROW_ON_ERROR) : null;
+        $iri = \is_array($data) && \array_key_exists('@id', $data) ? $data['@id'] : null;
+        if (!\is_string($iri) || $this->isPublicDelete($update, $data)) {
+            return $this->decorated->publish($update);
+        }
 
-            if ($this->publishableStatusChecker->getAttributeReader()->isConfigured($resource) && !$this->publishableStatusChecker->isActivePublishedAt($resource)) {
-                $update = new Update(topics: $update->getTopics(), data: $update->getData(), private: true, id: $update->getId(), type: $update->getType(), retry: $update->getRetry());
-                $this->collectorData?->recordMercurePrivateUpgrade($update->getTopics(), $resource::class);
-            }
+        try {
+            $resource = $this->iriConverter->getResourceFromIri($iri);
+        } catch (ItemNotFoundException $e) {
+            return $this->decorated->publish($update);
+        }
+
+        if ($this->publishableStatusChecker->getAttributeReader()->isConfigured($resource) && !$this->publishableStatusChecker->isActivePublishedAt($resource)) {
+            $update = new Update(topics: $update->getTopics(), data: $update->getData(), private: true, id: $update->getId(), type: $update->getType(), retry: $update->getRetry());
+            $this->collectorData?->recordMercurePrivateUpgrade($update->getTopics(), $resource::class);
         }
 
         return $this->decorated->publish($update);

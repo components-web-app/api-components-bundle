@@ -44,6 +44,7 @@ final class AnonymousResourceReader
         'HTTP_IF_MODIFIED_SINCE',
         'HTTP_IF_UNMODIFIED_SINCE',
         'HTTP_X_HTTP_METHOD_OVERRIDE',
+        'HTTP_X_CWA_CLIENT_ID',
     ];
 
     /**

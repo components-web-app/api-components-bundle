@@ -158,6 +158,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(EntityManagerInterface::class),
                 new Reference(ResourceClassResolverInterface::class),
                 new Reference(ResourceMetadataProvider::class),
+                new Reference('silverback.api_components.helper.realtime.last_write_resolver'),
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);

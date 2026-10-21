@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\DeduplicateFileInfoCommand;
 use Silverback\ApiComponentsBundle\Command\ImagineGenerateCommand;
 use Silverback\ApiComponentsBundle\Command\PrefixPageUiComponentsCommand;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RealtimeEventStateProcessor;
 use Silverback\ApiComponentsBundle\DependencyInjection\SilverbackApiComponentsExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
@@ -452,6 +453,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame('cookieLifetime', new \ReflectionMethod(MercureAuthorization::class, '__construct')->getParameters()[8]->getName());
         self::assertSame(Cookie::SAMESITE_STRICT, $this->argument($container, MercureAuthorization::class, '$cookieSameSite'));
         self::assertNull($this->argument($container, MercureAuthorization::class, '$hubName'));
+        self::assertNull($this->argument($container, RealtimeEventStateProcessor::class, '$hubName'));
         self::assertFalse($this->argument($container, MercureAuthorization::class, '$secureSubscriptions'));
 
         self::assertSame(
@@ -505,6 +507,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
 
         self::assertSame(Cookie::SAMESITE_LAX, $this->argument($container, MercureAuthorization::class, '$cookieSameSite'));
         self::assertSame('default', $this->argument($container, MercureAuthorization::class, '$hubName'));
+        self::assertSame('default', $this->argument($container, RealtimeEventStateProcessor::class, '$hubName'));
         self::assertTrue($this->argument($container, MercureAuthorization::class, '$secureSubscriptions'));
         self::assertSame([Route::class], $this->argument($container, 'silverback.api_components.event_listener.api.cache_headers', '$personalisedResourceClasses'));
         self::assertSame([ResourceManifest::class], $this->argument($container, 'silverback.api_components.event_listener.api.cache_headers', '$scheduledExpiryResourceClasses'));

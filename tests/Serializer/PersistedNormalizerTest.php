@@ -11,16 +11,24 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Serializer;
 
+use ApiPlatform\Metadata\IriConverterInterface;
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\Helper\Realtime\LastWriteResolver;
+use Silverback\ApiComponentsBundle\Helper\Realtime\RealtimeUserResolver;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 #[AllowMockObjectsWithoutExpectations]
@@ -162,5 +170,42 @@ class PersistedNormalizerTest extends TestCase
 
         $result = $this->apiNormalizer->normalize($dummyComponent, $format, ['silverback_api_components_bundle_metadata' => ['persisted' => false]]);
         self::assertEquals('anything', $result);
+    }
+
+    public function test_a_write_carrying_a_client_id_records_the_last_write_in_the_metadata(): void
+    {
+        $dummyComponent = new DummyComponent();
+        $request = Request::create('/component/dummy_components/1', 'PATCH');
+        $request->headers->set(LastWriteResolver::HEADER, '0b9f7a3e-2c4d-4e5f-8a6b-7c8d9e0f1a2b');
+        $requestStack = new RequestStack();
+        $requestStack->push($request);
+        $tokenStorage = new TokenStorage();
+        $tokenStorage->setToken(new UsernamePasswordToken((new User())->setUsername('editor'), 'main', ['ROLE_ADMIN']));
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturn('/users/1');
+        $resourceMetadata = new ResourceMetadata();
+        $resourceMetadata->setLastWrite(['clientId' => 'stale', 'userId' => 'stale']);
+        $this->resourceMetadataMock->method('findResourceMetadata')->willReturn($resourceMetadata);
+
+        $normalizer = new PersistedNormalizer($this->entityManagerMock, $this->resourceClassResolverMock, $this->resourceMetadataMock, new LastWriteResolver($requestStack, new RealtimeUserResolver($tokenStorage, $iriConverter)));
+        $normalizer->setNormalizer($this->normalizerMock);
+        $normalizer->normalize($dummyComponent, 'jsonld');
+
+        self::assertSame(['clientId' => '0b9f7a3e-2c4d-4e5f-8a6b-7c8d9e0f1a2b', 'userId' => '/users/1'], $resourceMetadata->getLastWrite());
+
+        $requestStack->push(Request::create('/component/dummy_components/1', 'GET'));
+        $normalizer->normalize($dummyComponent, 'jsonld');
+
+        self::assertNull($resourceMetadata->getLastWrite());
+    }
+
+    public function test_no_last_write_is_recorded_without_a_resolver(): void
+    {
+        $resourceMetadata = new ResourceMetadata();
+        $this->resourceMetadataMock->method('findResourceMetadata')->willReturn($resourceMetadata);
+
+        $this->apiNormalizer->normalize(new DummyComponent(), 'jsonld');
+
+        self::assertNull($resourceMetadata->getLastWrite());
     }
 }

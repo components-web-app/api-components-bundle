@@ -120,6 +120,7 @@ class AnonymousResourceReaderTest extends TestCase
             'HTTP_IF_MODIFIED_SINCE' => 'Sat, 01 Jan 2000 00:00:00 GMT',
             'HTTP_IF_UNMODIFIED_SINCE' => 'Sat, 01 Jan 2000 00:00:00 GMT',
             'HTTP_X_HTTP_METHOD_OVERRIDE' => 'DELETE',
+            'HTTP_X_CWA_CLIENT_ID' => '0b9f7a3e-2c4d-4e5f-8a6b-7c8d9e0f1a2b',
             'HTTP_ACCEPT' => 'text/html',
             'HTTP_PATH' => '/blog',
         ], '{"title":"secret"}');
@@ -129,7 +130,7 @@ class AnonymousResourceReaderTest extends TestCase
 
         $request = $this->handled[0][0];
         self::assertSame([], $request->cookies->all());
-        foreach (['Authorization', 'Cookie', 'Content-Type', 'Content-Length', 'If-None-Match', 'If-Match', 'If-Modified-Since', 'If-Unmodified-Since', 'X-Http-Method-Override'] as $header) {
+        foreach (['Authorization', 'Cookie', 'Content-Type', 'Content-Length', 'If-None-Match', 'If-Match', 'If-Modified-Since', 'If-Unmodified-Since', 'X-Http-Method-Override', 'X-CWA-Client-Id'] as $header) {
             self::assertFalse($request->headers->has($header), $header);
         }
         foreach (['PHP_AUTH_USER', 'PHP_AUTH_PW', 'PHP_AUTH_DIGEST', 'AUTH_TYPE', 'REDIRECT_HTTP_AUTHORIZATION'] as $key) {

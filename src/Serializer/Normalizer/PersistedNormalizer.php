@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Silverback\ApiComponentsBundle\Helper\Realtime\LastWriteResolver;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Utility\ClassInfoTrait;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
@@ -38,6 +39,7 @@ class PersistedNormalizer implements NormalizerInterface, NormalizerAwareInterfa
         private EntityManagerInterface $entityManager,
         private ResourceClassResolverInterface $resourceClassResolver,
         private ResourceMetadataProvider $resourceMetadataProvider,
+        private ?LastWriteResolver $lastWriteResolver = null,
     ) {
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }
@@ -48,6 +50,7 @@ class PersistedNormalizer implements NormalizerInterface, NormalizerAwareInterfa
 
         $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
         $resourceMetadata->setPersisted($this->entityManager->contains($object));
+        $resourceMetadata->setLastWrite($this->lastWriteResolver?->resolve());
 
         return $this->normalizer->normalize($object, $format, $context);
     }
