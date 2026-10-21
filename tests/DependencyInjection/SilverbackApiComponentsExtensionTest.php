@@ -199,29 +199,31 @@ class SilverbackApiComponentsExtensionTest extends TestCase
 
     public function test_the_realtime_rate_limiter_pool_is_a_framework_pool_over_cache_app_by_default(): void
     {
-        self::assertSame(['cache.app'], self::frameworkPools([])[RealtimeEventStateProcessor::RATE_LIMITER_POOL]['adapters']);
+        self::assertSame(['cache.app'], self::frameworkPoolAdapters([])[RealtimeEventStateProcessor::RATE_LIMITER_POOL]);
     }
 
     public function test_an_application_can_point_the_realtime_rate_limiter_pool_at_another_adapter(): void
     {
-        $pools = self::frameworkPools(['cache' => ['pools' => [RealtimeEventStateProcessor::RATE_LIMITER_POOL => ['adapter' => 'cache.adapter.redis']]]]);
+        $pools = self::frameworkPoolAdapters(['cache' => ['pools' => [RealtimeEventStateProcessor::RATE_LIMITER_POOL => ['adapter' => 'cache.adapter.redis']]]]);
 
-        self::assertSame(['cache.adapter.redis'], $pools[RealtimeEventStateProcessor::RATE_LIMITER_POOL]['adapters']);
+        self::assertSame(['cache.adapter.redis'], $pools[RealtimeEventStateProcessor::RATE_LIMITER_POOL]);
     }
 
     /**
      * @param array<string, mixed> $applicationConfig
      *
-     * @return array<string, array{adapters: list<string>}>
+     * @return array<string, list<string>>
      */
-    private static function frameworkPools(array $applicationConfig): array
+    private static function frameworkPoolAdapters(array $applicationConfig): array
     {
         $container = new ContainerBuilder();
         $container->prependExtensionConfig('silverback_api_components', self::minimalConfig());
 
         (new SilverbackApiComponentsExtension())->prepend($container);
 
-        return (new Processor())->processConfiguration(new FrameworkConfiguration(false), [...$container->getExtensionConfig('framework'), $applicationConfig])['cache']['pools'];
+        $pools = (new Processor())->processConfiguration(new FrameworkConfiguration(false), [...$container->getExtensionConfig('framework'), $applicationConfig])['cache']['pools'];
+
+        return array_map(static fn (array $pool): array => $pool['adapters'] ?? [$pool['adapter']], $pools);
     }
 
     private function load(array $config, bool $imagineEnabled = false): array

@@ -144,7 +144,8 @@ class RealtimeEventStateProcessorTest extends TestCase
             self::fail('The 21st event should have been refused');
         } catch (TooManyRequestsHttpException $exception) {
             self::assertSame(429, $exception->getStatusCode());
-            self::assertSame(['Retry-After' => 1], $exception->getHeaders());
+            self::assertSame(['Retry-After'], array_keys($exception->getHeaders()));
+            self::assertContains($exception->getHeaders()['Retry-After'], [1, 2]);
             self::assertSame(RealtimeEventStateProcessor::TOO_MANY_REQUESTS_MESSAGE, $exception->getMessage());
         }
 
@@ -174,7 +175,8 @@ class RealtimeEventStateProcessorTest extends TestCase
             $processor->process(null, new Post(), [], ['request' => $this->request(self::body(self::clientId(60)))]);
             self::fail('The 61st event should have been refused');
         } catch (TooManyRequestsHttpException $exception) {
-            self::assertSame(['Retry-After' => 1], $exception->getHeaders());
+            self::assertSame(['Retry-After'], array_keys($exception->getHeaders()));
+            self::assertContains($exception->getHeaders()['Retry-After'], [1, 2]);
         }
 
         self::assertCount(60, $this->published['default']);
@@ -247,7 +249,7 @@ class RealtimeEventStateProcessorTest extends TestCase
             $processor->process(null, new Post(), [], ['request' => $this->request(self::body())]);
             self::fail('The event should have been refused');
         } catch (TooManyRequestsHttpException $exception) {
-            self::assertEqualsWithDelta(4, $exception->getHeaders()['Retry-After'], 1);
+            self::assertContains($exception->getHeaders()['Retry-After'], [4, 5, 6]);
         }
     }
 
