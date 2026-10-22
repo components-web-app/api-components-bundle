@@ -153,6 +153,7 @@ API Platform routes are prefixed by `RoutingPrefixResourceMetadataCollectionFact
 | `POST /_/http_cache/purge` | With a body `{"paths": [...], "tags": [...]}` (either or both), purge only those tags (#484); with no body at all, flush the whole HTTP cache (#290). `ROLE_ADMIN`, 204; 422 for any other body, 501 when unsupported, 502 on failure. |
 | `POST /_/orphaned_resources/scan`, `GET /_/orphaned_resources`, `POST /_/orphaned_resources/delete` | Orphan report and deletion (`ROLE_ADMIN`). See **Orphaned resource report**. |
 | `POST /_/orphaned_files/scan`, `GET /_/orphaned_files`, `POST /_/orphaned_files/delete` | Orphaned, unknown, missing and invalid stored files (`ROLE_ADMIN`). See **Orphaned file report**. |
+| `GET`/`POST /_/collaboration_states`, `GET`/`PATCH`/`DELETE /_/collaboration_states/{id}` | Persisted Yjs state per component or page data and field (`ROLE_ADMIN`, `private, no-store`, never on Mercure); `?component=<iri>&field=…` or `?pageData=<iri>&field=…`. See **Collaboration state** (#563). |
 | `POST /_/realtime` | Admin real-time channel: `{clientId, event, iri?, data?}` published privately on one site-wide topic. `ROLE_ADMIN`, 202 (also when the hub fails), nothing stored; 404 when `realtime.enabled` is off. See **Real-time channel** (#559). |
 | `GET /_/health` | Uncached readiness check, 200 or 503 (#312). |
 | `GET /_/health/live` | Uncached liveness check, always 200, no database (#374). |
@@ -279,6 +280,17 @@ Resources are fetched and cached **individually**. Never embed related data outs
 - **The order PATCH and `/move` ignore `If-Match`**; the rows they write still get a new version.
 - **CORS is the application's**: a cross-origin front end needs nelmio to expose `ETag` and allow `If-Match`.
 - `generate-fixtures` never writes the version (`EntityStateReader::managedFields()`). A race is reproduced with the `BeforeTransactionCallback` test double, which writes before the flush's transaction (a write inside it is rolled back with the refused flush).
+
+### Collaboration state (#563)
+
+`CollaborationState` stores a base64 Yjs update (`state`, up to `STATE_MAX_LENGTH` = 8 MiB of characters, a `TEXT` column whose length makes MySQL use `MEDIUMTEXT`) beside one field of a component or page data, so a tab that joins late loads it from the API rather than over the realtime channel. `htmlHash` is stored and never checked: the client uses a state only when the hash matches the HTML it loaded, which covers every write, import, discard and publish with no lifecycle hook in the bundle.
+
+- **It belongs to exactly one of `component` or `pageData`**, two nullable many-to-one foreign keys like `AbstractPage`'s parents (`Assert\Expression`, 422), each `ON DELETE CASCADE`, so deleting a component or page data by any path (API, orphan delete, publish replacing a draft, SQL) deletes its states with no listener. Unique on (`component`, `field`) and (`pageData`, `field`), both in the database and as `UniqueEntity` (422).
+- **A draft of a published component is stored as its published component** by `DraftComponentReferenceListener`, which re-points every single-join-column association to a component; nothing in `CollaborationState` does it. Validation runs before that flush, so the component uniqueness check goes through `CollaborationStateRepository::findByPublishedComponent()`, which looks the published component up first; without it a draft's duplicate reached the unique index as a 500. A never-published draft keeps its row when first published, so its state needs no move.
+- **Filters are AP's `IriFilter`**, which converts the IRI with `fetch_data: false`, so the published IRI finds the published component's state even while an admin's item read of that IRI would resolve to its draft.
+- **Versioned with `VersionedTrait`**, so `If-Match`, the 412 with the current state, the `ETag` and `_metadata.version` come from the #561 services unchanged.
+- **`PropagateUpdatesListener` skips it entirely.** Its insert or delete otherwise collected every association, so each save republished and purged the component (a Mercure sub-request per save). It has no `mercure:` option and every response is `private, no-store`, so there is nothing to propagate.
+- `generate-fixtures`, the orphaned resource scan and component usage never read it: a state is not content and does not make a component used.
 
 ### Security and users
 

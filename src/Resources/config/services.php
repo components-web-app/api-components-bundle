@@ -190,6 +190,7 @@ use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
 use Silverback\ApiComponentsBundle\RamseyUuid\UuidUriVariableTransformer\UuidUriVariableTransformer;
 use Silverback\ApiComponentsBundle\RefreshToken\Storage\DoctrineRefreshTokenStorage;
 use Silverback\ApiComponentsBundle\Repository\Core\AbstractPageDataRepository;
+use Silverback\ApiComponentsBundle\Repository\Core\CollaborationStateRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentGroupRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\ComponentPositionRepository;
 use Silverback\ApiComponentsBundle\Repository\Core\FileInfoRepository;
@@ -1440,6 +1441,17 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->tag('doctrine.repository_service');
     $services->alias('silverback.doctrine.repository.route', RouteRepository::class);
+
+    $services
+        ->set(CollaborationStateRepository::class)
+        ->args(
+            [
+                new Reference(ManagerRegistry::class),
+                new Reference(PublishableAttributeReader::class),
+            ]
+        )
+        ->tag('doctrine.repository_service');
+    $services->alias('silverback.doctrine.repository.collaboration_state', CollaborationStateRepository::class);
 
     $services
         ->set(SiteConfigParameterRepository::class)

@@ -31,6 +31,7 @@ use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\Entity\Component\Collection;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
+use Silverback\ApiComponentsBundle\Entity\Core\CollaborationState;
 use Silverback\ApiComponentsBundle\Entity\Core\PageDataInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
@@ -147,6 +148,10 @@ class PropagateUpdatesListener implements ResetInterface
 
     private function gatherResourceAndAssociated(object $entity, string $type, EntityManagerInterface $em, UnitOfWork $uow): void
     {
+        if ($entity instanceof CollaborationState) {
+            return;
+        }
+
         $changeSet = $uow->getEntityChangeSet($entity);
         $this->collectUpdatedResource($entity, $type);
 

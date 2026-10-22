@@ -25,6 +25,7 @@ use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Annotation\Publishable;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
+use Silverback\ApiComponentsBundle\Entity\Core\CollaborationState;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Silverback\ApiComponentsBundle\EventListener\Console\FixtureLoadListener;
@@ -130,6 +131,19 @@ class PropagateUpdatesListenerTest extends TestCase
         $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
     }
 
+    public function test_a_collaboration_state_write_collects_and_propagates_nothing(): void
+    {
+        $propagator = $this->createMock(ResourceChangedPropagatorInterface::class);
+        $propagator->expects(self::never())->method('add');
+        $collectionRepository = $this->createMock(EntityRepository::class);
+        $collectionRepository->expects(self::never())->method('findBy');
+        $state = (new CollaborationState())->setComponent(new DummyPublishableComponent());
+        $listener = $this->listener($this->createStub(ComponentPositionRepository::class), $collectionRepository, $propagator, resourceClass: CollaborationState::class);
+
+        $listener->onFlush(new OnFlushEventArgs($this->entityManager([$state], ['state' => [null, 'AQID']], [$state], [$state])));
+        $listener->postFlush(new PostFlushEventArgs($this->entityManager([], [])));
+    }
+
     /**
      * @return iterable<string, array{object, array<string, array<mixed>>, bool}>
      */
@@ -205,19 +219,20 @@ class PropagateUpdatesListenerTest extends TestCase
      * @param list<object>                $insertions
      * @param array<string, array<mixed>> $changeSet
      * @param list<object>                $updates
+     * @param list<object>                $deletions
      */
-    private function entityManager(array $insertions, array $changeSet, array $updates = []): EntityManagerInterface
+    private function entityManager(array $insertions, array $changeSet, array $updates = [], array $deletions = []): EntityManagerInterface
     {
         $unitOfWork = $this->createStub(UnitOfWork::class);
         $unitOfWork->method('getScheduledEntityInsertions')->willReturn($insertions);
         $unitOfWork->method('getScheduledEntityUpdates')->willReturn($updates);
-        $unitOfWork->method('getScheduledEntityDeletions')->willReturn([]);
+        $unitOfWork->method('getScheduledEntityDeletions')->willReturn($deletions);
         $unitOfWork->method('getScheduledCollectionUpdates')->willReturn([]);
         $unitOfWork->method('getScheduledCollectionDeletions')->willReturn([]);
         $unitOfWork->method('getEntityChangeSet')->willReturn($changeSet);
 
         $classMetadata = $this->createStub(ClassMetadata::class);
-        $classMetadata->method('getAssociationMappings')->willReturn([]);
+        $classMetadata->method('getAssociationMappings')->willReturn(['component' => ['inversedBy' => null]]);
 
         $entityManager = $this->createStub(EntityManagerInterface::class);
         $entityManager->method('getUnitOfWork')->willReturn($unitOfWork);
