@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.36](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.35...2.0.0-alpha.36) - 2026-10-22
+
 ### Breaking
 - Components and page data have a new Doctrine `#[ORM\Version]` column `resource_version` on `abstract_component` and `abstract_page_data` (integer, default 1): run `doctrine:migrations:diff` and migrate before deploying ([#562](https://github.com/components-web-app/api-components-bundle/pull/562))
 
