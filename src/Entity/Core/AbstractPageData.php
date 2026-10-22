@@ -14,6 +14,8 @@ namespace Silverback\ApiComponentsBundle\Entity\Core;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentsBundle\Entity\Utility\VersionedInterface;
+use Silverback\ApiComponentsBundle\Entity\Utility\VersionedTrait;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -32,8 +34,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 ])]
 #[ApiResource]
 #[Get]
-abstract class AbstractPageData extends AbstractPage implements PageDataInterface
+abstract class AbstractPageData extends AbstractPage implements PageDataInterface, VersionedInterface
 {
+    use VersionedTrait;
+
     #[ORM\ManyToOne(targetEntity: Page::class)]
     #[ORM\JoinColumn(name: 'page_id', nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotBlank(message: 'Please select a page template')]

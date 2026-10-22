@@ -62,6 +62,7 @@ use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositio
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\FormSerializeStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\PublishableWriteStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ResourceVersionConflictStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UploadableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
@@ -76,6 +77,7 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataSt
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableDeserializeStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableReadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceManifestStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceVersionStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteChildrenStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteGenerateStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
@@ -94,6 +96,7 @@ use Silverback\ApiComponentsBundle\EventListener\Api\CacheHeadersEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\ComponentPositionEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\FormApiEventListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\PublishableEventListener;
+use Silverback\ApiComponentsBundle\EventListener\Api\ResourceVersionResponseListener;
 use Silverback\ApiComponentsBundle\EventListener\Api\UnpublishedRouteExceptionListener;
 use Silverback\ApiComponentsBundle\EventListener\Console\ConsoleOutputListener;
 use Silverback\ApiComponentsBundle\EventListener\Console\FixtureLoadListener;
@@ -101,6 +104,7 @@ use Silverback\ApiComponentsBundle\EventListener\Doctrine\DraftComponentReferenc
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\MappedSuperclassDiscriminatorMapListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
+use Silverback\ApiComponentsBundle\EventListener\Doctrine\ResourceVersionListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\SqlLiteForeignKeyEnabler;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableFileDeletionListener;
@@ -1028,6 +1032,54 @@ return static function (ContainerConfigurator $configurator) {
             ]
         );
     $services->alias(PublishableWriteStateProcessor::class, 'silverback.api_components.api_platform.state_processor.publishable_write');
+
+    $services
+        ->set('silverback.api_components.doctrine.event_listener.resource_version')
+        ->class(ResourceVersionListener::class)
+        ->args([new Reference(PublishableAttributeReader::class)])
+        ->autoconfigure(false)
+        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush, 'priority' => 50])
+        ->tag('kernel.reset', ['method' => 'reset']);
+    $services->alias(ResourceVersionListener::class, 'silverback.api_components.doctrine.event_listener.resource_version');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_provider.resource_version')
+        ->class(ResourceVersionStateProvider::class)
+        ->decorate('api_platform.state_provider.read', null, -60)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.state_provider.resource_version.inner'),
+                new Reference(ResourceVersionListener::class),
+            ]
+        );
+    $services->alias(ResourceVersionStateProvider::class, 'silverback.api_components.api_platform.state_provider.resource_version');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_processor.resource_version_conflict')
+        ->class(ResourceVersionConflictStateProcessor::class)
+        ->decorate('api_platform.state_processor.locator', null, 5)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.state_processor.resource_version_conflict.inner'),
+                new Reference(ManagerRegistry::class),
+                new Reference(PublishableAttributeReader::class),
+            ]
+        );
+    $services->alias(ResourceVersionConflictStateProcessor::class, 'silverback.api_components.api_platform.state_processor.resource_version_conflict');
+
+    $services
+        ->set('silverback.api_components.event_listener.api.resource_version_response')
+        ->class(ResourceVersionResponseListener::class)
+        ->args(
+            [
+                new Reference(TokenStorageInterface::class),
+                new Reference(ManagerRegistry::class),
+                new Reference(SubRequestKernel::class),
+            ]
+        )
+        ->tag('kernel.event_listener', ['event' => ResponseEvent::class, 'priority' => -10, 'method' => 'onKernelResponse'])
+        ->tag('kernel.event_listener', ['event' => ExceptionEvent::class, 'priority' => 20, 'method' => 'onKernelException']);
+    $services->alias(ResourceVersionResponseListener::class, 'silverback.api_components.event_listener.api.resource_version_response');
 
     $services
         ->set('silverback.api_components.helper.publishable.status_checker')

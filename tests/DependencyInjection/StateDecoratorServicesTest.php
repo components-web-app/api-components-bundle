@@ -19,6 +19,7 @@ use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ComponentPositio
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\FormSerializeStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\PublishableWriteStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ResourceVersionConflictStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UploadableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
@@ -27,6 +28,7 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DenyAccessStatePro
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DownloadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableDeserializeStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableReadStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceVersionStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteGenerateStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UploadStateProvider;
 use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
@@ -127,6 +129,18 @@ class StateDecoratorServicesTest extends TestCase
             DownloadStateProvider::class,
             'api_platform.state_provider.read',
             -50,
+        ];
+        yield 'if-match outermost on the read, so only a caller every access check let through learns the version' => [
+            'silverback.api_components.api_platform.state_provider.resource_version',
+            ResourceVersionStateProvider::class,
+            'api_platform.state_provider.read',
+            -60,
+        ];
+        yield 'version conflicts outermost on the write, so a refusal from any flush is a 412' => [
+            'silverback.api_components.api_platform.state_processor.resource_version_conflict',
+            ResourceVersionConflictStateProcessor::class,
+            'api_platform.state_processor.locator',
+            5,
         ];
         yield 'collection filled before serialization, inside the form view' => [
             'silverback.api_components.api_platform.state_processor.collection_serialize',

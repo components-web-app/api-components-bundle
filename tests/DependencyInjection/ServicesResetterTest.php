@@ -30,6 +30,7 @@ class ServicesResetterTest extends TestCase
             'silverback.api_components.fixture.cwa_fixture_builder',
             'silverback.api_components.fixture.asset_loader',
             'silverback.api_components.doctrine.event_listener.uploadable_file_deletion',
+            'silverback.api_components.doctrine.event_listener.resource_version',
             'silverback.api_components.helper.uploadable.cache_control',
         ],
         'services_doctrine_orm_mercure_publisher.php' => ['silverback.api_components.mercure.resource_publisher'],

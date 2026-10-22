@@ -19,6 +19,10 @@ services:
         tags:
             - { name: doctrine.middleware }
 
+    Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\BeforeFlushCallback:
+        tags:
+            - { name: doctrine.event_listener, event: preFlush }
+
     app.counting_filesystem_adapter.in_memory:
         class: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Flysystem\CountingFilesystemAdapter
         decorates: League\Flysystem\InMemory\InMemoryFilesystemAdapter

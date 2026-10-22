@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
 use ApiPlatform\Metadata\ResourceClassResolverInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Silverback\ApiComponentsBundle\Entity\Utility\VersionedInterface;
 use Silverback\ApiComponentsBundle\Helper\Realtime\LastWriteResolver;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Utility\ClassInfoTrait;
@@ -51,6 +52,9 @@ class PersistedNormalizer implements NormalizerInterface, NormalizerAwareInterfa
         $resourceMetadata = $this->resourceMetadataProvider->findResourceMetadata($object);
         $resourceMetadata->setPersisted($this->entityManager->contains($object));
         $resourceMetadata->setLastWrite($this->lastWriteResolver?->resolve());
+        if ($object instanceof VersionedInterface) {
+            $resourceMetadata->setVersion($object->getResourceVersion());
+        }
 
         return $this->normalizer->normalize($object, $format, $context);
     }

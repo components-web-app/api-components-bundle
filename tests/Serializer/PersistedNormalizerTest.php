@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Helper\Realtime\LastWriteResolver;
 use Silverback\ApiComponentsBundle\Helper\Realtime\RealtimeUserResolver;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PersistedNormalizer;
@@ -24,6 +25,7 @@ use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadata;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataInterface;
 use Silverback\ApiComponentsBundle\Serializer\ResourceMetadata\ResourceMetadataProvider;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyComponent;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyTimestamped;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\HttpFoundation\Request;
@@ -201,6 +203,28 @@ class PersistedNormalizerTest extends TestCase
         $this->apiNormalizer->normalize(new DummyComponent(), 'jsonld');
 
         self::assertNull($resourceMetadata->getLastWrite());
+    }
+
+    public function test_a_versioned_resource_records_its_version_in_the_metadata(): void
+    {
+        $component = new DummyComponent();
+        (new \ReflectionProperty(AbstractComponent::class, 'resourceVersion'))->setValue($component, 4);
+        $resourceMetadata = new ResourceMetadata();
+        $this->resourceMetadataMock->method('findResourceMetadata')->willReturn($resourceMetadata);
+
+        $this->apiNormalizer->normalize($component, 'jsonld');
+
+        self::assertSame(4, $resourceMetadata->getVersion());
+    }
+
+    public function test_a_resource_that_is_not_versioned_records_no_version(): void
+    {
+        $resourceMetadata = new ResourceMetadata();
+        $this->resourceMetadataMock->method('findResourceMetadata')->willReturn($resourceMetadata);
+
+        $this->apiNormalizer->normalize(new DummyTimestamped(), 'jsonld');
+
+        self::assertNull($resourceMetadata->getVersion());
     }
 
     private function lastWriteNormalizer(ResourceMetadata $resourceMetadata, Request $request): PersistedNormalizer

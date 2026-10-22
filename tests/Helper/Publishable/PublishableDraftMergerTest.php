@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Tests\Helper\Publishable;
 
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
@@ -61,6 +62,32 @@ class PublishableDraftMergerTest extends TestCase
         $previous = $request->attributes->get('previous_data');
         self::assertInstanceOf(DummyPublishableComponent::class, $previous);
         self::assertNotSame($published, $previous);
+    }
+
+    public function test_a_merge_raises_the_published_version_to_the_drafts(): void
+    {
+        [$published, $draft] = $this->persistPublishedWithDraft(new \DateTime('-2 days'), new \DateTime('-1 day'));
+        self::setResourceVersion($draft, 7);
+
+        $this->publishableDraftMerger->mergeDueDraft(new Request(), $published);
+
+        self::assertSame(7, $published->getResourceVersion());
+    }
+
+    public function test_a_merge_keeps_a_published_version_already_above_the_drafts(): void
+    {
+        [$published, $draft] = $this->persistPublishedWithDraft(new \DateTime('-2 days'), new \DateTime('-1 day'));
+        self::setResourceVersion($published, 9);
+        self::setResourceVersion($draft, 7);
+
+        $this->publishableDraftMerger->mergeDueDraft(new Request(), $published);
+
+        self::assertSame(9, $published->getResourceVersion());
+    }
+
+    private static function setResourceVersion(DummyPublishableComponent $component, int $version): void
+    {
+        (new \ReflectionProperty(AbstractComponent::class, 'resourceVersion'))->setValue($component, $version);
     }
 
     public function test_a_merge_without_a_flush_leaves_the_draft_removal_to_the_write(): void
