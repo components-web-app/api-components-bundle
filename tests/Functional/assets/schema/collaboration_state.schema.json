@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["@id", "@type", "field", "state", "htmlHash", "_metadata"],
+  "oneOf": [
+    {
+      "required": ["component"],
+      "not": { "required": ["pageData"] }
+    },
+    {
+      "required": ["pageData"],
+      "not": { "required": ["component"] }
+    }
+  ],
+  "properties": {
+    "@id": {
+      "type": "string",
+      "pattern": "^/_/collaboration_states/[^/]+$"
+    },
+    "@type": {
+      "const": "CollaborationState"
+    },
+    "component": {
+      "type": "string",
+      "pattern": "^/component/"
+    },
+    "pageData": {
+      "type": "string",
+      "pattern": "^/page_data/"
+    },
+    "field": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "htmlHash": {
+      "type": "string"
+    },
+    "_metadata": {
+      "type": "object",
+      "required": ["version"],
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}
