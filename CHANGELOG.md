@@ -5,10 +5,10 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Breaking
-- A new table `collaboration_state` for the collaboration state store: run `doctrine:migrations:diff` and migrate before deploying ([#563](https://github.com/components-web-app/api-components-bundle/issues/563))
+- A new table `collaboration_state` for the collaboration state store: run `doctrine:migrations:diff` and migrate before deploying ([#564](https://github.com/components-web-app/api-components-bundle/pull/564))
 
 ### Added
-- Collaboration state store for Yjs: `/_/collaboration_states` (admin only, `private, no-store`, never on Mercure) keeps a base64 `state` up to 8 MiB and an unchecked `htmlHash` per component or page data and `field`, filtered with `?component=<iri>&field=…` or `?pageData=<iri>&field=…`, versioned with `If-Match`/412 like components; a draft of a published component shares its published component's state, and deleting a component or page data deletes its states ([#563](https://github.com/components-web-app/api-components-bundle/issues/563))
+- Collaboration state store for Yjs: `/_/collaboration_states` (admin only, `private, no-store`, never on Mercure) keeps a base64 `state` up to 8 MiB and an unchecked `htmlHash` per component or page data and `field`, filtered with `?component=<iri>&field=…` or `?pageData=<iri>&field=…`, versioned with `If-Match`/412 like components; a draft of a published component shares its published component's state, and deleting a component or page data deletes its states ([#564](https://github.com/components-web-app/api-components-bundle/pull/564))
 
 ## [2.0.0-alpha.36](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.35...2.0.0-alpha.36) - 2026-10-22
 
