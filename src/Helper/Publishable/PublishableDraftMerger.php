@@ -14,7 +14,6 @@ namespace Silverback\ApiComponentsBundle\Helper\Publishable;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
-use Silverback\ApiComponentsBundle\Entity\Utility\VersionedInterface;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Utility\ClassMetadataTrait;
 use Symfony\Component\HttpFoundation\Request;
@@ -100,14 +99,6 @@ final class PublishableDraftMerger
                 $draftValue = $draftProperty->getValue($draftResource);
                 $property->setValue($publishedResource, $draftValue);
             }
-        }
-
-        if (
-            $draftResource instanceof VersionedInterface
-            && $publishedResource instanceof VersionedInterface
-            && $draftResource->getResourceVersion() > $publishedResource->getResourceVersion()
-        ) {
-            $this->getClassMetadata($publishedResource)->setFieldValue($publishedResource, VersionedInterface::VERSION_FIELD, $draftResource->getResourceVersion());
         }
 
         if ($draftResource instanceof AbstractComponent && $publishedResource instanceof AbstractComponent) {

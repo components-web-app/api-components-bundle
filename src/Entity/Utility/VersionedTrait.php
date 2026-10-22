@@ -16,7 +16,8 @@ use Symfony\Component\Serializer\Attribute\Ignore;
 
 trait VersionedTrait
 {
-    #[ORM\Column(type: 'integer', updatable: false, options: ['default' => 1])]
+    #[ORM\Version]
+    #[ORM\Column(type: 'integer', options: ['default' => 1])]
     #[Ignore]
     private int $resourceVersion = 1;
 

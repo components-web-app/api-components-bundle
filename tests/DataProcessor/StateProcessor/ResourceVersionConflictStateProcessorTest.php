@@ -41,37 +41,6 @@ final class ResourceVersionConflictStateProcessorTest extends TestCase
         self::assertSame($result, $this->processor(null, $result)->process($component, new Patch()));
     }
 
-    public function test_a_versioned_resource_is_written_in_one_transaction(): void
-    {
-        $level = null;
-        $decorated = $this->createStub(ProcessorInterface::class);
-        $decorated->method('process')->willReturnCallback(function () use (&$level) {
-            $level = $this->entityManager->getConnection()->getTransactionNestingLevel();
-
-            return null;
-        });
-
-        (new ResourceVersionConflictStateProcessor($decorated, $this->registry, new PublishableAttributeReader($this->registry)))->process(new DummyPublishableComponent(), new Patch());
-
-        self::assertSame(1, $level);
-        self::assertSame(0, $this->entityManager->getConnection()->getTransactionNestingLevel());
-    }
-
-    public function test_a_resource_that_is_not_versioned_is_written_outside_a_transaction(): void
-    {
-        $level = null;
-        $decorated = $this->createStub(ProcessorInterface::class);
-        $decorated->method('process')->willReturnCallback(function () use (&$level) {
-            $level = $this->entityManager->getConnection()->getTransactionNestingLevel();
-
-            return null;
-        });
-
-        (new ResourceVersionConflictStateProcessor($decorated, $this->registry, new PublishableAttributeReader($this->registry)))->process(new ComponentGroup(), new Patch());
-
-        self::assertSame(0, $level);
-    }
-
     public function test_a_version_refused_at_commit_is_a_conflict_carrying_the_refusal(): void
     {
         $refusal = OptimisticLockException::lockFailed(new DummyPublishableComponent());

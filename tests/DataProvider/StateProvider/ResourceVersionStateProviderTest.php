@@ -19,37 +19,28 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\State\ProviderInterface;
-use Doctrine\ORM\Events;
-use Doctrine\ORM\OptimisticLockException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
+use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceVersionStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
-use Silverback\ApiComponentsBundle\Entity\Utility\VersionedInterface;
-use Silverback\ApiComponentsBundle\EventListener\Doctrine\ResourceVersionListener;
 use Silverback\ApiComponentsBundle\Exception\ResourceVersionConflictException;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
-use Silverback\ApiComponentsBundle\Tests\Helper\Publishable\PublishableDatabaseTrait;
 use Symfony\Component\HttpFoundation\Request;
 
 final class ResourceVersionStateProviderTest extends TestCase
 {
-    use PublishableDatabaseTrait;
-
-    private ResourceVersionListener $listener;
-
     private DummyPublishableComponent $component;
+
+    private UuidInterface $id;
 
     protected function setUp(): void
     {
-        $this->setUpPublishableDatabase();
-        $this->listener = new ResourceVersionListener(new PublishableAttributeReader($this->registry));
-        $this->entityManager->getEventManager()->addEventListener(Events::onFlush, $this->listener);
+        $this->id = Uuid::uuid4();
         $this->component = new DummyPublishableComponent();
-        $this->entityManager->persist($this->component);
-        $this->entityManager->flush();
+        (new \ReflectionProperty(AbstractComponent::class, 'id'))->setValue($this->component, $this->id);
         (new \ReflectionProperty(AbstractComponent::class, 'resourceVersion'))->setValue($this->component, 3);
     }
 
@@ -67,13 +58,14 @@ final class ResourceVersionStateProviderTest extends TestCase
     }
 
     #[DataProvider('matching')]
-    public function test_a_matching_if_match_returns_the_resource_and_expects_its_version_at_commit(Operation $operation, string $ifMatch): void
+    public function test_a_matching_if_match_returns_the_resource(Operation $operation, string $ifMatch): void
     {
-        $result = $this->provide($operation, $ifMatch);
+        self::assertSame($this->component, $this->provide($operation, $ifMatch));
+    }
 
-        self::assertSame($this->component, $result);
-        $this->expectException(OptimisticLockException::class);
-        $this->editAfterAnotherWrite();
+    public function test_a_matching_if_match_for_the_row_addressed_by_a_uuid_object_returns_the_resource(): void
+    {
+        self::assertSame($this->component, $this->provider($this->component)->provide(new Patch(), ['id' => Uuid::fromString($this->id->toString())], ['request' => $this->request('"3"')]));
     }
 
     /**
@@ -97,6 +89,28 @@ final class ResourceVersionStateProviderTest extends TestCase
     }
 
     /**
+     * @return iterable<string, array{string}>
+     */
+    public static function anyIfMatch(): iterable
+    {
+        yield 'the version of the row read' => ['"3"'];
+        yield 'any version' => ['*'];
+    }
+
+    #[DataProvider('anyIfMatch')]
+    public function test_an_if_match_for_a_row_that_was_read_in_place_of_the_row_addressed_is_a_conflict(string $ifMatch): void
+    {
+        $this->expectException(ResourceVersionConflictException::class);
+
+        $this->provider($this->component)->provide(new Patch(), ['id' => Uuid::uuid4()->toString()], ['request' => $this->request($ifMatch)]);
+    }
+
+    public function test_a_row_read_in_place_of_the_row_addressed_without_if_match_is_returned(): void
+    {
+        self::assertSame($this->component, $this->provider($this->component)->provide(new Patch(), ['id' => Uuid::uuid4()->toString()], ['request' => $this->request(null)]));
+    }
+
+    /**
      * @return iterable<string, array{Operation, ?string}>
      */
     public static function unchecked(): iterable
@@ -110,18 +124,12 @@ final class ResourceVersionStateProviderTest extends TestCase
     #[DataProvider('unchecked')]
     public function test_the_version_is_not_checked_for(Operation $operation, ?string $ifMatch): void
     {
-        self::assertSame($this->component, $this->provide($operation, $ifMatch));
-
-        $this->editAfterAnotherWrite();
-        self::assertSame(6, $this->component->getResourceVersion());
+        self::assertSame($this->component, $this->provider($this->component)->provide($operation, ['id' => Uuid::uuid4()->toString()], ['request' => $this->request($ifMatch)]));
     }
 
     public function test_the_version_is_not_checked_without_a_request(): void
     {
-        self::assertSame($this->component, $this->provider($this->component)->provide(new Patch()));
-
-        $this->editAfterAnotherWrite();
-        self::assertSame(6, $this->component->getResourceVersion());
+        self::assertSame($this->component, $this->provider($this->component)->provide(new Patch(), ['id' => Uuid::uuid4()->toString()]));
     }
 
     public function test_a_resource_that_is_not_versioned_is_not_checked(): void
@@ -133,7 +141,7 @@ final class ResourceVersionStateProviderTest extends TestCase
 
     private function provide(Operation $operation, ?string $ifMatch): object|array|null
     {
-        return $this->provider($this->component)->provide($operation, [], ['request' => $this->request($ifMatch)]);
+        return $this->provider($this->component)->provide($operation, ['id' => $this->id->toString()], ['request' => $this->request($ifMatch)]);
     }
 
     private function request(?string $ifMatch): Request
@@ -151,14 +159,6 @@ final class ResourceVersionStateProviderTest extends TestCase
         $decorated = $this->createStub(ProviderInterface::class);
         $decorated->method('provide')->willReturn($data);
 
-        return new ResourceVersionStateProvider($decorated, $this->listener);
-    }
-
-    private function editAfterAnotherWrite(): void
-    {
-        $column = $this->entityManager->getClassMetadata(AbstractComponent::class)->getColumnName(VersionedInterface::VERSION_FIELD);
-        $this->entityManager->getConnection()->executeStatement(\sprintf('UPDATE _acb_abstract_component SET %s = 5', $column));
-        $this->component->reference = 'edited';
-        $this->entityManager->flush();
+        return new ResourceVersionStateProvider($decorated);
     }
 }

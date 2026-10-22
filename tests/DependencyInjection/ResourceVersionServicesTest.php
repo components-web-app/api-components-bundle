@@ -13,9 +13,7 @@ namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection;
 
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
-use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\EventListener\Api\ResourceVersionResponseListener;
-use Silverback\ApiComponentsBundle\EventListener\Doctrine\ResourceVersionListener;
 use Silverback\ApiComponentsBundle\Helper\SubRequest\SubRequestKernel;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -33,18 +31,6 @@ final class ResourceVersionServicesTest extends TestCase
     {
         $this->container = new ContainerBuilder();
         (new PhpFileLoader($this->container, new FileLocator(__DIR__ . '/../../src/Resources/config')))->load('services.php');
-    }
-
-    public function test_versions_are_claimed_on_flush_after_draft_references_are_moved_and_before_the_write_is_propagated(): void
-    {
-        $definition = $this->container->getDefinition('silverback.api_components.doctrine.event_listener.resource_version');
-
-        self::assertSame(ResourceVersionListener::class, $definition->getClass());
-        self::assertFalse($definition->isAutoconfigured());
-        self::assertEquals([new Reference(PublishableAttributeReader::class)], $definition->getArguments());
-        self::assertSame([['event' => 'onFlush', 'priority' => 50]], $definition->getTag('doctrine.event_listener'));
-        self::assertSame([['method' => 'reset']], $definition->getTag('kernel.reset'));
-        self::assertSame('silverback.api_components.doctrine.event_listener.resource_version', (string) $this->container->getAlias(ResourceVersionListener::class));
     }
 
     public function test_the_response_listener_sets_the_etag_and_answers_a_conflict(): void

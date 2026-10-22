@@ -124,7 +124,7 @@ final class ResourceVersionTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(200);
         $draft = self::mercureUpdateData(self::mercureUpdateFor(self::bodyOf($response)['@id'], true));
-        self::assertSame(2, $draft['_metadata']['version'] ?? null);
+        self::assertSame(1, $draft['_metadata']['version'] ?? null);
         self::assertArrayNotHasKey('lastWrite', $draft['_metadata']);
         $publishedUpdates = array_filter(self::mercureUpdatesFor(self::iriOf($published)), static fn ($update): bool => !str_contains($update->getTopics()[0], '?'));
         self::assertNotEmpty($publishedUpdates, self::describeMercureUpdates());
@@ -146,7 +146,7 @@ final class ResourceVersionTest extends FunctionalTestCase
         self::assertSame(2, self::mercureUpdateData(self::mercureUpdateFor($iri, false))['_metadata']['version'] ?? null);
     }
 
-    public function test_a_write_without_if_match_raises_the_version_above_one_committed_since_it_was_read(): void
+    public function test_a_write_without_if_match_that_loses_a_race_at_commit_is_412_with_the_resource_as_committed(): void
     {
         $client = static::createClient();
         self::loginAsAdmin($client);
@@ -155,9 +155,10 @@ final class ResourceVersionTest extends FunctionalTestCase
 
         $response = self::requestJsonLd($client, 'PATCH', self::iriOf($component), ['reference' => 'edited']);
 
-        self::assertResponseStatusCodeSame(200);
-        self::assertSame(6, self::versionOf($response));
-        self::assertSame(6, self::versionInDatabase($component));
+        self::assertResponseStatusCodeSame(412);
+        self::assertSame('original', self::bodyOf($response)['reference']);
+        self::assertSame(5, self::versionOf($response));
+        self::assertSame(5, self::versionInDatabase($component));
     }
 
     public function test_a_signed_in_response_carrying_the_version_etag_is_never_stored_by_a_shared_cache(): void

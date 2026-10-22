@@ -15,7 +15,6 @@ use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Silverback\ApiComponentsBundle\Entity\Utility\VersionedInterface;
-use Silverback\ApiComponentsBundle\EventListener\Doctrine\ResourceVersionListener;
 use Silverback\ApiComponentsBundle\Exception\ResourceVersionConflictException;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -29,10 +28,8 @@ final readonly class ResourceVersionStateProvider implements ProviderInterface
     /**
      * @param ProviderInterface<object> $decorated
      */
-    public function __construct(
-        private ProviderInterface $decorated,
-        private ResourceVersionListener $resourceVersionListener,
-    ) {
+    public function __construct(private ProviderInterface $decorated)
+    {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
@@ -50,11 +47,13 @@ final readonly class ResourceVersionStateProvider implements ProviderInterface
             return $data;
         }
 
-        $version = $data->getResourceVersion();
-        if (!self::matches((string) $request->headers->get('If-Match'), $version)) {
+        if (isset($uriVariables['id']) && (string) $uriVariables['id'] !== (string) $data->getId()) {
             throw new ResourceVersionConflictException();
         }
-        $this->resourceVersionListener->expectVersion($data, $version);
+
+        if (!self::matches((string) $request->headers->get('If-Match'), $data->getResourceVersion())) {
+            throw new ResourceVersionConflictException();
+        }
 
         return $data;
     }

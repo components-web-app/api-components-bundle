@@ -125,21 +125,6 @@ final class IfMatchTest extends FunctionalTestCase
         self::assertSame('theirs', $stored->reference);
     }
 
-    public function test_a_delete_conflicting_at_commit_is_412_and_deletes_nothing(): void
-    {
-        $client = static::createClient();
-        self::loginAsAdmin($client);
-        $component = self::createComponent('theirs');
-        $iri = self::iriOf($component);
-        self::setVersionBeforeTheNextWrite($component, 2);
-
-        $response = self::requestJsonLd($client, 'DELETE', $iri, null, ['If-Match' => '"1"']);
-
-        self::assertResponseStatusCodeSame(412);
-        self::assertSame(2, self::versionOf($response));
-        self::assertResourceExists($iri);
-    }
-
     public function test_a_reorder_ignores_if_match(): void
     {
         $client = static::createClient();

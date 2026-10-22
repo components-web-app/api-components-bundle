@@ -11,9 +11,13 @@
 
 namespace Silverback\ApiComponentsBundle\Entity\Utility;
 
+use Ramsey\Uuid\UuidInterface;
+
 interface VersionedInterface
 {
     public const string VERSION_FIELD = 'resourceVersion';
+
+    public function getId(): ?UuidInterface;
 
     public function getResourceVersion(): int;
 }

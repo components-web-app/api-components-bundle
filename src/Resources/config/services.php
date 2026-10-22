@@ -104,7 +104,6 @@ use Silverback\ApiComponentsBundle\EventListener\Doctrine\DraftComponentReferenc
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\MappedSuperclassDiscriminatorMapListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PropagateUpdatesListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\PublishableListener;
-use Silverback\ApiComponentsBundle\EventListener\Doctrine\ResourceVersionListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\SqlLiteForeignKeyEnabler;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\TimestampedListener;
 use Silverback\ApiComponentsBundle\EventListener\Doctrine\UploadableFileDeletionListener;
@@ -1034,22 +1033,12 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(PublishableWriteStateProcessor::class, 'silverback.api_components.api_platform.state_processor.publishable_write');
 
     $services
-        ->set('silverback.api_components.doctrine.event_listener.resource_version')
-        ->class(ResourceVersionListener::class)
-        ->args([new Reference(PublishableAttributeReader::class)])
-        ->autoconfigure(false)
-        ->tag('doctrine.event_listener', ['event' => DoctrineEvents::onFlush, 'priority' => 50])
-        ->tag('kernel.reset', ['method' => 'reset']);
-    $services->alias(ResourceVersionListener::class, 'silverback.api_components.doctrine.event_listener.resource_version');
-
-    $services
         ->set('silverback.api_components.api_platform.state_provider.resource_version')
         ->class(ResourceVersionStateProvider::class)
         ->decorate('api_platform.state_provider.read', null, -60)
         ->args(
             [
                 new Reference('silverback.api_components.api_platform.state_provider.resource_version.inner'),
-                new Reference(ResourceVersionListener::class),
             ]
         );
     $services->alias(ResourceVersionStateProvider::class, 'silverback.api_components.api_platform.state_provider.resource_version');
