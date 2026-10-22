@@ -18,6 +18,7 @@ use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReaderInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Entity\Utility\VersionedInterface;
 
 /**
  * @internal
@@ -137,7 +138,7 @@ final class EntityStateReader
      */
     private function managedFields(object $entity): array
     {
-        $fields = [];
+        $fields = $entity instanceof VersionedInterface ? [VersionedInterface::VERSION_FIELD] : [];
         if ($this->timestampedAttributeReader->isConfigured($entity)) {
             $configuration = $this->timestampedAttributeReader->getConfiguration($entity);
             $fields[] = $configuration->createdAtField;

@@ -18,6 +18,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
+use Silverback\ApiComponentsBundle\Entity\Utility\VersionedInterface;
+use Silverback\ApiComponentsBundle\Entity\Utility\VersionedTrait;
 use Silverback\ApiComponentsBundle\Validator\Constraints as AcbAssert;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -33,10 +35,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\DiscriminatorColumn(name: 'dtype', type: 'string', length: 255)]
 #[ApiResource]
 #[Get]
-abstract class AbstractComponent implements ComponentInterface
+abstract class AbstractComponent implements ComponentInterface, VersionedInterface
 {
     use IdTrait;
     use UiTrait;
+    use VersionedTrait;
 
     #[ORM\ManyToMany(targetEntity: ComponentGroup::class, inversedBy: 'components')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]

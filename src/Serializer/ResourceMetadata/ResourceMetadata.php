@@ -57,6 +57,9 @@ class ResourceMetadata implements ResourceMetadataInterface
     #[Groups('cwa_resource:metadata')]
     private ?array $lastWrite = null;
 
+    #[Groups('cwa_resource:metadata')]
+    private ?int $version = null;
+
     public function getResourceMetadata(): ?ResourceMetadataInterface
     {
         return $this;
@@ -189,5 +192,15 @@ class ResourceMetadata implements ResourceMetadataInterface
     public function setLastWrite(?array $lastWrite): void
     {
         $this->lastWrite = $lastWrite;
+    }
+
+    public function getVersion(): ?int
+    {
+        return $this->version;
+    }
+
+    public function setVersion(?int $version): void
+    {
+        $this->version = $version;
     }
 }

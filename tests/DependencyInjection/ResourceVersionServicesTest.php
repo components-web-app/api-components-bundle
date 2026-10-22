@@ -1,0 +1,47 @@
+<?php
+
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection;
+
+use Doctrine\Persistence\ManagerRegistry;
+use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\EventListener\Api\ResourceVersionResponseListener;
+use Silverback\ApiComponentsBundle\Helper\SubRequest\SubRequestKernel;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+
+final class ResourceVersionServicesTest extends TestCase
+{
+    private ContainerBuilder $container;
+
+    protected function setUp(): void
+    {
+        $this->container = new ContainerBuilder();
+        (new PhpFileLoader($this->container, new FileLocator(__DIR__ . '/../../src/Resources/config')))->load('services.php');
+    }
+
+    public function test_the_response_listener_sets_the_etag_and_answers_a_conflict(): void
+    {
+        $definition = $this->container->getDefinition('silverback.api_components.event_listener.api.resource_version_response');
+
+        self::assertSame(ResourceVersionResponseListener::class, $definition->getClass());
+        self::assertEquals([new Reference(TokenStorageInterface::class), new Reference(ManagerRegistry::class), new Reference(SubRequestKernel::class)], $definition->getArguments());
+        self::assertSame([
+            ['event' => ResponseEvent::class, 'priority' => -10, 'method' => 'onKernelResponse'],
+            ['event' => ExceptionEvent::class, 'priority' => 20, 'method' => 'onKernelException'],
+        ], $definition->getTag('kernel.event_listener'));
+    }
+}

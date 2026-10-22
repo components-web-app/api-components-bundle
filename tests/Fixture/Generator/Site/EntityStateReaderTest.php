@@ -17,6 +17,7 @@ use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Fixture\Generator\Site\EntityStateReader;
@@ -71,6 +72,15 @@ class EntityStateReaderTest extends TestCase
         $timestamped->setModifiedAt(new \DateTime('2020-01-02'));
 
         self::assertSame([], $this->reader()->read($timestamped));
+    }
+
+    public function test_the_resource_version_is_skipped(): void
+    {
+        $link = new DummyNavigationLink();
+        $link->label = 'About';
+        (new \ReflectionProperty(AbstractComponent::class, 'resourceVersion'))->setValue($link, 5);
+
+        self::assertSame(['label' => 'About'], $this->values($this->reader()->read($link)));
     }
 
     public function test_publishable_fields_are_read_apart_from_the_state(): void

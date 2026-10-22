@@ -4,6 +4,12 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- Components and page data have a new Doctrine `#[ORM\Version]` column `resource_version` on `abstract_component` and `abstract_page_data` (integer, default 1): run `doctrine:migrations:diff` and migrate before deploying ([#562](https://github.com/components-web-app/api-components-bundle/pull/562))
+
+### Added
+- Optimistic concurrency for components and page data: each row's `_metadata.version` rises on every write and is on both Mercure updates, a signed-in response carries it as a strong `ETag` (and is `private, no-store`), and a `PATCH`, `PUT` or `DELETE` with a stale `If-Match`, an `If-Match` on a write redirected from a published IRI to its existing draft, a write that loses a race at commit, or the losing first edit of a published resource is 412 with the current resource as the body. A new draft starts at version 1. The order PATCH and `/move` ignore `If-Match`. Cross-origin apps must expose `ETag` and allow `If-Match` in their CORS config ([#562](https://github.com/components-web-app/api-components-bundle/pull/562))
+
 ## [2.0.0-alpha.35](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.34...2.0.0-alpha.35) - 2026-10-21
 
 ### Added
