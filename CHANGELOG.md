@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.37](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.36...2.0.0-alpha.37) - 2026-10-22
+
 ### Breaking
 - A new table `collaboration_state` for the collaboration state store: run `doctrine:migrations:diff` and migrate before deploying ([#564](https://github.com/components-web-app/api-components-bundle/pull/564))
 
