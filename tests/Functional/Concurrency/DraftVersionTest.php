@@ -101,7 +101,7 @@ final class DraftVersionTest extends FunctionalTestCase
         $client = static::createClient();
         self::loginAsAdmin($client);
         [$published, $draft] = self::createPublishedWithDraft();
-        self::setVersionBeforeTheNextFlush($draft, 3);
+        self::setVersionBeforeTheNextWrite($draft, 3);
 
         $response = self::requestJsonLd($client, 'PATCH', self::iriOf($published), ['publishedAt' => 'now'], ['If-Match' => '"2"']);
 
@@ -115,7 +115,7 @@ final class DraftVersionTest extends FunctionalTestCase
         $client = static::createClient();
         self::loginAsAdmin($client);
         $published = self::createPublishable(new \DateTimeImmutable('-1 hour'));
-        self::insertDraftBeforeTheNextFlush($published, 'winner', 2);
+        self::insertDraftBeforeTheNextWrite($published, 'winner', 2);
 
         $response = self::requestJsonLd($client, 'PATCH', self::iriOf($published), ['reference' => 'loser'], ['If-Match' => '"1"']);
 
@@ -129,7 +129,7 @@ final class DraftVersionTest extends FunctionalTestCase
         $client = static::createClient();
         self::loginAsAdmin($client);
         $published = self::createPublishable(new \DateTimeImmutable('-1 hour'));
-        self::insertDraftBeforeTheNextFlush($published, 'winner', 2);
+        self::insertDraftBeforeTheNextWrite($published, 'winner', 2);
 
         self::requestJsonLd($client, 'PATCH', self::iriOf($published), ['reference' => 'loser']);
 
@@ -152,5 +152,32 @@ final class DraftVersionTest extends FunctionalTestCase
         self::assertSame([], self::mercureUpdatesFor($publishedIri));
         $client->getCookieJar()->clear();
         self::assertSame(1, self::versionOf(self::requestJsonLd($client, 'GET', $publishedIri)));
+    }
+
+    public function test_a_first_edit_racing_a_write_to_the_published_resource_is_412_and_creates_no_draft(): void
+    {
+        $client = static::createClient();
+        self::loginAsAdmin($client);
+        $published = self::createPublishable(new \DateTimeImmutable('-1 hour'));
+        self::setVersionBeforeTheNextWrite($published, 2);
+
+        $response = self::requestJsonLd($client, 'PATCH', self::iriOf($published), ['reference' => 'stale'], ['If-Match' => '"1"']);
+
+        self::assertResponseStatusCodeSame(412);
+        self::assertSame(self::iriOf($published), self::bodyOf($response)['@id']);
+        self::assertSame(2, self::versionOf($response));
+    }
+
+    public function test_a_new_draft_is_versioned_above_the_published_version_as_stored(): void
+    {
+        $client = static::createClient();
+        self::loginAsAdmin($client);
+        $published = self::createPublishable(new \DateTimeImmutable('-1 hour'));
+        self::setVersionBeforeTheNextWrite($published, 4);
+
+        $response = self::requestJsonLd($client, 'PATCH', self::iriOf($published), ['reference' => 'draft']);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertSame(5, self::versionOf($response));
     }
 }

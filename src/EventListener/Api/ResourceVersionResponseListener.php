@@ -59,6 +59,7 @@ final readonly class ResourceVersionResponseListener
         }
 
         $response->setEtag((string) $data->getResourceVersion());
+        $this->markNeverStored($response);
     }
 
     public function onKernelException(ExceptionEvent $event): void
@@ -84,10 +85,15 @@ final readonly class ResourceVersionResponseListener
         }
 
         $response->setStatusCode(Response::HTTP_PRECONDITION_FAILED);
+        $this->markNeverStored($response);
+        $event->setResponse($response);
+    }
+
+    private function markNeverStored(Response $response): void
+    {
         $response->setPrivate();
         $response->headers->removeCacheControlDirective('s-maxage');
         $response->headers->addCacheControlDirective('no-store');
-        $event->setResponse($response);
     }
 
     private function currentResourceRequest(Request $request): Request

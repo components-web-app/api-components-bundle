@@ -52,6 +52,19 @@ final class ResourceVersionResponseListenerTest extends TestCase
         self::assertSame('"4"', $event->getResponse()->getEtag());
     }
 
+    public function test_a_response_carrying_the_version_etag_is_never_stored_by_a_shared_cache(): void
+    {
+        $this->signIn();
+        $response = new Response('{}');
+        $response->setPublic();
+        $response->setSharedMaxAge(3600);
+        $event = $this->responseEvent(self::component(4), $response);
+
+        $this->listener()->onKernelResponse($event);
+
+        self::assertSame('no-store, private', $event->getResponse()->headers->get('Cache-Control'));
+    }
+
     public function test_an_anonymous_response_keeps_its_etag(): void
     {
         $response = new Response('{}');

@@ -18,7 +18,7 @@ use ApiPlatform\Test\Client;
 use DAMA\DoctrineTestBundle\Doctrine\DBAL\StaticDriver;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
-use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\BeforeFlushCallback;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\BeforeTransactionCallback;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\QueryCountingMiddleware;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\RejectedDeleteMiddleware;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\UnreachableDatabaseMiddleware;
@@ -131,7 +131,7 @@ abstract class FunctionalTestCase extends ApiTestCase
         UnreachableDatabaseMiddleware::setUnreachable(false);
         RejectedDeleteMiddleware::setRejectDeletes(false);
         QueryCountingMiddleware::reset();
-        BeforeFlushCallback::once(null);
+        BeforeTransactionCallback::once(null);
         CountingFilesystemAdapter::reset();
         MockClientCallback::setCacheUnreachable(false);
         MockClientCallback::clearPurgeRequests();

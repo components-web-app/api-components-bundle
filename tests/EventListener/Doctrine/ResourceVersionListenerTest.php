@@ -72,6 +72,65 @@ final class ResourceVersionListenerTest extends TestCase
         self::assertSame(4, $this->storedVersion($published));
     }
 
+    public function test_a_new_draft_is_stored_one_above_its_published_resource_as_stored_not_as_read(): void
+    {
+        $published = $this->persistComponent();
+        $this->setStoredVersion($published, 4);
+
+        $draft = new DummyPublishableComponent();
+        $draft->setPublishedResource($published);
+        $this->entityManager->persist($draft);
+        $this->entityManager->flush();
+
+        self::assertSame(5, $this->storedVersion($draft));
+        self::assertSame(4, $this->storedVersion($published));
+    }
+
+    public function test_a_new_draft_of_a_published_resource_inserted_in_the_same_flush_is_one_above_it(): void
+    {
+        $published = new DummyPublishableComponent();
+        $draft = new DummyPublishableComponent();
+        $draft->setPublishedResource($published);
+        $this->entityManager->persist($published);
+        $this->entityManager->persist($draft);
+        $this->entityManager->flush();
+
+        self::assertSame(1, $this->storedVersion($published));
+        self::assertSame(2, $this->storedVersion($draft));
+    }
+
+    public function test_a_new_draft_of_the_expected_published_version_is_stored(): void
+    {
+        $published = $this->persistComponent();
+        $this->listener->expectVersion($published, 1);
+
+        $draft = new DummyPublishableComponent();
+        $draft->setPublishedResource($published);
+        $this->entityManager->persist($draft);
+        $this->entityManager->flush();
+
+        self::assertSame(2, $this->storedVersion($draft));
+    }
+
+    public function test_a_new_draft_after_the_expected_published_version_was_stored_by_another_write_is_refused(): void
+    {
+        $published = $this->persistComponent();
+        $this->listener->expectVersion($published, 1);
+        $this->setStoredVersion($published, 2);
+
+        $draft = new DummyPublishableComponent();
+        $draft->setPublishedResource($published);
+        $this->entityManager->persist($draft);
+
+        try {
+            $this->entityManager->flush();
+            self::fail('The draft was not refused.');
+        } catch (OptimisticLockException $exception) {
+            self::assertSame($published, $exception->getEntity());
+        }
+        self::assertSame(2, $this->storedVersion($published));
+    }
+
     public function test_an_update_raises_the_stored_version_by_one(): void
     {
         $component = $this->persistComponent();

@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\EventListener\Doctrine;
 
+use Doctrine\DBAL\LockMode;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\OnFlushEventArgs;
@@ -70,8 +71,21 @@ final class ResourceVersionListener
         }
         $associationName = $this->publishableAttributeReader->getConfiguration($entity)->associationName;
         $published = $entityManager->getClassMetadata($entity::class)->getFieldValue($entity, $associationName);
+        if (!$published instanceof VersionedInterface) {
+            return 1;
+        }
+        if ($entityManager->getUnitOfWork()->isScheduledForInsert($published)) {
+            return $published->getResourceVersion() + 1;
+        }
+        [$table, $column, $idColumn, $id, $idType] = $this->rowOf($entityManager, $published);
+        $idField = $entityManager->getClassMetadata($published::class)->getSingleIdentifierFieldName();
+        $entityManager->getUnitOfWork()->getEntityPersister($published::class)->lock([$idField => $id], LockMode::PESSIMISTIC_WRITE);
+        $stored = (int) $entityManager->getConnection()->fetchOne(\sprintf('SELECT %s FROM %s WHERE %s = ?', $column, $table, $idColumn), [$id], [$idType]);
+        if (isset($this->expectedVersions[$published]) && $stored !== $this->expectedVersions[$published]) {
+            throw OptimisticLockException::lockFailed($published);
+        }
 
-        return $published instanceof VersionedInterface ? $published->getResourceVersion() + 1 : 1;
+        return $stored + 1;
     }
 
     private function claim(EntityManagerInterface $entityManager, VersionedInterface $entity): ?int

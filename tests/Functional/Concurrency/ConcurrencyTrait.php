@@ -11,11 +11,10 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Functional\Concurrency;
 
-use Doctrine\DBAL\Connection;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Utility\VersionedInterface;
-use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\BeforeFlushCallback;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\BeforeTransactionCallback;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\DummyPublishableComponent;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\ResourceTrait;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -42,15 +41,15 @@ trait ConcurrencyTrait
         static::getEntityManager()->getConnection()->update($table, [$column => $version], ['id' => $id]);
     }
 
-    protected static function setVersionBeforeTheNextFlush(AbstractComponent|AbstractPageData $resource, int $version): void
+    protected static function setVersionBeforeTheNextWrite(AbstractComponent|AbstractPageData $resource, int $version): void
     {
         [$table, $column, $id] = static::versionColumnOf($resource);
-        BeforeFlushCallback::once(static function (Connection $connection) use ($table, $column, $id, $version): void {
-            $connection->update($table, [$column => $version], ['id' => $id]);
+        BeforeTransactionCallback::once(static function () use ($table, $column, $id, $version): void {
+            static::getEntityManager()->getConnection()->update($table, [$column => $version], ['id' => $id]);
         });
     }
 
-    protected static function insertDraftBeforeTheNextFlush(DummyPublishableComponent $published, string $reference, int $version): void
+    protected static function insertDraftBeforeTheNextWrite(DummyPublishableComponent $published, string $reference, int $version): void
     {
         $manager = static::getEntityManager();
         $metadata = $manager->getClassMetadata(DummyPublishableComponent::class);
@@ -62,7 +61,8 @@ trait ConcurrencyTrait
         $referenceColumn = $metadata->getColumnName('reference');
         $publishedColumn = $metadata->getSingleAssociationJoinColumnName('publishedResource');
         $publishedId = (string) $published->getId();
-        BeforeFlushCallback::once(static function (Connection $connection) use ($rootTable, $table, $discriminator, $versionColumn, $referenceColumn, $publishedColumn, $publishedId, $reference, $version): void {
+        BeforeTransactionCallback::once(static function () use ($rootTable, $table, $discriminator, $versionColumn, $referenceColumn, $publishedColumn, $publishedId, $reference, $version): void {
+            $connection = static::getEntityManager()->getConnection();
             $id = '7d1c2b6e-5f4a-4c3b-9a8d-1e2f3a4b5c6d';
             $connection->insert($rootTable, ['id' => $id, 'dtype' => $discriminator, $versionColumn => $version]);
             $connection->insert($table, ['id' => $id, $referenceColumn => $reference, $publishedColumn => $publishedId]);

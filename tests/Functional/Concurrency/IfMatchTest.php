@@ -112,7 +112,7 @@ final class IfMatchTest extends FunctionalTestCase
         $client = static::createClient();
         self::loginAsAdmin($client);
         $component = self::createComponent('theirs');
-        self::setVersionBeforeTheNextFlush($component, 2);
+        self::setVersionBeforeTheNextWrite($component, 2);
 
         $response = self::requestJsonLd($client, 'PATCH', self::iriOf($component), ['reference' => 'mine'], ['If-Match' => '"1"']);
 
@@ -131,7 +131,7 @@ final class IfMatchTest extends FunctionalTestCase
         self::loginAsAdmin($client);
         $component = self::createComponent('theirs');
         $iri = self::iriOf($component);
-        self::setVersionBeforeTheNextFlush($component, 2);
+        self::setVersionBeforeTheNextWrite($component, 2);
 
         $response = self::requestJsonLd($client, 'DELETE', $iri, null, ['If-Match' => '"1"']);
 

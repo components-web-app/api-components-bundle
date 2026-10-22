@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Tests\Functional\Concurrency;
 
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Doctrine\RejectedDeleteMiddleware;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Stub\HubStub;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\ApiRequestTrait;
 use Silverback\ApiComponentsBundle\Tests\Functional\Trait\AuthenticationTrait;
@@ -150,12 +151,39 @@ final class ResourceVersionTest extends FunctionalTestCase
         $client = static::createClient();
         self::loginAsAdmin($client);
         $component = self::createComponent();
-        self::setVersionBeforeTheNextFlush($component, 5);
+        self::setVersionBeforeTheNextWrite($component, 5);
 
         $response = self::requestJsonLd($client, 'PATCH', self::iriOf($component), ['reference' => 'edited']);
 
         self::assertResponseStatusCodeSame(200);
         self::assertSame(6, self::versionOf($response));
         self::assertSame(6, self::versionInDatabase($component));
+    }
+
+    public function test_a_signed_in_response_carrying_the_version_etag_is_never_stored_by_a_shared_cache(): void
+    {
+        $client = static::createClient();
+        self::loginAsAdmin($client);
+        $iri = self::iriOf(self::createPageDataWithRoute('/versioned')['pageData']);
+
+        $response = self::requestJsonLd($client, 'GET', $iri);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertSame('"1"', $response->getHeaders()['etag'][0] ?? null);
+        self::assertResponseHeaderSame('cache-control', 'no-store, private');
+    }
+
+    public function test_a_failed_flush_leaves_the_version_as_it_was(): void
+    {
+        $client = static::createClient();
+        self::loginAsAdmin($client);
+        [$published] = self::createPublishedWithDraft();
+        RejectedDeleteMiddleware::setRejectDeletes(true);
+
+        self::requestJsonLd($client, 'PATCH', self::iriOf($published), ['publishedAt' => 'now']);
+
+        RejectedDeleteMiddleware::setRejectDeletes(false);
+        self::assertResponseStatusCodeSame(500);
+        self::assertSame(1, self::versionInDatabase($published));
     }
 }

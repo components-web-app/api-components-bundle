@@ -18,6 +18,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\Persistence\ManagerRegistry;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
+use Silverback\ApiComponentsBundle\Entity\Utility\VersionedInterface;
 use Silverback\ApiComponentsBundle\Exception\ResourceVersionConflictException;
 
 /**
@@ -38,8 +39,13 @@ final readonly class ResourceVersionConflictStateProcessor implements ProcessorI
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
         $insertsDraft = $this->insertsDraftOfPublished($data);
+        $entityManager = $data instanceof VersionedInterface ? $this->registry->getManagerForClass($data::class) : null;
         try {
-            return $this->decorated->process($data, $operation, $uriVariables, $context);
+            if (!$entityManager instanceof EntityManagerInterface) {
+                return $this->decorated->process($data, $operation, $uriVariables, $context);
+            }
+
+            return $entityManager->getConnection()->transactional(fn () => $this->decorated->process($data, $operation, $uriVariables, $context));
         } catch (OptimisticLockException $exception) {
             throw new ResourceVersionConflictException($exception);
         } catch (UniqueConstraintViolationException $exception) {
