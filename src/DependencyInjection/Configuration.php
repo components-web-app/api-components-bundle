@@ -66,6 +66,7 @@ class Configuration implements ConfigurationInterface
         $this->addImagineNode($rootNode);
         $this->addUploadableNode($rootNode);
         $this->addFixturesNode($rootNode);
+        $this->addUuidUriVariablesNode($rootNode);
 
         return $treeBuilder;
     }
@@ -221,6 +222,23 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                                 ->scalarNode('subject')->cannotBeEmpty()->defaultValue('Orphaned resources changed on {{ website_name }}')->end()
                             ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    private function addUuidUriVariablesNode(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('uuid_uri_variables')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('accept_any_identifier')
+                            ->info('Resource classes, matched exactly, whose item identifier is passed to their provider as it is when it is not a UUID, instead of a 404. The provider must resolve the string, or return null for one it cannot. Route, ComponentGroup and Form are always included.')
+                            ->scalarPrototype()->end()
+                            ->defaultValue([])
                         ->end()
                     ->end()
                 ->end()

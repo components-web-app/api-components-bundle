@@ -699,6 +699,23 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame(['exports/'], $this->argument($container, OrphanedFileDetector::class, '$excludedPaths'));
     }
 
+    public function test_no_class_accepts_any_uri_identifier_by_default(): void
+    {
+        [$container] = $this->load(self::minimalConfig());
+
+        self::assertSame([], $this->argument($container, 'silverback.api_components.api_platform.uuid_uri_variable_transformer', '$acceptAnyIdentifier'));
+    }
+
+    public function test_the_classes_that_accept_any_uri_identifier_reach_the_uuid_transformer(): void
+    {
+        $config = self::minimalConfig();
+        $config['uuid_uri_variables']['accept_any_identifier'] = ['App\\Entity\\Foo'];
+
+        [$container] = $this->load($config);
+
+        self::assertSame(['App\\Entity\\Foo'], $this->argument($container, 'silverback.api_components.api_platform.uuid_uri_variable_transformer', '$acceptAnyIdentifier'));
+    }
+
     public function test_orphaned_resource_notifications_are_wired_with_no_recipients_by_default(): void
     {
         [$container] = $this->load(self::minimalConfig());
