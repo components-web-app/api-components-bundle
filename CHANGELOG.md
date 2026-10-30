@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.39](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.38...2.0.0-alpha.39) - 2026-10-30
+
 ### Added
 - `uuid_uri_variables.accept_any_identifier`: resource classes (matched exactly) whose item identifier reaches their own provider when it is not a UUID, as for routes, component groups and forms, e.g. a `Page` looked up by `reference` ([#568](https://github.com/components-web-app/api-components-bundle/pull/568))
 
