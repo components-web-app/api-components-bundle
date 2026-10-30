@@ -46,6 +46,10 @@ class FormStateProvider implements ProviderInterface
             return $dummyFormComponent;
         }
 
+        if (\is_string($id)) {
+            return null;
+        }
+
         return $this->defaultProvider->provide($operation->withProvider(ItemProvider::class), $uriVariables, $context);
     }
 }

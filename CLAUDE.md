@@ -445,6 +445,7 @@ Route, Layout and Page declare `QueryParameter`s: `search` = `FreeTextQueryFilte
 - All AP metadata is in PHP attributes; `prependApiPlatformConfig()` registers mapping directories. Serializer groups use `Symfony\Component\Serializer\Attribute\Groups`.
 - `RoutingPrefixResourceMetadataCollectionFactory` prefixes `AbstractComponent` subclasses with `/component/`, `AbstractPageData` with `/page_data/`, and other bundle classes with `/_/`. It **combines** with an existing `routePrefix`, so never set one on such a class.
 - `ApiPlatformCompilerPass` **appends** AP's default `exception_to_status` entries, read from AP's config tree, because the bundle's prepended map replaced them (#293). Appended, so an application's more specific mapping wins.
+- **An id that is not a UUID is a 404 only because the bundle's `UuidUriVariableTransformer` rethrows** API Platform's `InvalidUriVariableException` (#565). It keeps the raw string only for `Route` (path), `ComponentGroup` (reference) and `Form` (`password_reset`), whose providers resolve a string themselves; a string reaching Doctrine's `ItemProvider` for a `uuid` column is a 500 (`ValueNotConvertible`), so such a provider returns `null` for a string it cannot resolve. `Identifier\InvalidUuidTest` pins both.
 - `/me` keeps `@type: User` and `@context: /contexts/User`.
 - 4xx/5xx from AP's exception handler are `application/problem+json`.
 - Symfony 8 constraints need named arguments (`new Count(min: 1)`).
