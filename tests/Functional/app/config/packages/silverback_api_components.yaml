@@ -43,3 +43,6 @@ silverback_api_components:
             recipients: '%env(default::ORPHANED_RESOURCES_NOTIFY_RECIPIENTS)%'
     uploadable:
         image_max_pixels: 300000
+    uuid_uri_variables:
+        accept_any_identifier:
+            - Silverback\ApiComponentsBundle\Entity\Core\Page

@@ -198,6 +198,8 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$minimumAge', $config['orphaned_files']['minimum_age']);
         $definition->setArgument('$excludedPaths', $config['orphaned_files']['excluded_paths']);
 
+        $container->findDefinition('silverback.api_components.api_platform.uuid_uri_variable_transformer')->setArgument('$acceptAnyIdentifier', $config['uuid_uri_variables']['accept_any_identifier']);
+
         $this->setEmailVerificationArguments($container, $config['user']);
         $this->setUserClassArguments($container, $config['user']['class_name']);
         $this->setMailerServiceArguments($container, $config);

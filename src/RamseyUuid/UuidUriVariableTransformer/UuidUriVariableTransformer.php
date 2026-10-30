@@ -25,8 +25,17 @@ final class UuidUriVariableTransformer implements UriVariableTransformerInterfac
 {
     private const array ACCEPTS_ANY_IDENTIFIER = [Route::class, ComponentGroup::class, Form::class];
 
-    public function __construct(private readonly UriVariableTransformerInterface $decorated)
+    /**
+     * @var list<class-string>
+     */
+    private readonly array $acceptAnyIdentifier;
+
+    /**
+     * @param list<class-string> $acceptAnyIdentifier
+     */
+    public function __construct(private readonly UriVariableTransformerInterface $decorated, array $acceptAnyIdentifier = [])
     {
+        $this->acceptAnyIdentifier = [...self::ACCEPTS_ANY_IDENTIFIER, ...$acceptAnyIdentifier];
     }
 
     public function transform(mixed $value, array $types, array $context = []): mixed
@@ -35,7 +44,7 @@ final class UuidUriVariableTransformer implements UriVariableTransformerInterfac
             return $this->decorated->transform($value, $types, $context);
         } catch (InvalidUriVariableException $exception) {
             $operation = $context['operation'] ?? null;
-            if ($operation instanceof Operation && \in_array($operation->getClass(), self::ACCEPTS_ANY_IDENTIFIER, true)) {
+            if ($operation instanceof Operation && \in_array($operation->getClass(), $this->acceptAnyIdentifier, true)) {
                 return $value;
             }
 

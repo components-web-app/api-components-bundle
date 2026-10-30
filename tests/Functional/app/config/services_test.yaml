@@ -36,6 +36,10 @@ services:
     Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\StateProvider\UnpersistedComponentStateProvider:
         tags: [ 'api_platform.state_provider' ]
 
+    Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\StateProvider\PageByReferenceStateProvider:
+        decorates: api_platform.doctrine.orm.state.item_provider
+        arguments: ['@.inner', '@doctrine']
+
     app.imagine.cache.resolver.local:
         class: Silverback\ApiComponentsBundle\Imagine\FlysystemCacheResolver
         arguments:

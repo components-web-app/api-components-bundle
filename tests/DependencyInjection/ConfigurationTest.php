@@ -389,6 +389,19 @@ class ConfigurationTest extends TestCase
         );
     }
 
+    public function test_no_class_accepts_any_uri_identifier_by_default(): void
+    {
+        self::assertSame(['accept_any_identifier' => []], $this->process(self::minimalConfig())['uuid_uri_variables']);
+    }
+
+    public function test_classes_that_accept_any_uri_identifier_can_be_configured(): void
+    {
+        $config = self::minimalConfig();
+        $config['uuid_uri_variables'] = ['accept_any_identifier' => ['App\\Entity\\Foo']];
+
+        self::assertSame(['accept_any_identifier' => ['App\\Entity\\Foo']], $this->process($config)['uuid_uri_variables']);
+    }
+
     public function test_the_realtime_channel_is_enabled_by_default(): void
     {
         self::assertSame(['enabled' => true], $this->process(self::minimalConfig())['realtime']);
