@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.38](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.37...2.0.0-alpha.38) - 2026-10-30
+
 ### Fixed
 - An item URL whose id is not a valid UUID is a 404 instead of a 500 (Doctrine `ValueNotConvertible`, logged at critical); only routes (by path), component groups (by reference) and forms (`password_reset`) still accept an identifier that is not a UUID ([#566](https://github.com/components-web-app/api-components-bundle/pull/566))
 
