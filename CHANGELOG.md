@@ -4,6 +4,12 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- An email change's confirmation link goes to the new address instead of the current one, and setting `newEmailAddress` needs the signed-in user's current password as `oldPassword` on API writes and in `NewEmailAddressType` (a super admin enters their own; a cancel needs none) ([#580](https://github.com/components-web-app/api-components-bundle/pull/580))
+
+### Added
+- A notice to the current address when an email change is requested, with the new address masked and no link; `user.emails.change_email_notice` sets its subject or disables it ([#580](https://github.com/components-web-app/api-components-bundle/pull/580))
+
 ### Fixed
 - A user referenced by IRI from another resource's write is no longer processed as a new registration, which reset their `emailAddressVerified` ([#575](https://github.com/components-web-app/api-components-bundle/pull/575))
 
