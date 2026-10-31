@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- User lookups trim the identifier, so a username or email address with a trailing space (a mobile keyboard's) still signs in and still finds the user for password reset and resend verification ([#578](https://github.com/components-web-app/api-components-bundle/pull/578))
+
 ## [2.0.0-alpha.39](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.38...2.0.0-alpha.39) - 2026-10-30
 
 ### Added
