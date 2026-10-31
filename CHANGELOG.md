@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- A `plainPassword` set through the API is validated (6 to 4096 characters, 422 on `plainPassword`) before it is hashed, and setting a password no longer marks the email address verified; only a password reset does ([#577](https://github.com/components-web-app/api-components-bundle/pull/577))
+
 ## [2.0.0-alpha.39](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.38...2.0.0-alpha.39) - 2026-10-30
 
 ### Added
