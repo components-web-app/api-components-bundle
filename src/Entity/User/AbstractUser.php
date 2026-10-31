@@ -35,6 +35,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity(fields: ['username'], message: 'Sorry, that user already exists in the database.', errorPath: 'username')]
 #[UniqueEntity(fields: ['emailAddress'], message: 'Sorry, that email address already exists in the database.', errorPath: 'emailAddress')]
 #[AcbAssert\NewEmailAddress(groups: ['User:emailAddress', 'Default'])]
+#[AcbAssert\NewEmailAddressRequiresPassword(groups: ['User:emailAddress', 'Default'])]
 abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticatedUserInterface, JWTUserInterface
 {
     use IdTrait;

@@ -94,7 +94,7 @@ abstract class AbstractUserEmailFactory implements ResetInterface
         }
 
         try {
-            $toEmailAddress = Address::create((string) $this->user->getEmailAddress());
+            $toEmailAddress = Address::create((string) $this->getRecipientAddress($this->user));
         } catch (SymfonyRfcComplianceException $exception) {
             $exception = new RfcComplianceException($exception->getMessage());
             throw $exception;
@@ -125,6 +125,11 @@ abstract class AbstractUserEmailFactory implements ResetInterface
         $email->getHeaders()->addTextHeader('X-Message-ID', \sprintf('%s-%s', static::MESSAGE_ID_PREFIX, TokenGenerator::generateToken()));
 
         return $event->getEmail();
+    }
+
+    protected function getRecipientAddress(AbstractUser $user): ?string
+    {
+        return $user->getEmailAddress();
     }
 
     protected function getTokenUrl(string $token, string $username, ?string $newEmail = null): string

@@ -6,9 +6,11 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Breaking
 - Writing CWA content (pages, layouts, routes, component groups and their order, component positions, every component including `/move`, and every page data class, project classes included) requires `publishable.permission` (or the class's `#[Publishable(isGranted:)]`), ANDed with any `security` the operation already has; opt an operation or resource out with `extraProperties: ['publishable_permission' => false]`. Form `/submit` stays public ([#579](https://github.com/components-web-app/api-components-bundle/pull/579))
+- An email change's confirmation link goes to the new address instead of the current one, and setting `newEmailAddress` needs the signed-in user's current password as `oldPassword` on API writes and in `NewEmailAddressType` (a super admin enters their own; a cancel needs none) ([#580](https://github.com/components-web-app/api-components-bundle/pull/580))
 
 ### Added
 - `emails.logo` (a Twig path, default the bundle's logo) and `emails.logo_width` (pixels, optional) set the logo at the top of every email the bundle sends, whose alt text is now the `website_name` instead of `Logo` ([#576](https://github.com/components-web-app/api-components-bundle/pull/576))
+- A notice to the current address when an email change is requested, with the new address masked and no link; `user.emails.change_email_notice` sets its subject or disables it ([#580](https://github.com/components-web-app/api-components-bundle/pull/580))
 
 ### Fixed
 - A user referenced by IRI from another resource's write is no longer processed as a new registration, which reset their `emailAddressVerified` ([#575](https://github.com/components-web-app/api-components-bundle/pull/575))

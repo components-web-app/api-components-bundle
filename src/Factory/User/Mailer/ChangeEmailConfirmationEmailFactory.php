@@ -41,6 +41,11 @@ final class ChangeEmailConfirmationEmailFactory extends AbstractUserEmailFactory
         return $this->createEmailMessage($context);
     }
 
+    protected function getRecipientAddress(AbstractUser $user): ?string
+    {
+        return $user->getNewEmailAddress();
+    }
+
     protected static function getContextKeys(): ?array
     {
         return array_merge(

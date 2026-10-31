@@ -26,6 +26,7 @@ class UserWriteNotifierTest extends TestCase
         'sendPasswordChangedEmail',
         'sendEmailVerifyEmailAfterWrite',
         'sendChangeEmailConfirmationEmailAfterWrite',
+        'sendChangeEmailNoticeEmail',
     ];
 
     public function test_a_new_user_gets_only_the_welcome_email(): void
@@ -65,7 +66,7 @@ class UserWriteNotifierTest extends TestCase
         }, []];
         yield 'new email change confirmation token' => [static function (User $user): void {
             $user->setNewEmailConfirmationToken('hashed');
-        }, ['sendChangeEmailConfirmationEmailAfterWrite']];
+        }, ['sendChangeEmailConfirmationEmailAfterWrite', 'sendChangeEmailNoticeEmail']];
         yield 'enabled and renamed' => [static function (User $user): void {
             $user->setEnabled(true);
             $user->setUsername('renamed');

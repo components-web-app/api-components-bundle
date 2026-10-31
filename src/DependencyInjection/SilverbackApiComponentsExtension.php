@@ -34,6 +34,7 @@ use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
 use Silverback\ApiComponentsBundle\Factory\OrphanedResource\OrphanedResourcesChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailNoticeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
@@ -339,6 +340,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $mapping = [
             PasswordChangedEmailFactory::class => 'password_changed',
+            ChangeEmailNoticeEmailFactory::class => 'change_email_notice',
             UserEnabledEmailFactory::class => 'user_enabled',
             UsernameChangedEmailFactory::class => 'username_changed',
             WelcomeEmailFactory::class => 'welcome',

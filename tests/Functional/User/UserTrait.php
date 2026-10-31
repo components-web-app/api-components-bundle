@@ -18,6 +18,7 @@ use Monolog\LogRecord;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailNoticeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
@@ -197,7 +198,23 @@ trait UserTrait
 
     protected static function assertEmailOfTypeSent(string $type, string $emailAddress = 'user@example.com'): TemplatedEmail
     {
-        $email = static::assertOneTemplatedEmailSentTo($emailAddress);
+        return static::assertEmailIsOfType(static::assertOneTemplatedEmailSentTo($emailAddress), $type);
+    }
+
+    protected static function assertEmailChangeEmailsSent(string $confirmationType = 'change_email_confirmation', string $currentEmailAddress = 'user@example.com'): void
+    {
+        self::assertCount(2, static::sentTemplatedEmails());
+        static::assertEmailIsOfType(static::assertTemplatedEmailSentTo('new@example.com'), $confirmationType);
+        static::assertEmailIsOfType(static::assertTemplatedEmailSentTo($currentEmailAddress), 'change_email_notice');
+    }
+
+    protected static function assertOnlyEmailChangeNoticeSent(): void
+    {
+        static::assertEmailIsOfType(static::assertOneTemplatedEmailSentTo('user@example.com'), 'change_email_notice');
+    }
+
+    protected static function assertEmailIsOfType(TemplatedEmail $email, string $type): TemplatedEmail
+    {
         $context = $email->getContext();
         $headers = $email->getHeaders();
         $subject = $headers->get('subject')?->getBodyAsString();
@@ -210,6 +227,7 @@ trait UserTrait
             'enabled_notification' => ['Your account has been enabled', UserEnabledEmailFactory::MESSAGE_ID_PREFIX, '/^http:\/\/www\.website\.com\/login$/i'],
             'custom_change_email_confirmation' => ['Please confirm your new email address', ChangeEmailConfirmationEmailFactory::MESSAGE_ID_PREFIX, '/^http:\/\/www\.website\.com\/another-path\/new_user\/new%40example.com\/' . $token . '$/i'],
             'change_email_confirmation' => ['Please confirm your new email address', ChangeEmailConfirmationEmailFactory::MESSAGE_ID_PREFIX, '/^http:\/\/www\.website\.com\/confirm-new-email\/' . preg_quote($context['user']->getUsername(), '/') . '\/new%40example.com\/' . $token . '$/i'],
+            'change_email_notice' => ['Your email address is being changed', ChangeEmailNoticeEmailFactory::MESSAGE_ID_PREFIX, null],
             'change_password_notification', 'password_changed' => ['Your password has been changed', PasswordChangedEmailFactory::MESSAGE_ID_PREFIX, null],
             'user_welcome' => ['Welcome to New Website', WelcomeEmailFactory::MESSAGE_ID_PREFIX, '/^http:\/\/www.website.com\/verify-email\/new_user\/' . $token . '$/i'],
             'password_reset' => ['Your password reset request', PasswordResetEmailFactory::MESSAGE_ID_PREFIX, '/^http:\/\/www.website.com\/reset-password\/my_username\/' . $token . '$/i'],
@@ -220,6 +238,10 @@ trait UserTrait
         self::assertStringStartsWith($prefix, $messageId);
         if (\in_array($type, ['change_email_confirmation', 'custom_change_email_confirmation'], true)) {
             self::assertIsString($context['user']->getNewEmailConfirmationToken());
+        }
+        if ('change_email_notice' === $type) {
+            self::assertSame('n***@example.com', $context['masked_new_email_address'] ?? null);
+            self::assertArrayNotHasKey('redirect_url', $context);
         }
         if (null !== $link) {
             self::assertMatchesRegularExpression($link, $context['enabled_notification' === $type ? 'login_url' : 'redirect_url']);

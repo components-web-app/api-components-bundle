@@ -54,7 +54,7 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
     {
         $user = new class extends AbstractUser {
         };
-        $user->setUsername('username')->setEmailAddress('email@address.com');
+        $user->setUsername('username')->setEmailAddress('email@address.com')->setNewEmailAddress('new@address.com');
         $user->plainNewEmailConfirmationToken = 'token';
 
         $factory = new ChangeEmailConfirmationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
@@ -89,14 +89,15 @@ class ChangeEmailVerificationEmailFactoryTest extends AbstractFinalEmailFactoryT
 
         $user
             ->setUsername('username')
-            ->setEmailAddress('email@address.com');
+            ->setEmailAddress('email@address.com')
+            ->setNewEmailAddress('new@address.com');
         $user->plainNewEmailConfirmationToken = 'token';
         $factory = new ChangeEmailConfirmationEmailFactory($this->containerInterfaceMock, $this->eventDispatcherMock, 'subject', true, '/default-path');
 
         $this->assertCommonMockMethodsCalled(true);
 
         $email = (new TemplatedEmail())
-            ->to(Address::create('email@address.com'))
+            ->to(Address::create('new@address.com'))
             ->subject('subject')
             ->htmlTemplate('@SilverbackApiComponents/emails/user_change_email_confirmation.html.twig')
             ->context(

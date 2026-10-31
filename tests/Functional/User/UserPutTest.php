@@ -52,7 +52,7 @@ final class UserPutTest extends FunctionalTestCase
         $password = self::generatedSecret();
         $user = self::loginAsUserWithPassword($client, $password);
 
-        self::requestJsonLd($client, 'PUT', self::iriOf($user), ['newEmailAddress' => 'changed@example.com']);
+        self::requestJsonLd($client, 'PUT', self::iriOf($user), ['newEmailAddress' => 'changed@example.com', 'oldPassword' => $password]);
 
         self::assertResponseStatusCodeSame(200);
         self::assertPutResponseIsTheMergedUser(self::iriOf($user), 'new_user', 'user@example.com', ['ROLE_USER'], false);

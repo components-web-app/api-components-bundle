@@ -128,6 +128,7 @@ use Silverback\ApiComponentsBundle\Factory\Uploadable\TemporaryUrlGenerator;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\UploadableUrlGeneratorInterface;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\AbstractUserEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailNoticeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
@@ -228,6 +229,7 @@ use Silverback\ApiComponentsBundle\Validator\Constraints\AcyclicComponentGroupOw
 use Silverback\ApiComponentsBundle\Validator\Constraints\AddedComponentPositionsValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPositionValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
+use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressRequiresPasswordValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\RequiresUploadedFileValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ResourceIriValidator;
@@ -322,6 +324,13 @@ return static function (ContainerConfigurator $configurator) {
         ->parent(AbstractUserEmailFactory::class)
         ->tag('kernel.reset', ['method' => 'reset']);
     $services->alias(ChangeEmailConfirmationEmailFactory::class, 'silverback.api_components.factory.user.mailer.change_email_confirmation_email');
+
+    $services
+        ->set('silverback.api_components.factory.user.mailer.change_email_notice_email')
+        ->class(ChangeEmailNoticeEmailFactory::class)
+        ->parent(AbstractUserEmailFactory::class)
+        ->tag('kernel.reset', ['method' => 'reset']);
+    $services->alias(ChangeEmailNoticeEmailFactory::class, 'silverback.api_components.factory.user.mailer.change_email_notice_email');
 
     $services
         ->set('silverback.api_components.form.change_password_type')
@@ -881,6 +890,17 @@ return static function (ContainerConfigurator $configurator) {
         )
         ->tag('validator.constraint_validator');
     $services->alias(NewEmailAddressValidator::class, 'silverback.api_components.validator.new_email_address');
+
+    $services
+        ->set('silverback.api_components.validator.new_email_address_requires_password')
+        ->class(NewEmailAddressRequiresPasswordValidator::class)
+        ->args(
+            [
+                new Reference(ManagerRegistry::class),
+            ]
+        )
+        ->tag('validator.constraint_validator');
+    $services->alias(NewEmailAddressRequiresPasswordValidator::class, 'silverback.api_components.validator.new_email_address_requires_password');
 
     $services
         ->set('silverback.api_components.data_provider.page_data')
@@ -1960,6 +1980,7 @@ return static function (ContainerConfigurator $configurator) {
                 service_locator([
                     PasswordResetEmailFactory::class => new Reference(PasswordResetEmailFactory::class),
                     ChangeEmailConfirmationEmailFactory::class => new Reference(ChangeEmailConfirmationEmailFactory::class),
+                    ChangeEmailNoticeEmailFactory::class => new Reference(ChangeEmailNoticeEmailFactory::class),
                     WelcomeEmailFactory::class => new Reference(WelcomeEmailFactory::class),
                     UserEnabledEmailFactory::class => new Reference(UserEnabledEmailFactory::class),
                     UsernameChangedEmailFactory::class => new Reference(UsernameChangedEmailFactory::class),
