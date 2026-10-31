@@ -23,6 +23,7 @@ use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ResourceVersionC
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UploadableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserPasswordStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentUsageStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DenyAccessStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DownloadStateProvider;
@@ -63,6 +64,12 @@ class StateDecoratorServicesTest extends TestCase
             UserNotificationStateProcessor::class,
             'api_platform.state_processor.locator',
             15,
+        ];
+        yield 'user password hashed before the persist, after validation, so the notification sees the new hash' => [
+            'silverback.api_components.api_platform.state_processor.user_password',
+            UserPasswordStateProcessor::class,
+            'api_platform.state_processor.locator',
+            16,
         ];
         yield 'route generation after validation and its security check' => [
             'silverback.api_components.api_platform.state_provider.route_generate',

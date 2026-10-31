@@ -67,6 +67,7 @@ use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ResourceVersionC
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UploadableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserPasswordStateProcessor;
 use Silverback\ApiComponentsBundle\DataProvider\PageDataProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupOrderStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentGroupStateProvider;
@@ -1915,6 +1916,18 @@ return static function (ContainerConfigurator $configurator) {
             ]
         );
     $services->alias(UserNotificationStateProcessor::class, 'silverback.api_components.api_platform.state_processor.user_notification');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_processor.user_password')
+        ->class(UserPasswordStateProcessor::class)
+        ->decorate('api_platform.state_processor.locator', null, 16)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.state_processor.user_password.inner'),
+                new Reference(UserDataProcessor::class),
+            ]
+        );
+    $services->alias(UserPasswordStateProcessor::class, 'silverback.api_components.api_platform.state_processor.user_password');
 
     $services
         ->set('silverback.api_components.factory.user')

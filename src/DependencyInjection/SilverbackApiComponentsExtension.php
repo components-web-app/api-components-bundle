@@ -179,7 +179,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $definition = $container->findDefinition(OrphanedResourcesChangedEmailFactory::class);
         $definition->setArgument('$subject', $config['orphaned_resources']['notify']['subject']);
-        $definition->setArgument('$context', ['website_name' => $config['website_name']]);
+        $definition->setArgument('$context', self::emailContext($config));
 
         $definition = $container->findDefinition(UploadableCacheControl::class);
         $definition->setArgument('$original', $config['uploadable']['cache_control']['original']);
@@ -323,15 +323,19 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$userClass', $userClass);
     }
 
+    private static function emailContext(array $config): array
+    {
+        return [
+            'website_name' => $config['website_name'],
+            'email_logo' => $config['emails']['logo'],
+            'email_logo_width' => $config['emails']['logo_width'],
+        ];
+    }
+
     private function setMailerServiceArguments(ContainerBuilder $container, array $config): void
     {
         $definition = $container->findDefinition(UserMailer::class);
-        $definition->setArgument(
-            '$context',
-            [
-                'website_name' => $config['website_name'],
-            ]
-        );
+        $definition->setArgument('$context', self::emailContext($config));
 
         $mapping = [
             PasswordChangedEmailFactory::class => 'password_changed',
