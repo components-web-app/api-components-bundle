@@ -7,6 +7,9 @@ silverback_api_components:
         ttl: 604800 # 1 week
         database_user_provider: database
     website_name: New Website
+    emails:
+        logo: emails/logo.png
+        logo_width: 200
     user:
         class_name: Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User
         email_links:

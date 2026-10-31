@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Added
+- `emails.logo` (a Twig path, default the bundle's logo) and `emails.logo_width` (pixels, optional) set the logo at the top of every email the bundle sends, whose alt text is now the `website_name` instead of `Logo` ([#576](https://github.com/components-web-app/api-components-bundle/pull/576))
+
 ### Fixed
 - A user referenced by IRI from another resource's write is no longer processed as a new registration, which reset their `emailAddressVerified` ([#575](https://github.com/components-web-app/api-components-bundle/pull/575))
 
