@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- Writing CWA content (pages, layouts, routes, component groups and their order, component positions, every component including `/move`, and every page data class, project classes included) requires `publishable.permission` (or the class's `#[Publishable(isGranted:)]`), ANDed with any `security` the operation already has; opt an operation or resource out with `extraProperties: ['publishable_permission' => false]`. Form `/submit` stays public ([#569](https://github.com/components-web-app/api-components-bundle/issues/569))
+
 ## [2.0.0-alpha.39](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.38...2.0.0-alpha.39) - 2026-10-30
 
 ### Added

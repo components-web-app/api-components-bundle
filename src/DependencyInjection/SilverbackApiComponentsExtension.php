@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Doctrine\UuidType;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ContentWriteSecurityResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\ImagineGenerateCommand;
@@ -276,6 +277,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $definition = $container->findDefinition(RoutableResourceMetadataCollectionFactory::class);
         $definition->setArgument('$securityStr', $config['routable_security']);
+
+        $definition = $container->findDefinition(ContentWriteSecurityResourceMetadataCollectionFactory::class);
+        $definition->setArgument('$permission', $config['publishable']['permission']);
 
         $definition = $container->findDefinition(MercureAuthorization::class);
         $definition->setArgument('$cookieSameSite', $config['mercure']['cookie']['samesite']);

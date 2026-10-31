@@ -34,6 +34,7 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Api\MercureIriConverter;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ComponentPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Property\ImagineFiltersPropertyMetadataFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ComponentResourceMetadataFactory;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ContentWriteSecurityResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutingPrefixResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\UploadableResourceMetadataCollectionFactory;
@@ -2037,6 +2038,18 @@ return static function (ContainerConfigurator $configurator) {
             ]
         );
     $services->alias(UserResourceMetadataCollectionFactory::class, 'silverback.api_components.api_platform.metadata.resource.user_factory');
+
+    $services
+        ->set('silverback.api_components.api_platform.metadata.resource.content_write_security_factory')
+        ->class(ContentWriteSecurityResourceMetadataCollectionFactory::class)
+        ->decorate('api_platform.metadata.resource.metadata_collection_factory', null, -1)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.metadata.resource.content_write_security_factory.inner'),
+                new Reference(PublishableAttributeReader::class),
+            ]
+        );
+    $services->alias(ContentWriteSecurityResourceMetadataCollectionFactory::class, 'silverback.api_components.api_platform.metadata.resource.content_write_security_factory');
 
     $services
         ->set(VerifyEmailAddressAction::class)

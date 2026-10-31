@@ -29,7 +29,7 @@ final class ComponentCloneTest extends FunctionalTestCase
 
     public function test_a_component_placed_in_another_group_is_cloned_by_its_iri_without_a_copy(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $source = self::createGroupWithComponentIris(1, 'source');
         $target = self::createGroupWithComponentIris(1);
         $component = $source['components'][0];
@@ -46,7 +46,7 @@ final class ComponentCloneTest extends FunctionalTestCase
     #[DataProvider('clonePlacements')]
     public function test_a_clone_is_placed_at_its_anchor(string $anchor, string $at, string $expected): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $source = self::createGroupWithComponentIris(1, 'source');
         $names = self::createGroupWithPositions('A0 B1 C10');
 
@@ -67,7 +67,7 @@ final class ComponentCloneTest extends FunctionalTestCase
 
     public function test_a_clone_of_a_type_the_target_group_does_not_allow_is_a_422(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $source = self::createGroupWithComponentIris(1, 'source');
         $target = self::createGroupWithComponentIris(0);
         self::setAllowedComponent($target['group'], '/component/restricted_components');
@@ -82,7 +82,7 @@ final class ComponentCloneTest extends FunctionalTestCase
 
     public function test_a_clone_of_an_explicit_allow_only_type_into_a_group_that_does_not_list_it_is_a_422(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $source = self::createGroupWithComponentIris(0, 'source');
         self::setAllowedComponent($source['group'], '/component/restricted_components');
         $component = self::componentOf(self::addRestrictedComponentPosition($source['group'], 0));
@@ -98,7 +98,7 @@ final class ComponentCloneTest extends FunctionalTestCase
 
     public function test_a_clone_of_an_explicit_allow_only_type_into_a_group_that_lists_it_is_created(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $source = self::createGroupWithComponentIris(0, 'source');
         self::setAllowedComponent($source['group'], '/component/restricted_components');
         $component = self::componentOf(self::addRestrictedComponentPosition($source['group'], 0));
@@ -114,7 +114,7 @@ final class ComponentCloneTest extends FunctionalTestCase
 
     public function test_a_clone_into_a_group_at_its_maximum_is_a_422(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $source = self::createGroupWithComponentIris(1, 'source');
         $target = self::createGroupWithComponentIris(1);
         self::setMaxComponents($target['group'], 1);
@@ -129,7 +129,7 @@ final class ComponentCloneTest extends FunctionalTestCase
 
     public function test_the_same_component_can_be_placed_twice_in_one_group(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $group = self::createGroupWithComponentIris(1);
         $component = $group['components'][0];
 
@@ -144,7 +144,7 @@ final class ComponentCloneTest extends FunctionalTestCase
 
     public function test_a_published_component_with_a_draft_is_cloned_by_its_iri_without_a_copy(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $source = self::createGroupWithComponentIris(0, 'source');
         $pair = self::addPublishedComponentWithDraftTo($source['group']);
         $target = self::createGroupWithComponentIris(0);
@@ -194,10 +194,10 @@ final class ComponentCloneTest extends FunctionalTestCase
         self::assertComponentIsIn([$source['group']], $component);
     }
 
-    private static function loggedInClient(): Client
+    private static function adminClient(): Client
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         return $client;
     }

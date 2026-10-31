@@ -21,6 +21,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ContentWriteSecurityResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\FormStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
@@ -52,6 +53,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
             write: false,
             serialize: true,
             requirements: ['id' => '[^/]+'],
+            extraProperties: [ContentWriteSecurityResourceMetadataCollectionFactory::OPT_OUT_EXTRA_PROPERTY => false],
         ),
         new Post(
             name: '_api_/forms/{id}/submit{._format}_post',
@@ -62,6 +64,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
             write: false,
             serialize: true,
             requirements: ['id' => '[^/]+'],
+            extraProperties: [ContentWriteSecurityResourceMetadataCollectionFactory::OPT_OUT_EXTRA_PROPERTY => false],
         ),
     ]
 )]
