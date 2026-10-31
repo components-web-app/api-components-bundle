@@ -67,6 +67,7 @@ readonly class UserDataProcessor
         $user->setPlainPassword($newPassword);
         $user->setNewPasswordConfirmationToken(null);
         $user->setPasswordRequestedAt(null);
+        $user->setEmailAddressVerified(true);
         $this->hashPassword($user);
 
         return $user;
@@ -74,7 +75,6 @@ readonly class UserDataProcessor
 
     public function processChanges(AbstractUser $user, ?AbstractUser $previousUser): void
     {
-        $this->hashPassword($user);
         if (!$previousUser) {
             $user->setEmailAddressVerified($this->initialEmailVerifiedState);
             if (!$this->initialEmailVerifiedState && $this->verifyEmailOnRegister) {
@@ -151,14 +151,13 @@ readonly class UserDataProcessor
         $user->plainEmailAddressVerifyToken = $token;
     }
 
-    private function hashPassword(AbstractUser $entity): void
+    public function hashPassword(AbstractUser $entity): void
     {
         if (!$entity->getPlainPassword()) {
             return;
         }
         $encoded = $this->passwordHasher->hashPassword($entity, $entity->getPlainPassword());
         $entity->setPassword($encoded);
-        $entity->setEmailAddressVerified(true);
         $entity->eraseCredentials();
     }
 }
