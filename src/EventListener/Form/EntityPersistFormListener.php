@@ -102,6 +102,7 @@ abstract class EntityPersistFormListener implements FormSuccessEventListenerInte
             }
 
             $this->userDataProcessor->processChanges($data, $oldUser);
+            $this->userDataProcessor->hashPassword($data);
             $this->userWriteNotifier->notify($data, $oldUser);
         }
 

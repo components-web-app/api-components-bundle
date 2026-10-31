@@ -11,6 +11,8 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\EventListener\Form;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
@@ -24,9 +26,12 @@ use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
 use Silverback\ApiComponentsBundle\Helper\User\UserWriteNotifier;
 use Silverback\ApiComponentsBundle\Model\Form\FormView;
+use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\Forms;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Serializer;
@@ -57,6 +62,25 @@ class EntityPersistFormListenerTest extends TestCase
         self::assertSame($data, $event->result);
     }
 
+    public function test_a_users_new_password_is_hashed_before_the_user_is_persisted(): void
+    {
+        $user = new User('bob', 'bob@example.com');
+        $user->setPassword('old')->setPlainPassword('new password');
+        $unitOfWork = $this->createStub(UnitOfWork::class);
+        $unitOfWork->method('getOriginalEntityData')->willReturn([]);
+        $manager = $this->createMock(EntityManagerInterface::class);
+        $manager->method('getUnitOfWork')->willReturn($unitOfWork);
+        $manager->expects(self::once())->method('persist')->with(self::callback(static fn (User $persisted): bool => 'hashed' === $persisted->getPassword() && null === $persisted->getPlainPassword()));
+        $manager->expects(self::once())->method('flush');
+        $hasher = $this->createStub(UserPasswordHasherInterface::class);
+        $hasher->method('hashPassword')->willReturn('hashed');
+        $processor = new UserDataProcessor($hasher, $this->createStub(UserRepositoryInterface::class), $this->createStub(PasswordHasherFactoryInterface::class), true, false, false);
+
+        $this->createListener(User::class, $manager, $processor)($this->createEvent($user));
+
+        self::assertSame('hashed', $user->getPassword());
+    }
+
     public function test_the_normalizer_must_also_denormalize(): void
     {
         $listener = new class('form_type', User::class) extends EntityPersistFormListener {
@@ -73,7 +97,7 @@ class EntityPersistFormListenerTest extends TestCase
         );
     }
 
-    private function createListener(string $dataClass, ObjectManager $manager): EntityPersistFormListener
+    private function createListener(string $dataClass, ObjectManager $manager, ?UserDataProcessor $userDataProcessor = null): EntityPersistFormListener
     {
         $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getManagerForClass')->willReturn($manager);
@@ -86,7 +110,7 @@ class EntityPersistFormListenerTest extends TestCase
             $this->createStub(TimestampedDataPersister::class),
             new UserWriteNotifier($this->createStub(UserMailer::class)),
             new Serializer([], [new JsonEncoder()]),
-            $this->createStub(UserDataProcessor::class),
+            $userDataProcessor ?? $this->createStub(UserDataProcessor::class),
         );
 
         return $listener;
