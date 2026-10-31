@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- A user referenced by IRI from another resource's write is no longer processed as a new registration, which reset their `emailAddressVerified` ([#575](https://github.com/components-web-app/api-components-bundle/pull/575))
+
 ## [2.0.0-alpha.39](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.38...2.0.0-alpha.39) - 2026-10-30
 
 ### Added
