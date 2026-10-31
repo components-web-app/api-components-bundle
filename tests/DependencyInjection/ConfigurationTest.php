@@ -848,4 +848,42 @@ class ConfigurationTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $this->process($config);
     }
+
+    public function test_emails_show_the_bundle_logo_at_its_own_width_by_default(): void
+    {
+        self::assertSame(
+            ['logo' => '@SilverbackApiComponents/assets/images/email_logo.png', 'logo_width' => null],
+            $this->process(self::minimalConfig())['emails']
+        );
+    }
+
+    public function test_the_email_logo_and_its_width_can_be_configured(): void
+    {
+        $config = self::minimalConfig();
+        $config['emails'] = ['logo' => 'emails/logo.png', 'logo_width' => 200];
+
+        self::assertSame(['logo' => 'emails/logo.png', 'logo_width' => 200], $this->process($config)['emails']);
+    }
+
+    /**
+     * @return iterable<string, array{string, mixed}>
+     */
+    public static function invalidEmailLogos(): iterable
+    {
+        yield 'an empty logo' => ['logo', ''];
+        yield 'a null logo' => ['logo', null];
+        yield 'a zero width' => ['logo_width', 0];
+        yield 'a negative width' => ['logo_width', -1];
+        yield 'a width with a unit' => ['logo_width', '200px'];
+    }
+
+    #[DataProvider('invalidEmailLogos')]
+    public function test_an_invalid_email_logo_is_rejected(string $key, mixed $value): void
+    {
+        $config = self::minimalConfig();
+        $config['emails'][$key] = $value;
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->process($config);
+    }
 }
