@@ -1,0 +1,10 @@
+{% extends "@SilverbackApiComponents/emails/_template.html.twig" %}
+
+{% block content %}
+    <h1 class="text-center">Your Email Address Is Being Changed</h1>
+    <spacer size="16"></spacer>
+    <p>Hello {{ user.username }},</p>
+    <p>A request has been made to change the email address of your {{ website_name }} account to {{ masked_new_email_address }}. A link to confirm the change has been sent to that address.</p>
+    <p>If this was you no further action is required. If this was not you please use the forgot password feature to reset your password.</p>
+    {% include "@SilverbackApiComponents/emails/_signature.html.twig" %}
+{% endblock %}

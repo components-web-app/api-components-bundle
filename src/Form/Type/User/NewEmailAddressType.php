@@ -18,6 +18,7 @@ use Silverback\ApiComponentsBundle\Repository\User\FindUserByUsernameTrait;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -50,7 +51,7 @@ class NewEmailAddressType extends AbstractType
         }
         $help = null;
         if ($data instanceof AbstractUser && $data->getNewEmailAddress()) {
-            $help = \sprintf('You have requested to change your email to `%s`. Please check your inbox to validate this email address.', $data->getNewEmailAddress());
+            $help = \sprintf('You have requested to change your email to `%s`. Please check the inbox of the new address to confirm it.', $data->getNewEmailAddress());
         }
         $builder
             ->add(
@@ -61,6 +62,14 @@ class NewEmailAddressType extends AbstractType
                     'attr' => ['autocomplete' => 'username email'],
                     'data' => $data ? $data->getEmailAddress() : '',
                     'help' => $help,
+                ]
+            )
+            ->add(
+                'oldPassword',
+                PasswordType::class,
+                [
+                    'label' => 'Current password',
+                    'attr' => ['autocomplete' => 'current-password'],
                 ]
             );
     }

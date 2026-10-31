@@ -21,6 +21,7 @@ final class NewEmailAddressTest extends FunctionalTestCase
     use UserTrait;
 
     private const array REFERER = ['referer' => 'http://www.website.com'];
+    private const string WRONG_PASSWORD = 'You have not entered your current password correctly. Please try again.';
 
     /**
      * @param array<string, string> $headers
@@ -32,14 +33,15 @@ final class NewEmailAddressTest extends FunctionalTestCase
         self::loginAsUser($client);
         $formIri = self::createForm(NewEmailAddressType::class);
 
-        self::submitNewEmailAddress($client, $formIri . $postfix, 'new@example.com', $headers);
+        self::submitNewEmailAddress($client, $formIri . $postfix, 'new@example.com', $headers, 'password');
 
         self::assertResponseStatusCodeSame(201);
         self::assertJsonMatchesSchemaFile('user.schema.json');
         self::assertJsonNodeSame('newEmailAddress', 'new@example.com');
         self::assertJsonNodeSame('emailAddress', 'user@example.com');
         self::assertJsonNodeNotExists('newEmailConfirmationToken');
-        self::assertEmailOfTypeSent($expectedEmail);
+        self::assertJsonNodeNotExists('oldPassword');
+        self::assertEmailChangeEmailsSent($expectedEmail);
     }
 
     public static function successfulChangeRequests(): iterable
@@ -53,17 +55,17 @@ final class NewEmailAddressTest extends FunctionalTestCase
      * @param array<string, string> $headers
      */
     #[DataProvider('invalidOrMissingHeaders')]
-    public function test_an_invalid_or_missing_referer_and_origin_still_saves_the_change_request_sends_no_email_and_logs_the_refusal(array $headers): void
+    public function test_an_invalid_or_missing_referer_and_origin_still_saves_the_change_request_sends_only_the_notice_and_logs_the_refusal(array $headers): void
     {
         $client = static::createClient();
         self::loginAsUser($client);
         $formIri = self::createForm(NewEmailAddressType::class);
 
-        self::submitNewEmailAddress($client, $formIri . '/submit', 'new@example.com', $headers);
+        self::submitNewEmailAddress($client, $formIri . '/submit', 'new@example.com', $headers, 'password');
 
         self::assertResponseStatusCodeSame(201);
         self::assertJsonNodeSame('newEmailAddress', 'new@example.com');
-        self::assertNoEmailSent();
+        self::assertOnlyEmailChangeNoticeSent();
         self::assertRefusedEmailLinkLogged('new_user');
     }
 
@@ -84,7 +86,7 @@ final class NewEmailAddressTest extends FunctionalTestCase
         self::loginAsUser($client);
         $formIri = self::createForm(NewEmailAddressType::class);
 
-        self::submitNewEmailAddress($client, $formIri . '/submit', 'user@example.com', self::REFERER);
+        self::submitNewEmailAddress($client, $formIri . '/submit', 'user@example.com', self::REFERER, 'password');
 
         self::assertResponseStatusCodeSame(422);
         self::assertJsonNodeSame('formView.children[0].vars.errors[0]', 'Your new email address should be different.');
@@ -99,7 +101,7 @@ final class NewEmailAddressTest extends FunctionalTestCase
         $formIri = self::createForm(NewEmailAddressType::class);
         self::createUserWithRole('another_user', self::generatedSecret(), 'ROLE_USER');
 
-        self::submitNewEmailAddress($client, $formIri . '/submit', 'test.user@example.com', self::REFERER);
+        self::submitNewEmailAddress($client, $formIri . '/submit', 'test.user@example.com', self::REFERER, 'password');
 
         self::assertResponseStatusCodeSame(422);
         self::assertJsonNodeSame('formView.children[0].vars.errors[0]', 'Someone else is already registered with that email address.');
@@ -192,10 +194,10 @@ final class NewEmailAddressTest extends FunctionalTestCase
         $reloaded = self::findUserByUsername('new_user');
         self::assertNotNull($reloaded);
         self::addBearerToken($client, $reloaded);
-        self::submitNewEmailAddress($client, $formIri . '/submit', 'new@example.com', self::REFERER);
+        self::submitNewEmailAddress($client, $formIri . '/submit', 'new@example.com', self::REFERER, 'password');
 
         self::assertResponseStatusCodeSame(201);
-        self::assertEmailOfTypeSent('change_email_confirmation');
+        self::assertEmailChangeEmailsSent();
     }
 
     public function test_i_can_resend_a_new_email_address_confirmation_email_with_a_new_token(): void
@@ -209,7 +211,7 @@ final class NewEmailAddressTest extends FunctionalTestCase
         self::requestJsonLd($client, 'GET', '/resend-verify-new-email/my_username', null, self::REFERER);
 
         self::assertResponseStatusCodeSame(200);
-        self::assertEmailOfTypeSent('change_email_confirmation');
+        self::assertEmailOfTypeSent('change_email_confirmation', 'new@example.com');
     }
 
     public function test_requesting_a_new_email_address_confirmation_for_an_unknown_username_is_a_404_not_an_error(): void
@@ -252,11 +254,113 @@ final class NewEmailAddressTest extends FunctionalTestCase
         self::assertNoEmailSent();
     }
 
+    public function test_a_change_request_without_the_current_password_is_refused_and_changes_nothing(): void
+    {
+        $client = static::createClient();
+        self::loginAsUser($client);
+        $formIri = self::createForm(NewEmailAddressType::class);
+
+        self::submitNewEmailAddress($client, $formIri . '/submit', 'new@example.com', self::REFERER);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertJsonNodeSame('formView.children[1].vars.full_name', 'new_email_address[oldPassword]');
+        self::assertJsonNodeSame('formView.children[1].vars.errors[0]', self::WRONG_PASSWORD);
+        self::assertNoEmailSent();
+        self::assertNoNewEmailAddress('new_user');
+    }
+
+    public function test_a_change_request_with_a_wrong_current_password_is_refused_and_changes_nothing(): void
+    {
+        $client = static::createClient();
+        self::loginAsUser($client);
+        $formIri = self::createForm(NewEmailAddressType::class);
+
+        self::submitNewEmailAddress($client, $formIri . '/submit', 'new@example.com', self::REFERER, 'not-my-password');
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertJsonNodeSame('formView.children[1].vars.errors[0]', self::WRONG_PASSWORD);
+        self::assertNoEmailSent();
+        self::assertNoNewEmailAddress('new_user');
+    }
+
+    public function test_my_own_patch_of_a_new_email_address_needs_my_current_password(): void
+    {
+        $client = static::createClient();
+        $user = self::loginAsUser($client);
+
+        self::requestJsonLd($client, 'PATCH', self::iriOf($user), ['newEmailAddress' => 'new@example.com'], self::REFERER);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertJsonNodeSame('violations[0].propertyPath', 'oldPassword');
+        self::assertJsonNodeSame('violations[0].message', self::WRONG_PASSWORD);
+        self::assertNoEmailSent();
+        self::assertNoNewEmailAddress('new_user');
+    }
+
+    public function test_my_own_patch_of_a_new_email_address_with_my_current_password_sends_the_confirmation_to_the_new_address_and_a_notice_to_the_current_one(): void
+    {
+        $client = static::createClient();
+        $user = self::loginAsUser($client);
+
+        self::requestJsonLd($client, 'PATCH', self::iriOf($user), ['newEmailAddress' => 'new@example.com', 'oldPassword' => 'password'], self::REFERER);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeSame('newEmailAddress', 'new@example.com');
+        self::assertJsonNodeSame('emailAddress', 'user@example.com');
+        self::assertEmailChangeEmailsSent();
+    }
+
+    public function test_a_super_admin_changing_another_users_new_email_address_enters_their_own_password(): void
+    {
+        $client = static::createClient();
+        self::loginAsSuperAdmin($client);
+        $userPassword = self::generatedSecret();
+        $user = self::createUserWithRole('another_user', $userPassword, 'ROLE_USER');
+
+        self::requestJsonLd($client, 'PATCH', self::iriOf($user), ['newEmailAddress' => 'new@example.com', 'oldPassword' => $userPassword], self::REFERER);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertJsonNodeSame('violations[0].propertyPath', 'oldPassword');
+        self::assertNoNewEmailAddress('another_user');
+
+        self::requestJsonLd($client, 'PATCH', self::iriOf($user), ['newEmailAddress' => 'new@example.com', 'oldPassword' => 'password'], self::REFERER);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeSame('newEmailAddress', 'new@example.com');
+        self::assertEmailChangeEmailsSent(currentEmailAddress: 'test.user@example.com');
+    }
+
+    public function test_a_write_that_leaves_a_pending_new_email_address_unchanged_needs_no_password(): void
+    {
+        $client = static::createClient();
+        self::loginAsSuperAdmin($client);
+        $user = self::createUserWithRole('another_user', self::generatedSecret(), 'ROLE_USER');
+        self::giveNewEmailAddress($user, 'new@example.com', self::generatedSecret());
+
+        self::requestJsonLd($client, 'PATCH', self::iriOf($user), ['username' => 'renamed_user', 'newEmailAddress' => 'new@example.com'], self::REFERER);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertJsonNodeSame('newEmailAddress', 'new@example.com');
+        self::assertEmailOfTypeSent('username_changed_notification', 'test.user@example.com');
+    }
+
+    private static function assertNoNewEmailAddress(string $username): void
+    {
+        $stored = self::findUserByUsername($username);
+        self::assertNotNull($stored);
+        self::assertNull($stored->getNewEmailAddress());
+        self::assertNull($stored->getNewEmailConfirmationToken());
+    }
+
     /**
      * @param array<string, string> $headers
      */
-    private static function submitNewEmailAddress(Client $client, string $url, ?string $newEmailAddress, array $headers): void
+    private static function submitNewEmailAddress(Client $client, string $url, ?string $newEmailAddress, array $headers, ?string $oldPassword = null): void
     {
-        self::requestJsonLd($client, 'POST', $url, ['new_email_address' => ['newEmailAddress' => $newEmailAddress]], $headers);
+        $data = ['newEmailAddress' => $newEmailAddress];
+        if (null !== $oldPassword) {
+            $data['oldPassword'] = $oldPassword;
+        }
+        self::requestJsonLd($client, 'POST', $url, ['new_email_address' => $data], $headers);
     }
 }

@@ -25,6 +25,7 @@ use Silverback\ApiComponentsBundle\Exception\DisallowedRequestOriginException;
 use Silverback\ApiComponentsBundle\Exception\MailerTransportException;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\AbstractUserEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailNoticeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
@@ -235,6 +236,17 @@ class UserMailerTest extends TestCase
         $this->assertTrue($result);
     }
 
+    public function test_send_change_email_notice_email(): void
+    {
+        $user = new class extends AbstractUser {
+            protected ?string $username = 'test_send_change_email_notice_email';
+        };
+
+        $this->expectFactoryCallAndSendMailerMethod(ChangeEmailNoticeEmailFactory::class, $user);
+
+        $this->assertTrue($this->userMailer->sendChangeEmailNoticeEmail($user));
+    }
+
     public static function afterWriteEmails(): iterable
     {
         yield 'welcome' => ['sendWelcomeEmail', WelcomeEmailFactory::class];
@@ -243,6 +255,7 @@ class UserMailerTest extends TestCase
         yield 'password changed' => ['sendPasswordChangedEmail', PasswordChangedEmailFactory::class];
         yield 'email verify' => ['sendEmailVerifyEmailAfterWrite', VerifyEmailFactory::class];
         yield 'change email confirmation' => ['sendChangeEmailConfirmationEmailAfterWrite', ChangeEmailConfirmationEmailFactory::class];
+        yield 'change email notice' => ['sendChangeEmailNoticeEmail', ChangeEmailNoticeEmailFactory::class];
     }
 
     public static function jobEmails(): iterable

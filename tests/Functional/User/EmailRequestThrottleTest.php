@@ -105,7 +105,7 @@ final class EmailRequestThrottleTest extends FunctionalTestCase
         self::requestEmail($client, '/resend-verify-new-email/my_username');
 
         self::assertResponseStatusCodeSame(200);
-        self::assertEmailOfTypeSent('change_email_confirmation');
+        self::assertEmailOfTypeSent('change_email_confirmation', 'new@example.com');
     }
 
     public function test_the_new_email_address_confirmation_is_not_throttled_by_a_recent_password_reset_request(): void
@@ -118,7 +118,7 @@ final class EmailRequestThrottleTest extends FunctionalTestCase
         self::requestEmail($client, '/resend-verify-new-email/my_username');
 
         self::assertResponseStatusCodeSame(200);
-        self::assertEmailOfTypeSent('change_email_confirmation');
+        self::assertEmailOfTypeSent('change_email_confirmation', 'new@example.com');
     }
 
     public function test_the_email_verification_is_not_throttled_by_a_recent_password_reset_request(): void

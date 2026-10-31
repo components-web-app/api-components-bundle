@@ -16,6 +16,7 @@ use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
 use Silverback\ApiComponentsBundle\Exception\MailerTransportException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailNoticeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\UserEnabledEmailFactory;
@@ -77,6 +78,11 @@ class UserMailer
     public function sendChangeEmailConfirmationEmailAfterWrite(AbstractUser $user): bool
     {
         return $this->afterWrite($user, fn (): bool => $this->sendChangeEmailConfirmationEmail($user));
+    }
+
+    public function sendChangeEmailNoticeEmail(AbstractUser $user): bool
+    {
+        return $this->afterWrite($user, fn (): bool => $this->send($this->container->get(ChangeEmailNoticeEmailFactory::class)->create($user, $this->context)));
     }
 
     public function sendWelcomeEmail(AbstractUser $user): bool

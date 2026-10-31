@@ -42,6 +42,7 @@ use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
 use Silverback\ApiComponentsBundle\Factory\OrphanedResource\OrphanedResourcesChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailConfirmationEmailFactory;
+use Silverback\ApiComponentsBundle\Factory\User\Mailer\ChangeEmailNoticeEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\PasswordResetEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\VerifyEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\User\Mailer\WelcomeEmailFactory;
@@ -606,6 +607,19 @@ class SilverbackApiComponentsExtensionTest extends TestCase
 
         self::assertTrue($this->argument($container, PasswordResetEmailFactory::class, '$enabled'));
         self::assertTrue($this->argument($container, ChangeEmailConfirmationEmailFactory::class, '$enabled'));
+        self::assertSame('Your email address is being changed', $this->argument($container, ChangeEmailNoticeEmailFactory::class, '$subject'));
+        self::assertTrue($this->argument($container, ChangeEmailNoticeEmailFactory::class, '$enabled'));
+    }
+
+    public function test_a_disabled_change_email_notice_is_wired_as_disabled(): void
+    {
+        $config = self::minimalConfig();
+        $config['user']['emails'] = ['change_email_notice' => ['enabled' => false, 'subject' => 'Changing']];
+
+        [$container] = $this->load($config);
+
+        self::assertFalse($this->argument($container, ChangeEmailNoticeEmailFactory::class, '$enabled'));
+        self::assertSame('Changing', $this->argument($container, ChangeEmailNoticeEmailFactory::class, '$subject'));
     }
 
     public function test_a_disabled_welcome_email_is_wired_as_disabled(): void

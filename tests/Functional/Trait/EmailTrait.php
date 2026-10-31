@@ -57,6 +57,20 @@ trait EmailTrait
         return $email;
     }
 
+    protected static function assertTemplatedEmailSentTo(string $emailAddress): TemplatedEmail
+    {
+        $emails = array_values(array_filter(static::sentTemplatedEmails(), static fn (TemplatedEmail $email): bool => $email->getHeaders()->get('to')?->getBodyAsString() === $emailAddress));
+        self::assertCount(1, $emails, \sprintf('%d emails were sent to %s.', \count($emails), $emailAddress));
+        $email = $emails[0];
+        $context = $email->getContext();
+
+        self::assertSame('New Website', $context['website_name'] ?? null);
+        self::assertInstanceOf(User::class, $context['user'] ?? null);
+        self::assertSame('test@website.com', $email->getHeaders()->get('from')?->getBodyAsString());
+
+        return $email;
+    }
+
     protected static function sentEmailLink(): string
     {
         $emails = static::sentTemplatedEmails();

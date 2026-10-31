@@ -49,6 +49,7 @@ final readonly class UserWriteNotifier
 
         if (($token = $user->getNewEmailConfirmationToken()) && $token !== $previousUser->getNewEmailConfirmationToken()) {
             $this->userMailer->sendChangeEmailConfirmationEmailAfterWrite($user);
+            $this->userMailer->sendChangeEmailNoticeEmail($user);
         }
     }
 }

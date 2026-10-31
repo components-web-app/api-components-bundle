@@ -241,17 +241,17 @@ final class EmailLinkHostTest extends FunctionalTestCase
         self::assertRefusedEmailLinkLogged('user@user.co');
     }
 
-    public function test_an_email_change_request_with_an_origin_header_that_is_not_allowed_is_saved_sends_no_email_and_logs_the_refusal(): void
+    public function test_an_email_change_request_with_an_origin_header_that_is_not_allowed_is_saved_sends_only_the_notice_and_logs_the_refusal(): void
     {
         $client = static::createClient();
         self::loginAsUser($client);
         $formIri = self::createForm(NewEmailAddressType::class);
 
-        self::requestJsonLd($client, 'POST', $formIri . '/submit', ['new_email_address' => ['newEmailAddress' => 'new@example.com']], ['origin' => 'https://evil.example']);
+        self::requestJsonLd($client, 'POST', $formIri . '/submit', ['new_email_address' => ['newEmailAddress' => 'new@example.com', 'oldPassword' => 'password']], ['origin' => 'https://evil.example']);
 
         self::assertResponseStatusCodeSame(201);
         self::assertJsonNodeSame('newEmailAddress', 'new@example.com');
-        self::assertNoEmailSent();
+        self::assertOnlyEmailChangeNoticeSent();
         self::assertRefusedEmailLinkLogged('new_user');
     }
 
