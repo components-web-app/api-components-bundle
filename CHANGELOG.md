@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Added
+- `emails.logo` (a Twig path, default the bundle's logo) and `emails.logo_width` (pixels, optional) set the logo at the top of every email the bundle sends, whose alt text is now the `website_name` instead of `Logo` ([#574](https://github.com/components-web-app/api-components-bundle/pull/574))
+
 ## [2.0.0-alpha.39](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.38...2.0.0-alpha.39) - 2026-10-30
 
 ### Added
