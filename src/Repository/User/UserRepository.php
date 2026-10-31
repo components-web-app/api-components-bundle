@@ -43,7 +43,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryIn
     {
         return $this->createQueryBuilder('u')
             ->andWhere('LOWER(u.emailAddress) = :val')
-            ->setParameter('val', strtolower($value))
+            ->setParameter('val', strtolower(trim($value)))
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -57,7 +57,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryIn
             ->andWhere('LOWER(u.username) = :username')
             ->andWhere('u.newPasswordConfirmationToken IS NOT NULL')
             ->andWhere('u.passwordRequestedAt > :minimumDateTime')
-            ->setParameter('username', strtolower($username))
+            ->setParameter('username', strtolower(trim($username)))
             ->setParameter('minimumDateTime', $minimumRequestDateTime)
             ->getQuery()
             ->getOneOrNullResult();
@@ -73,8 +73,8 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryIn
             ->andWhere('LOWER(u.newEmailAddress) = :email')
             ->andWhere('u.newEmailConfirmationToken IS NOT NULL')
             ->andWhere('u.newEmailAddressChangeRequestedAt > :minimumDateTime')
-            ->setParameter('username', strtolower($username))
-            ->setParameter('email', strtolower($email))
+            ->setParameter('username', strtolower(trim($username)))
+            ->setParameter('email', strtolower(trim($email)))
             ->setParameter('minimumDateTime', $minimumRequestDateTime)
             ->getQuery()
             ->getOneOrNullResult();
@@ -90,7 +90,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryIn
         return $this->createQueryBuilder('u')
             ->andWhere('LOWER(u.username) = :username')
             ->orWhere('LOWER(u.emailAddress) = :username')
-            ->setParameter('username', strtolower($identifier))
+            ->setParameter('username', strtolower(trim($identifier)))
             ->getQuery()
             ->getOneOrNullResult();
     }

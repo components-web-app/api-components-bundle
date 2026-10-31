@@ -32,6 +32,17 @@ final class ForgotPasswordTest extends FunctionalTestCase
         self::assertEmailOfTypeSent('password_reset', 'test.user@example.com');
     }
 
+    public function test_a_username_with_a_trailing_space_still_requests_a_new_password(): void
+    {
+        $client = static::createClient();
+        self::createUserWithRole('my_username', self::generatedSecret(), 'ROLE_USER');
+
+        self::requestJsonLd($client, 'GET', '/password/reset/request/my_username%20', null, self::referer());
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertEmailOfTypeSent('password_reset', 'test.user@example.com');
+    }
+
     public function test_i_get_the_appropriate_status_code_if_the_user_is_not_found(): void
     {
         $client = static::createClient();

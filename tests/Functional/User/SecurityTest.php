@@ -63,6 +63,29 @@ final class SecurityTest extends FunctionalTestCase
         self::assertMercureCookieAndTokenExpireIn(604800);
     }
 
+    #[DataProvider('identifiersWithSurroundingSpace')]
+    public function test_a_login_identifier_with_surrounding_space_still_signs_in(string $identifier): void
+    {
+        $client = static::createClient();
+        $password = self::generatedSecret();
+        self::createUserWithRole('user', $password, 'ROLE_USER', 'user@example.com');
+
+        self::login($client, $identifier, $password);
+
+        self::assertResponseStatusCodeSame(204);
+        self::assertRefreshTokenCount(1);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function identifiersWithSurroundingSpace(): iterable
+    {
+        yield 'a username with a trailing space' => ['user '];
+        yield 'a username with a leading space and capitals' => [' USER'];
+        yield 'an email address with a trailing space' => ['user@example.com '];
+    }
+
     public function test_a_logged_in_user_can_fetch_a_list_of_all_users(): void
     {
         $client = static::createClient();
