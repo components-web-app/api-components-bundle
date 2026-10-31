@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.40](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.39...2.0.0-alpha.40) - 2026-10-31
+
 ### Breaking
 - Writing CWA content (pages, layouts, routes, component groups and their order, component positions, every component including `/move`, and every page data class, project classes included) requires `publishable.permission` (or the class's `#[Publishable(isGranted:)]`), ANDed with any `security` the operation already has; opt an operation or resource out with `extraProperties: ['publishable_permission' => false]`. Form `/submit` stays public ([#579](https://github.com/components-web-app/api-components-bundle/pull/579))
 - An email change's confirmation link goes to the new address instead of the current one, and setting `newEmailAddress` needs the signed-in user's current password as `oldPassword` on API writes and in `NewEmailAddressType` (a super admin enters their own; a cancel needs none) ([#580](https://github.com/components-web-app/api-components-bundle/pull/580))
