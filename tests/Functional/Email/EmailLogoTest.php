@@ -47,20 +47,29 @@ final class EmailLogoTest extends FunctionalTestCase
 
     private static function assertShowsTheConfiguredLogo(TemplatedEmail $email): void
     {
-        $logos = array_values(array_filter($email->getAttachments(), static fn (DataPart $part): bool => 'logo.png' === $part->getFilename()));
-        self::assertCount(1, $logos);
-        $logo = $logos[0];
-        self::assertSame(file_get_contents(self::CONFIGURED_LOGO), $logo->getBody());
-
         $document = new \DOMDocument();
         $document->loadHTML((string) $email->getHtmlBody(), \LIBXML_NOERROR);
-        $images = (new \DOMXPath($document))->query(\sprintf('//img[@src="cid:%s"]', $logo->getContentId()));
+        $images = (new \DOMXPath($document))->query('//img[contains(concat(" ", @class, " "), " logo ")]');
         self::assertNotFalse($images);
         self::assertCount(1, $images);
         $image = $images->item(0);
         self::assertInstanceOf(\DOMElement::class, $image);
         self::assertSame('New Website', $image->getAttribute('alt'));
         self::assertSame('200', $image->getAttribute('width'));
-        self::assertStringEndsWith('; width: 200px;', $image->getAttribute('style'));
+        $widths = [];
+        foreach (explode(';', $image->getAttribute('style')) as $declaration) {
+            $parts = array_map(trim(...), explode(':', $declaration, 2));
+            if ('width' === $parts[0]) {
+                $widths[] = $parts[1];
+            }
+        }
+        self::assertSame(['200px'], $widths);
+
+        $reference = $image->getAttribute('src');
+        self::assertStringStartsWith('cid:', $reference);
+        $reference = substr($reference, 4);
+        $logos = array_values(array_filter($email->getAttachments(), static fn (DataPart $part): bool => \in_array($reference, [$part->getContentId(), $part->getFilename()], true)));
+        self::assertCount(1, $logos);
+        self::assertSame(file_get_contents(self::CONFIGURED_LOGO), $logos[0]->getBody());
     }
 }
