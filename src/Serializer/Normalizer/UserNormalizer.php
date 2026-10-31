@@ -32,7 +32,6 @@ class UserNormalizer implements DenormalizerInterface, DenormalizerAwareInterfac
     use DenormalizerAwareTrait;
     use NormalizerAwareTrait;
 
-    // public so that EntityPersistFormListener can deserialize an old user for comparison and skip this normalizer from processing changes
     public const ALREADY_CALLED = 'USER_NORMALIZER_ALREADY_CALLED';
 
     public function __construct(
@@ -45,7 +44,7 @@ class UserNormalizer implements DenormalizerInterface, DenormalizerAwareInterfac
 
     public function supportsDenormalization($data, $type, $format = null, array $context = []): bool
     {
-        return !isset($context[self::ALREADY_CALLED]) && is_subclass_of($type, AbstractUser::class);
+        return \is_array($data) && !isset($context[self::ALREADY_CALLED]) && is_subclass_of($type, AbstractUser::class);
     }
 
     public function denormalize($data, $type, $format = null, array $context = []): AbstractUser

@@ -602,7 +602,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame('Please confirm your new email address', $this->argument($container, ChangeEmailConfirmationEmailFactory::class, '$subject'));
         self::assertSame('Welcome to {{ website_name }}', $this->argument($container, WelcomeEmailFactory::class, '$subject'));
         self::assertTrue($this->argument($container, WelcomeEmailFactory::class, '$enabled'));
-        self::assertSame(['website_name' => 'Test Website'], $this->argument($container, UserMailer::class, '$context'));
+        self::assertSame(['website_name' => 'Test Website', 'email_logo' => '@SilverbackApiComponents/assets/images/email_logo.png', 'email_logo_width' => null], $this->argument($container, UserMailer::class, '$context'));
 
         self::assertTrue($this->argument($container, PasswordResetEmailFactory::class, '$enabled'));
         self::assertTrue($this->argument($container, ChangeEmailConfirmationEmailFactory::class, '$enabled'));
@@ -723,7 +723,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame([], $this->argument($container, OrphanedResourceNotifier::class, '$recipients'));
         self::assertSame('/_cwa/orphaned', $this->argument($container, OrphanedResourceNotifier::class, '$adminPagePath'));
         self::assertSame('Orphaned resources changed on {{ website_name }}', $this->argument($container, OrphanedResourcesChangedEmailFactory::class, '$subject'));
-        self::assertSame(['website_name' => 'Test Website'], $this->argument($container, OrphanedResourcesChangedEmailFactory::class, '$context'));
+        self::assertSame(['website_name' => 'Test Website', 'email_logo' => '@SilverbackApiComponents/assets/images/email_logo.png', 'email_logo_width' => null], $this->argument($container, OrphanedResourcesChangedEmailFactory::class, '$context'));
     }
 
     public function test_orphaned_resource_notification_configuration_reaches_the_notifier(): void
@@ -740,5 +740,17 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame(['admin@example.com'], $this->argument($container, OrphanedResourceNotifier::class, '$recipients'));
         self::assertSame('/admin/orphans', $this->argument($container, OrphanedResourceNotifier::class, '$adminPagePath'));
         self::assertSame('Orphans', $this->argument($container, OrphanedResourcesChangedEmailFactory::class, '$subject'));
+    }
+
+    public function test_the_configured_email_logo_reaches_every_email_sender(): void
+    {
+        $config = self::minimalConfig();
+        $config['emails'] = ['logo' => 'emails/logo.png', 'logo_width' => 200];
+
+        [$container] = $this->load($config);
+
+        $expected = ['website_name' => 'Test Website', 'email_logo' => 'emails/logo.png', 'email_logo_width' => 200];
+        self::assertSame($expected, $this->argument($container, UserMailer::class, '$context'));
+        self::assertSame($expected, $this->argument($container, OrphanedResourcesChangedEmailFactory::class, '$context'));
     }
 }
