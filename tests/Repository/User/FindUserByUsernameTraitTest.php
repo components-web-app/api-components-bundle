@@ -22,19 +22,20 @@ use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 final class FindUserByUsernameTraitTest extends TestCase
 {
     /**
-     * @return iterable<string, array{string, bool}>
+     * @return iterable<string, array{string, string, bool}>
      */
     public static function usernames(): iterable
     {
-        yield 'the username' => ['my_username', true];
-        yield 'the username in capitals with surrounding space' => [' MY_USERNAME ', true];
-        yield 'the email address the identifier also matches' => ['user@example.com', false];
+        yield 'the username' => ['my_username', 'my_username', true];
+        yield 'the username in capitals with surrounding space' => ['my_username', ' MY_USERNAME ', true];
+        yield 'a username stored in capitals' => ['My_Username', 'my_username', true];
+        yield 'the email address the identifier also matches' => ['my_username', 'user@example.com', false];
     }
 
     #[DataProvider('usernames')]
-    public function test_only_the_users_own_username_finds_them(string $username, bool $found): void
+    public function test_only_the_users_own_username_finds_them(string $storedUsername, string $username, bool $found): void
     {
-        $user = new User('my_username', 'user@example.com');
+        $user = new User($storedUsername, 'user@example.com');
         $repository = $this->createStub(UserRepositoryInterface::class);
         $repository->method('loadUserByIdentifier')->willReturn($user);
 

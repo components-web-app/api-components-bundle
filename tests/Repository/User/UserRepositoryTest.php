@@ -25,10 +25,10 @@ final class UserRepositoryTest extends OrphanedResourceDatabaseTestCase
     {
         yield 'a username identifier' => [static fn (UserRepository $repository) => $repository->loadUserByIdentifier(" My_Username \t")];
         yield 'an email address identifier' => [static fn (UserRepository $repository) => $repository->loadUserByIdentifier(' User@Example.com ')];
-        yield 'a username through the deprecated loader' => [static fn (UserRepository $repository) => $repository->loadUserByUsername('my_username ')];
-        yield 'an email address' => [static fn (UserRepository $repository) => $repository->findOneByEmail(' user@example.com ')];
-        yield 'a username with a password reset token' => [static fn (UserRepository $repository) => $repository->findOneWithPasswordResetToken(' my_username ')];
-        yield 'a username and new email address' => [static fn (UserRepository $repository) => $repository->findOneByUsernameAndNewEmailAddress(' my_username ', ' New@Example.com ')];
+        yield 'a username through the deprecated loader' => [static fn (UserRepository $repository) => $repository->loadUserByUsername('MY_username ')];
+        yield 'an email address' => [static fn (UserRepository $repository) => $repository->findOneByEmail(' User@Example.COM ')];
+        yield 'a username with a password reset token' => [static fn (UserRepository $repository) => $repository->findOneWithPasswordResetToken(' My_Username ')];
+        yield 'a username and new email address' => [static fn (UserRepository $repository) => $repository->findOneByUsernameAndNewEmailAddress(' My_Username ', ' New@Example.com ')];
     }
 
     #[DataProvider('lookupsWithSurroundingSpace')]
