@@ -73,6 +73,18 @@ final class VerifyEmailAddressTest extends FunctionalTestCase
         self::assertEmailOfTypeSent('verify_email');
     }
 
+    public function test_a_username_with_a_trailing_space_still_requests_a_new_verification_email(): void
+    {
+        $client = static::createClient();
+        $user = self::createUserWithRole('my_username', self::generatedSecret(), 'ROLE_USER', 'user@example.com');
+        self::unverifyEmail($user);
+
+        self::requestJsonLd($client, 'GET', '/resend-verify-email/my_username%20', null, self::REFERER);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertEmailOfTypeSent('verify_email');
+    }
+
     public function test_requesting_a_verification_email_for_an_unknown_username_is_a_404_not_an_error(): void
     {
         $client = static::createClient();

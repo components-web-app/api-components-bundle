@@ -24,6 +24,6 @@ trait FindUserByUsernameTrait
             return null;
         }
 
-        return null !== $user && strtolower((string) $user->getUsername()) === strtolower($username) ? $user : null;
+        return null !== $user && strtolower((string) $user->getUsername()) === strtolower(trim($username)) ? $user : null;
     }
 }
