@@ -45,7 +45,7 @@ final class ComponentTest extends FunctionalTestCase
     public function test_i_can_create_a_component(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         self::requestJsonLd($client, 'POST', '/component/dummy_components', '{"uiComponent": "AnotherComponent", "uiClassNames": ["my-class"]}');
 
@@ -59,7 +59,7 @@ final class ComponentTest extends FunctionalTestCase
     public function test_i_can_create_a_component_and_the_component_position_at_the_same_time(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $positions = self::createGroupWithTheId(3, self::GROUP_ID);
 
         self::requestJsonLd($client, 'POST', '/component/dummy_components', [
@@ -80,7 +80,7 @@ final class ComponentTest extends FunctionalTestCase
     public function test_a_component_update_can_add_a_component_position(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $group = self::createGroupWithComponentIris(0);
         $component = self::createDummyComponent();
 
@@ -96,7 +96,7 @@ final class ComponentTest extends FunctionalTestCase
     public function test_i_can_delete_a_component(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $component = new DummyComponent();
         self::persistAndFlush($component);
 

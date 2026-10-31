@@ -30,7 +30,7 @@ final class LayoutTest extends FunctionalTestCase
 
     public function test_i_can_create_a_layout(): void
     {
-        $client = self::userClient();
+        $client = self::adminClient();
 
         self::requestJsonLd($client, 'POST', '/_/layouts', <<<'JSON'
             {
@@ -50,7 +50,7 @@ final class LayoutTest extends FunctionalTestCase
     #[DataProvider('invalidLayouts')]
     public function test_the_layout_resource_validates_properly(string $reference, ?string $uiComponent, string $propertyPath, string $message): void
     {
-        $client = self::userClient();
+        $client = self::adminClient();
         self::createLayout('primary');
 
         self::requestJsonLd($client, 'POST', '/_/layouts', ['reference' => $reference, 'uiComponent' => $uiComponent]);
@@ -73,7 +73,7 @@ final class LayoutTest extends FunctionalTestCase
 
     public function test_i_can_delete_a_layout(): void
     {
-        $client = self::userClient();
+        $client = self::adminClient();
         $layout = self::createLayout();
 
         self::requestJsonLd($client, 'DELETE', self::iriOf($layout));
@@ -83,7 +83,7 @@ final class LayoutTest extends FunctionalTestCase
 
     public function test_the_layout_resources_can_be_listed(): void
     {
-        $client = self::userClient();
+        $client = self::adminClient();
         self::createLayout('primary');
         self::createLayout('secondary');
 
@@ -95,7 +95,7 @@ final class LayoutTest extends FunctionalTestCase
 
     public function test_the_layout_search_parameter_matches_the_reference(): void
     {
-        $client = self::userClient();
+        $client = self::adminClient();
         self::createLayout('primary');
         self::createLayout('secondary');
 
@@ -127,7 +127,7 @@ final class LayoutTest extends FunctionalTestCase
 
     public function test_the_layout_search_parameter_matches_the_ui_component(): void
     {
-        $client = self::userClient();
+        $client = self::adminClient();
         self::createLayout('primary', 'PrimaryLayout');
         self::createLayout('secondary', 'SecondaryLayout');
 
@@ -140,7 +140,7 @@ final class LayoutTest extends FunctionalTestCase
 
     public function test_layout_component_groups_are_returned_as_iri_strings_not_embedded_objects(): void
     {
-        $client = self::userClient();
+        $client = self::adminClient();
         $page = self::newPage();
         $layout = self::newLayout();
         $created = self::newComponentGroupWithComponents(1);
@@ -170,7 +170,7 @@ final class LayoutTest extends FunctionalTestCase
      */
     private static function assertLayoutsOrdered(string $url, array $layouts, array $expectedReferences): void
     {
-        $client = self::userClient();
+        $client = self::adminClient();
         foreach ($layouts as $reference => $createdAt) {
             if (\is_int($reference)) {
                 self::createLayout($createdAt);
@@ -201,10 +201,10 @@ final class LayoutTest extends FunctionalTestCase
         return $layout;
     }
 
-    private static function userClient(): Client
+    private static function adminClient(): Client
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         return $client;
     }

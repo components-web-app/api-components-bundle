@@ -27,7 +27,7 @@ final class ComponentPositionCycleTest extends FunctionalTestCase
 
     public function test_a_component_cannot_be_placed_in_one_of_its_own_component_groups(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $site = self::createNestedSite();
 
         self::postPosition($client, ['componentGroup' => $site['nested']['group'], 'component' => $site['component']]);
@@ -39,7 +39,7 @@ final class ComponentPositionCycleTest extends FunctionalTestCase
 
     public function test_a_component_cannot_be_placed_in_a_component_group_further_down_its_own_subtree(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $site = self::createNestedSite();
 
         self::postPosition($client, ['componentGroup' => $site['deeper']['group'], 'component' => $site['component']]);
@@ -50,7 +50,7 @@ final class ComponentPositionCycleTest extends FunctionalTestCase
 
     public function test_the_same_component_can_be_placed_in_two_sibling_containers(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $site = self::createNestedSite();
         $sibling = self::addGroupHoldingAComponent($site['page'], 'sibling');
         $siblingInner = self::addGroupHoldingAComponent($sibling['component'], 'sibling_inner');
@@ -62,7 +62,7 @@ final class ComponentPositionCycleTest extends FunctionalTestCase
 
     public function test_a_position_cannot_be_changed_to_hold_a_component_whose_subtree_holds_the_position(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $site = self::createNestedSite();
 
         self::requestJsonLd($client, 'PATCH', $site['deeper']['position'], ['component' => $site['component']]);
@@ -73,7 +73,7 @@ final class ComponentPositionCycleTest extends FunctionalTestCase
 
     public function test_a_position_cannot_be_moved_into_a_component_group_inside_the_component_it_holds(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $site = self::createNestedSite();
 
         self::requestJsonLd($client, 'PATCH', $site['position'], ['componentGroup' => $site['deeper']['group']]);
@@ -84,7 +84,7 @@ final class ComponentPositionCycleTest extends FunctionalTestCase
 
     public function test_a_component_group_cannot_be_given_an_owner_from_inside_its_own_subtree(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $site = self::createNestedSite();
 
         self::requestJsonLd($client, 'PATCH', $site['group'], ['components' => [$site['nested']['component']]]);
@@ -96,7 +96,7 @@ final class ComponentPositionCycleTest extends FunctionalTestCase
 
     public function test_a_component_group_can_be_given_an_owner_from_outside_its_subtree(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $site = self::createNestedSite();
         $sibling = self::addGroupHoldingAComponent($site['page'], 'sibling');
 
@@ -107,7 +107,7 @@ final class ComponentPositionCycleTest extends FunctionalTestCase
 
     public function test_a_component_cannot_be_written_with_a_position_inside_its_own_subtree(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $site = self::createNestedSite();
 
         self::requestJsonLd($client, 'PATCH', $site['component'], ['componentPositions' => [['componentGroup' => $site['deeper']['group']]]]);
@@ -240,10 +240,10 @@ final class ComponentPositionCycleTest extends FunctionalTestCase
         return ['published' => self::iriOf($published), 'draft' => self::iriOf($draft)];
     }
 
-    private static function loggedInClient(): Client
+    private static function adminClient(): Client
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         return $client;
     }

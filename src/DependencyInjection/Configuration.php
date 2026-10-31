@@ -50,6 +50,21 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('website_name')->isRequired()->end()
                 ->scalarNode('table_prefix')->defaultValue('_acb_')->end()
                 ->scalarNode('metadata_key')->defaultValue('_metadata')->end()
+                ->arrayNode('emails')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('logo')
+                            ->info('The Twig path of the logo at the top of every email the bundle sends.')
+                            ->cannotBeEmpty()
+                            ->defaultValue('@SilverbackApiComponents/assets/images/email_logo.png')
+                        ->end()
+                        ->integerNode('logo_width')
+                            ->info('The width in pixels the logo is shown at, so a 2x image renders sharp. Null shows it at its own width.')
+                            ->defaultNull()
+                            ->min(1)
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
 
         $this->addMercureNode($rootNode);

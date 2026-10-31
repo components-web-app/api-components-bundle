@@ -30,7 +30,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_i_can_create_a_route(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $page = self::createPage();
         $route = self::createRouteWithPage('/other');
 
@@ -54,7 +54,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_a_route_cannot_be_created_without_a_page_page_data_or_redirect(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         self::createPage();
         self::createRouteWithPage('/other');
 
@@ -79,7 +79,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_a_route_created_without_a_leading_slash_is_automatically_prefixed(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $page = self::createPage();
 
         self::requestJsonLd($client, 'POST', '/_/routes', ['path' => 'contact', 'name' => 'contact-page', 'page' => self::iriOf($page)]);
@@ -91,7 +91,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_i_can_delete_a_route(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $route = self::createRouteWithPage('/deletable');
 
         self::requestJsonLd($client, 'DELETE', self::iriOf($route));
@@ -102,7 +102,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_i_can_delete_a_route_which_has_a_redirect(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $site = self::createRouteRedirectingThroughAMiddleRouteTo('/contact', '/contact-new');
         $iris = array_map(self::iriOf(...), [$site['final'], $site['route'], $site['middle']]);
 
@@ -152,7 +152,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_i_can_automatically_generate_a_route_from_a_page_data_resource(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $site = self::createPageDataWithRoute(null);
         self::setPageDataTitle($site['pageData'], 'Programme');
 
@@ -167,7 +167,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_a_route_is_not_generated_for_page_data_with_no_title(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $site = self::createPageDataWithRoute(null);
 
         self::requestJsonLd($client, 'POST', '/_/routes/generate', ['pageData' => self::iriOf($site['pageData'])]);
@@ -182,7 +182,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_a_route_is_not_generated_for_a_page_with_no_title(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $page = self::createPage('untitled');
 
         self::requestJsonLd($client, 'POST', '/_/routes/generate', ['page' => self::iriOf($page)]);
@@ -197,7 +197,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_a_route_is_not_generated_for_page_data_whose_existing_route_would_become_a_redirect_when_it_has_no_title(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $site = self::createPageDataWithRoute('/original');
 
         self::requestJsonLd($client, 'POST', '/_/routes/generate', ['pageData' => self::iriOf($site['pageData'])]);
@@ -211,7 +211,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_i_generate_a_route_for_page_data_with_a_pre_existing_route_and_the_original_route_changes_to_a_redirect(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $site = self::createPageDataWithRoute('/original');
         self::setPageDataTitle($site['pageData'], 'Programme');
 
@@ -225,7 +225,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_a_route_cannot_be_generated_for_a_nested_page_whose_parent_page_has_no_route(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $site = self::createRoutelessParentPageDataWithAnUnroutedChildPage();
 
         self::requestJsonLd($client, 'POST', '/_/routes/generate', ['page' => self::iriOf($site['childPage'])]);
@@ -238,7 +238,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_a_route_generated_for_a_nested_page_whose_parent_page_has_a_route_is_prefixed_with_the_parent_path(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $site = self::createPageDataNestedWithinRoute('/conference/programme', '/conference');
         self::setPageDataTitle($site['pageData'], 'Schedule');
 
@@ -251,7 +251,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_a_route_is_not_generated_when_the_parent_path_and_the_title_slug_together_are_longer_than_the_path_column(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $site = self::createPageDataNestedWithinRoute('/conference/programme', '/' . str_repeat('a', 242));
         self::setPageDataTitle($site['pageData'], 'Speaker List');
 
@@ -267,7 +267,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_a_route_is_generated_when_the_parent_path_and_the_title_slug_together_fill_the_path_column(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $parentPath = '/' . str_repeat('a', 241);
         $site = self::createPageDataNestedWithinRoute('/conference/programme', $parentPath);
         self::setPageDataTitle($site['pageData'], 'Speaker List');
@@ -282,7 +282,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_a_route_can_still_be_created_explicitly_for_a_nested_page_whose_parent_page_has_no_route(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $site = self::createRoutelessParentPageDataWithAnUnroutedChildPage();
 
         self::requestJsonLd($client, 'POST', '/_/routes', ['path' => '/2027', 'name' => 'conference-2027', 'page' => self::iriOf($site['childPage'])]);
@@ -294,7 +294,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_i_update_a_route_path_and_a_new_redirect_is_created(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         self::createPageDataWithRoute('/original');
 
         self::requestJsonLd($client, 'PATCH', '/_/routes//original', ['path' => '/new']);
@@ -521,7 +521,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_i_generate_a_route_for_a_path_that_already_exists_and_the_new_route_is_generated_with_a_postfix(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $site = self::createPageDataWithRoute('/programme');
         self::setPageDataTitle($site['pageData'], 'Programme');
 
@@ -536,7 +536,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_i_can_get_all_the_redirects_for_a_route_in_a_single_request(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $site = self::createRouteRedirectingThroughAMiddleRouteTo('/redirect1', '/final-page');
 
         self::requestJsonLd($client, 'GET', self::iriOf($site['final']) . '/redirects');
@@ -552,7 +552,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_if_i_delete_a_route_aware_resource_the_associated_routes_should_also_be_deleted(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $site = self::createPageDataWithRoute('/my-route');
         $pageDataIri = self::iriOf($site['pageData']);
         $routeIri = self::iriOf($site['route']);
@@ -708,7 +708,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_when_i_create_a_redirect_route_the_cache_should_be_cleared_for_the_route_being_redirected_to(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $route = self::createRouteWithPage('/my-route');
 
         self::requestJsonLd($client, 'POST', '/_/routes', '{"name": "/redirect", "path": "/redirect", "redirect": "/_/routes//my-route"}');
@@ -720,7 +720,7 @@ final class RouteTest extends FunctionalTestCase
     public function test_when_i_delete_a_route_that_redirects_the_destination_route_should_be_cleared_from_the_cache(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $site = self::createRouteRedirectingThroughAMiddleRouteTo('/my-route', '/contact-new');
         $iris = array_map(self::iriOf(...), [$site['route'], $site['middle'], $site['final']]);
 

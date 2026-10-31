@@ -31,7 +31,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_an_insert_after_a_position_with_room_after_it_changes_no_other_position(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10 C20');
         $component = self::createDummyComponent();
 
@@ -45,7 +45,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_an_insert_after_a_position_with_no_room_after_it_moves_the_positions_after_it_along_by_one(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B1 C2');
         $component = self::createDummyComponent();
 
@@ -58,7 +58,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_an_insert_moves_only_the_positions_it_runs_into(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B1 C2 D10');
         $component = self::createDummyComponent();
 
@@ -71,7 +71,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_an_insert_before_the_first_position_starts_the_group_at_0(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B1');
         $component = self::createDummyComponent();
 
@@ -84,7 +84,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_an_insert_with_no_anchor_goes_at_the_end(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10');
         $component = self::createDummyComponent();
 
@@ -97,7 +97,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_an_insert_after_the_first_of_two_positions_sharing_a_value_removes_the_tie(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A5 B5');
         $component = self::createDummyComponent();
 
@@ -110,7 +110,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_an_insert_before_the_second_of_two_positions_sharing_a_value_removes_the_tie(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A5 B5');
         $component = self::createDummyComponent();
 
@@ -124,7 +124,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
     public function test_an_insert_from_a_client_that_has_not_seen_another_editors_move_still_goes_after_its_anchor(): void
     {
         $client = static::createClient();
-        $user = self::loginAsUser($client);
+        $user = self::loginAsAdmin($client);
         $names = self::createGroupWithPositions('A0 B10 C20');
 
         self::sendOrder($client, $names['group'], [$names['A'], $names['C'], $names['B']]);
@@ -144,7 +144,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
     #[DataProvider('anchorsNotInTheGroup')]
     public function test_an_anchor_that_is_not_in_the_group_is_a_422(string $anchor, string $position): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10');
         $other = self::createGroupWithPositions('X0', 'other_collection');
         self::deletePosition($names['B']);
@@ -169,7 +169,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
     #[DataProvider('anchorsThatAreNotPositions')]
     public function test_an_anchor_that_does_not_resolve_to_a_position_is_a_422_never_ignored(string $anchor, ?string $iri): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10');
         $component = self::createDummyComponent();
 
@@ -191,7 +191,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
     #[DataProvider('anchors')]
     public function test_an_anchor_sent_with_a_sort_value_is_a_422(string $anchor): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10');
         $component = self::createDummyComponent();
 
@@ -211,7 +211,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_an_insert_with_both_anchors_is_a_422_on_before(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10');
         $component = self::createDummyComponent();
 
@@ -224,7 +224,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_sort_value_sent_without_an_anchor_is_ignored(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10');
         $component = self::createDummyComponent();
 
@@ -238,7 +238,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_sort_value_in_a_patch_is_ignored(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10');
 
         self::requestJsonLd($client, 'PATCH', $names['A'], '{"sortValue": 20}');
@@ -250,7 +250,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_an_anchored_insert_into_a_full_group_is_a_422(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0');
         self::setMaxComponents($names['group'], 1);
         $component = self::createDummyComponent();
@@ -265,7 +265,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_component_created_straight_into_a_group_is_placed_after_its_anchor(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B1');
 
         self::requestJsonLd($client, 'POST', '/component/dummy_components', ['componentPositions' => [['componentGroup' => $names['group'], 'after' => $names['A']]]]);
@@ -277,7 +277,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_component_created_straight_into_a_group_with_an_anchor_from_another_group_is_a_422_on_the_embedded_anchor(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B1');
         $other = self::createGroupWithPositions('X0', 'other_collection');
 
@@ -290,7 +290,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_component_created_straight_into_a_group_with_an_anchor_and_a_sort_value_is_a_422_on_the_embedded_anchor(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B1');
 
         self::requestJsonLd($client, 'POST', '/component/dummy_components', ['componentPositions' => [['componentGroup' => $names['group'], 'after' => $names['A'], 'sortValue' => 1]]]);
@@ -302,7 +302,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_after_an_insert_the_group_lists_its_positions_by_sort_value_including_the_new_one(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B1');
         $component = self::createDummyComponent();
 
@@ -329,7 +329,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_reorder_changes_the_fewest_positions(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10 C20');
 
         self::sendOrder($client, $names['group'], [$names['B'], $names['A'], $names['C']]);
@@ -341,7 +341,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_reorder_never_gives_a_value_below_0(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B1 C2');
 
         self::sendOrder($client, $names['group'], [$names['C'], $names['A'], $names['B']]);
@@ -353,7 +353,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_reorder_removes_ties(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A5 B5 C5');
 
         self::sendOrder($client, $names['group'], [$names['A'], $names['B'], $names['C']]);
@@ -364,7 +364,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_position_hidden_by_allowed_components_follows_its_current_predecessor(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 H10 B20');
         self::holdRestrictedComponent($names['H']);
         self::setAllowedComponent($names['group'], '/component/dummy_components');
@@ -378,7 +378,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_position_added_since_the_client_loaded_the_group_follows_its_current_predecessor(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10 N15');
 
         self::sendOrder($client, $names['group'], [$names['B'], $names['A']]);
@@ -391,7 +391,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
     public function test_a_position_another_request_added_between_the_clients_read_and_its_reorder_is_in_the_reorder_response(): void
     {
         $client = static::createClient();
-        $user = self::loginAsUser($client);
+        $user = self::loginAsAdmin($client);
         $names = self::createGroupWithPositions('A0 B10');
 
         self::requestJsonLd($client, 'GET', $names['group'] . '/order');
@@ -414,7 +414,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_position_deleted_since_the_client_loaded_the_group_is_ignored(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10 C20');
         self::deletePosition($names['C']);
 
@@ -431,7 +431,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
     #[DataProvider('invalidOrders')]
     public function test_an_order_naming_a_position_outside_the_group_or_one_position_twice_is_a_422(array $order, int $index, string $message): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10');
         $other = self::createGroupWithPositions('X0', 'other_collection');
         $iris = array_map(static fn (string $name): string => ($names + $other)[$name] ?? $name, $order);
@@ -454,7 +454,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_every_invalid_entry_of_an_order_is_a_violation_of_its_own(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10');
         $other = self::createGroupWithPositions('X0', 'other_collection');
 
@@ -470,7 +470,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_the_order_carries_the_cache_tags_of_its_group_and_every_listed_position_so_a_position_write_purges_it(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B1 C2');
 
         self::requestJsonLd($client, 'GET', $names['group'] . '/order');
@@ -502,7 +502,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_the_reorder_response_is_what_a_fresh_read_of_the_order_returns(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10 C20');
 
         self::sendOrder($client, $names['group'], [$names['C'], $names['A'], $names['B']]);
@@ -600,7 +600,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_reorder_ignores_the_maximum_number_of_components(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B1 C2');
         self::setMaxComponents($names['group'], 1);
 
@@ -612,7 +612,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_position_moved_into_another_group_after_an_anchor_is_placed_after_it(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B1');
         $other = self::createGroupWithPositions('X0 Y1', 'other_collection');
 
@@ -626,7 +626,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_position_moved_into_another_group_with_no_anchor_goes_at_the_end(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10');
         $other = self::createGroupWithPositions('X0 Y1', 'other_collection');
 
@@ -640,7 +640,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_position_moved_within_its_group_by_an_anchor_is_placed_by_the_same_rule_as_a_reorder(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B1 C2');
 
         self::requestJsonLd($client, 'PATCH', $names['C'], ['before' => $names['A']]);
@@ -651,7 +651,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_position_cannot_be_placed_relative_to_itself(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B1');
 
         self::requestJsonLd($client, 'PATCH', $names['A'], ['after' => $names['A']]);
@@ -674,7 +674,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_reorder_of_a_group_that_does_not_exist_is_a_404(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
 
         self::requestJsonLd($client, 'PATCH', '/_/component_groups/not-a-group/order', '{"componentPositions": []}');
 
@@ -683,7 +683,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_reorder_is_a_merge_patch(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10');
 
         self::requestJsonLd($client, 'PATCH', '/_/component_groups/collection/order', ['componentPositions' => [$names['B'], $names['A']]]);
@@ -695,7 +695,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_a_reorder_sent_as_json_ld_is_refused(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10');
 
         self::requestJsonLd($client, 'PATCH', '/_/component_groups/collection/order', '{"componentPositions": []}', ['content-type' => 'application/ld+json']);
@@ -708,7 +708,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
     {
         static::bootKernel(['routePrefix' => '/_api']);
         $client = static::createClient();
-        $user = self::loginAsUser($client);
+        $user = self::loginAsAdmin($client);
         $names = self::createGroupWithPositions('A0 B10');
 
         self::requestJsonLd($client, 'GET', '/_api/_/component_groups/collection');
@@ -730,7 +730,7 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
 
     public function test_the_sort_values_and_component_group_of_a_reorder_body_are_read_only_and_change_nothing(): void
     {
-        $client = self::loggedInClient();
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0 B10');
         $other = self::createGroupWithPositions('X0', 'other_collection');
 
@@ -747,10 +747,10 @@ final class ComponentGroupOrderTest extends FunctionalTestCase
         self::assertGroupHoldsPositions($other['group'], 'X0', $other);
     }
 
-    private static function loggedInClient(): Client
+    private static function adminClient(): Client
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         return $client;
     }

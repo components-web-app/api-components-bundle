@@ -63,7 +63,7 @@ final class JsonTraitTest extends FunctionalTestCase
     public function test_the_last_response_is_read_and_validated_against_a_schema_file(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         $response = self::requestJsonLd($client, 'POST', '/component/dummy_components', ['uiComponent' => 'AnotherComponent', 'uiClassNames' => ['my-class']]);
 

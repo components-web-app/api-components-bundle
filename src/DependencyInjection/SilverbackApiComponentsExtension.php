@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Doctrine\UuidType;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ContentWriteSecurityResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\ImagineGenerateCommand;
@@ -179,7 +180,7 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
 
         $definition = $container->findDefinition(OrphanedResourcesChangedEmailFactory::class);
         $definition->setArgument('$subject', $config['orphaned_resources']['notify']['subject']);
-        $definition->setArgument('$context', ['website_name' => $config['website_name']]);
+        $definition->setArgument('$context', self::emailContext($config));
 
         $definition = $container->findDefinition(UploadableCacheControl::class);
         $definition->setArgument('$original', $config['uploadable']['cache_control']['original']);
@@ -278,6 +279,9 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition = $container->findDefinition(RoutableResourceMetadataCollectionFactory::class);
         $definition->setArgument('$securityStr', $config['routable_security']);
 
+        $definition = $container->findDefinition(ContentWriteSecurityResourceMetadataCollectionFactory::class);
+        $definition->setArgument('$permission', $config['publishable']['permission']);
+
         $definition = $container->findDefinition(MercureAuthorization::class);
         $definition->setArgument('$cookieSameSite', $config['mercure']['cookie']['samesite']);
         $definition->setArgument('$hubName', $config['mercure']['hub_name']);
@@ -320,15 +324,19 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $definition->setArgument('$userClass', $userClass);
     }
 
+    private static function emailContext(array $config): array
+    {
+        return [
+            'website_name' => $config['website_name'],
+            'email_logo' => $config['emails']['logo'],
+            'email_logo_width' => $config['emails']['logo_width'],
+        ];
+    }
+
     private function setMailerServiceArguments(ContainerBuilder $container, array $config): void
     {
         $definition = $container->findDefinition(UserMailer::class);
-        $definition->setArgument(
-            '$context',
-            [
-                'website_name' => $config['website_name'],
-            ]
-        );
+        $definition->setArgument('$context', self::emailContext($config));
 
         $mapping = [
             PasswordChangedEmailFactory::class => 'password_changed',

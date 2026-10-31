@@ -21,6 +21,7 @@ use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 class UserDataProcessorTest extends TestCase
 {
@@ -138,6 +139,60 @@ class UserDataProcessorTest extends TestCase
 
         $this->expectException(InvalidArgumentException::class);
         $processor->{$method}('no_user');
+    }
+
+    public function test_hashing_a_password_stores_the_hash_and_erases_the_plain_password_without_verifying_the_email_address(): void
+    {
+        $user = $this->createUser();
+        $user->setPassword('old')->setEmailAddressVerified(false)->setPlainPassword('new password');
+
+        $this->createProcessor($user)->hashPassword($user);
+
+        self::assertSame('hashed', $user->getPassword());
+        self::assertNull($user->getPlainPassword());
+        self::assertFalse($user->isEmailAddressVerified());
+    }
+
+    public function test_hashing_with_no_plain_password_keeps_the_stored_password(): void
+    {
+        $user = $this->createUser();
+        $user->setPassword('old');
+
+        $this->createProcessor($user)->hashPassword($user);
+
+        self::assertSame('old', $user->getPassword());
+    }
+
+    public function test_processing_changes_leaves_the_plain_password_unhashed_for_validation(): void
+    {
+        $user = $this->createUser();
+        $user->setPassword('old')->setPlainPassword('new password');
+
+        $this->createProcessor($user)->processChanges($user, clone $user);
+
+        self::assertSame('old', $user->getPassword());
+        self::assertSame('new password', $user->getPlainPassword());
+    }
+
+    public function test_a_password_reset_proves_the_inbox_so_it_verifies_the_email_address(): void
+    {
+        $user = $this->createUser();
+        $user->setPassword('old')->setEmailAddressVerified(false)->setNewPasswordConfirmationToken('stored token')->setPasswordRequestedAt(new \DateTime());
+        $repository = $this->createStub(UserRepositoryInterface::class);
+        $repository->method('findOneWithPasswordResetToken')->willReturn($user);
+        $tokenHasher = $this->createStub(PasswordHasherInterface::class);
+        $tokenHasher->method('verify')->willReturn(true);
+        $hasherFactory = $this->createStub(PasswordHasherFactoryInterface::class);
+        $hasherFactory->method('getPasswordHasher')->willReturn($tokenHasher);
+
+        $result = (new UserDataProcessor($this->createHasher(), $repository, $hasherFactory, false, false, false))->passwordReset('my_username', 'token', 'new password');
+
+        self::assertSame($user, $result);
+        self::assertSame('hashed', $user->getPassword());
+        self::assertNull($user->getPlainPassword());
+        self::assertTrue($user->isEmailAddressVerified());
+        self::assertNull($user->getNewPasswordConfirmationToken());
+        self::assertNull($user->getPasswordRequestedAt());
     }
 
     private function createUser(): User
