@@ -38,7 +38,7 @@ final class MercurePublishFailureTest extends FunctionalTestCase
     public function test_creating_a_resource_while_the_mercure_hub_is_unreachable_returns_201_and_logs_the_failure(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         HubStub::setUnreachable(true);
 
         self::requestJsonLd($client, 'POST', '/_/layouts', ['reference' => 'primary', 'uiComponent' => 'PrimaryLayout']);
@@ -60,7 +60,7 @@ final class MercurePublishFailureTest extends FunctionalTestCase
     public function test_the_mercure_hub_is_reachable_again_in_the_next_test(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         self::requestJsonLd($client, 'POST', '/_/layouts', ['reference' => 'secondary', 'uiComponent' => 'PrimaryLayout']);
 
@@ -71,7 +71,7 @@ final class MercurePublishFailureTest extends FunctionalTestCase
     public function test_a_transport_failure_from_the_http_client_while_publishing_returns_201_and_logs_the_failure(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         HubStub::failWith(new TransportException('Connection refused'));
 
         self::requestJsonLd($client, 'POST', '/_/layouts', ['reference' => 'primary', 'uiComponent' => 'PrimaryLayout']);
@@ -91,7 +91,7 @@ final class MercurePublishFailureTest extends FunctionalTestCase
     public function test_an_invalid_mercure_jwt_is_configuration_so_the_publish_still_throws_after_the_write_is_saved(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         HubStub::failWith(new MercureInvalidArgumentException('The provided JWT is not valid.'));
 
         self::requestJsonLd($client, 'POST', '/_/layouts', ['reference' => 'primary', 'uiComponent' => 'PrimaryLayout']);

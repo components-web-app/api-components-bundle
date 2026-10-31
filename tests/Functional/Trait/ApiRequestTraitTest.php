@@ -21,7 +21,7 @@ final class ApiRequestTraitTest extends FunctionalTestCase
     public function test_a_post_sends_and_accepts_json_ld(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         $response = self::requestJsonLd($client, 'POST', '/component/dummy_components', ['uiComponent' => 'AnotherComponent']);
 
@@ -34,7 +34,7 @@ final class ApiRequestTraitTest extends FunctionalTestCase
     public function test_a_patch_is_sent_as_a_merge_patch(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $iri = self::requestJsonLd($client, 'POST', '/component/dummy_components', ['uiComponent' => 'Before'])->toArray()['@id'];
 
         $response = self::requestJsonLd($client, 'PATCH', $iri, ['uiComponent' => 'After']);
@@ -47,7 +47,7 @@ final class ApiRequestTraitTest extends FunctionalTestCase
     public function test_a_string_body_is_sent_as_it_is(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         self::requestJsonLd($client, 'POST', '/component/dummy_components', '{"uiComponent": ');
 

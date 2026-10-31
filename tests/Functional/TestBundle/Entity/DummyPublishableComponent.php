@@ -18,6 +18,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\QueryParameter;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ContentWriteSecurityResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 
@@ -27,6 +28,7 @@ use Silverback\ApiComponentsBundle\Entity\Utility\PublishableTrait;
 #[Silverback\Publishable]
 #[ApiResource(
     mercure: true,
+    extraProperties: [ContentWriteSecurityResourceMetadataCollectionFactory::OPT_OUT_EXTRA_PROPERTY => false],
     parameters: [
         'search' => new QueryParameter(filter: new FreeTextQueryFilter(new OrFilter(new PartialSearchFilter())), properties: ['reference']),
     ],

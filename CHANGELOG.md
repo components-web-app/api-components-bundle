@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- Writing CWA content (pages, layouts, routes, component groups and their order, component positions, every component including `/move`, and every page data class, project classes included) requires `publishable.permission` (or the class's `#[Publishable(isGranted:)]`), ANDed with any `security` the operation already has; opt an operation or resource out with `extraProperties: ['publishable_permission' => false]`. Form `/submit` stays public ([#579](https://github.com/components-web-app/api-components-bundle/pull/579))
+
 ### Added
 - `emails.logo` (a Twig path, default the bundle's logo) and `emails.logo_width` (pixels, optional) set the logo at the top of every email the bundle sends, whose alt text is now the `website_name` instead of `Logo` ([#576](https://github.com/components-web-app/api-components-bundle/pull/576))
 

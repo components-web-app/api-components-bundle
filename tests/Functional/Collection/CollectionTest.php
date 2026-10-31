@@ -34,7 +34,7 @@ final class CollectionTest extends FunctionalTestCase
     public function test_a_collection_component_can_be_created(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         self::requestJsonLd($client, 'POST', '/component/collections', '{"resourceIri": "/page_data/page_datas", "perPage": 20, "defaultQueryParameters": {"search": "something", "orderBy": "anotherThing"}}');
 
@@ -46,7 +46,7 @@ final class CollectionTest extends FunctionalTestCase
     public function test_a_collection_component_cannot_be_created_with_an_invalid_resource_iri(?string $resourceIri): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         self::requestJsonLd($client, 'POST', '/component/collections', ['resourceIri' => $resourceIri]);
 
@@ -67,7 +67,7 @@ final class CollectionTest extends FunctionalTestCase
     public function test_a_collection_component_can_be_deleted(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $collection = self::createCollection();
 
         self::requestJsonLd($client, 'DELETE', self::iriOf($collection));
@@ -78,7 +78,7 @@ final class CollectionTest extends FunctionalTestCase
     public function test_the_collection_is_purged_from_the_cache_when_a_dummy_component_is_deleted(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $components = self::createDummyComponents(2);
         $collection = self::createCollection();
 
@@ -109,7 +109,7 @@ final class CollectionTest extends FunctionalTestCase
     public function test_a_collection_is_fetched_with_the_default_pagination_enabled(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         self::createDummyComponents(50);
         $collection = self::createCollection();
 
@@ -125,7 +125,7 @@ final class CollectionTest extends FunctionalTestCase
     public function test_a_collection_component_is_created_with_per_page_configured(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         self::createDummyComponents(50);
 
         self::requestJsonLd($client, 'POST', '/component/collections', '{"resourceIri": "/component/dummy_components", "perPage": 3}');
@@ -138,7 +138,7 @@ final class CollectionTest extends FunctionalTestCase
     public function test_the_pagination_parameter_is_configured(int $total, string $postfix): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         self::createDummyResourcesWithPagination(120);
 
         self::requestJsonLd($client, 'GET', '/dummy_resource_with_paginations' . $postfix);
@@ -151,7 +151,7 @@ final class CollectionTest extends FunctionalTestCase
     public function test_component_pagination_can_be_configured(int $total, string $postfix): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         self::createDummyResourcesWithPagination(120);
         $collection = self::createCollection('/dummy_resource_with_paginations');
 
@@ -177,7 +177,7 @@ final class CollectionTest extends FunctionalTestCase
     public function test_a_resource_can_be_searched_directly_without_a_collection(int $total, string $postfix): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         self::createDummyResourcesWithFilters(80);
 
         self::requestJsonLd($client, 'GET', '/dummy_resource_with_filters' . $postfix);
@@ -203,7 +203,7 @@ final class CollectionTest extends FunctionalTestCase
     public function test_a_collection_has_default_query_string_parameters_and_filters(int $total, string $postfix): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         self::createDummyResourcesWithFilters(80);
         $collection = self::createCollection('/dummy_resource_with_filters', ['perPage' => 40, 'reference' => '1']);
 

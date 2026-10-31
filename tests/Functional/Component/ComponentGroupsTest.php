@@ -29,7 +29,7 @@ final class ComponentGroupsTest extends FunctionalTestCase
     public function test_i_cannot_add_a_component_collection_without_a_reference(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         self::requestJsonLd($client, 'POST', '/_/component_groups', '{"reference": ""}');
 
@@ -40,7 +40,7 @@ final class ComponentGroupsTest extends FunctionalTestCase
     public function test_i_can_create_a_component_collection_resource(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         self::requestJsonLd($client, 'POST', '/_/component_groups', '{"reference": "collection_reference", "location": "collection_location"}');
 
@@ -52,7 +52,7 @@ final class ComponentGroupsTest extends FunctionalTestCase
     public function test_when_i_delete_a_component_collection_resource_locations_are_also_deleted_but_components_are_not(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $group = self::createGroupWithComponentIris(4);
 
         self::requestJsonLd($client, 'DELETE', $group['group']);
@@ -65,7 +65,7 @@ final class ComponentGroupsTest extends FunctionalTestCase
     public function test_i_can_get_a_component_group_by_reference(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $group = self::createGroupWithComponentIris(0);
 
         self::requestJsonLd($client, 'GET', '/_/component_groups/collection');
@@ -198,7 +198,7 @@ final class ComponentGroupsTest extends FunctionalTestCase
     public function test_a_page_data_property_position_is_not_populated_when_the_resolved_component_type_is_not_in_allowed_components(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         $publishable = new DummyPublishableComponent();
         $publishable->setPublishedAt(new \DateTime());
         $position = self::createPageDataPropertyPositionInARestrictedGroup('/test-page', 'publishableComponent', $publishable);

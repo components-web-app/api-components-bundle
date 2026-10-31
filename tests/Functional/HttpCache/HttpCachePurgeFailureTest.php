@@ -38,7 +38,7 @@ final class HttpCachePurgeFailureTest extends FunctionalTestCase
     public function test_creating_a_resource_while_the_http_cache_is_unreachable_returns_201_logs_the_failure_and_still_publishes_to_mercure(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
         MockClientCallback::setCacheUnreachable(true);
 
         self::requestJsonLd($client, 'POST', '/_/layouts', ['reference' => 'primary', 'uiComponent' => 'PrimaryLayout']);
@@ -57,7 +57,7 @@ final class HttpCachePurgeFailureTest extends FunctionalTestCase
     public function test_the_http_cache_is_reachable_again_in_the_next_test(): void
     {
         $client = static::createClient();
-        self::loginAsUser($client);
+        self::loginAsAdmin($client);
 
         self::requestJsonLd($client, 'POST', '/_/layouts', ['reference' => 'secondary', 'uiComponent' => 'PrimaryLayout']);
 

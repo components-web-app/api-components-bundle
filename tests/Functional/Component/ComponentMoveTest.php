@@ -496,10 +496,9 @@ final class ComponentMoveTest extends FunctionalTestCase
         self::assertGroupHoldsPositions($names['group'], 'A0', $names);
     }
 
-    public function test_a_signed_in_user_granted_the_position_write_can_move_a_position(): void
+    public function test_an_admin_granted_the_position_write_can_move_a_position(): void
     {
-        $client = static::createClient();
-        self::loginAsUser($client);
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0');
         $other = self::createGroupWithPositions('X0', 'other_collection');
 
@@ -509,7 +508,7 @@ final class ComponentMoveTest extends FunctionalTestCase
         self::assertGroupHoldsPositions($other['group'], 'X0 A1', $other + ['A' => $names['A']]);
     }
 
-    public function test_a_signed_in_user_not_granted_the_page_data_write_cannot_move_into_its_slot(): void
+    public function test_a_signed_in_user_without_the_publishable_permission_cannot_move_into_a_page_data_slot(): void
     {
         $client = static::createClient();
         self::loginAsUser($client);
@@ -524,7 +523,7 @@ final class ComponentMoveTest extends FunctionalTestCase
         self::assertSlotHolds($site['pageData'], 'component', null);
     }
 
-    public function test_a_signed_in_user_not_granted_the_page_data_write_cannot_move_out_of_its_slot(): void
+    public function test_a_signed_in_user_without_the_publishable_permission_cannot_move_out_of_a_page_data_slot(): void
     {
         $client = static::createClient();
         self::loginAsUser($client);
@@ -538,10 +537,9 @@ final class ComponentMoveTest extends FunctionalTestCase
         self::assertGroupHoldsPositions($names['group'], 'A0', $names);
     }
 
-    public function test_a_signed_in_user_granted_the_page_data_write_can_move_into_its_slot(): void
+    public function test_an_admin_granted_the_page_data_write_can_move_into_its_slot(): void
     {
-        $client = static::createClient();
-        self::loginAsUser($client);
+        $client = self::adminClient();
         $names = self::createGroupWithPositions('A0');
         $site = self::pageDataSite();
         self::emptySlot($site['pageData'], 'component');
