@@ -58,6 +58,7 @@ final class PublishableEventListener
 
         if (
             null === $data
+            || null === $attributes['class']
             || !$this->publishableAttributeReader->isConfigured($attributes['class'])
             || $attributes['operation'] instanceof CollectionOperationInterface
         ) {
