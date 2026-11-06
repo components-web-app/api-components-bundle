@@ -14,8 +14,10 @@ namespace Silverback\ApiComponentsBundle\Tests\ApiPlatform\Metadata\Resource;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Operation\PathSegmentNameGeneratorInterface;
 use ApiPlatform\Metadata\Operations;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
@@ -129,7 +131,7 @@ class StateOperationMetadataTest extends TestCase
         $reader->method('getConfiguredProperties')->willReturn([]);
         $segments = $this->createStub(PathSegmentNameGeneratorInterface::class);
         $segments->method('getSegmentName')->willReturn('dummy_uploadables');
-        $factory = new UploadableResourceMetadataCollectionFactory($this->decorated(DummyUploadable::class, 'DummyUploadable', ['kept' => 1]), $reader, $segments);
+        $factory = new UploadableResourceMetadataCollectionFactory($this->decorated(DummyUploadable::class, 'DummyUploadable', ['kept' => 1], [new Patch(uriTemplate: '/items/{id}', shortName: 'DummyUploadable', class: DummyUploadable::class, name: 'item_patch')]), $reader, $segments);
 
         $metadata = $factory->create(DummyUploadable::class);
         $upload = $metadata->getOperation('_api_/dummy_uploadables/{id}/upload_post');
@@ -143,15 +145,98 @@ class StateOperationMetadataTest extends TestCase
         self::assertFalse($download->canSerialize());
     }
 
+    public function test_the_upload_operation_takes_every_security_of_the_patch_operation_and_the_download_keeps_the_gets(): void
+    {
+        $metadata = $this->uploadableFactory([
+            self::securedGet(),
+            new Put(uriTemplate: '/items/{id}', shortName: 'DummyUploadable', class: DummyUploadable::class, name: 'item_put', security: 'put', securityMessage: 'put message'),
+            new Patch(uriTemplate: '/items/{id}', shortName: 'DummyUploadable', class: DummyUploadable::class, name: 'item_patch', security: 'patch', securityMessage: 'patch message', securityPostDenormalize: 'patch denormalize', securityPostDenormalizeMessage: 'patch denormalize message', securityPostValidation: 'patch validation', securityPostValidationMessage: 'patch validation message'),
+        ])->create(DummyUploadable::class);
+
+        self::assertSame(['patch', 'patch message', 'patch denormalize', 'patch denormalize message', 'patch validation', 'patch validation message'], self::securityOf($metadata->getOperation(self::UPLOAD)));
+        self::assertSame(['get', 'get message', 'get denormalize', 'get denormalize message', 'get validation', 'get validation message'], self::securityOf($metadata->getOperation(self::DOWNLOAD)));
+        self::assertSame('/items/{id}/upload', $metadata->getOperation(self::UPLOAD)->getUriTemplate());
+        self::assertSame('POST', $metadata->getOperation(self::UPLOAD)->getMethod());
+    }
+
+    public function test_the_upload_operation_takes_the_put_operations_security_when_there_is_no_patch(): void
+    {
+        $metadata = $this->uploadableFactory([
+            self::securedGet(),
+            new Put(uriTemplate: '/items/{id}', shortName: 'DummyUploadable', class: DummyUploadable::class, name: 'item_put', security: 'put', securityMessage: 'put message'),
+            new Put(uriTemplate: '/other/{id}', shortName: 'DummyUploadable', class: DummyUploadable::class, name: 'other_put', security: 'other put'),
+        ])->create(DummyUploadable::class);
+
+        self::assertSame(['put', 'put message', null, null, null, null], self::securityOf($metadata->getOperation(self::UPLOAD)));
+    }
+
+    public function test_a_resource_with_no_patch_or_put_gets_no_item_upload_operation_but_keeps_its_download(): void
+    {
+        $metadata = $this->uploadableFactory([self::securedGet()])->create(DummyUploadable::class);
+
+        self::assertSame(['item_get', self::DOWNLOAD], array_keys(iterator_to_array($metadata[0]->getOperations() ?? [])));
+    }
+
+    private const string UPLOAD = '_api_/items/{id}/upload_post';
+
+    private const string DOWNLOAD = '_api_/items/{id}/download/{property}_get';
+
+    private static function securedGet(): Get
+    {
+        return new Get(uriTemplate: '/items/{id}', uriVariables: ['id'], shortName: 'DummyUploadable', class: DummyUploadable::class, name: 'item_get', security: 'get', securityMessage: 'get message', securityPostDenormalize: 'get denormalize', securityPostDenormalizeMessage: 'get denormalize message', securityPostValidation: 'get validation', securityPostValidationMessage: 'get validation message');
+    }
+
+    /**
+     * @return list<string|\Stringable|null>
+     */
+    private static function securityOf(Operation $operation): array
+    {
+        return [
+            $operation->getSecurity(),
+            $operation->getSecurityMessage(),
+            $operation->getSecurityPostDenormalize(),
+            $operation->getSecurityPostDenormalizeMessage(),
+            $operation->getSecurityPostValidation(),
+            $operation->getSecurityPostValidationMessage(),
+        ];
+    }
+
+    /**
+     * @param list<HttpOperation> $operations
+     */
+    private function uploadableFactory(array $operations): UploadableResourceMetadataCollectionFactory
+    {
+        $reader = $this->createStub(UploadableAttributeReaderInterface::class);
+        $reader->method('isConfigured')->willReturn(true);
+        $reader->method('getConfiguredProperties')->willReturn([]);
+        $segments = $this->createStub(PathSegmentNameGeneratorInterface::class);
+        $segments->method('getSegmentName')->willReturn('items');
+        $decorated = $this->createStub(ResourceMetadataCollectionFactoryInterface::class);
+        $named = [];
+        foreach ($operations as $operation) {
+            $named[(string) $operation->getName()] = $operation;
+        }
+        $decorated->method('create')->willReturn(new ResourceMetadataCollection(DummyUploadable::class, [
+            (new ApiResource(shortName: 'DummyUploadable', class: DummyUploadable::class))->withOperations(new Operations($named)),
+        ]));
+
+        return new UploadableResourceMetadataCollectionFactory($decorated, $reader, $segments);
+    }
+
     /**
      * @param array<string, mixed> $extraProperties
+     * @param list<HttpOperation>  $otherOperations
      */
-    private function decorated(string $class, string $shortName, array $extraProperties = []): ResourceMetadataCollectionFactoryInterface
+    private function decorated(string $class, string $shortName, array $extraProperties = [], array $otherOperations = []): ResourceMetadataCollectionFactoryInterface
     {
         $get = new Get(uriTemplate: '/items/{id}', uriVariables: ['id'], shortName: $shortName, class: $class, name: 'item_get', controller: 'main_controller', extraProperties: $extraProperties);
+        $operations = ['item_get' => $get];
+        foreach ($otherOperations as $operation) {
+            $operations[(string) $operation->getName()] = $operation;
+        }
         $decorated = $this->createStub(ResourceMetadataCollectionFactoryInterface::class);
         $decorated->method('create')->willReturn(new ResourceMetadataCollection($class, [
-            (new ApiResource(shortName: $shortName, class: $class))->withOperations(new Operations(['item_get' => $get])),
+            (new ApiResource(shortName: $shortName, class: $class))->withOperations(new Operations($operations)),
         ]));
 
         return $decorated;
