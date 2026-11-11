@@ -15,8 +15,12 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\HttpOperation;
+use ApiPlatform\Metadata\Metadata;
+use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Operation\PathSegmentNameGeneratorInterface;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use JetBrains\PhpStorm\Pure;
@@ -29,6 +33,15 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UploadStateProvide
  */
 class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCollectionFactoryInterface
 {
+    private const array WRITE_SECURITY_PROPERTIES = [
+        'security',
+        'securityMessage',
+        'securityPostDenormalize',
+        'securityPostDenormalizeMessage',
+        'securityPostValidation',
+        'securityPostValidationMessage',
+    ];
+
     private ResourceMetadataCollectionFactoryInterface $decorated;
     private UploadableAttributeReaderInterface $uploadableFileManager;
     private PathSegmentNameGeneratorInterface $pathSegmentNameGenerator;
@@ -64,15 +77,18 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
             if (!$operations) {
                 continue;
             }
+            $itemWriteOperation = self::findItemWriteOperation($operations);
             foreach ($operations as $operation) {
                 if ($operation instanceof Post) {
                     $postUploadOperation = static::generatePostOperation($operation, $openApiRequestMultipartProperties, $pathSegmentName);
                     $operations->add(self::generateOperationName($postUploadOperation), $postUploadOperation);
                 }
                 if ($operation instanceof Get) {
-                    $uploadItemOperation = self::generateUploadItemOperation($operation, $openApiRequestMultipartProperties, $pathSegmentName);
-                    $uploadName = self::generateOperationName($uploadItemOperation);
-                    $operations->add($uploadName, $uploadItemOperation->withName($uploadName));
+                    if (null !== $itemWriteOperation) {
+                        $uploadItemOperation = self::generateUploadItemOperation($operation, $itemWriteOperation, $openApiRequestMultipartProperties, $pathSegmentName);
+                        $uploadName = self::generateOperationName($uploadItemOperation);
+                        $operations->add($uploadName, $uploadItemOperation->withName($uploadName));
+                    }
 
                     $downloadItemOperation = self::generateDownloadItemOperation($operation, $pathSegmentName);
                     $downloadName = self::generateOperationName($downloadItemOperation);
@@ -82,6 +98,35 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
         }
 
         return $resourceMetadata;
+    }
+
+    /**
+     * @param iterable<Operation> $operations
+     */
+    private static function findItemWriteOperation(iterable $operations): ?HttpOperation
+    {
+        $put = null;
+        foreach ($operations as $operation) {
+            if ($operation instanceof Patch) {
+                return $operation;
+            }
+            if (null === $put && $operation instanceof Put) {
+                $put = $operation;
+            }
+        }
+
+        return $put;
+    }
+
+    private static function withWriteSecurity(HttpOperation $operation, HttpOperation $writeOperation): HttpOperation
+    {
+        $secured = clone $operation;
+        foreach (self::WRITE_SECURITY_PROPERTIES as $property) {
+            $reflectionProperty = new \ReflectionProperty(Metadata::class, $property);
+            $reflectionProperty->setValue($secured, $reflectionProperty->getValue($writeOperation));
+        }
+
+        return $secured;
     }
 
     #[Pure]
@@ -116,11 +161,10 @@ class UploadableResourceMetadataCollectionFactory implements ResourceMetadataCol
         return self::configurePostOperation($newPost, $openApiRequestMultipartProperties);
     }
 
-    #[Pure]
-    private static function generateUploadItemOperation(Get $getOperation, array $openApiRequestMultipartProperties, string $pathSegmentName): HttpOperation
+    private static function generateUploadItemOperation(Get $getOperation, HttpOperation $writeOperation, array $openApiRequestMultipartProperties, string $pathSegmentName): HttpOperation
     {
         $path = \sprintf('/%s/{id}/upload', $pathSegmentName);
-        $newUploadPost = $getOperation
+        $newUploadPost = self::withWriteSecurity($getOperation, $writeOperation)
             ->withUriTemplate($path)
             ->withMethod(HttpOperation::METHOD_POST)
             ->withShortName($getOperation->getShortName())

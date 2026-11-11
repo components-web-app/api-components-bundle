@@ -4,8 +4,14 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- An uploadable resource's item upload (`POST {iri}/upload`) takes its `security`, `securityPostDenormalize` and `securityPostValidation` (with their messages) from the resource's `Patch`, else its `Put`, instead of its `Get`, and a resource with neither has no item upload route; the download still follows `Get` ([#584](https://github.com/components-web-app/api-components-bundle/pull/584))
+
 ### Fixed
 - `GET /_/contexts/<ShortName>` (the JSON-LD context) no longer fails with a TypeError in the publishable response listener ([#583](https://github.com/components-web-app/api-components-bundle/pull/583))
+
+### Tooling
+- The Symfony NEXT CI leg keeps PHPUnit and ParaTest on their stable releases, so it tests the next Symfony rather than unreleased test tools ([#584](https://github.com/components-web-app/api-components-bundle/pull/584))
 
 ## [2.0.0-alpha.40](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.39...2.0.0-alpha.40) - 2026-10-31
 
