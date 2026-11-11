@@ -449,6 +449,7 @@ jobs:
           composer config extra.symfony.require ${{ matrix.symfony }}
           composer config minimum-stability dev
           composer config prefer-stable false
+          composer require --dev --no-update --ansi 'phpunit/phpunit:^13.3@stable' 'brianium/paratest:^7.26@stable'
           composer update --no-progress --ansi
       - name: Flag held back Symfony packages
         env:
