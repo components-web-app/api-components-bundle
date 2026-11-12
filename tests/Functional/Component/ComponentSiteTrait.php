@@ -70,6 +70,12 @@ trait ComponentSiteTrait
             array_push($entities, $component, $position);
         }
         static::persistAndFlush(...$entities);
+        static::getEntityManager()
+            ->createQuery(\sprintf('UPDATE %s p SET p.modifiedAt = :earlier WHERE p.componentGroup = :group', ComponentPosition::class))
+            ->setParameter('earlier', new \DateTime('-1 hour'))
+            ->setParameter('group', $group)
+            ->execute();
+        static::rebootKernel();
 
         $byValue = [];
         foreach ($created as [, $position]) {

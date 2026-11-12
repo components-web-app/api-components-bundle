@@ -12,6 +12,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Tooling
 - The Symfony NEXT CI leg keeps PHPUnit and ParaTest on their stable releases, so it tests the next Symfony rather than unreleased test tools ([#584](https://github.com/components-web-app/api-components-bundle/pull/584))
+- The component position tests' set-up backdates the positions' `modifiedAt`, so a write under test always changes a stored value on Doctrine ORM 3.8, which skips an update whose only change is a `datetime` in the same second ([#586](https://github.com/components-web-app/api-components-bundle/pull/586))
 
 ## [2.0.0-alpha.40](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.39...2.0.0-alpha.40) - 2026-10-31
 
