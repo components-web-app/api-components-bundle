@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.41](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.40...2.0.0-alpha.41) - 2026-11-12
+
 ### Breaking
 - An uploadable resource's item upload (`POST {iri}/upload`) takes its `security`, `securityPostDenormalize` and `securityPostValidation` (with their messages) from the resource's `Patch`, else its `Put`, instead of its `Get`, and a resource with neither has no item upload route; the download still follows `Get` ([#584](https://github.com/components-web-app/api-components-bundle/pull/584))
 
