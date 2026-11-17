@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.42](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.41...2.0.0-alpha.42) - 2026-11-17
+
 ### Added
 - `GET /_/routes?pages[]=<page IRI>…` and `?pageData[]=<page data IRI>…` return the route of each listed page or page data (up to 100 values, more is a 422; `perPage=100` returns every match in one page), with the collection's usual visibility and caching ([#590](https://github.com/components-web-app/api-components-bundle/pull/590))
 - A template page's `_metadata.pageDataCount` gives callers granted the publishable permission the number of page data of any class using it, on the item and in `GET /_/pages`, counted in one query per collection ([#589](https://github.com/components-web-app/api-components-bundle/pull/589))
