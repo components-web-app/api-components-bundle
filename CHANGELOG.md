@@ -7,6 +7,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ### Added
 - A template page's `_metadata.pageDataCount` gives callers granted the publishable permission the number of page data of any class using it, on the item and in `GET /_/pages`, counted in one query per collection ([#589](https://github.com/components-web-app/api-components-bundle/pull/589))
 
+### Fixed
+- A `Collection` component's default query parameters reach its resource's query parameter filters again on API Platform 4.4.6+ and 5.0.5+, which no longer write parameter values onto the operation they were given ([#589](https://github.com/components-web-app/api-components-bundle/pull/589))
+
 ### Changed
 - `Page` joins the `http_cache.personalised_resource_classes` defaults, so an authenticated `GET` of a page or the page collection is `private, no-store` ([#589](https://github.com/components-web-app/api-components-bundle/pull/589))
 
