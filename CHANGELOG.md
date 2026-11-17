@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Added
+- `GET /_/routes?pages[]=<page IRI>…` and `?pageData[]=<page data IRI>…` return the route of each listed page or page data (up to 100 values, more is a 422; `perPage=100` returns every match in one page), with the collection's usual visibility and caching ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+
 ## [2.0.0-alpha.41](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.40...2.0.0-alpha.41) - 2026-11-12
 
 ### Breaking
