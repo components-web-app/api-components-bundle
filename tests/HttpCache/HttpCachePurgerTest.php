@@ -295,7 +295,9 @@ class HttpCachePurgerTest extends TestCase
         $purger->propagate();
 
         self::assertCount(1, $this->logger->records);
-        self::assertInstanceOf(TransportException::class, $this->logger->records[0][2]['exception']);
+        self::assertSame('error', $this->logger->records[0][0]);
+        self::assertInstanceOf(HttpClientExceptionInterface::class, $this->logger->records[0][2]['exception']);
+        self::assertContains('Could not resolve host: souin', self::messagesOfChain($this->logger->records[0][2]['exception']));
     }
 
     public function test_a_tag_too_long_for_the_purge_header_does_not_fail_the_write(): void
@@ -474,6 +476,19 @@ class HttpCachePurgerTest extends TestCase
         self::assertSame('/_api/_/routes//about-us', $purger->getRouteTag('/about-us'));
         self::assertSame('/_api/_/routes//about-us/team', $purger->getRouteTag('/about-us/team'));
         self::assertSame('/_api/_/routes//', $purger->getRouteTag('/'));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function messagesOfChain(\Throwable $exception): array
+    {
+        $messages = [];
+        for ($current = $exception; null !== $current; $current = $current->getPrevious()) {
+            $messages[] = $current->getMessage();
+        }
+
+        return $messages;
     }
 
     private function invalidationClient(MockResponse $response): ScopingHttpClient

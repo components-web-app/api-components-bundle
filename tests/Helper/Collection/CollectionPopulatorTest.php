@@ -42,6 +42,9 @@ class CollectionPopulatorTest extends TestCase
     /** @var list<array<string, mixed>> */
     private array $parameterContexts = [];
     private mixed $collectionData = [];
+    /** @var list<object> */
+    private array $providedOperations = [];
+    private ?GetCollection $parameterOperation = null;
 
     protected function setUp(): void
     {
@@ -170,6 +173,17 @@ class CollectionPopulatorTest extends TestCase
         self::assertFalse($this->parameterRequests[0]->attributes->has('_api_query_parameters'));
     }
 
+    public function test_the_collection_is_provided_with_the_operation_carrying_the_parameter_values_the_parameter_provider_resolved(): void
+    {
+        $this->parameterOperation = new GetCollection(name: 'with_parameter_values');
+
+        $this->populator()->populate($this->collection());
+
+        self::assertSame([$this->parameterOperation], $this->providedOperations);
+        self::assertSame($this->parameterOperation, $this->providedContexts[0]['operation']);
+        self::assertNull($this->mainRequest->attributes->get('_api_operation'));
+    }
+
     private function collection(): Collection
     {
         return (new Collection())
@@ -204,6 +218,7 @@ class CollectionPopulatorTest extends TestCase
         $provider = $this->createStub(ProviderInterface::class);
         $provider->method('provide')->willReturnCallback(function ($operation, array $uriVariables, array $context): mixed {
             $this->providedContexts[] = $context;
+            $this->providedOperations[] = $operation;
 
             return $this->collectionData;
         });
@@ -211,6 +226,9 @@ class CollectionPopulatorTest extends TestCase
         $parameterProvider->method('provide')->willReturnCallback(function ($operation, array $uriVariables, array $context): null {
             $this->parameterRequests[] = $context['request'];
             $this->parameterContexts[] = $context;
+            if ($this->parameterOperation) {
+                $context['request']->attributes->set('_api_operation', $this->parameterOperation);
+            }
 
             return null;
         });

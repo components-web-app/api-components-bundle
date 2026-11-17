@@ -80,7 +80,7 @@ final class PurgeHttpCacheTagsTest extends FunctionalTestCase
 
         self::assertSame(1, $tester->getStatusCode(), $tester->getDisplay());
         self::assertStringContainsString('Failed to purge the HTTP cache tags', $tester->getDisplay());
-        self::assertStringContainsString('Could not resolve host', $tester->getDisplay());
+        self::assertStringContainsString('"/_api/_/routes//about-us"', $tester->getDisplay());
     }
 
     public function test_a_tag_that_the_purge_header_would_split_is_refused_before_anything_is_purged(): void
