@@ -154,7 +154,7 @@ final class MaintenanceCommandTest extends FunctionalTestCase
 
         self::assertSame(1, $tester->getStatusCode(), $tester->getDisplay());
         self::assertStringContainsString('Failed to purge the HTTP cache tags', $tester->getDisplay());
-        self::assertStringContainsString('Could not resolve host', $tester->getDisplay());
+        self::assertStringContainsString('"cwa-html"', $tester->getDisplay());
         self::assertSame('true', self::storedValue());
     }
 

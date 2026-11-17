@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Tooling
+- The purge failure tests hold on API Platform 5.0.7+, whose `PurgeFailedException` carries the transport error as `previous` instead of in its message ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+
 ## [2.0.0-alpha.41](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.40...2.0.0-alpha.41) - 2026-11-12
 
 ### Breaking
