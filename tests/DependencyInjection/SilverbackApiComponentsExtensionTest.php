@@ -28,6 +28,7 @@ use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RoutableExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\RouteExtension;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\TablePrefixExtension;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
@@ -535,7 +536,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertFalse($this->argument($container, MercureAuthorization::class, '$secureSubscriptions'));
 
         self::assertSame(
-            [Route::class, ResourceManifest::class, ComponentPosition::class],
+            [Route::class, ResourceManifest::class, ComponentPosition::class, Page::class],
             $this->argument($container, 'silverback.api_components.event_listener.api.cache_headers', '$personalisedResourceClasses')
         );
 
