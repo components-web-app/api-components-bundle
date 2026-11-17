@@ -142,7 +142,7 @@ API Platform routes are prefixed by `RoutingPrefixResourceMetadataCollectionFact
 | Endpoint | Purpose |
 |---|---|
 | `GET /_/routes/{path}` | Resolve a path to a Route. A gated route is 404 for the public (#224). |
-| `GET /_/routes` | Route collection; the sitemap source. Filtered on the inherited `liveAt` (#234). |
+| `GET /_/routes` | Route collection; the sitemap source. Filtered on the inherited `liveAt` (#234). `?pages[]=`/`?pageData[]=` filter by the routed page or page data (#588). |
 | `POST /_/routes/generate` | Generate a Route for a Page/PageData. 422 when the parent has no route (#245). |
 | `PATCH /_/routes/{id}` | Optional `cascadeChildPaths: true` rewrites descendant paths and creates redirects (#256). |
 | `GET /_/routes/{id}/children` | Recursive child tree, admin-only, unfiltered by publication. |
@@ -449,6 +449,7 @@ Route, Layout and Page declare `QueryParameter`s: `search` = `FreeTextQueryFilte
 
 - **Never use `orWhere()` in a filter.** It ORs against the whole accumulated WHERE and discards publication, draft and ancestor predicates. `OrFilter` must always be wrapped in `FreeTextQueryFilter`. Apply a filter's clauses as one `andWhere(Orx)`.
 - `PartialSearchFilter` inner-joins nested properties, which removes rows inside an OR search, so `layout.reference` was left out of the Page search.
+- **`GET /_/routes?pages[]=<page IRI>…` and `?pageData[]=<page data IRI>…` (#588)** return the route of each listed page or page data, for the module's admin Pages list; a single `pages=<IRI>` works too (`castToArray`). The key is `pages`, not `page`, because `page` is API Platform's pagination parameter: `page[]` was read as page 1 and `page=<IRI>` was a 400. Each is `Parameter\InverseSideIriFilter`, never AP's `IriFilter`: `Route.page` and `Route.pageData` are inverse one-to-ones, which DQL cannot compare without a join (`IriFilter` is a 500), so it inner-joins the property and compares the joined entity. Values come from AP's `IriConverterParameterProvider` (`fetch_data: false`, no query per IRI; a value that is not an IRI ends the conversion, so it and later values match nothing). More than `Route::MAX_ROUTABLE_FILTER_VALUES` (100) values is a 422 on the parameter (`Count`), never a truncated list, and every match fits one page because Route's client page size (`perPage`, maximum 100) already applies to every Route collection request. Both parameters together intersect. `RouteExtension`, the cache tags and the cache headers are the unfiltered collection's. `Route\RoutableFilterTest` pins it.
 
 ### API Platform and Symfony compatibility
 

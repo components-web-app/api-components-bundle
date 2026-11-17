@@ -28,6 +28,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\ApiPlatform\Parameter\InverseSideIriFilter;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteChildrenStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
@@ -69,6 +70,8 @@ use Symfony\Component\Validator\Constraints as Assert;
     parameters: [
         'search' => new QueryParameter(filter: new FreeTextQueryFilter(new OrFilter(new PartialSearchFilter())), properties: ['path']),
         'order[:property]' => new QueryParameter(filter: new SortFilter(), properties: ['createdAt', 'path']),
+        'pages' => new QueryParameter(filter: new InverseSideIriFilter(), property: 'page', constraints: [new Assert\Count(max: Route::MAX_ROUTABLE_FILTER_VALUES)], castToArray: true),
+        'pageData' => new QueryParameter(filter: new InverseSideIriFilter(), property: 'pageData', constraints: [new Assert\Count(max: Route::MAX_ROUTABLE_FILTER_VALUES)], castToArray: true),
     ],
 )]
 #[Delete(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
@@ -84,6 +87,8 @@ class Route
 {
     use IdTrait;
     use TimestampedTrait;
+
+    public const int MAX_ROUTABLE_FILTER_VALUES = 100;
 
     private const array API_REQUIREMENTS = ['id' => '(.+)'];
     private const string API_SECURITY = "is_granted('read_route', object)";
