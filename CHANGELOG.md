@@ -4,6 +4,12 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Added
+- A template page's `_metadata.pageDataCount` gives callers granted the publishable permission the number of page data of any class using it, on the item and in `GET /_/pages`, counted in one query per collection ([#589](https://github.com/components-web-app/api-components-bundle/pull/589))
+
+### Changed
+- `Page` joins the `http_cache.personalised_resource_classes` defaults, so an authenticated `GET` of a page or the page collection is `private, no-store` ([#589](https://github.com/components-web-app/api-components-bundle/pull/589))
+
 ## [2.0.0-alpha.41](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.40...2.0.0-alpha.41) - 2026-11-12
 
 ### Breaking
