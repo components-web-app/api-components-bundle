@@ -42,6 +42,7 @@ use Silverback\ApiComponentsBundle\Serializer\Normalizer\PublishableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ResourceManifestNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\RouteChildrenNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\RouteNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\TemplatePageNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\TimestampedNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UploadableNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\UserNormalizer;
@@ -222,6 +223,18 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->tag('serializer.normalizer', ['priority' => -499]);
     $services->alias(RouteNormalizer::class, 'silverback.api_components.serializer.normalizer.route');
+
+    $services
+        ->set('silverback.api_components.serializer.normalizer.template_page')
+        ->class(TemplatePageNormalizer::class)
+        ->autoconfigure(false)
+        ->args([
+            new Reference('silverback.api_components.helper.page.template_page_data_counter'),
+            new Reference(PublishableStatusChecker::class),
+            new Reference(ResourceMetadataProvider::class),
+        ])
+        ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(TemplatePageNormalizer::class, 'silverback.api_components.serializer.normalizer.template_page');
 
     $services
         ->set('silverback.api_components.serializer.normalizer.page_ui_component')

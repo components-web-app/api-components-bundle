@@ -83,6 +83,7 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceVersionSta
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteChildrenStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteGenerateStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\TemplatePageDataCountStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UploadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UserStateProvider;
 use Silverback\ApiComponentsBundle\Doctrine\Extension\ORM\PublishableExtension;
@@ -163,6 +164,7 @@ use Silverback\ApiComponentsBundle\Helper\Form\FormSubmitHelper;
 use Silverback\ApiComponentsBundle\Helper\OrphanedResourceHelper;
 use Silverback\ApiComponentsBundle\Helper\Page\ManifestTreeLoader;
 use Silverback\ApiComponentsBundle\Helper\Page\PageUiComponentPrefixer;
+use Silverback\ApiComponentsBundle\Helper\Page\TemplatePageDataCounter;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
@@ -667,6 +669,26 @@ return static function (ContainerConfigurator $configurator) {
         ->class(ManifestTreeLoader::class)
         ->args([new Reference(ManagerRegistry::class), new Reference(PublishableAttributeReader::class)]);
     $services->alias(ManifestTreeLoader::class, 'silverback.api_components.helper.page.manifest_tree_loader');
+
+    $services
+        ->set('silverback.api_components.helper.page.template_page_data_counter')
+        ->class(TemplatePageDataCounter::class)
+        ->args([new Reference(EntityManagerInterface::class)])
+        ->tag('kernel.reset', ['method' => 'reset']);
+    $services->alias(TemplatePageDataCounter::class, 'silverback.api_components.helper.page.template_page_data_counter');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_provider.template_page_data_count')
+        ->class(TemplatePageDataCountStateProvider::class)
+        ->decorate('api_platform.state_provider.read', null, -70)
+        ->args(
+            [
+                new Reference('silverback.api_components.api_platform.state_provider.template_page_data_count.inner'),
+                new Reference('silverback.api_components.helper.page.template_page_data_counter'),
+                new Reference(PublishableStatusChecker::class),
+            ]
+        );
+    $services->alias(TemplatePageDataCountStateProvider::class, 'silverback.api_components.api_platform.state_provider.template_page_data_count');
 
     $services
         ->set('silverback.api_components.command.prefix_page_ui_components')

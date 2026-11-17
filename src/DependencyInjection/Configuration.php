@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\DependencyInjection;
 
 use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
@@ -143,6 +144,7 @@ class Configuration implements ConfigurationInterface
                                 Route::class,
                                 ResourceManifest::class,
                                 ComponentPosition::class,
+                                Page::class,
                             ])
                         ->end()
                         ->arrayNode('scheduled_expiry_resource_classes')

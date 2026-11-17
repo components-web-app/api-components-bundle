@@ -31,6 +31,7 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableDeseria
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableReadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceVersionStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteGenerateStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\TemplatePageDataCountStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UploadStateProvider;
 use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
@@ -58,6 +59,12 @@ class StateDecoratorServicesTest extends TestCase
             ComponentUsageStateProvider::class,
             'api_platform.state_provider.read',
             -40,
+        ];
+        yield 'template page data count outermost, so only a page collection every access check let through is counted' => [
+            'silverback.api_components.api_platform.state_provider.template_page_data_count',
+            TemplatePageDataCountStateProvider::class,
+            'api_platform.state_provider.read',
+            -70,
         ];
         yield 'user notification after the persist, outside uploadable and inside publishable' => [
             'silverback.api_components.api_platform.state_processor.user_notification',

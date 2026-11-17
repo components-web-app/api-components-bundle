@@ -14,7 +14,11 @@ namespace Silverback\ApiComponentsBundle\Tests\DependencyInjection;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
 use Silverback\ApiComponentsBundle\DependencyInjection\Configuration;
+use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
+use Silverback\ApiComponentsBundle\Entity\Core\Page;
+use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Symfony\Component\Config\Definition\BaseNode;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
@@ -392,6 +396,14 @@ class ConfigurationTest extends TestCase
     public function test_no_class_accepts_any_uri_identifier_by_default(): void
     {
         self::assertSame(['accept_any_identifier' => []], $this->process(self::minimalConfig())['uuid_uri_variables']);
+    }
+
+    public function test_routes_manifests_positions_and_pages_are_personalised_for_an_authenticated_caller_by_default(): void
+    {
+        self::assertSame(
+            [Route::class, ResourceManifest::class, ComponentPosition::class, Page::class],
+            $this->process(self::minimalConfig())['http_cache']['personalised_resource_classes']
+        );
     }
 
     public function test_classes_that_accept_any_uri_identifier_can_be_configured(): void
