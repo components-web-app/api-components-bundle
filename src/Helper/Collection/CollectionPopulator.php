@@ -97,7 +97,12 @@ final class CollectionPopulator
                 $clonedRequest->attributes->set('_api_query_parameters', $clonedRequest->query->all());
             }
             $this->parameterProvider->provide($getCollectionOperation, $uriVariables, [...$collectionContext, 'request' => $clonedRequest, 'uri_variables' => $uriVariables]);
-            $collectionData = $this->provider->provide($getCollectionOperation, $uriVariables, $collectionContext);
+            $operation = $clonedRequest->attributes->get('_api_operation');
+            if (!$operation instanceof Operation) {
+                $operation = $getCollectionOperation;
+            }
+            $collectionContext['operation'] = $operation;
+            $collectionData = $this->provider->provide($operation, $uriVariables, $collectionContext);
         } catch (InvalidIdentifierException $e) {
             throw new NotFoundHttpException('Invalid identifier value or configuration.', $e);
         }

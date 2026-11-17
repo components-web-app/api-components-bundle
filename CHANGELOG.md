@@ -7,6 +7,15 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ### Added
 - `GET /_/routes?pages[]=<page IRI>…` and `?pageData[]=<page data IRI>…` return the route of each listed page or page data (up to 100 values, more is a 422; `perPage=100` returns every match in one page), with the collection's usual visibility and caching ([#590](https://github.com/components-web-app/api-components-bundle/pull/590))
 
+### Changed
+- The minimum API Platform 5.x version is 5.0.7, which sends every HTTP cache purge request and reports all failures, so one unreachable invalidation URL no longer stops purges to the others ([#592](https://github.com/components-web-app/api-components-bundle/pull/592))
+
+### Fixed
+- A `Collection` component's default query parameters reach its resource's query parameter filters again on API Platform 5.0.8+, which no longer writes parameter values onto the operation it was given ([#592](https://github.com/components-web-app/api-components-bundle/pull/592))
+
+### Tooling
+- The purge failure tests hold on API Platform 5.0.7+, whose `PurgeFailedException` carries the transport error as `previous` instead of in its message ([#592](https://github.com/components-web-app/api-components-bundle/pull/592))
+
 ## [2.0.0-alpha.41](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.40...2.0.0-alpha.41) - 2026-11-12
 
 ### Breaking
