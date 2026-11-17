@@ -608,7 +608,7 @@ A redirect's name registers to whatever route holds its path or its name, whethe
 ## Open issues
 
 - **#186 — page-level `publishedAt` on `AbstractPage`. Do not start this** (Daniel, 2026-08-14). Component permission inheritance, the front-end draft/live UX and the hero-component state conflict are unresolved, and building the API side first would decide them. `liveAt` (#224) complements it but cannot express "draft page on a live URL".
-- **#325 — one unreachable invalidation URL stops purges to the others.** Fixed upstream in API Platform 5.0.7 (api-platform/core#8592), not in 4.4.x; the bundle still allows `^4.4.5 || ^5.0.4`.
+- **#325 — one unreachable invalidation URL stopped purges to the others.** Fixed upstream in API Platform 5.0.7 (api-platform/core#8592), which is the bundle's 5.x minimum; on 4.4.x the first failure still stops the rest.
 - **#259 — Flex recipe.** Parked until the stable release.
 - `make:page-data --properties a b` (space-separated) fails in Symfony's input binding before the maker runs; comma-separated and repeated options work.
 - Uploads: no field-level "generic file vs image" flag yet (#199 item 3).
