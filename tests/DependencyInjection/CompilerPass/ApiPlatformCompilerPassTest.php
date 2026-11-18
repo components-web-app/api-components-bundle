@@ -15,7 +15,7 @@ use ApiPlatform\Metadata\Exception\InvalidArgumentException;
 use Doctrine\ORM\OptimisticLockException;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ApiPlatformCompilerPass;
-use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
+use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
 use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -97,14 +97,14 @@ class ApiPlatformCompilerPassTest extends TestCase
     {
         $container = $this->createContainer();
         $container->setParameter('api_platform.exception_to_status', [
-            UnroutedParentException::class => 422,
+            UserDisabledException::class => 401,
             NotNormalizableValueException::class => 422,
         ]);
 
         (new ApiPlatformCompilerPass())->process($container);
 
         $exceptionToStatus = $container->getParameter('api_platform.exception_to_status');
-        self::assertSame([UnroutedParentException::class, NotNormalizableValueException::class], \array_slice(array_keys($exceptionToStatus), 0, 2));
+        self::assertSame([UserDisabledException::class, NotNormalizableValueException::class], \array_slice(array_keys($exceptionToStatus), 0, 2));
         self::assertSame(400, $exceptionToStatus[SerializerExceptionInterface::class]);
         self::assertSame(400, $exceptionToStatus[InvalidArgumentException::class]);
         self::assertSame(409, $exceptionToStatus[OptimisticLockException::class]);

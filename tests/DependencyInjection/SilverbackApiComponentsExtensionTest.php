@@ -38,7 +38,6 @@ use Silverback\ApiComponentsBundle\Exception\DisallowedRequestOriginException;
 use Silverback\ApiComponentsBundle\Exception\HttpCacheFlushFailedException;
 use Silverback\ApiComponentsBundle\Exception\HttpCachePurgeFailedException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
-use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
 use Silverback\ApiComponentsBundle\Factory\OrphanedResource\OrphanedResourcesChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
@@ -140,7 +139,6 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame(400, $mapped[UnparseableRequestHeaderException::class]);
         self::assertSame(401, $mapped[ApiPlatformAuthenticationException::class]);
         self::assertSame(401, $mapped[UserDisabledException::class]);
-        self::assertSame(422, $mapped[UnroutedParentException::class]);
         self::assertSame(502, $mapped[HttpCachePurgeFailedException::class]);
         self::assertSame(502, $mapped[HttpCacheFlushFailedException::class]);
     }

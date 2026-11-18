@@ -303,6 +303,38 @@ class RouteGeneratorTest extends TestCase
         self::assertSame($path, $this->generator->create($child)->getPath());
     }
 
+    public function test_a_route_whose_path_or_name_is_taken_takes_the_first_free_suffix_for_both(): void
+    {
+        $routeRepository = $this->createStub(RouteRepository::class);
+        $routeRepository->method('findConflicts')->willReturn([
+            (new Route())->setName('other')->setPath('/programme'),
+            (new Route())->setName('programme-1')->setPath('/elsewhere'),
+        ]);
+        $generator = new RouteGenerator(new Slugify(), $this->registryWithOriginalRoute(null), $this->createStub(TimestampedDataPersister::class), $routeRepository, self::validator());
+        $page = $this->createPage('Programme');
+
+        $route = $generator->create($page);
+
+        self::assertSame('/programme-2', $route->getPath());
+        self::assertSame('programme-2', $route->getName());
+    }
+
+    public function test_the_route_a_page_had_becomes_a_redirect_to_its_generated_route_which_takes_over_its_page_data(): void
+    {
+        $pageData = $this->createPageData('Programme');
+        $original = (new Route())->setName('original')->setPath('/original');
+        $original->setPageData($pageData);
+        $generator = new RouteGenerator(new Slugify(), $this->registryWithOriginalRoute($original), $this->createStub(TimestampedDataPersister::class), $this->routeRepositoryWithNames([]), self::validator());
+
+        $route = $generator->create($pageData);
+
+        self::assertSame('/programme', $route->getPath());
+        self::assertSame($route, $original->getRedirect());
+        self::assertSame($pageData, $route->getPageData());
+        self::assertNull($route->getPage());
+        self::assertSame($route, $pageData->getRoute());
+    }
+
     public function test_a_redirect_is_named_after_the_path_it_redirects_from(): void
     {
         $target = (new Route())->setName('new')->setPath('/new');
@@ -349,6 +381,18 @@ class RouteGeneratorTest extends TestCase
         $generator = new RouteGenerator(new Slugify(), $this->createStub(ManagerRegistry::class), $timestamped, $this->routeRepositoryWithNames([]), self::validator());
 
         $generator->createRedirect('/old', new Route());
+    }
+
+    private function registryWithOriginalRoute(?Route $original): ManagerRegistry
+    {
+        $unitOfWork = $this->createStub(UnitOfWork::class);
+        $unitOfWork->method('getOriginalEntityData')->willReturn(null === $original ? [] : ['route' => $original]);
+        $entityManager = $this->createStub(EntityManagerInterface::class);
+        $entityManager->method('getUnitOfWork')->willReturn($unitOfWork);
+        $registry = $this->createStub(ManagerRegistry::class);
+        $registry->method('getManagerForClass')->willReturn($entityManager);
+
+        return $registry;
     }
 
     /**
