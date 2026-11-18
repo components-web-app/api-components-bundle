@@ -29,7 +29,6 @@ use Silverback\ApiComponentsBundle\Exception\ApiPlatformAuthenticationException;
 use Silverback\ApiComponentsBundle\Exception\HttpCacheFlushFailedException;
 use Silverback\ApiComponentsBundle\Exception\HttpCachePurgeFailedException;
 use Silverback\ApiComponentsBundle\Exception\UnparseableRequestHeaderException;
-use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Exception\UserDisabledException;
 use Silverback\ApiComponentsBundle\Factory\OrphanedResource\OrphanedResourcesChangedEmailFactory;
 use Silverback\ApiComponentsBundle\Factory\Uploadable\MediaObjectFactory;
@@ -500,7 +499,6 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
                     UnparseableRequestHeaderException::class => 400,
                     ApiPlatformAuthenticationException::class => 401,
                     UserDisabledException::class => 401,
-                    UnroutedParentException::class => 422,
                     HttpCachePurgeFailedException::class => 502,
                     HttpCacheFlushFailedException::class => 502,
                 ],

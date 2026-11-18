@@ -47,7 +47,6 @@ final class ContentWriteSecurityTest extends FunctionalTestCase
         }
         yield 'a PUT of a route' => ['PUT', 'route'];
         yield 'a PUT of a form' => ['PUT', 'form'];
-        yield 'a route generation' => ['POST', 'routeGenerate'];
         yield 'a component group order PATCH' => ['PATCH', 'group', '/order'];
         yield 'a component move' => ['POST', 'component', '/move'];
     }
@@ -146,7 +145,6 @@ final class ContentWriteSecurityTest extends FunctionalTestCase
             'htmlContentCollection' => '/component/dummy_html_contents',
             'pageCollection' => '/_/pages',
             'routeCollection' => '/_/routes',
-            'routeGenerate' => '/_/routes/generate',
             'layoutCollection' => '/_/layouts',
             'groupCollection' => '/_/component_groups',
             'positionCollection' => '/_/component_positions',

@@ -13,7 +13,6 @@ namespace Silverback\ApiComponentsBundle\Tests\Functional\Route;
 
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPage;
-use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
@@ -313,16 +312,6 @@ trait RouteSiteTrait
         static::persistAndFlush($layout, $page, $created['group'], ...$created['components'], ...$created['positions']);
 
         return $page;
-    }
-
-    protected static function setPageDataTitle(AbstractPageData $pageData, string $title): void
-    {
-        $manager = static::getEntityManager();
-        $managed = $manager->find($pageData::class, $pageData->getId());
-        \assert($managed instanceof AbstractPageData);
-        $managed->setTitle($title);
-        $manager->flush();
-        static::rebootKernel();
     }
 
     protected static function markReachableWithoutRoute(AbstractPage $page): void

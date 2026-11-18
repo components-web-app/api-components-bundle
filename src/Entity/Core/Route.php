@@ -48,13 +48,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'route')]
 #[Assert\Expression(
     '!(this.getPage() == null & this.getPageData() == null & this.getRedirect() == null)',
-    message: 'Please specify either page, pageData or redirect.',
-    groups: ['Route:generate:write', 'Default']
+    message: 'Please specify either page, pageData or redirect.'
 )]
 #[Assert\Expression(
     '!(this.getPage() != null & this.getPageData() != null)',
-    message: 'Please specify either page or pageData, not both.',
-    groups: ['Route:generate:write', 'Default']
+    message: 'Please specify either page or pageData, not both.'
 )]
 #[UniqueEntity('name', 'This route name is already in use.')]
 #[UniqueEntity('path', 'This path is already in use.')]
@@ -78,8 +76,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[Put(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
 #[Patch(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
 #[Get(requirements: ['id' => "(?!.+\/(?:redirects|children)$).+"], security: Route::API_SECURITY)]
-// Custom endpoints
-#[Post(uriTemplate: '/routes/generate{._format}', validationContext: ['groups' => ['Route:generate:write']])]
 #[Get(uriTemplate: '/routes/{id}/redirects{._format}', defaults: ['_api_item_operation_name' => 'route_redirects'], requirements: Route::API_REQUIREMENTS, order: ['createdAt' => 'DESC'], normalizationContext: ['groups' => ['Route:redirect:read']], security: Route::API_SECURITY)]
 #[Get(uriTemplate: '/routes/{id}/children{._format}', requirements: Route::API_REQUIREMENTS, provider: RouteChildrenStateProvider::class, security: "is_granted('ROLE_ADMIN')")]
 #[Silverback\Timestamped]

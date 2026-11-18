@@ -30,7 +30,6 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DownloadStateProvi
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableDeserializeStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableReadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceVersionStateProvider;
-use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteGenerateStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\TemplatePageDataCountStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UploadStateProvider;
 use Silverback\ApiComponentsBundle\Helper\Collection\CollectionPopulator;
@@ -77,12 +76,6 @@ class StateDecoratorServicesTest extends TestCase
             UserPasswordStateProcessor::class,
             'api_platform.state_processor.locator',
             16,
-        ];
-        yield 'route generation after validation and its security check' => [
-            'silverback.api_components.api_platform.state_provider.route_generate',
-            RouteGenerateStateProvider::class,
-            'api_platform.state_provider.validate',
-            -10,
         ];
         yield 'route redirects innermost, straight after the persist' => [
             'silverback.api_components.api_platform.state_processor.route_redirect',

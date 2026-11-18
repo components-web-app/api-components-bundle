@@ -178,20 +178,6 @@ final class RouteScheduleTest extends FunctionalTestCase
         self::assertRouteLive('/conference/programme');
     }
 
-    public function test_a_route_generated_under_a_scheduled_parent_inherits_the_parent_go_live_date(): void
-    {
-        $client = static::createClient();
-        self::loginAsAdmin($client);
-        $site = self::createPageDataNestedWithinRoute('/conference/programme', '/conference');
-        self::setPageDataTitle($site['pageData'], 'Schedule');
-        self::setRouteLiveAt('/conference', new \DateTimeImmutable(self::FUTURE));
-
-        self::requestJsonLd($client, 'POST', '/_/routes/generate', ['pageData' => self::iriOf($site['pageData'])]);
-
-        self::assertResponseStatusCodeSame(201);
-        self::assertRouteNotLive('/conference/schedule');
-    }
-
     public function test_an_admin_can_resolve_a_scheduled_route_and_see_its_go_live_date(): void
     {
         $client = static::createClient();

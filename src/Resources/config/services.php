@@ -81,7 +81,6 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableReadSta
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceManifestStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ResourceVersionStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteChildrenStateProvider;
-use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteGenerateStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\TemplatePageDataCountStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\UploadStateProvider;
@@ -1398,16 +1397,6 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
     $services->alias('silverback.api_components.api_platform.state_provider.form', FormStateProvider::class);
-
-    $services
-        ->set('silverback.api_components.api_platform.state_provider.route_generate')
-        ->class(RouteGenerateStateProvider::class)
-        ->decorate('api_platform.state_provider.validate', null, -10)
-        ->args([
-            new Reference('silverback.api_components.api_platform.state_provider.route_generate.inner'),
-            new Reference('silverback.helper.route_generator'),
-        ]);
-    $services->alias(RouteGenerateStateProvider::class, 'silverback.api_components.api_platform.state_provider.route_generate');
 
     $services
         ->set('silverback.api_components.api_platform.state_processor.route_redirect')
