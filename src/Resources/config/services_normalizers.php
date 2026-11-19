@@ -28,11 +28,13 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
+use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\AbstractResourceNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\CollectionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentGroupNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\ComponentPositionNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\DataUriNormalizer;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\EmbeddedRouteDenormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\LayoutManifestNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PageDataNormalizer;
@@ -242,6 +244,14 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->tag('serializer.normalizer', ['priority' => -499]);
     $services->alias(PageUiComponentNormalizer::class, 'silverback.api_components.serializer.normalizer.page_ui_component');
+
+    $services
+        ->set('silverback.api_components.serializer.normalizer.embedded_route')
+        ->class(EmbeddedRouteDenormalizer::class)
+        ->autoconfigure(false)
+        ->args([new Reference(RouteRepository::class)])
+        ->tag('serializer.normalizer', ['priority' => -499]);
+    $services->alias(EmbeddedRouteDenormalizer::class, 'silverback.api_components.serializer.normalizer.embedded_route');
 
     $services
         ->set('silverback.api_components.serializer.normalizer.timestamped')

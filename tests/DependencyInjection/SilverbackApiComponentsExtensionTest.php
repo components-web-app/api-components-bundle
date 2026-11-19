@@ -66,11 +66,13 @@ use Silverback\ApiComponentsBundle\Imagine\FlysystemDataLoader;
 use Silverback\ApiComponentsBundle\Imagine\ImagineFilterGenerator;
 use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
+use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\RoutableVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
+use Silverback\ApiComponentsBundle\Serializer\Normalizer\EmbeddedRouteDenormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\MetadataNormalizer;
 use Silverback\ApiComponentsBundle\Serializer\Normalizer\PageUiComponentNormalizer;
 use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImageValidator;
@@ -425,6 +427,17 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame(PageUiComponentNormalizer::class, $normalizer->getClass());
         self::assertSame([['priority' => -499]], $normalizer->getTag('serializer.normalizer'));
         self::assertFalse($normalizer->isAutoconfigured());
+    }
+
+    public function test_the_embedded_route_denormalizer_runs_before_the_item_denormalizers_with_the_route_repository(): void
+    {
+        [$container] = $this->load(self::minimalConfig());
+
+        $denormalizer = $container->findDefinition(EmbeddedRouteDenormalizer::class);
+        self::assertSame(EmbeddedRouteDenormalizer::class, $denormalizer->getClass());
+        self::assertSame([['priority' => -499]], $denormalizer->getTag('serializer.normalizer'));
+        self::assertFalse($denormalizer->isAutoconfigured());
+        self::assertEquals([new Reference(RouteRepository::class)], $denormalizer->getArguments());
     }
 
     public function test_the_fixture_load_listener_says_to_generate_variants_only_with_imagine_enabled(): void

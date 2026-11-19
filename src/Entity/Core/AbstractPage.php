@@ -41,6 +41,7 @@ abstract class AbstractPage implements RoutableInterface
     #[ORM\OneToOne(targetEntity: Route::class, cascade: ['persist'])]
     #[ORM\JoinColumn(name: 'route_id', onDelete: 'SET NULL', nullable: true)]
     #[Groups(['Route:manifest:read'])]
+    #[Assert\Valid]
     protected ?Route $route = null;
 
     #[ORM\ManyToOne(targetEntity: Page::class)]
