@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.43](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.42...2.0.0-alpha.43) - 2026-11-19
+
 ### Breaking
 - `POST /_/routes/generate` is removed: the module builds a route's path itself and saves the route directly ([#594](https://github.com/components-web-app/api-components-bundle/pull/594))
 
