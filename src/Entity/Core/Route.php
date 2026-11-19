@@ -85,6 +85,7 @@ class Route
     use TimestampedTrait;
 
     public const int MAX_ROUTABLE_FILTER_VALUES = 100;
+    public const string EMBEDDED_WRITE_GROUP = 'Route:embedded:write';
 
     private const array API_REQUIREMENTS = ['id' => '(.+)'];
     private const string API_SECURITY = "is_granted('read_route', object)";
@@ -92,13 +93,13 @@ class Route
 
     #[ORM\Column(name: 'route', unique: true)]
     #[Assert\NotBlank]
-    #[Groups(['Route:redirect:read'])]
+    #[Groups(['Route:redirect:read', self::EMBEDDED_WRITE_GROUP])]
     #[Assert\Length(max: 255)]
     private string $path = '';
 
     #[ORM\Column(unique: true)]
     #[Assert\NotNull]
-    #[Groups(['Route:redirect:read'])]
+    #[Groups(['Route:redirect:read', self::EMBEDDED_WRITE_GROUP])]
     #[Assert\Length(max: 255)]
     private string $name;
 
@@ -121,7 +122,7 @@ class Route
 
     #[ORM\Column(name: 'live_at', type: 'datetime_immutable', nullable: true, options: ['default' => 'CURRENT_TIMESTAMP'])]
     #[ApiProperty(security: self::API_PUBLICATION_SECURITY, securityPostDenormalize: self::API_PUBLICATION_SECURITY)]
-    #[Groups(['Route:redirect:read'])]
+    #[Groups(['Route:redirect:read', self::EMBEDDED_WRITE_GROUP])]
     private ?\DateTimeImmutable $liveAt = null;
 
     #[ApiProperty(readable: false)]
