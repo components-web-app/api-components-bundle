@@ -8,10 +8,10 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - `POST /_/routes/generate` is removed: the module builds a route's path itself and saves the route directly ([#594](https://github.com/components-web-app/api-components-bundle/pull/594))
 
 ### Added
-- Creating a page or page data with an embedded new `route: {path, name?, liveAt?}` derives a missing `name` from the path, made unique with `-1`, `-2`…, and works for page data as well as pages; the response still carries `route` as an IRI ([#PRNUM](https://github.com/components-web-app/api-components-bundle/pull/PRNUM))
+- Creating a page or page data with an embedded new `route: {path, name?, liveAt?}` derives a missing `name` from the path, made unique with `-1`, `-2`…, and works for page data as well as pages; the response still carries `route` as an IRI ([#596](https://github.com/components-web-app/api-components-bundle/pull/596))
 
 ### Fixed
-- A page's or page data's embedded route is validated: a taken or blank path, a taken name and every other Route rule is a 422 violation on `route.path` or `route.name`, never a database error ([#PRNUM](https://github.com/components-web-app/api-components-bundle/pull/PRNUM))
+- A page's or page data's embedded route is validated: a taken or blank path, a taken name and every other Route rule is a 422 violation on `route.path` or `route.name`, never a database error ([#596](https://github.com/components-web-app/api-components-bundle/pull/596))
 
 ## [2.0.0-alpha.42](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.41...2.0.0-alpha.42) - 2026-11-17
 
