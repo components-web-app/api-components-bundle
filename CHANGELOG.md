@@ -4,8 +4,10 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.44](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.43...2.0.0-alpha.44) - 2026-11-20
+
 ### Breaking
-- A route's path must start with its nearest routed ancestor's path followed by `/` whenever its path, page or page data is written (a new route, a path `PATCH`, linking a route), else a 422 on `path` or `route.path`; existing routes are untouched, so add redirects when moving them ([#602](https://github.com/components-web-app/api-components-bundle/pull/602))
+- A route's path must start with its nearest routed ancestor's path followed by `/` whenever its path, page or page data is written (a new route, a path `PATCH`, linking a route), else a 422 on `path` or `route.path`; existing routes are not re-checked until one of those is written ([#602](https://github.com/components-web-app/api-components-bundle/pull/602))
 
 ### Added
 - `#[Silverback\RoutePrefix('/announcements')]` on a page data class puts a fixed prefix after the nearest routed ancestor's path in every route of that class written through the API, is applied by fixture route generation, and is advertised as `routePrefix` on the class's Hydra `supportedClass` ([#602](https://github.com/components-web-app/api-components-bundle/pull/602))
