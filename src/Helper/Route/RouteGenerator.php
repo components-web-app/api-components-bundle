@@ -45,6 +45,7 @@ class RouteGenerator implements RouteGeneratorInterface
         TimestampedDataPersister $timestampedDataPersister,
         RouteRepository $routeRepository,
         ValidatorInterface $validator,
+        private readonly RoutePrefixResolver $routePrefixResolver,
     ) {
         $this->slugify = $slugify;
         $this->registry = $registry;
@@ -127,13 +128,7 @@ class RouteGenerator implements RouteGeneratorInterface
 
     private function pathFor(RoutableInterface $object, string $slug): string
     {
-        $path = '/' . ltrim($slug, '/');
-        $parentPageRoute = $object->getParentPageRoute();
-        if ($parentPageRoute) {
-            $path = '/' . ltrim($parentPageRoute->getPath(), '/') . $path;
-        }
-
-        return $path;
+        return ($this->routePrefixResolver->requiredStart($object) ?? '/') . ltrim($slug, '/');
     }
 
     private function slugifyTitle(RoutableInterface $object): ?string

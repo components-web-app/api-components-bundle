@@ -28,7 +28,7 @@ final class PageDataMetadataTest extends FunctionalTestCase
 
         self::assertResponseStatusCodeSame(200);
         self::assertJsonNodeSame('@context.properties', 'PageDataMetadata/properties');
-        self::assertJsonNodeCount('member', 7);
+        self::assertJsonNodeCount('member', 9);
     }
 
     public function test_i_can_get_a_single_page_data_endpoint(): void

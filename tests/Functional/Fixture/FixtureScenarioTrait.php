@@ -77,6 +77,9 @@ trait FixtureScenarioTrait
     /** @var array<string, PageDataBuilder> */
     private array $pageDataBuilders = [];
 
+    /** @var array<string, list<\Closure(CwaFixtureBuilder): void>> */
+    private array $pendingPageDataChildren = [];
+
     /** @var array<string, PageBuilder> */
     private array $pageBuilders = [];
 
@@ -765,6 +768,30 @@ trait FixtureScenarioTrait
         };
     }
 
+    /**
+     * @param class-string<AbstractPageData> $class
+     */
+    protected function scaffoldHasAGeneratedPageDataOfTheClass(string $class, string $title, string $template, ?string $parent = null): void
+    {
+        $this->scaffold[] = function (CwaFixtureBuilder $cwa) use ($class, $title, $template, $parent): void {
+            $declare = function (CwaFixtureBuilder $builder) use ($class, $title, $template): void {
+                $pageData = new $class();
+                $pageData->setTitle($title);
+                $this->pageDataBuilders[$title] = $builder->pageData($pageData, template: $template);
+                foreach ($this->pendingPageDataChildren[$title] ?? [] as $child) {
+                    $this->pageDataBuilders[$title]->nested($child);
+                }
+            };
+            if (null === $parent) {
+                $declare($cwa);
+            } elseif (isset($this->pageDataBuilders[$parent])) {
+                $this->pageDataBuilders[$parent]->nested($declare);
+            } else {
+                $this->pendingPageDataChildren[$parent][] = $declare;
+            }
+        };
+    }
+
     protected function scaffoldHasARoutelessPageData(string $title, string $template): void
     {
         $this->scaffold[] = static function (CwaFixtureBuilder $cwa) use ($title, $template): void {
@@ -847,6 +874,7 @@ trait FixtureScenarioTrait
         $this->sharedScaffoldComponents = [];
         $cwa = $this->newFixtureBuilder($logger);
         $this->pageDataBuilders = [];
+        $this->pendingPageDataChildren = [];
         $this->pageBuilders = [];
         foreach ($this->scaffold as $definition) {
             $definition($cwa);

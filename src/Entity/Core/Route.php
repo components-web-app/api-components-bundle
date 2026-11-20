@@ -34,6 +34,7 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
+use Silverback\ApiComponentsBundle\Validator\Constraints\RoutePathStart;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -54,6 +55,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     '!(this.getPage() != null & this.getPageData() != null)',
     message: 'Please specify either page or pageData, not both.'
 )]
+#[RoutePathStart]
 #[UniqueEntity('name', 'This route name is already in use.')]
 #[UniqueEntity('path', 'This path is already in use.')]
 #[ApiResource(

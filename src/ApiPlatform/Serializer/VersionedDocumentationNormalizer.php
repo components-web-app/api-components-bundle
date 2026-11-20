@@ -16,6 +16,8 @@ use ApiPlatform\Hydra\Serializer\DocumentationNormalizer;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use Silverback\ApiComponentsBundle\AttributeReader\ExplicitAllowOnlyAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\RoutePrefixAttributeReader;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -25,14 +27,15 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 class VersionedDocumentationNormalizer implements NormalizerInterface
 {
-    /** @var array<string, true>|null short names of resources carrying #[Silverback\ExplicitAllowOnly] */
-    private ?array $explicitAllowOnlyTitles = null;
+    /** @var array<string, array<string, true|string>>|null */
+    private ?array $supportedClassProperties = null;
 
     public function __construct(
         private readonly NormalizerInterface|DocumentationNormalizer $decorated,
         private readonly ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory,
         private readonly ResourceMetadataCollectionFactoryInterface $resourceMetadataCollectionFactory,
         private readonly ExplicitAllowOnlyAttributeReader $explicitAllowOnlyReader,
+        private readonly RoutePrefixAttributeReader $routePrefixReader,
     ) {
     }
 
@@ -50,10 +53,10 @@ class VersionedDocumentationNormalizer implements NormalizerInterface
 
         $scKey = isset($doc['supportedClass']) ? 'supportedClass' : (isset($doc['hydra:supportedClass']) ? 'hydra:supportedClass' : null);
         if (null !== $scKey && \is_array($doc[$scKey])) {
-            $flagged = $this->getExplicitAllowOnlyTitles();
+            $properties = $this->getSupportedClassProperties();
             foreach ($doc[$scKey] as &$supportedClass) {
-                if (\is_array($supportedClass) && isset($supportedClass['title'], $flagged[$supportedClass['title']])) {
-                    $supportedClass['explicitAllowOnly'] = true;
+                if (\is_array($supportedClass) && isset($supportedClass['title'], $properties[$supportedClass['title']])) {
+                    $supportedClass = array_merge($supportedClass, $properties[$supportedClass['title']]);
                 }
             }
             unset($supportedClass);
@@ -63,25 +66,32 @@ class VersionedDocumentationNormalizer implements NormalizerInterface
     }
 
     /**
-     * @return array<string, true>
+     * @return array<string, array<string, true|string>>
      */
-    private function getExplicitAllowOnlyTitles(): array
+    private function getSupportedClassProperties(): array
     {
-        if (null !== $this->explicitAllowOnlyTitles) {
-            return $this->explicitAllowOnlyTitles;
+        if (null !== $this->supportedClassProperties) {
+            return $this->supportedClassProperties;
         }
 
-        $titles = [];
+        $properties = [];
         foreach ($this->resourceNameCollectionFactory->create() as $resourceClass) {
-            if (!$this->explicitAllowOnlyReader->isConfigured($resourceClass)) {
+            $classProperties = [];
+            if ($this->explicitAllowOnlyReader->isConfigured($resourceClass)) {
+                $classProperties['explicitAllowOnly'] = true;
+            }
+            if (is_a($resourceClass, AbstractPageData::class, true) && $this->routePrefixReader->isConfigured($resourceClass)) {
+                $classProperties['routePrefix'] = $this->routePrefixReader->getConfiguration($resourceClass)->prefix;
+            }
+            if ([] === $classProperties) {
                 continue;
             }
             foreach ($this->resourceMetadataCollectionFactory->create($resourceClass) as $resourceMetadata) {
-                $titles[$resourceMetadata->getShortName()] = true;
+                $properties[$resourceMetadata->getShortName()] = $classProperties;
             }
         }
 
-        return $this->explicitAllowOnlyTitles = $titles;
+        return $this->supportedClassProperties = $properties;
     }
 
     public function supportsNormalization($data, ?string $format = null, array $context = []): bool
