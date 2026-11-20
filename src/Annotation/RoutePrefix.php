@@ -21,7 +21,7 @@ final class RoutePrefix
 {
     public function __construct(public readonly string $prefix)
     {
-        if (!preg_match('#\A/.*[^/]\z#s', $prefix)) {
+        if (!preg_match('#\A/.*[^/]\z#', $prefix)) {
             throw new InvalidRoutePrefixException(\sprintf('The route prefix "%s" is invalid: it must start with a slash, must not end with one and cannot be a lone slash.', $prefix));
         }
     }

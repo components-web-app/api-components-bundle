@@ -35,7 +35,7 @@ final readonly class RoutePrefixResolver
         return rtrim($ancestorPath ?? '', '/') . $prefix . '/';
     }
 
-    public function prefixOf(RoutableInterface $routable): ?string
+    private function prefixOf(RoutableInterface $routable): ?string
     {
         if (!$routable instanceof AbstractPageData || !$this->routePrefixReader->isConfigured($routable)) {
             return null;

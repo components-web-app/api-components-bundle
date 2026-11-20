@@ -36,6 +36,7 @@ class RoutePrefixTest extends TestCase
         yield 'no leading slash' => ['announcements'];
         yield 'a trailing slash' => ['/announcements/'];
         yield 'a trailing slash after several segments' => ['/news/announcements/'];
+        yield 'a line break' => ["/news\nannouncements"];
     }
 
     #[DataProvider('invalidPrefixes')]

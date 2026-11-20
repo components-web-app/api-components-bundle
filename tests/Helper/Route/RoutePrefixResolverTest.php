@@ -145,6 +145,16 @@ class RoutePrefixResolverTest extends TestCase
         self::assertSame('/page/', $this->resolver->requiredStart($child));
     }
 
+    public function test_an_unrouted_ancestors_parent_page_is_preferred_over_its_parent_page_data(): void
+    {
+        $unrouted = (new Page())
+            ->setParentPage(self::routedPage('/page'))
+            ->setParentPageData(self::pageData()->setRoute(self::route('/page-data')));
+        $child = (new Page())->setParentPage($unrouted);
+
+        self::assertSame('/page/', $this->resolver->requiredStart($child));
+    }
+
     private static function routedPage(string $path): Page
     {
         return (new Page())->setRoute(self::route($path));

@@ -225,6 +225,16 @@ class RoutePathStartValidatorTest extends ConstraintValidatorTestCase
             ->assertRaised();
     }
 
+    public function test_the_page_is_checked_when_a_route_holds_both_a_page_and_page_data(): void
+    {
+        $route = self::childRoute('/conference/programme');
+        $route->setPageData(new #[RoutePrefix('/announcements')] class extends AbstractPageData {});
+
+        $this->validator->validate($route, new RoutePathStart());
+
+        $this->assertNoViolation();
+    }
+
     public function test_a_route_with_no_orm_manager_is_checked_as_new(): void
     {
         $route = self::childRoute('/programme');

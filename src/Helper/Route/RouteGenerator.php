@@ -128,7 +128,7 @@ class RouteGenerator implements RouteGeneratorInterface
 
     private function pathFor(RoutableInterface $object, string $slug): string
     {
-        return ($this->routePrefixResolver->requiredStart($object) ?? '/') . ltrim($slug, '/');
+        return ($this->routePrefixResolver->requiredStart($object) ?? '/') . $slug;
     }
 
     private function slugifyTitle(RoutableInterface $object): ?string
