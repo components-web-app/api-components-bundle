@@ -20,6 +20,7 @@ use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceS
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\FormSerializeStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\PublishableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ResourceVersionConflictStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RoutableMoveStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UploadableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
@@ -82,6 +83,12 @@ class StateDecoratorServicesTest extends TestCase
             RouteRedirectStateProcessor::class,
             'api_platform.state_processor.locator',
             50,
+        ];
+        yield 'routable move rewrites routes straight after the persist, inside route redirects and outside position placement' => [
+            'silverback.api_components.api_platform.state_processor.routable_move',
+            RoutableMoveStateProcessor::class,
+            'api_platform.state_processor.locator',
+            55,
         ];
         yield 'delete cascade before the remove, after publishable and uploadable' => [
             'silverback.api_components.api_platform.state_processor.deleted_resource',

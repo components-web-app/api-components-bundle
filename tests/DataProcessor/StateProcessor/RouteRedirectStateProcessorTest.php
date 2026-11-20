@@ -31,6 +31,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteCascadePlanner;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Validation;
@@ -68,7 +69,7 @@ class RouteRedirectStateProcessorTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
         $entityManager->expects(self::never())->method('getRepository');
 
-        $result = (new RouteRedirectStateProcessor($inner, $generator, $this->registry($entityManager), self::validator()))
+        $result = (new RouteRedirectStateProcessor($inner, $generator, $this->registry($entityManager), self::planner($generator)))
             ->process($route, $operation, [], ['previous_data' => (new Route())->setPath('/old')]);
 
         self::assertSame('written', $result);
@@ -92,6 +93,7 @@ class RouteRedirectStateProcessorTest extends TestCase
         $entityManager->method('getRepository')->willReturnMap([
             [Page::class, $pages],
             [AbstractPageData::class, $pageData],
+            [Route::class, $this->noRoutes()],
         ]);
         $entityManager->expects(self::exactly(2))->method('flush');
         $persisted = [];
@@ -101,7 +103,7 @@ class RouteRedirectStateProcessorTest extends TestCase
         $generator = $this->createStub(RouteGeneratorInterface::class);
         $generator->method('createRedirect')->willReturnCallback(static fn (string $from, Route $to): Route => (new Route())->setPath($from)->setRedirect($to));
 
-        (new RouteRedirectStateProcessor($this->inner(), $generator, $this->registry($entityManager), self::validator()))
+        (new RouteRedirectStateProcessor($this->inner(), $generator, $this->registry($entityManager), self::planner($generator)))
             ->process($route, new Patch(), [], ['previous_data' => (new Route())->setPath('/old')]);
 
         self::assertSame('/new/child', $childRoute->getPath());
@@ -130,7 +132,7 @@ class RouteRedirectStateProcessorTest extends TestCase
         $generator = $this->createMock(RouteGeneratorInterface::class);
         $generator->expects(self::never())->method('createRedirect');
 
-        self::assertSame('written', (new RouteRedirectStateProcessor($this->inner(), $generator, $registry, self::validator()))->process($data, $operation, [], ['previous_data' => $previousData]));
+        self::assertSame('written', (new RouteRedirectStateProcessor($this->inner(), $generator, $registry, self::planner($generator)))->process($data, $operation, [], ['previous_data' => $previousData]));
     }
 
     public function test_a_route_class_without_an_orm_manager_is_a_configuration_error(): void
@@ -139,7 +141,7 @@ class RouteRedirectStateProcessorTest extends TestCase
         $registry->method('getManagerForClass')->willReturn($this->createStub(ObjectManager::class));
 
         $this->expectException(InvalidArgumentException::class);
-        (new RouteRedirectStateProcessor($this->inner(), $this->createStub(RouteGeneratorInterface::class), $registry, self::validator()))
+        (new RouteRedirectStateProcessor($this->inner(), $this->createStub(RouteGeneratorInterface::class), $registry, self::planner($this->createStub(RouteGeneratorInterface::class))))
             ->process((new Route())->setPath('/new'), new Patch(), [], ['previous_data' => (new Route())->setPath('/old')]);
     }
 
@@ -150,7 +152,7 @@ class RouteRedirectStateProcessorTest extends TestCase
         $inner = $this->createMock(ProcessorInterface::class);
         $inner->expects(self::once())->method('process')->with($route, $operation, ['id' => 1], ['previous_data' => null]);
 
-        (new RouteRedirectStateProcessor($inner, $this->createStub(RouteGeneratorInterface::class), $this->createStub(ManagerRegistry::class), self::validator()))
+        (new RouteRedirectStateProcessor($inner, $this->createStub(RouteGeneratorInterface::class), $this->createStub(ManagerRegistry::class), self::planner($this->createStub(RouteGeneratorInterface::class))))
             ->process($route, $operation, ['id' => 1], ['previous_data' => null]);
     }
 
@@ -174,7 +176,7 @@ class RouteRedirectStateProcessorTest extends TestCase
         $generator->expects(self::never())->method('createRedirect');
 
         try {
-            (new RouteRedirectStateProcessor($inner, $generator, $this->registry($entityManager), self::validator()))
+            (new RouteRedirectStateProcessor($inner, $generator, $this->registry($entityManager), self::planner($generator)))
                 ->process($route, new Patch(), [], ['previous_data' => (new Route())->setPath('/old')]);
             self::fail('A cascade that makes a descendant path too long was written.');
         } catch (ValidationException $exception) {
@@ -208,7 +210,7 @@ class RouteRedirectStateProcessorTest extends TestCase
         $generator = $this->createStub(RouteGeneratorInterface::class);
         $generator->method('createRedirect')->willReturn(new Route());
 
-        (new RouteRedirectStateProcessor($this->inner(), $generator, $this->registry($entityManager), self::validator()))
+        (new RouteRedirectStateProcessor($this->inner(), $generator, $this->registry($entityManager), self::planner($generator)))
             ->process($route, new Patch(), [], ['previous_data' => (new Route())->setPath('/old')]);
 
         self::assertSame('/new/' . str_repeat('c', 250), $childRoute->getPath());
@@ -226,7 +228,7 @@ class RouteRedirectStateProcessorTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
         $persisted = $this->recordPersisted($entityManager);
 
-        (new RouteRedirectStateProcessor($this->inner(), $this->redirectingGenerator(), $this->registry($entityManager), self::validator()))
+        (new RouteRedirectStateProcessor($this->inner(), $generator = $this->redirectingGenerator(), $this->registry($entityManager), self::planner($generator)))
             ->process($route, new Patch(), [], ['previous_data' => (new Route())->setPath('/old')]);
 
         self::assertSame('/old/inner', $route->getPath());
@@ -256,7 +258,7 @@ class RouteRedirectStateProcessorTest extends TestCase
         $entityManager->expects(self::exactly(3))->method('flush');
         $persisted = $this->recordPersisted($entityManager);
 
-        (new RouteRedirectStateProcessor($this->inner(), $this->redirectingGenerator(), $this->registry($entityManager), self::validator()))
+        (new RouteRedirectStateProcessor($this->inner(), $generator = $this->redirectingGenerator(), $this->registry($entityManager), self::planner($generator)))
             ->process($route, new Patch(), [], ['previous_data' => (new Route())->setPath('/old')]);
 
         self::assertSame('/new/child', $childRoute->getPath());
@@ -290,6 +292,7 @@ class RouteRedirectStateProcessorTest extends TestCase
         $entityManager->method('getRepository')->willReturnMap([
             [Page::class, $pages],
             [AbstractPageData::class, $pageData],
+            [Route::class, $this->noRoutes()],
         ]);
 
         return $entityManager;
@@ -314,6 +317,19 @@ class RouteRedirectStateProcessorTest extends TestCase
         $generator->method('createRedirect')->willReturnCallback(static fn (string $from, Route $to): Route => (new Route())->setPath($from)->setRedirect($to));
 
         return $generator;
+    }
+
+    private function noRoutes(): EntityRepository
+    {
+        $routes = $this->createStub(EntityRepository::class);
+        $routes->method('count')->willReturn(0);
+
+        return $routes;
+    }
+
+    private static function planner(RouteGeneratorInterface $generator): RouteCascadePlanner
+    {
+        return new RouteCascadePlanner($generator, self::validator());
     }
 
     private static function validator(): ValidatorInterface

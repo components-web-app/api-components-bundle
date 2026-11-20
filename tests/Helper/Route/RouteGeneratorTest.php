@@ -18,12 +18,15 @@ use Doctrine\ORM\UnitOfWork;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\Annotation\RoutePrefix;
+use Silverback\ApiComponentsBundle\AttributeReader\RoutePrefixAttributeReader;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Exception\UnroutedParentException;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGenerator;
+use Silverback\ApiComponentsBundle\Helper\Route\RoutePrefixResolver;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Symfony\Component\Validator\Validation;
@@ -50,6 +53,7 @@ class RouteGeneratorTest extends TestCase
             $this->createStub(TimestampedDataPersister::class),
             $routeRepository,
             self::validator(),
+            $this->routePrefixResolver(),
         );
     }
 
@@ -208,7 +212,7 @@ class RouteGeneratorTest extends TestCase
         $timestamped->expects(self::never())->method('persistTimestampedFields');
         $routeRepository = $this->createMock(RouteRepository::class);
         $routeRepository->expects(self::never())->method('findConflicts');
-        $generator = new RouteGenerator(new Slugify(), $registry, $timestamped, $routeRepository, self::validator());
+        $generator = new RouteGenerator(new Slugify(), $registry, $timestamped, $routeRepository, self::validator(), $this->routePrefixResolver());
         $route = new Route();
 
         try {
@@ -250,7 +254,7 @@ class RouteGeneratorTest extends TestCase
     {
         $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getManagerForClass')->willReturn($this->createStub(ObjectManager::class));
-        $generator = new RouteGenerator(new Slugify(), $registry, $this->createStub(TimestampedDataPersister::class), $this->createStub(RouteRepository::class), self::validator());
+        $generator = new RouteGenerator(new Slugify(), $registry, $this->createStub(TimestampedDataPersister::class), $this->createStub(RouteRepository::class), self::validator(), $this->routePrefixResolver());
         $page = $this->createPage('Programme');
 
         $this->expectException(InvalidArgumentException::class);
@@ -262,7 +266,7 @@ class RouteGeneratorTest extends TestCase
     {
         $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getManagerForClass')->willReturn(null);
-        $generator = new RouteGenerator(new Slugify(), $registry, $this->createStub(TimestampedDataPersister::class), $this->createStub(RouteRepository::class), self::validator());
+        $generator = new RouteGenerator(new Slugify(), $registry, $this->createStub(TimestampedDataPersister::class), $this->createStub(RouteRepository::class), self::validator(), $this->routePrefixResolver());
         $page = $this->createPage('Programme');
 
         $this->expectException(InvalidArgumentException::class);
@@ -282,7 +286,7 @@ class RouteGeneratorTest extends TestCase
     {
         $routeRepository = $this->createStub(RouteRepository::class);
         $routeRepository->method('findConflicts')->willReturn([(new Route())->setName('programme')->setPath('/conference/programme')]);
-        $generator = new RouteGenerator(new Slugify(), $this->createStub(ManagerRegistry::class), $this->createStub(TimestampedDataPersister::class), $routeRepository, self::validator());
+        $generator = new RouteGenerator(new Slugify(), $this->createStub(ManagerRegistry::class), $this->createStub(TimestampedDataPersister::class), $routeRepository, self::validator(), $this->routePrefixResolver());
         $parent = $this->createPageData('Conference');
         $parent->setRoute((new Route())->setName('conference')->setPath('/conference'));
         $child = $this->createPageData('Programme');
@@ -303,6 +307,74 @@ class RouteGeneratorTest extends TestCase
         self::assertSame($path, $this->generator->create($child)->getPath());
     }
 
+    public function test_prefixed_page_data_with_no_parent_is_given_its_prefix_then_its_slug(): void
+    {
+        $route = $this->generator->create($this->createPrefixedPageData('Launch'));
+
+        self::assertSame('/announcements/launch', $route->getPath());
+        self::assertSame('launch', $route->getName());
+    }
+
+    public function test_prefixed_page_data_under_a_routed_parent_is_given_the_parent_path_then_its_prefix_then_its_slug(): void
+    {
+        $parent = $this->createPage('News');
+        $parent->setRoute((new Route())->setName('news')->setPath('/news'));
+        $child = $this->createPrefixedPageData('Launch');
+        $child->setParentPage($parent);
+
+        self::assertSame('/news/announcements/launch', $this->generator->create($child)->getPath());
+    }
+
+    public function test_a_page_under_prefixed_page_data_is_given_only_the_parent_path_then_its_slug(): void
+    {
+        $parent = $this->createPrefixedPageData('Launch');
+        $parent->setRoute((new Route())->setName('launch')->setPath('/announcements/launch'));
+        $child = $this->createPage('Agenda');
+        $child->setParentPageData($parent);
+
+        self::assertSame('/announcements/launch/agenda', $this->generator->create($child)->getPath());
+    }
+
+    public function test_a_page_under_the_site_root_is_given_a_single_slash_before_its_slug(): void
+    {
+        $parent = $this->createPage('Home');
+        $parent->setRoute((new Route())->setName('home')->setPath('/'));
+        $child = $this->createPage('About');
+        $child->setParentPage($parent);
+
+        self::assertSame('/about', $this->generator->create($child)->getPath());
+    }
+
+    public function test_the_generated_path_of_prefixed_page_data_is_its_prefix_then_its_slug(): void
+    {
+        self::assertSame('/announcements/launch', $this->generator->generatePath($this->createPrefixedPageData('Launch')));
+    }
+
+    public function test_the_generated_path_of_prefixed_page_data_matches_the_path_create_gives(): void
+    {
+        $parent = $this->createPage('News');
+        $parent->setRoute((new Route())->setName('news')->setPath('/news'));
+        $child = $this->createPrefixedPageData('Launch');
+        $child->setParentPage($parent);
+
+        $path = $this->generator->generatePath($child);
+
+        self::assertSame('/news/announcements/launch', $path);
+        self::assertSame($path, $this->generator->create($child)->getPath());
+    }
+
+    public function test_a_conflicting_prefixed_path_is_suffixed_after_the_slug(): void
+    {
+        $routeRepository = $this->createStub(RouteRepository::class);
+        $routeRepository->method('findConflicts')->willReturn([(new Route())->setName('launch')->setPath('/announcements/launch')]);
+        $generator = new RouteGenerator(new Slugify(), $this->registryWithOriginalRoute(null), $this->createStub(TimestampedDataPersister::class), $routeRepository, self::validator(), $this->routePrefixResolver());
+
+        $route = $generator->create($this->createPrefixedPageData('Launch'));
+
+        self::assertSame('/announcements/launch-1', $route->getPath());
+        self::assertSame('launch-1', $route->getName());
+    }
+
     public function test_a_route_whose_path_or_name_is_taken_takes_the_first_free_suffix_for_both(): void
     {
         $routeRepository = $this->createStub(RouteRepository::class);
@@ -310,7 +382,7 @@ class RouteGeneratorTest extends TestCase
             (new Route())->setName('other')->setPath('/programme'),
             (new Route())->setName('programme-1')->setPath('/elsewhere'),
         ]);
-        $generator = new RouteGenerator(new Slugify(), $this->registryWithOriginalRoute(null), $this->createStub(TimestampedDataPersister::class), $routeRepository, self::validator());
+        $generator = new RouteGenerator(new Slugify(), $this->registryWithOriginalRoute(null), $this->createStub(TimestampedDataPersister::class), $routeRepository, self::validator(), $this->routePrefixResolver());
         $page = $this->createPage('Programme');
 
         $route = $generator->create($page);
@@ -324,7 +396,7 @@ class RouteGeneratorTest extends TestCase
         $pageData = $this->createPageData('Programme');
         $original = (new Route())->setName('original')->setPath('/original');
         $original->setPageData($pageData);
-        $generator = new RouteGenerator(new Slugify(), $this->registryWithOriginalRoute($original), $this->createStub(TimestampedDataPersister::class), $this->routeRepositoryWithNames([]), self::validator());
+        $generator = new RouteGenerator(new Slugify(), $this->registryWithOriginalRoute($original), $this->createStub(TimestampedDataPersister::class), $this->routeRepositoryWithNames([]), self::validator(), $this->routePrefixResolver());
 
         $route = $generator->create($pageData);
 
@@ -378,7 +450,7 @@ class RouteGeneratorTest extends TestCase
     {
         $timestamped = $this->createMock(TimestampedDataPersister::class);
         $timestamped->expects(self::once())->method('persistTimestampedFields')->with(self::isInstanceOf(Route::class), true);
-        $generator = new RouteGenerator(new Slugify(), $this->createStub(ManagerRegistry::class), $timestamped, $this->routeRepositoryWithNames([]), self::validator());
+        $generator = new RouteGenerator(new Slugify(), $this->createStub(ManagerRegistry::class), $timestamped, $this->routeRepositoryWithNames([]), self::validator(), $this->routePrefixResolver());
 
         $generator->createRedirect('/old', new Route());
     }
@@ -406,6 +478,7 @@ class RouteGeneratorTest extends TestCase
             $this->createStub(TimestampedDataPersister::class),
             $this->routeRepositoryWithNames($takenNames),
             self::validator(),
+            $this->routePrefixResolver(),
         );
     }
 
@@ -454,6 +527,11 @@ class RouteGeneratorTest extends TestCase
         return $propertyPaths;
     }
 
+    private function routePrefixResolver(): RoutePrefixResolver
+    {
+        return new RoutePrefixResolver(new RoutePrefixAttributeReader($this->createStub(ManagerRegistry::class)));
+    }
+
     private static function validator(): ValidatorInterface
     {
         return Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator();
@@ -470,6 +548,14 @@ class RouteGeneratorTest extends TestCase
     private function createPageData(?string $title): AbstractPageData
     {
         $pageData = new class extends AbstractPageData {};
+        $pageData->setTitle($title);
+
+        return $pageData;
+    }
+
+    private function createPrefixedPageData(?string $title): AbstractPageData
+    {
+        $pageData = new #[RoutePrefix('/announcements')] class extends AbstractPageData {};
         $pageData->setTitle($title);
 
         return $pageData;

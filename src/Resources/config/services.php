@@ -43,6 +43,7 @@ use Silverback\ApiComponentsBundle\ApiPlatform\Serializer\VersionedDocumentation
 use Silverback\ApiComponentsBundle\AttributeReader\AttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\ExplicitAllowOnlyAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\PublishableAttributeReader;
+use Silverback\ApiComponentsBundle\AttributeReader\RoutePrefixAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\TimestampedAttributeReader;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
 use Silverback\ApiComponentsBundle\Command\DeduplicateFileInfoCommand;
@@ -64,6 +65,7 @@ use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceS
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\FormSerializeStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\PublishableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ResourceVersionConflictStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RoutableMoveStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UploadableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
@@ -168,9 +170,12 @@ use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteAncestorGateResolver;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteCascadePlanner;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGenerator;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteMovePlanner;
+use Silverback\ApiComponentsBundle\Helper\Route\RoutePrefixResolver;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteReachabilityResolver;
 use Silverback\ApiComponentsBundle\Helper\SubRequest\SubRequestKernel;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
@@ -234,6 +239,7 @@ use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressRequires
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\RequiresUploadedFileValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ResourceIriValidator;
+use Silverback\ApiComponentsBundle\Validator\Constraints\RoutePathStartValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImageValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\UserPasswordValidator;
 use Silverback\ApiComponentsBundle\Validator\MappingLoader\TimestampedLoader as TimestampedValidatorMappingLoader;
@@ -1000,6 +1006,28 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(ExplicitAllowOnlyAttributeReader::class, 'silverback.api_components.attribute_reader.explicit_allow_only');
 
     $services
+        ->set('silverback.api_components.attribute_reader.route_prefix')
+        ->class(RoutePrefixAttributeReader::class)
+        ->parent(AttributeReader::class);
+    $services->alias(RoutePrefixAttributeReader::class, 'silverback.api_components.attribute_reader.route_prefix');
+
+    $services
+        ->set('silverback.api_components.helper.route_prefix_resolver')
+        ->class(RoutePrefixResolver::class)
+        ->args([new Reference(RoutePrefixAttributeReader::class)]);
+    $services->alias(RoutePrefixResolver::class, 'silverback.api_components.helper.route_prefix_resolver');
+
+    $services
+        ->set('silverback.api_components.validator.route_path_start')
+        ->class(RoutePathStartValidator::class)
+        ->args([
+            new Reference(RoutePrefixResolver::class),
+            new Reference(ManagerRegistry::class),
+        ])
+        ->tag('validator.constraint_validator');
+    $services->alias(RoutePathStartValidator::class, 'silverback.api_components.validator.route_path_start');
+
+    $services
         ->set('silverback.api_components.serializer.context_builder.publishable')
         ->class(PublishableContextBuilder::class)
         ->decorate('api_platform.serializer.context_builder')
@@ -1406,9 +1434,39 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('silverback.api_components.api_platform.state_processor.route_redirect.inner'),
             new Reference('silverback.helper.route_generator'),
             new Reference(ManagerRegistry::class),
-            new Reference(ValidatorInterface::class),
+            new Reference(RouteCascadePlanner::class),
         ]);
     $services->alias(RouteRedirectStateProcessor::class, 'silverback.api_components.api_platform.state_processor.route_redirect');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_processor.routable_move')
+        ->class(RoutableMoveStateProcessor::class)
+        ->decorate('api_platform.state_processor.locator', null, 55)
+        ->args([
+            new Reference('silverback.api_components.api_platform.state_processor.routable_move.inner'),
+            new Reference(ManagerRegistry::class),
+            new Reference(RouteMovePlanner::class),
+            new Reference(RouteCascadePlanner::class),
+        ]);
+    $services->alias(RoutableMoveStateProcessor::class, 'silverback.api_components.api_platform.state_processor.routable_move');
+
+    $services
+        ->set('silverback.api_components.helper.route_cascade_planner')
+        ->class(RouteCascadePlanner::class)
+        ->args([
+            new Reference('silverback.helper.route_generator'),
+            new Reference(ValidatorInterface::class),
+        ]);
+    $services->alias(RouteCascadePlanner::class, 'silverback.api_components.helper.route_cascade_planner');
+
+    $services
+        ->set('silverback.api_components.helper.route_move_planner')
+        ->class(RouteMovePlanner::class)
+        ->args([
+            new Reference(RoutePrefixResolver::class),
+            new Reference(RouteCascadePlanner::class),
+        ]);
+    $services->alias(RouteMovePlanner::class, 'silverback.api_components.helper.route_move_planner');
 
     $services
         ->set('silverback.api_components.doctrine.orm.extension.route')
@@ -1462,6 +1520,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('silverback.helper.timestamped_data_persister'),
             new Reference('silverback.doctrine.repository.route'),
             new Reference(ValidatorInterface::class),
+            new Reference(RoutePrefixResolver::class),
         ]);
     $services->alias(RouteGeneratorInterface::class, 'silverback.helper.route_generator');
 
@@ -2360,6 +2419,7 @@ return static function (ContainerConfigurator $configurator) {
             new Reference(ResourceNameCollectionFactoryInterface::class),
             new Reference(ResourceMetadataCollectionFactoryInterface::class),
             new Reference(ExplicitAllowOnlyAttributeReader::class),
+            new Reference(RoutePrefixAttributeReader::class),
         ]);
 
     $services
