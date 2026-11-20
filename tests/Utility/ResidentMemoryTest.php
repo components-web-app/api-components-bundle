@@ -47,13 +47,23 @@ class ResidentMemoryTest extends TestCase
 
     public function test_without_a_readable_status_file_it_falls_back_to_php_s_own_usage(): void
     {
-        self::assertSame(memory_get_usage(true), (new ResidentMemory($this->statusFile . '-missing'))->bytes());
+        self::assertPhpOwnUsage(new ResidentMemory($this->statusFile . '-missing'));
     }
 
     public function test_a_status_file_without_a_resident_set_size_falls_back_to_php_s_own_usage(): void
     {
         file_put_contents($this->statusFile, "Name:\tphp\nVmPeak:\t900000 kB\n");
 
-        self::assertSame(memory_get_usage(true), (new ResidentMemory($this->statusFile))->bytes());
+        self::assertPhpOwnUsage(new ResidentMemory($this->statusFile));
+    }
+
+    private static function assertPhpOwnUsage(ResidentMemory $memory): void
+    {
+        $before = memory_get_usage(true);
+        $bytes = $memory->bytes();
+        $after = memory_get_usage(true);
+
+        self::assertGreaterThanOrEqual(min($before, $after), $bytes);
+        self::assertLessThanOrEqual(max($before, $after), $bytes);
     }
 }
