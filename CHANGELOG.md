@@ -9,6 +9,10 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ### Added
 - `#[Silverback\RoutePrefix('/announcements')]` on a page data class puts a fixed prefix after the nearest routed ancestor's path in every route of that class written through the API, is applied by fixture route generation, and is advertised as `routePrefix` on the class's Hydra `supportedClass` ([#602](https://github.com/components-web-app/api-components-bundle/pull/602))
+- Moving a page or page data to a new `parentPage`/`parentPageData` through the API rewrites its route under the new required start (keeping the part after the old one, else its last segment) and its routed descendants' routes, redirecting every old path; a page with no route moves its routed descendants; a taken or invalid new path is a 422 on the changed parent field and nothing is written ([#602](https://github.com/components-web-app/api-components-bundle/pull/602))
+
+### Fixed
+- A `cascadeChildPaths` route `PATCH` that would rewrite a descendant onto a path already in use is a 422 on `path` before anything is written ([#602](https://github.com/components-web-app/api-components-bundle/pull/602))
 
 ### Tooling
 - `ResidentMemoryTest`'s fallback tests no longer fail when PHP allocates a memory chunk between two reads of its usage ([#602](https://github.com/components-web-app/api-components-bundle/pull/602))

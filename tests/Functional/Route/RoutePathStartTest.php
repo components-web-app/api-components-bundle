@@ -261,19 +261,6 @@ final class RoutePathStartTest extends FunctionalTestCase
         self::assertJsonNodeSame('route', '/_/routes//conference/programme');
     }
 
-    public function test_moving_a_page_to_a_new_parent_does_not_recheck_its_existing_route(): void
-    {
-        $page = self::createPageWhoseParentIsRouted('/conference', self::newRoute('/conference/programme', 'programme'), true);
-        $other = static::newPage('other');
-        self::persistAndFlush($other, self::newRoute('/other')->setPage($other));
-        $client = self::adminClient();
-
-        self::requestJsonLd($client, 'PATCH', self::iriOf($page), ['parentPage' => self::iriOf($other)]);
-
-        self::assertResponseStatusCodeSame(200);
-        self::assertJsonNodeSame('route', '/_/routes//conference/programme');
-    }
-
     public function test_a_pure_redirect_may_have_any_path(): void
     {
         $site = self::createPageNestedWithinRoute('/conference/programme', '/conference');

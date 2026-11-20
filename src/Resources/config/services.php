@@ -65,6 +65,7 @@ use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\DeletedResourceS
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\FormSerializeStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\PublishableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\ResourceVersionConflictStateProcessor;
+use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RoutableMoveStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RouteRedirectStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UploadableWriteStateProcessor;
 use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\UserNotificationStateProcessor;
@@ -169,9 +170,11 @@ use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableDraftMerger;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteAncestorGateResolver;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteCascadePlanner;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGenerator;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteGeneratorInterface;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
+use Silverback\ApiComponentsBundle\Helper\Route\RouteMovePlanner;
 use Silverback\ApiComponentsBundle\Helper\Route\RoutePrefixResolver;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteReachabilityResolver;
 use Silverback\ApiComponentsBundle\Helper\SubRequest\SubRequestKernel;
@@ -1431,9 +1434,39 @@ return static function (ContainerConfigurator $configurator) {
             new Reference('silverback.api_components.api_platform.state_processor.route_redirect.inner'),
             new Reference('silverback.helper.route_generator'),
             new Reference(ManagerRegistry::class),
-            new Reference(ValidatorInterface::class),
+            new Reference(RouteCascadePlanner::class),
         ]);
     $services->alias(RouteRedirectStateProcessor::class, 'silverback.api_components.api_platform.state_processor.route_redirect');
+
+    $services
+        ->set('silverback.api_components.api_platform.state_processor.routable_move')
+        ->class(RoutableMoveStateProcessor::class)
+        ->decorate('api_platform.state_processor.locator', null, 55)
+        ->args([
+            new Reference('silverback.api_components.api_platform.state_processor.routable_move.inner'),
+            new Reference(ManagerRegistry::class),
+            new Reference(RouteMovePlanner::class),
+            new Reference(RouteCascadePlanner::class),
+        ]);
+    $services->alias(RoutableMoveStateProcessor::class, 'silverback.api_components.api_platform.state_processor.routable_move');
+
+    $services
+        ->set('silverback.api_components.helper.route_cascade_planner')
+        ->class(RouteCascadePlanner::class)
+        ->args([
+            new Reference('silverback.helper.route_generator'),
+            new Reference(ValidatorInterface::class),
+        ]);
+    $services->alias(RouteCascadePlanner::class, 'silverback.api_components.helper.route_cascade_planner');
+
+    $services
+        ->set('silverback.api_components.helper.route_move_planner')
+        ->class(RouteMovePlanner::class)
+        ->args([
+            new Reference(RoutePrefixResolver::class),
+            new Reference(RouteCascadePlanner::class),
+        ]);
+    $services->alias(RouteMovePlanner::class, 'silverback.api_components.helper.route_move_planner');
 
     $services
         ->set('silverback.api_components.doctrine.orm.extension.route')

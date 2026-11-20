@@ -26,7 +26,11 @@ final readonly class RoutePrefixResolver
 
     public function requiredStart(RoutableInterface $routable): ?string
     {
-        $ancestorPath = $this->nearestRoutedAncestorPath($routable);
+        return $this->requiredStartBelow($routable, $this->ancestorPathFrom($routable->getParentPage() ?? $routable->getParentPageData(), $routable));
+    }
+
+    public function requiredStartBelow(RoutableInterface $routable, ?string $ancestorPath): ?string
+    {
         $prefix = $this->prefixOf($routable);
         if (null === $ancestorPath && null === $prefix) {
             return null;
@@ -35,19 +39,9 @@ final readonly class RoutePrefixResolver
         return rtrim($ancestorPath ?? '', '/') . $prefix . '/';
     }
 
-    private function prefixOf(RoutableInterface $routable): ?string
-    {
-        if (!$routable instanceof AbstractPageData || !$this->routePrefixReader->isConfigured($routable)) {
-            return null;
-        }
-
-        return $this->routePrefixReader->getConfiguration($routable)->prefix;
-    }
-
-    private function nearestRoutedAncestorPath(RoutableInterface $routable): ?string
+    public function ancestorPathFrom(?RoutableInterface $ancestor, RoutableInterface $routable): ?string
     {
         $visited = [$routable];
-        $ancestor = $routable->getParentPage() ?? $routable->getParentPageData();
         while (null !== $ancestor && !\in_array($ancestor, $visited, true)) {
             $route = $ancestor->getRoute();
             if (null !== $route) {
@@ -58,5 +52,14 @@ final readonly class RoutePrefixResolver
         }
 
         return null;
+    }
+
+    private function prefixOf(RoutableInterface $routable): ?string
+    {
+        if (!$routable instanceof AbstractPageData || !$this->routePrefixReader->isConfigured($routable)) {
+            return null;
+        }
+
+        return $this->routePrefixReader->getConfiguration($routable)->prefix;
     }
 }

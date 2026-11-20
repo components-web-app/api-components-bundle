@@ -155,6 +155,46 @@ class RoutePrefixResolverTest extends TestCase
         self::assertSame('/page/', $this->resolver->requiredStart($child));
     }
 
+    public function test_the_required_start_below_an_ancestor_path_joins_it_to_the_prefix(): void
+    {
+        self::assertSame('/news/announcements/', $this->resolver->requiredStartBelow(self::prefixedPageData()->setParentPage(self::routedPage('/blog')), '/news'));
+    }
+
+    public function test_the_required_start_below_an_ancestor_path_ignores_the_current_parent(): void
+    {
+        self::assertSame('/news/', $this->resolver->requiredStartBelow((new Page())->setParentPage(self::routedPage('/blog')), '/news'));
+    }
+
+    public function test_the_required_start_below_no_ancestor_path_is_the_prefix_alone(): void
+    {
+        self::assertSame('/announcements/', $this->resolver->requiredStartBelow(self::prefixedPageData()->setParentPage(self::routedPage('/blog')), null));
+        self::assertNull($this->resolver->requiredStartBelow((new Page())->setParentPage(self::routedPage('/blog')), null));
+    }
+
+    public function test_the_ancestor_path_from_a_routed_page_is_its_own_path(): void
+    {
+        self::assertSame('/blog', $this->resolver->ancestorPathFrom(self::routedPage('/blog'), new Page()));
+    }
+
+    public function test_the_ancestor_path_from_an_unrouted_page_is_its_nearest_routed_ancestors(): void
+    {
+        $unrouted = (new Page())->setParentPage((new Page())->setParentPageData(self::pageData()->setRoute(self::route('/blog'))));
+
+        self::assertSame('/blog', $this->resolver->ancestorPathFrom($unrouted, new Page()));
+    }
+
+    public function test_there_is_no_ancestor_path_from_nothing(): void
+    {
+        self::assertNull($this->resolver->ancestorPathFrom(null, new Page()));
+    }
+
+    public function test_the_ancestor_path_never_comes_from_the_routable_itself(): void
+    {
+        $page = self::routedPage('/self');
+
+        self::assertNull($this->resolver->ancestorPathFrom((new Page())->setParentPage($page), $page));
+    }
+
     private static function routedPage(string $path): Page
     {
         return (new Page())->setRoute(self::route($path));
