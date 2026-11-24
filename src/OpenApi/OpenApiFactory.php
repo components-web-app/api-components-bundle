@@ -16,7 +16,7 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInter
 use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\OpenApi\Model\PathItem;
 use ApiPlatform\OpenApi\OpenApi;
-use PackageVersions\Versions;
+use Composer\InstalledVersions;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractPageData;
 use Silverback\ApiComponentsBundle\Model\Uploadable\MediaObject;
@@ -71,7 +71,9 @@ class OpenApiFactory implements OpenApiFactoryInterface
 
     public static function getExtendedVersion(string $version): string
     {
-        return \sprintf('%s (%s)', $version, Versions::getVersion('components-web-app/api-components-bundle'));
+        $package = 'components-web-app/api-components-bundle';
+
+        return \sprintf('%s (%s@%s)', $version, InstalledVersions::getPrettyVersion($package), InstalledVersions::getReference($package));
     }
 
     public function __invoke(array $context = []): OpenApi

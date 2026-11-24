@@ -17,8 +17,11 @@ use Silverback\ApiComponentsBundle\Entity\Core\Route;
 use Silverback\ApiComponentsBundle\HttpCache\Warm\HttpCacheWarmer;
 use Silverback\ApiComponentsBundle\HttpCache\Warm\HttpCacheWarmResult;
 use Symfony\Component\Clock\MockClock;
+use Symfony\Component\HttpClient\DecoratorTrait;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class HttpCacheWarmerTest extends TestCase
 {
@@ -41,12 +44,16 @@ class HttpCacheWarmerTest extends TestCase
 
     private float $secondsPerRequest = 0;
 
+    /** @var list<ResponseInterface> */
+    private array $started = [];
+
     protected function setUp(): void
     {
         $this->requests = [];
         $this->responses = [];
         $this->clock = new MockClock('2026-10-13 12:00:00');
         $this->secondsPerRequest = 0;
+        $this->started = [];
     }
 
     public function test_requests_the_route_its_manifest_and_every_manifest_iri_with_the_module_headers(): void
@@ -285,16 +292,50 @@ class HttpCacheWarmerTest extends TestCase
         self::assertArrayNotHasKey('accept-encoding', $this->requests[0]['headers']);
     }
 
-    public function test_a_response_still_arriving_at_the_maximum_time_is_abandoned(): void
+    public function test_a_request_started_before_the_maximum_time_and_completing_after_it_is_counted_as_completed_and_never_cancelled(): void
     {
         $this->secondsPerRequest = 20;
-        $this->responses['/_api/_/routes//a'] = new MockResponse(['', json_encode(['@id' => '/_api/_/routes//a'])]);
+        $this->responses['/_api/_/routes//a'] = new MockResponse(['', json_encode(['@id' => '/_api/_/routes//a'])], ['response_headers' => ['Content-Type' => 'application/ld+json']]);
 
         $result = $this->warm(['/a'], concurrency: 1, maxTime: 15);
 
-        self::assertCount(1, $this->requests);
-        self::assertSame(0, $result->countRequests());
+        self::assertSame(['http://localhost/_api/_/routes//a'], array_column($this->requests, 'url'));
+        self::assertSame(1, $result->countRequests());
+        self::assertSame(200, $result->getRequests()[0]->status);
+        self::assertSame(0, $result->countFailed());
         self::assertTrue($result->isStopped());
+        $this->assertNoResponseCancelled();
+    }
+
+    public function test_no_request_starts_after_the_maximum_time_while_the_requests_in_flight_finish_by_their_real_outcome(): void
+    {
+        $this->secondsPerRequest = 10;
+        $this->route('/a');
+        $this->responses['/_api/_/routes//b'] = new MockResponse(['', ''], ['http_code' => 503]);
+
+        $result = $this->warm(['/a', '/b'], concurrency: 2, maxTime: 15);
+
+        self::assertSame([
+            'http://localhost/_api/_/routes//a',
+            'http://localhost/_api/_/routes//b',
+        ], array_column($this->requests, 'url'));
+        self::assertSame([200, 503], array_map(static fn ($request) => $request->status, $result->getRequests()));
+        self::assertSame(1, $result->countFailed());
+        self::assertTrue($result->isStopped());
+        $this->assertNoResponseCancelled();
+    }
+
+    public function test_a_warm_whose_last_requests_finish_after_the_maximum_time_with_nothing_left_to_start_is_not_stopped(): void
+    {
+        $this->secondsPerRequest = 20;
+        $this->responses['/_api/_/routes//a'] = new MockResponse(['', json_encode(['@id' => '/_api/_/routes//a', 'redirectPath' => '/b'])]);
+
+        $result = $this->warm(['/a'], concurrency: 1, maxTime: 15);
+
+        self::assertSame(1, $result->countRequests());
+        self::assertSame(0, $result->countFailed());
+        self::assertFalse($result->isStopped());
+        $this->assertNoResponseCancelled();
     }
 
     public function test_a_response_that_pauses_is_waited_for_without_a_maximum_time(): void
@@ -502,10 +543,35 @@ class HttpCacheWarmerTest extends TestCase
             return \is_callable($response) ? $response() : clone $response;
         });
 
+        $client = new class($client, $this->started) implements HttpClientInterface {
+            use DecoratorTrait;
+
+            /**
+             * @param list<ResponseInterface> $started
+             */
+            public function __construct(HttpClientInterface $client, private array &$started)
+            {
+                $this->client = $client;
+            }
+
+            public function request(string $method, string $url, array $options = []): ResponseInterface
+            {
+                return $this->started[] = $this->client->request($method, $url, $options);
+            }
+        };
+
         $iriConverter = $this->createStub(IriConverterInterface::class);
         $iriConverter->method('getIriFromResource')->willReturnCallback(static fn (Route $route) => '/_api/_/routes/' . $route->getPath());
 
         return (new HttpCacheWarmer($client, $iriConverter, $this->clock, $brotliUncompress))->warm($paths, $baseUrl, $concurrency, $maxTime, 30.0, $acceptEncoding, $requestsPerConnection);
+    }
+
+    private function assertNoResponseCancelled(): void
+    {
+        self::assertNotEmpty($this->started);
+        foreach ($this->started as $response) {
+            self::assertFalse($response->getInfo('canceled'), $response->getInfo('url'));
+        }
     }
 
     private function route(string $path): void

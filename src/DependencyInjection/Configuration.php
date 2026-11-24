@@ -177,7 +177,7 @@ class Configuration implements ConfigurationInterface
                                 ->end()
                                 ->floatNode('max_time')
                                     ->beforeNormalization()->ifTrue(static fn (mixed $value): bool => \is_int($value))->then(static fn (int $value): float => (float) $value)->end()
-                                    ->info('Seconds after which each warm stops starting requests.')
+                                    ->info('Seconds after which each warm stops starting requests; requests in flight still finish, so a warm can run up to max_time + timeout.')
                                     ->min(0.001)
                                     ->defaultValue(60.0)
                                 ->end()

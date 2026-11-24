@@ -11,7 +11,10 @@
 
 namespace Silverback\ApiComponentsBundle\Serializer\Normalizer;
 
+use Silverback\ApiComponentsBundle\Exception\InvalidArgumentException;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
+use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
+use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -51,7 +54,16 @@ class AbstractResourceNormalizer implements DenormalizerInterface, DenormalizerA
             $iri = $data['@id'] ?? null;
         }
         if ($iri) {
-            $routeParameters = $this->routeFinder->findByIri($iri);
+            try {
+                $routeParameters = $this->routeFinder->findByIri($iri);
+            } catch (InvalidArgumentException $exception) {
+                $message = \sprintf('Invalid IRI "%s".', $iri);
+                if (!isset($context['not_normalizable_value_exceptions'])) {
+                    throw new UnexpectedValueException($message, $exception->getCode(), $exception);
+                }
+
+                throw NotNormalizableValueException::createForUnexpectedDataType($message, $iri, [$type], $context['deserialization_path'] ?? null, true, $exception->getCode(), $exception);
+            }
             $type = $routeParameters['_api_resource_class'];
         }
 
