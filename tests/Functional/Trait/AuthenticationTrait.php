@@ -36,6 +36,17 @@ trait AuthenticationTrait
         return $user;
     }
 
+    /**
+     * @param list<string> $roles
+     */
+    protected static function loginWithRoles(Client $client, array $roles, string $username = 'new_user', string $emailAddress = 'user@example.com'): User
+    {
+        $user = static::createUser($roles, $username, $emailAddress);
+        $client->getKernelBrowser()->getCookieJar()->set(new Cookie('api_components', static::createToken($user)));
+
+        return $user;
+    }
+
     protected static function loginAsUser(Client $client): User
     {
         $user = static::createUser(['ROLE_USER']);

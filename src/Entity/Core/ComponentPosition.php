@@ -54,12 +54,12 @@ class ComponentPosition
     public ?AbstractComponent $component = null;
 
     #[ORM\Column(name: 'page_data_property', nullable: true)]
-    #[Groups(['ComponentPosition:read:role_admin', 'ComponentPosition:write'])]
+    #[Groups(['ComponentPosition:read:role_cms_admin', 'ComponentPosition:write'])]
     #[Assert\Length(max: 255)]
     public ?string $pageDataProperty = null;
 
     #[ORM\Column(name: 'page_data_class', nullable: true)]
-    #[Groups(['ComponentPosition:read:role_admin', 'ComponentPosition:write'])]
+    #[Groups(['ComponentPosition:read:role_cms_admin', 'ComponentPosition:write'])]
     #[Assert\Length(max: 255)]
     public ?string $pageDataClass = null;
 

@@ -28,7 +28,7 @@ class RouteVoter extends Voter
     private ?array $config;
     private ResourceAccessCheckerInterface $resourceAccessChecker;
 
-    public function __construct(?array $config, ResourceAccessCheckerInterface $resourceAccessChecker, private readonly RouteLiveResolver $routeLiveResolver = new RouteLiveResolver(), private readonly string $publicationPermission = "is_granted('ROLE_ADMIN')")
+    public function __construct(?array $config, ResourceAccessCheckerInterface $resourceAccessChecker, private readonly RouteLiveResolver $routeLiveResolver = new RouteLiveResolver(), private readonly string $publicationPermission = "is_granted('ROLE_CMS_ADMIN')")
     {
         $this->config = $config;
         $this->resourceAccessChecker = $resourceAccessChecker;

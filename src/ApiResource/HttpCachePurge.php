@@ -22,7 +22,7 @@ use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\HttpCachePurgeSt
     read: true,
     input: false,
     output: false,
-    security: "is_granted('ROLE_ADMIN')",
+    security: "is_granted('ROLE_CMS_ADMIN')",
     processor: HttpCachePurgeStateProcessor::class,
 )]
 class HttpCachePurge

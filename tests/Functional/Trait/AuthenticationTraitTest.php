@@ -28,4 +28,16 @@ final class AuthenticationTraitTest extends FunctionalTestCase
         self::assertResponseStatusCodeSame(200);
         self::assertSame('token_user', $response->toArray()['username']);
     }
+
+    public function test_a_login_with_roles_signs_in_a_new_user_holding_exactly_those_roles(): void
+    {
+        $client = static::createClient();
+
+        $user = self::loginWithRoles($client, ['ROLE_CMS_ADMIN'], 'cms_admin', 'cms@example.com');
+        $response = $client->request('GET', '/me', ['headers' => ['accept' => 'application/ld+json']]);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertSame('cms_admin', $response->toArray()['username']);
+        self::assertSame(['ROLE_CMS_ADMIN'], $user->getRoles());
+    }
 }

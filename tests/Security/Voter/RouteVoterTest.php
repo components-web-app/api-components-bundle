@@ -25,7 +25,7 @@ class RouteVoterTest extends TestCase
 {
     private const string USER = "is_granted('ROLE_USER')";
 
-    private const string ADMIN = "is_granted('ROLE_ADMIN')";
+    private const string ADMIN = "is_granted('ROLE_CMS_ADMIN')";
 
     public function test_a_vote_on_another_attribute_or_subject_abstains(): void
     {

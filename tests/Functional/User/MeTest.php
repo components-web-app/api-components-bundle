@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle\Tests\Functional\User;
 
 use Silverback\ApiComponentsBundle\Tests\Functional\FunctionalTestCase;
+use Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity\User;
 
 final class MeTest extends FunctionalTestCase
 {
@@ -45,6 +46,35 @@ final class MeTest extends FunctionalTestCase
         self::assertJsonNodeSame('@context', '/contexts/User');
         self::assertJsonNodeSame('_metadata.mercureSubscribeTopics[0]', 'http://example.com/_/component_groups/:id\?');
         self::assertResponseHeaderSame('cache-control', 'max-age=0, private');
+    }
+
+    public function test_me_lists_every_role_the_user_reaches(): void
+    {
+        $client = static::createClient();
+        self::loginAsSuperAdmin($client);
+
+        $roles = self::requestJsonLd($client, 'GET', '/me')->toArray()['roles'];
+        sort($roles);
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertSame(['ROLE_ADMIN', 'ROLE_ALLOWED_TO_SWITCH', 'ROLE_CMS_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_USER', 'ROLE_USER_ADMIN'], $roles);
+    }
+
+    public function test_a_flush_after_a_user_is_normalized_stores_only_the_roles_it_was_given(): void
+    {
+        static::bootKernel();
+        $user = self::createUser(['ROLE_ADMIN']);
+        $manager = static::getEntityManager();
+        $stored = $manager->find(User::class, $user->getId());
+        self::assertInstanceOf(User::class, $stored);
+
+        $normalized = static::getContainer()->get('serializer')->normalize($stored, 'jsonld', ['groups' => ['User:output']]);
+        $manager->flush();
+        $manager->clear();
+
+        self::assertIsArray($normalized);
+        self::assertContains('ROLE_CMS_ADMIN', $normalized['roles']);
+        self::assertSame(['ROLE_ADMIN'], $manager->find(User::class, $user->getId())?->getRoles());
     }
 
     public function test_an_anonymous_request_to_me_is_a_401(): void

@@ -33,14 +33,11 @@ silverback_api_components:
             email:
                 redirect_path_query: email_redirect
                 default_redirect_path: /confirm-new-email/{{ username }}/{{ new_email }}/{{ token }}
-    publishable:
-        permission: "is_granted('ROLE_ADMIN')"
     mercure:
         secure_subscriptions: true
     route_security:
         - { route: "/user-area*", security: "is_granted('ROLE_USER')" }
         - { route: "*/members-area*", security: "is_granted('ROLE_USER')" }
-    routable_security: "is_granted('ROLE_ADMIN')"
     orphaned_resources:
         notify:
             recipients: '%env(default::ORPHANED_RESOURCES_NOTIFY_RECIPIENTS)%'

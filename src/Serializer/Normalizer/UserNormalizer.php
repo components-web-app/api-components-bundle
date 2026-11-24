@@ -79,14 +79,16 @@ class UserNormalizer implements DenormalizerInterface, DenormalizerAwareInterfac
     {
         $context[self::ALREADY_CALLED] = true;
 
-        $rolesAsEntities = $object->getRoles();
-        $object->setRoles(array_values($this->roleHierarchy->getReachableRoleNames($rolesAsEntities)));
-
         $subscribeTopics = $this->mercureAuthorization->getSubscribeTopics();
         $metadata = $this->resourceMetadataProvider->findResourceMetadata($object);
         $metadata->setMercureSubscribeTopics($subscribeTopics);
 
-        return $this->normalizer->normalize($object, $format, $context);
+        $normalized = $this->normalizer->normalize($object, $format, $context);
+        if (\is_array($normalized) && \array_key_exists('roles', $normalized)) {
+            $normalized['roles'] = array_values($this->roleHierarchy->getReachableRoleNames($object->getRoles()));
+        }
+
+        return $normalized;
     }
 
     public function getSupportedTypes(?string $format): array

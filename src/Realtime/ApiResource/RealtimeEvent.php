@@ -29,5 +29,5 @@ use Silverback\ApiComponentsBundle\DataProcessor\StateProcessor\RealtimeEventSta
 class RealtimeEvent
 {
     public const string OPERATION_NAME = 'cwa_realtime_event';
-    public const string SECURITY = "is_granted('ROLE_ADMIN')";
+    public const string SECURITY = "is_granted('ROLE_CMS_ADMIN')";
 }

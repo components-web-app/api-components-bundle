@@ -31,7 +31,7 @@ class RouteExtensionTest extends TestCase
 
     private const string USER = "is_granted('ROLE_USER')";
 
-    private const string ADMIN = "is_granted('ROLE_ADMIN')";
+    private const string ADMIN = "is_granted('ROLE_CMS_ADMIN')";
 
     protected function setUp(): void
     {

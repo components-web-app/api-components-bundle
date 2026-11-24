@@ -12,6 +12,7 @@
 namespace Silverback\ApiComponentsBundle;
 
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
+use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\AdminRoleHierarchyCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\ApiPlatformCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\DoctrineOrmCompilerPass;
 use Silverback\ApiComponentsBundle\DependencyInjection\CompilerPass\FlysystemCompilerPass;
@@ -38,6 +39,7 @@ class SilverbackApiComponentsBundle extends Bundle
         $container->addCompilerPass(new ValidatorCompilerPass());
         $container->addCompilerPass(new FlysystemCompilerPass());
         $container->addCompilerPass(new RealtimeHubCompilerPass());
+        $container->addCompilerPass(new AdminRoleHierarchyCompilerPass());
 
         if (class_exists(DoctrineOrmMappingsPass::class)) {
             $container->addCompilerPass(new DoctrineOrmCompilerPass());

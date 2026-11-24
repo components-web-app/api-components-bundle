@@ -4,6 +4,16 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- Every bundle check that needed `ROLE_ADMIN` (content writes and publishing by default, route `liveAt`, `isReachableWithoutRoute`, collaboration state, the realtime channel, component usage, the orphan reports and the purge endpoints) now needs `ROLE_CMS_ADMIN`; the bundle adds `ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_USER_ADMIN, ROLE_ALLOWED_TO_SWITCH]`, `ROLE_ADMIN: [ROLE_CMS_ADMIN]`, `ROLE_CMS_ADMIN: [ROLE_USER]` and `ROLE_USER_ADMIN: [ROLE_USER]` to `security.role_hierarchy`, merged into the application's own lists for the same roles, so existing admins and super admins keep their access ([#611](https://github.com/components-web-app/api-components-bundle/pull/611))
+- `publishable.permission` and `routable_security` default to `is_granted('ROLE_CMS_ADMIN')`; `publishable` is no longer required, and `routable_security: null` must now be set explicitly to make a page no live route reaches public ([#611](https://github.com/components-web-app/api-components-bundle/pull/611))
+- User management needs `ROLE_USER_ADMIN` instead of `ROLE_SUPER_ADMIN`: the `User:superAdmin` group, and every `AbstractUser` operation, whose `security` the bundle sets (list and create: `ROLE_USER_ADMIN`; read: that or the user themselves; edit: that and outranking the user, or the user themselves; delete: that and outranking the user), ANDed with an operation's own `security` unless the operation sets `extraProperties: ['user_admin_security' => false]` ([#611](https://github.com/components-web-app/api-components-bundle/pull/611))
+- Assigning a role the signed-in user does not reach is a 422 on `roles`, and editing or deleting a user who reaches a role the caller does not is a 403 ([#611](https://github.com/components-web-app/api-components-bundle/pull/611))
+- `http_cache.personalised_resource_classes`, `scheduled_expiry_resource_classes` and `purge_rendered_html_classes` always keep the CWA defaults; configured or prepended classes are added to them instead of replacing them ([#611](https://github.com/components-web-app/api-components-bundle/pull/611))
+
+### Fixed
+- Normalizing a user no longer writes its reachable roles onto the entity, so a later flush in the same request cannot store them; `roles` in the output (including `/me`) is still every role the user reaches ([#611](https://github.com/components-web-app/api-components-bundle/pull/611))
+
 ## [2.0.0-alpha.45](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.44...2.0.0-alpha.45) - 2026-11-24
 
 ### Breaking

@@ -22,6 +22,7 @@ use Silverback\ApiComponentsBundle\Helper\RefererUrlResolver;
 use Silverback\ApiComponentsBundle\HttpCache\HttpCachePurger;
 use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Silverback\ApiComponentsBundle\Message\WarmHttpCacheMessage;
+use Silverback\ApiComponentsBundle\Security\AdminRoles;
 use Silverback\ApiComponentsBundle\Utility\EmailRecipientList;
 use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImage;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
@@ -40,6 +41,10 @@ use Symfony\Component\Mime\Exception\RfcComplianceException;
  */
 class Configuration implements ConfigurationInterface
 {
+    public const array PERSONALISED_RESOURCE_CLASSES = [Route::class, ResourceManifest::class, ComponentPosition::class, Page::class];
+    public const array SCHEDULED_EXPIRY_RESOURCE_CLASSES = [Route::class, RoutableInterface::class, ResourceManifest::class];
+    public const array PURGE_RENDERED_HTML_CLASSES = [SiteConfigParameter::class];
+
     private const string DOCTRINE_REFRESH_TOKEN_STORAGE = 'silverback.api_components.refresh_token.storage.doctrine';
 
     public function getConfigTreeBuilder(): TreeBuilder
@@ -129,6 +134,25 @@ class Configuration implements ConfigurationInterface
             ->end();
     }
 
+    /**
+     * @param list<string> $defaults
+     */
+    private static function additiveListInfo(array $defaults): string
+    {
+        return \sprintf('The CWA defaults (%s) always apply; configured classes are added to them, from the application or from any bundle that prepends this list.', implode(', ', array_map(static fn (string $class): string => '`' . $class . '`', $defaults)));
+    }
+
+    /**
+     * @param list<string>  $defaults
+     * @param array<string> $classes
+     *
+     * @return list<string>
+     */
+    private static function withDefaults(array $defaults, array $classes): array
+    {
+        return array_values(array_unique([...$defaults, ...$classes]));
+    }
+
     private function addHttpCacheNode(ArrayNodeDefinition $rootNode): void
     {
         $rootNode
@@ -138,30 +162,22 @@ class Configuration implements ConfigurationInterface
                     ->info('Cache-safety headers for responses that vary by the authenticated session, and the resource classes whose writes invalidate the front end\'s rendered HTML.')
                     ->children()
                         ->arrayNode('personalised_resource_classes')
-                            ->info('Resource classes whose GET responses are marked `private, no-store` for authenticated users. Publishable resources are always treated as personalised in addition to this list.')
+                            ->info('Resource classes whose GET responses are marked `private, no-store` for authenticated users. Publishable resources are always treated as personalised in addition to this list. ' . self::additiveListInfo(self::PERSONALISED_RESOURCE_CLASSES))
                             ->scalarPrototype()->end()
-                            ->defaultValue([
-                                Route::class,
-                                ResourceManifest::class,
-                                ComponentPosition::class,
-                                Page::class,
-                            ])
+                            ->defaultValue(self::PERSONALISED_RESOURCE_CLASSES)
+                            ->validate()->always(static fn (array $classes): array => self::withDefaults(self::PERSONALISED_RESOURCE_CLASSES, $classes))->end()
                         ->end()
                         ->arrayNode('scheduled_expiry_resource_classes')
-                            ->info('Resource classes whose anonymous GET responses have `s-maxage` and `max-age` capped to the soonest future route go-live date, so a shared cache cannot serve them past a scheduled publication.')
+                            ->info('Resource classes whose anonymous GET responses have `s-maxage` and `max-age` capped to the soonest future route go-live date, so a shared cache cannot serve them past a scheduled publication. ' . self::additiveListInfo(self::SCHEDULED_EXPIRY_RESOURCE_CLASSES))
                             ->scalarPrototype()->end()
-                            ->defaultValue([
-                                Route::class,
-                                RoutableInterface::class,
-                                ResourceManifest::class,
-                            ])
+                            ->defaultValue(self::SCHEDULED_EXPIRY_RESOURCE_CLASSES)
+                            ->validate()->always(static fn (array $classes): array => self::withDefaults(self::SCHEDULED_EXPIRY_RESOURCE_CLASSES, $classes))->end()
                         ->end()
                         ->arrayNode('purge_rendered_html_classes')
-                            ->info('Resource classes whose writes also purge the `' . HttpCachePurger::RENDERED_HTML_TAG . '` surrogate key, dropping every cached page the front end has rendered. Purging this key drops the whole HTML cache at once, so keep the list short and deliberate, and list only leaf resources that are not reachable as an association of another resource.')
+                            ->info('Resource classes whose writes also purge the `' . HttpCachePurger::RENDERED_HTML_TAG . '` surrogate key, dropping every cached page the front end has rendered. Purging this key drops the whole HTML cache at once, so keep the list short and deliberate, and list only leaf resources that are not reachable as an association of another resource. ' . self::additiveListInfo(self::PURGE_RENDERED_HTML_CLASSES))
                             ->scalarPrototype()->end()
-                            ->defaultValue([
-                                SiteConfigParameter::class,
-                            ])
+                            ->defaultValue(self::PURGE_RENDERED_HTML_CLASSES)
+                            ->validate()->always(static fn (array $classes): array => self::withDefaults(self::PURGE_RENDERED_HTML_CLASSES, $classes))->end()
                         ->end()
                         ->arrayNode('warm_after_flush')
                             ->info('After a successful flush of the whole HTTP cache (the purge endpoint with no body, `purge-http-cache` with no options, a fixture load), dispatch a bounded warm of the public routes, shortest first, once with `Accept-Encoding: gzip` and once with `br`, as `' . WarmHttpCacheMessage::class . '` messages on `messenger.default_bus`. Route that message to an async transport: without one the warm runs inside the request or command that flushed.')
@@ -434,7 +450,10 @@ class Configuration implements ConfigurationInterface
     {
         $rootNode
             ->children()
-                ->scalarNode('routable_security')->defaultNull()->end()
+                ->scalarNode('routable_security')
+                    ->info('The expression granting read access to a page or page data that no live route reaches. Null makes every such page public.')
+                    ->defaultValue(AdminRoles::CMS_ADMIN_SECURITY)
+                ->end()
             ->end();
     }
 
@@ -468,10 +487,13 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->arrayNode('publishable')
-                    ->isRequired()
                     ->addDefaultsIfNotSet()
                     ->children()
-                        ->scalarNode('permission')->cannotBeEmpty()->isRequired()->end()
+                        ->scalarNode('permission')
+                            ->info('The expression granting draft access, publishing and every CWA content write.')
+                            ->cannotBeEmpty()
+                            ->defaultValue(AdminRoles::CMS_ADMIN_SECURITY)
+                        ->end()
                     ->end()
                 ->end()
             ->end();
