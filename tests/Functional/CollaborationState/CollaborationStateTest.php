@@ -114,6 +114,25 @@ final class CollaborationStateTest extends FunctionalTestCase
         self::assertSame(0, self::countEntities(CollaborationState::class));
     }
 
+    #[DataProvider('unresolvableRelationProvider')]
+    public function test_a_relation_value_that_matches_no_route_is_refused_like_a_missing_item(string $property, string $value): void
+    {
+        $client = static::createClient();
+        self::loginAsAdmin($client);
+
+        $response = self::requestJsonLd($client, 'POST', self::COLLECTION, [$property => $value, 'field' => 'html', 'state' => 'AQID', 'htmlHash' => 'abc']);
+
+        self::assertContains($response->getStatusCode(), [400, 422]);
+        self::assertSame(0, self::countEntities(CollaborationState::class));
+    }
+
+    public static function unresolvableRelationProvider(): iterable
+    {
+        yield 'a component placeholder' => ['component', '__new__'];
+        yield 'a page data placeholder' => ['pageData', '__new__'];
+        yield 'a component path no route matches' => ['component', '/no/such/route'];
+    }
+
     public function test_a_second_state_for_the_same_component_and_field_is_422_on_component(): void
     {
         $client = static::createClient();
