@@ -79,10 +79,7 @@ final class HttpCacheWarmer
         $active = [];
         $started = 0;
         while (!$followUps->isEmpty() || !$routes->isEmpty() || $active) {
-            while (\count($active) < $concurrency && (!$followUps->isEmpty() || !$routes->isEmpty())) {
-                if ($this->isPast($deadline)) {
-                    break 2;
-                }
+            while (\count($active) < $concurrency && (!$followUps->isEmpty() || !$routes->isEmpty()) && !$this->isPast($deadline)) {
                 $item = ($followUps->isEmpty() ? $routes : $followUps)->dequeue();
                 $headers = $this->headers($item, $acceptEncoding);
                 if (null !== $requestsPerConnection && ++$started >= $requestsPerConnection) {
@@ -97,12 +94,13 @@ final class HttpCacheWarmer
                 $active[spl_object_id($response)] = $response;
             }
 
+            if ([] === $active) {
+                break;
+            }
+
             foreach ($this->httpClient->stream($active, self::POLL_SECONDS) as $response => $chunk) {
                 try {
                     if ($chunk->isTimeout()) {
-                        if ($this->isPast($deadline)) {
-                            break;
-                        }
                         continue;
                     }
                     if ($chunk->isFirst()) {
@@ -118,16 +116,9 @@ final class HttpCacheWarmer
                 unset($active[spl_object_id($response)]);
                 break;
             }
-
-            if ($this->isPast($deadline)) {
-                break;
-            }
         }
 
-        $stopped = !$followUps->isEmpty() || !$routes->isEmpty() || [] !== $active;
-        foreach ($active as $response) {
-            $response->cancel();
-        }
+        $stopped = !$followUps->isEmpty() || !$routes->isEmpty();
 
         return new HttpCacheWarmResult($requests, $stopped);
     }
