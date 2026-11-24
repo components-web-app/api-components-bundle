@@ -82,6 +82,16 @@ class AdminRoleHierarchyCompilerPassTest extends TestCase
         self::assertSame(AdminRoles::HIERARCHY, self::passed([]));
     }
 
+    public function test_a_role_hierarchy_parameter_that_is_not_a_list_is_left_alone(): void
+    {
+        $container = new ContainerBuilder();
+        $container->setParameter(AdminRoleHierarchyCompilerPass::PARAMETER, '%env(json:ROLES)%');
+
+        (new AdminRoleHierarchyCompilerPass())->process($container);
+
+        self::assertSame('%env(json:ROLES)%', $container->getParameter(AdminRoleHierarchyCompilerPass::PARAMETER));
+    }
+
     public function test_a_container_without_security_bundle_is_left_alone(): void
     {
         $container = new ContainerBuilder();

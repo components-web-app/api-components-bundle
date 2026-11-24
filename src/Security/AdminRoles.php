@@ -24,8 +24,4 @@ final class AdminRoles
         self::CMS_ADMIN => ['ROLE_USER'],
         self::USER_ADMIN => ['ROLE_USER'],
     ];
-
-    private function __construct()
-    {
-    }
 }

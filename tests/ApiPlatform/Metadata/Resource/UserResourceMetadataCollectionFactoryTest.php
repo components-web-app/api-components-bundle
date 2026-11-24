@@ -67,6 +67,11 @@ class UserResourceMetadataCollectionFactoryTest extends TestCase
         self::assertSame('own', self::created($operation)->getSecurity());
     }
 
+    public function test_a_user_operation_of_another_kind_keeps_only_its_own_security(): void
+    {
+        self::assertSame('own', self::created(new HttpOperation(method: HttpOperation::METHOD_POST, name: 'op', security: 'own'))->getSecurity());
+    }
+
     public function test_the_me_operation_needs_only_a_signed_in_user(): void
     {
         $metadata = self::factory(User::class, new Get(name: 'op', security: 'own'))->create(User::class);
