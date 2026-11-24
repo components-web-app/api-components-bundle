@@ -4,6 +4,11 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Changed
+- PHP 8.6 support: `ocramius/package-versions` is no longer required (the bundle version in the API docs comes from Composer's `InstalledVersions`), and `cocur/slugify` is required at `^4.8` ([#606](https://github.com/components-web-app/api-components-bundle/pull/606))
+
+### Tooling
+- The unused `phpspec/prophecy` dev dependency is removed, so a dev install works on PHP 8.6 ([#606](https://github.com/components-web-app/api-components-bundle/pull/606))
 ### Fixed
 - A relation typed with an abstract class (a component, page data) given an IRI that matches no API resource route, such as `"component": "__new__"` on a collaboration state, a component position or a route, is refused with the status API Platform gives an IRI of a missing item (400, or a violation when denormalization errors are collected) instead of a 500 ([#608](https://github.com/components-web-app/api-components-bundle/pull/608))
 - A cache warm that reaches its maximum time starts no new request and lets those in flight finish (each bounded by its timeout) instead of cancelling them, which the proxy logged as 500s; they count by their real outcome, so a warm can run up to `max_time + timeout` ([#607](https://github.com/components-web-app/api-components-bundle/pull/607))
