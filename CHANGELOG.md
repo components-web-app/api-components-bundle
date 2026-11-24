@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Changed
+- PHP 8.6 support: `ocramius/package-versions` is no longer required (the bundle version in the API docs comes from Composer's `InstalledVersions`), and `cocur/slugify` is required at `^4.8` ([#606](https://github.com/components-web-app/api-components-bundle/pull/606))
+
 ## [2.0.0-alpha.44](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.43...2.0.0-alpha.44) - 2026-11-20
 
 ### Breaking
