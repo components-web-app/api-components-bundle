@@ -5,7 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Breaking
-- A route path containing any whitespace, `?` or `#` is refused with a 422 on `path` (`route.path` for an embedded route) wherever a path is written: a route `POST` or `PATCH`, a redirect, an embedded route, a `cascadeChildPaths` rewrite, a page move and fixture route generation; the path is never normalised, and a stored path is not re-checked until it is changed ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+- A route path containing any whitespace, `?` or `#` is refused with a 422 on `path` (`route.path` for an embedded route) wherever a path is written: a route `POST` or `PATCH`, a redirect, an embedded route, a `cascadeChildPaths` rewrite, a page move and fixture route generation; the path is never normalised, and a stored path is not re-checked until it is changed ([#609](https://github.com/components-web-app/api-components-bundle/pull/609))
 
 ## [2.0.0-alpha.44](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.43...2.0.0-alpha.44) - 2026-11-20
 
