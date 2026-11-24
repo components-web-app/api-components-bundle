@@ -28,7 +28,7 @@ final class UserPutTest extends FunctionalTestCase
         self::requestJsonLd($client, 'PUT', self::iriOf($user), ['username' => 'renamed_user']);
 
         self::assertResponseStatusCodeSame(200);
-        self::assertPutResponseIsTheMergedUser(self::iriOf($user), 'renamed_user', 'my_user@example.com', ['ROLE_ADMIN', 'ROLE_USER'], true);
+        self::assertPutResponseIsTheMergedUser(self::iriOf($user), 'renamed_user', 'my_user@example.com', ['ROLE_ADMIN', 'ROLE_USER', 'ROLE_CMS_ADMIN'], true);
         self::assertUserKeptTheirFields('renamed_user', 'my_user@example.com', 'ROLE_ADMIN', $password);
     }
 
@@ -42,7 +42,7 @@ final class UserPutTest extends FunctionalTestCase
         self::requestJsonLd($client, 'PUT', self::iriOf($user), ['username' => 'renamed_user', 'emailAddress' => 'renamed@example.com']);
 
         self::assertResponseStatusCodeSame(200);
-        self::assertPutResponseIsTheMergedUser(self::iriOf($user), 'renamed_user', 'renamed@example.com', ['ROLE_ADMIN', 'ROLE_USER'], true);
+        self::assertPutResponseIsTheMergedUser(self::iriOf($user), 'renamed_user', 'renamed@example.com', ['ROLE_ADMIN', 'ROLE_USER', 'ROLE_CMS_ADMIN'], true);
         self::assertUserKeptTheirFields('renamed_user', 'renamed@example.com', 'ROLE_ADMIN', $password);
     }
 

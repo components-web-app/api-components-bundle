@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\ContentWriteSecurityResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiPlatform\Metadata\Resource\RoutableResourceMetadataCollectionFactory;
 use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
 use Silverback\ApiComponentsBundle\AttributeReader\UploadableAttributeReader;
@@ -69,6 +70,7 @@ use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
+use Silverback\ApiComponentsBundle\Security\Voter\ComponentVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RoutableVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
@@ -113,7 +115,6 @@ class SilverbackApiComponentsExtensionTest extends TestCase
             ],
             'website_name' => 'Test Website',
             'user' => ['class_name' => 'App\Entity\User'],
-            'publishable' => ['permission' => "is_granted('ROLE_ADMIN')"],
         ];
     }
 
@@ -533,9 +534,12 @@ class SilverbackApiComponentsExtensionTest extends TestCase
 
         self::assertSame([], $this->argument($container, RouteExtension::class, '$config'));
         self::assertSame([], $this->argument($container, RouteVoter::class, '$config'));
-        self::assertNull($this->argument($container, RoutableExtension::class, '$securityStr'));
-        self::assertNull($this->argument($container, RoutableVoter::class, '$securityStr'));
-        self::assertNull($this->argument($container, RoutableResourceMetadataCollectionFactory::class, '$securityStr'));
+        foreach ([RoutableExtension::class, RoutableVoter::class, ComponentVoter::class, RoutableResourceMetadataCollectionFactory::class] as $routableSecured) {
+            self::assertSame("is_granted('ROLE_CMS_ADMIN')", $this->argument($container, $routableSecured, '$securityStr'));
+        }
+        foreach ([[PublishableStatusChecker::class, '$permission'], [RouteExtension::class, '$publicationPermission'], [RouteVoter::class, '$publicationPermission'], [SiteConfigParameterVoter::class, '$permission'], [ContentWriteSecurityResourceMetadataCollectionFactory::class, '$permission']] as [$published, $argument]) {
+            self::assertSame("is_granted('ROLE_CMS_ADMIN')", $this->argument($container, $published, $argument));
+        }
 
         self::assertSame('%silverback.api_components.refresh_token.ttl%', $container->findDefinition(MercureAuthorization::class)->getArgument(8));
         self::assertSame('cookieLifetime', new \ReflectionMethod(MercureAuthorization::class, '__construct')->getParameters()[8]->getName());
@@ -570,6 +574,7 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         $config['table_prefix'] = 'app_';
         $config['metadata_key'] = '_meta';
         $config['routable_security'] = "is_granted('ROLE_ADMIN')";
+        $config['publishable'] = ['permission' => "is_granted('ROLE_ADMIN')"];
         $config['route_security'] = [['route' => '/user-area*', 'security' => "is_granted('ROLE_USER')"]];
         $config['mercure'] = ['hub_name' => 'default', 'secure_subscriptions' => true, 'cookie' => ['samesite' => Cookie::SAMESITE_LAX]];
         $config['realtime'] = ['enabled' => false];
@@ -601,9 +606,9 @@ class SilverbackApiComponentsExtensionTest extends TestCase
         self::assertSame('default', $container->getParameter(RealtimeHubCompilerPass::HUB_NAME_PARAMETER));
         self::assertFalse($this->argument($container, MercureAuthorization::class, '$realtimeEnabled'));
         self::assertTrue($this->argument($container, MercureAuthorization::class, '$secureSubscriptions'));
-        self::assertSame([Route::class], $this->argument($container, 'silverback.api_components.event_listener.api.cache_headers', '$personalisedResourceClasses'));
-        self::assertSame([ResourceManifest::class], $this->argument($container, 'silverback.api_components.event_listener.api.cache_headers', '$scheduledExpiryResourceClasses'));
-        self::assertSame([ComponentPosition::class], $this->argument($container, 'silverback.api_components.http_cache.purger', '$purgeRenderedHtmlClasses'));
+        self::assertSame([Route::class, ResourceManifest::class, ComponentPosition::class, Page::class], $this->argument($container, 'silverback.api_components.event_listener.api.cache_headers', '$personalisedResourceClasses'));
+        self::assertSame([Route::class, RoutableInterface::class, ResourceManifest::class], $this->argument($container, 'silverback.api_components.event_listener.api.cache_headers', '$scheduledExpiryResourceClasses'));
+        self::assertSame([SiteConfigParameter::class, ComponentPosition::class], $this->argument($container, 'silverback.api_components.http_cache.purger', '$purgeRenderedHtmlClasses'));
     }
 
     public function test_the_mailer_subjects_default_and_can_be_overridden(): void

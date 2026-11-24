@@ -30,7 +30,7 @@ class RouteExtension implements QueryCollectionExtensionInterface
     private ?array $config;
     private ResourceAccessCheckerInterface $resourceAccessChecker;
 
-    public function __construct(?array $config, ResourceAccessCheckerInterface $resourceAccessChecker, private readonly RouteAncestorGateResolver $routeAncestorGateResolver, private readonly string $publicationPermission = "is_granted('ROLE_ADMIN')")
+    public function __construct(?array $config, ResourceAccessCheckerInterface $resourceAccessChecker, private readonly RouteAncestorGateResolver $routeAncestorGateResolver, private readonly string $publicationPermission = "is_granted('ROLE_CMS_ADMIN')")
     {
         $this->config = $config;
         $this->resourceAccessChecker = $resourceAccessChecker;

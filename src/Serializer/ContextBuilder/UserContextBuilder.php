@@ -13,6 +13,7 @@ namespace Silverback\ApiComponentsBundle\Serializer\ContextBuilder;
 
 use ApiPlatform\State\SerializerContextBuilderInterface;
 use Silverback\ApiComponentsBundle\Entity\User\AbstractUser;
+use Silverback\ApiComponentsBundle\Security\AdminRoles;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
@@ -43,7 +44,7 @@ class UserContextBuilder implements SerializerContextBuilderInterface
         $postfix = false === $normalization ? 'input' : 'output';
         $context['groups'][] = \sprintf('User:%s', $postfix);
 
-        if ($this->authorizationChecker->isGranted('ROLE_SUPER_ADMIN')) {
+        if ($this->authorizationChecker->isGranted(AdminRoles::USER_ADMIN)) {
             $context['groups'][] = 'User:superAdmin';
         }
 

@@ -217,6 +217,7 @@ use Silverback\ApiComponentsBundle\Security\Voter\ResourceManifestVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RoutableVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RouteVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\SiteConfigParameterVoter;
+use Silverback\ApiComponentsBundle\Security\Voter\UserManagementVoter;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\ComponentPositionContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\CwaResourceContextBuilder;
 use Silverback\ApiComponentsBundle\Serializer\ContextBuilder\PublishableContextBuilder;
@@ -233,6 +234,7 @@ use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Silverback\ApiComponentsBundle\Validator\Constraints\AcyclicComponentGroupOwnersValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\AddedComponentPositionsValidator;
+use Silverback\ApiComponentsBundle\Validator\Constraints\AssignableRolesValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPositionValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressRequiresPasswordValidator;
@@ -931,6 +933,19 @@ return static function (ContainerConfigurator $configurator) {
     $services->alias(NewEmailAddressRequiresPasswordValidator::class, 'silverback.api_components.validator.new_email_address_requires_password');
 
     $services
+        ->set('silverback.api_components.validator.assignable_roles')
+        ->class(AssignableRolesValidator::class)
+        ->args(
+            [
+                new Reference(ManagerRegistry::class),
+                new Reference(TokenStorageInterface::class),
+                new Reference(RoleHierarchyInterface::class),
+            ]
+        )
+        ->tag('validator.constraint_validator');
+    $services->alias(AssignableRolesValidator::class, 'silverback.api_components.validator.assignable_roles');
+
+    $services
         ->set('silverback.api_components.data_provider.page_data')
         ->class(PageDataProvider::class)
         ->args([
@@ -1584,6 +1599,15 @@ return static function (ContainerConfigurator $configurator) {
         ])
         ->tag('security.voter');
     $services->alias(SiteConfigParameterVoter::class, 'silverback.api_components.security.voter.site_config_parameter');
+
+    $services
+        ->set('silverback.api_components.security.voter.user_management')
+        ->class(UserManagementVoter::class)
+        ->args([
+            new Reference(RoleHierarchyInterface::class),
+        ])
+        ->tag('security.voter');
+    $services->alias(UserManagementVoter::class, 'silverback.api_components.security.voter.user_management');
 
     $services
         ->set('silverback.api_components.doctrine.orm.extension.routable')

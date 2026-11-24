@@ -23,7 +23,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     status: 200,
     normalizationContext: ['groups' => ['OrphanedFileDeletion:read']],
     denormalizationContext: ['groups' => ['OrphanedFileDeletion:write']],
-    security: "is_granted('ROLE_ADMIN')",
+    security: "is_granted('ROLE_CMS_ADMIN')",
     processor: OrphanedFileDeletionStateProcessor::class,
 )]
 #[Assert\Expression('(this.all === true) !== (this.paths !== null)', message: 'Send either "paths" or "all": true, not both.')]

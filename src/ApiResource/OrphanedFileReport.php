@@ -24,7 +24,7 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 #[Get(
     uriTemplate: '/orphaned_files',
     cacheHeaders: ['public' => false, 'no_store' => true],
-    security: "is_granted('ROLE_ADMIN')",
+    security: "is_granted('ROLE_CMS_ADMIN')",
     provider: OrphanedFileReportStateProvider::class,
 )]
 #[Post(
@@ -33,7 +33,7 @@ use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
     read: true,
     input: false,
     output: false,
-    security: "is_granted('ROLE_ADMIN')",
+    security: "is_granted('ROLE_CMS_ADMIN')",
     processor: OrphanedFileScanStateProcessor::class,
 )]
 final readonly class OrphanedFileReport

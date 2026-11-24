@@ -18,7 +18,9 @@ use Silverback\ApiComponentsBundle\ApiResource\ResourceManifest;
 use Silverback\ApiComponentsBundle\DependencyInjection\Configuration;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentPosition;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
+use Silverback\ApiComponentsBundle\Entity\Core\RoutableInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
+use Silverback\ApiComponentsBundle\Entity\Core\SiteConfigParameter;
 use Symfony\Component\Config\Definition\BaseNode;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
@@ -55,7 +57,6 @@ class ConfigurationTest extends TestCase
             ],
             'website_name' => 'Test Website',
             'user' => ['class_name' => 'App\Entity\User'],
-            'publishable' => ['permission' => "is_granted('ROLE_ADMIN')"],
         ];
     }
 
@@ -75,7 +76,51 @@ class ConfigurationTest extends TestCase
     {
         yield 'user' => ['user'];
         yield 'refresh_token' => ['refresh_token'];
-        yield 'publishable' => ['publishable'];
+    }
+
+    public function test_publishing_needs_the_cms_admin_role_by_default(): void
+    {
+        self::assertSame(['permission' => "is_granted('ROLE_CMS_ADMIN')"], $this->process(self::minimalConfig())['publishable']);
+    }
+
+    public function test_an_empty_publishable_node_takes_the_cms_admin_permission(): void
+    {
+        $config = self::minimalConfig();
+        $config['publishable'] = [];
+
+        self::assertSame(['permission' => "is_granted('ROLE_CMS_ADMIN')"], $this->process($config)['publishable']);
+    }
+
+    public function test_an_empty_publishable_permission_is_rejected(): void
+    {
+        $config = self::minimalConfig();
+        $config['publishable'] = ['permission' => ''];
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('silverback_api_components.publishable.permission');
+
+        $this->process($config);
+    }
+
+    public function test_the_publishable_permission_can_be_configured(): void
+    {
+        $config = self::minimalConfig();
+        $config['publishable'] = ['permission' => "is_granted('ROLE_ADMIN')"];
+
+        self::assertSame(['permission' => "is_granted('ROLE_ADMIN')"], $this->process($config)['publishable']);
+    }
+
+    public function test_a_routable_resource_with_no_live_route_is_readable_only_with_the_cms_admin_role_by_default(): void
+    {
+        self::assertSame("is_granted('ROLE_CMS_ADMIN')", $this->process(self::minimalConfig())['routable_security']);
+    }
+
+    public function test_routable_security_can_still_be_switched_off_with_null(): void
+    {
+        $config = self::minimalConfig();
+        $config['routable_security'] = null;
+
+        self::assertNull($this->process($config)['routable_security']);
     }
 
     public function test_a_required_node_still_resolves_its_defaulted_children(): void
@@ -404,6 +449,64 @@ class ConfigurationTest extends TestCase
             [Route::class, ResourceManifest::class, ComponentPosition::class, Page::class],
             $this->process(self::minimalConfig())['http_cache']['personalised_resource_classes']
         );
+    }
+
+    /**
+     * @return iterable<string, array{string, list<string>}>
+     */
+    public static function additiveHttpCacheLists(): iterable
+    {
+        yield 'personalised resource classes' => ['personalised_resource_classes', [Route::class, ResourceManifest::class, ComponentPosition::class, Page::class]];
+        yield 'scheduled expiry resource classes' => ['scheduled_expiry_resource_classes', [Route::class, RoutableInterface::class, ResourceManifest::class]];
+        yield 'purge rendered html classes' => ['purge_rendered_html_classes', [SiteConfigParameter::class]];
+    }
+
+    /**
+     * @param list<string> $defaults
+     */
+    #[DataProvider('additiveHttpCacheLists')]
+    public function test_an_http_cache_list_has_the_cwa_defaults_when_nothing_is_configured(string $key, array $defaults): void
+    {
+        self::assertSame($defaults, $this->process(self::minimalConfig())['http_cache'][$key]);
+    }
+
+    /**
+     * @param list<string> $defaults
+     */
+    #[DataProvider('additiveHttpCacheLists')]
+    public function test_a_class_a_second_bundle_prepends_to_an_http_cache_list_is_added_to_the_cwa_defaults(string $key, array $defaults): void
+    {
+        $prepended = ['http_cache' => [$key => ['App\\Shop\\Basket']]];
+        $application = self::minimalConfig();
+        $application['http_cache'] = [$key => ['App\\Entity\\Account', Route::class]];
+
+        $processed = (new Processor())->processConfiguration(new Configuration(), [$prepended, $application])['http_cache'][$key];
+
+        self::assertSame(array_values(array_unique([...$defaults, 'App\\Shop\\Basket', 'App\\Entity\\Account', Route::class])), $processed);
+    }
+
+    /**
+     * @param list<string> $defaults
+     */
+    #[DataProvider('additiveHttpCacheLists')]
+    public function test_an_empty_http_cache_list_keeps_the_cwa_defaults(string $key, array $defaults): void
+    {
+        $config = self::minimalConfig();
+        $config['http_cache'] = [$key => []];
+
+        self::assertSame($defaults, $this->process($config)['http_cache'][$key]);
+    }
+
+    /**
+     * @param list<string> $defaults
+     */
+    #[DataProvider('additiveHttpCacheLists')]
+    public function test_an_http_cache_list_says_configured_classes_are_added_to_the_defaults(string $key, array $defaults): void
+    {
+        self::assertNotSame([], $defaults);
+        $node = (new Configuration())->getConfigTreeBuilder()->buildTree()->getChildren()['http_cache']->getChildren()[$key];
+
+        self::assertStringContainsString('always apply; configured classes are added to them', (string) $node->getInfo());
     }
 
     public function test_classes_that_accept_any_uri_identifier_can_be_configured(): void

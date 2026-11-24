@@ -84,7 +84,7 @@ class UserContextBuilderTest extends TestCase
         $this->authorizationCheckerMock
             ->expects(self::once())
             ->method('isGranted')
-            ->with('ROLE_SUPER_ADMIN')
+            ->with('ROLE_USER_ADMIN')
             ->willReturn(false);
 
         $this->assertEquals(['groups' => ['User:output'], 'resource_class' => User::class], $this->userContextBuilder->createFromRequest($request, $normalization, null));
@@ -104,7 +104,7 @@ class UserContextBuilderTest extends TestCase
         $this->authorizationCheckerMock
             ->expects(self::once())
             ->method('isGranted')
-            ->with('ROLE_SUPER_ADMIN')
+            ->with('ROLE_USER_ADMIN')
             ->willReturn(false);
 
         $this->assertEquals(['groups' => ['a_group', 'User:input'], 'resource_class' => User::class], $this->userContextBuilder->createFromRequest($request, $normalization, null));
@@ -124,13 +124,13 @@ class UserContextBuilderTest extends TestCase
         $this->authorizationCheckerMock
             ->expects(self::once())
             ->method('isGranted')
-            ->with('ROLE_SUPER_ADMIN')
+            ->with('ROLE_USER_ADMIN')
             ->willReturn(false);
 
         $this->assertEquals(['groups' => ['User:input'], 'resource_class' => User::class], $this->userContextBuilder->createFromRequest($request, $normalization, null));
     }
 
-    public function test_request_input_with_super_admin_groups(): void
+    public function test_request_input_with_user_admin_groups(): void
     {
         $request = new Request();
         $normalization = false;
@@ -144,7 +144,7 @@ class UserContextBuilderTest extends TestCase
         $this->authorizationCheckerMock
             ->expects(self::once())
             ->method('isGranted')
-            ->with('ROLE_SUPER_ADMIN')
+            ->with('ROLE_USER_ADMIN')
             ->willReturn(true);
 
         $this->assertEquals(['groups' => ['User:input', 'User:superAdmin'], 'resource_class' => User::class], $this->userContextBuilder->createFromRequest($request, $normalization, null));

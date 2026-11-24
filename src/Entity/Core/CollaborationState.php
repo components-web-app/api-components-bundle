@@ -41,7 +41,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     message: 'A state belongs to either a component or a page data.',
 )]
 #[ApiResource(
-    security: "is_granted('ROLE_ADMIN')",
+    security: "is_granted('ROLE_CMS_ADMIN')",
     cacheHeaders: ['public' => false, 'no_store' => true],
 )]
 #[GetCollection(

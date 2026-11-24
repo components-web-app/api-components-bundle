@@ -23,7 +23,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     status: 200,
     normalizationContext: ['groups' => ['OrphanedResourceDeletion:read']],
     denormalizationContext: ['groups' => ['OrphanedResourceDeletion:write']],
-    security: "is_granted('ROLE_ADMIN')",
+    security: "is_granted('ROLE_CMS_ADMIN')",
     processor: OrphanedResourceDeletionStateProcessor::class,
 )]
 #[Assert\Expression('(this.all === true) !== (this.iris !== null)', message: 'Send either "iris" or "all": true, not both.')]

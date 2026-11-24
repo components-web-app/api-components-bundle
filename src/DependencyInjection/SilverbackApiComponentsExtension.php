@@ -67,6 +67,7 @@ use Silverback\ApiComponentsBundle\Imagine\PhpMemoryLimit;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\Repository\Core\RefreshTokenRepository;
 use Silverback\ApiComponentsBundle\Repository\User\UserRepositoryInterface;
+use Silverback\ApiComponentsBundle\Security\AdminRoles;
 use Silverback\ApiComponentsBundle\Security\UserChecker;
 use Silverback\ApiComponentsBundle\Security\Voter\ComponentVoter;
 use Silverback\ApiComponentsBundle\Security\Voter\RoutableVoter;
@@ -409,6 +410,16 @@ class SilverbackApiComponentsExtension extends Extension implements PrependExten
         $this->prependApiPlatformConfig($container, $config);
         $this->prependDoctrineConfiguration($container);
         $this->prependFrameworkConfiguration($container);
+        $this->prependSecurityConfiguration($container);
+    }
+
+    private function prependSecurityConfiguration(ContainerBuilder $container): void
+    {
+        if (!$container->hasExtension('security')) {
+            return;
+        }
+
+        $container->prependExtensionConfig('security', ['role_hierarchy' => AdminRoles::HIERARCHY]);
     }
 
     private function prependFrameworkConfiguration(ContainerBuilder $container): void

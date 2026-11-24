@@ -80,7 +80,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[Patch(requirements: Route::API_REQUIREMENTS, security: Route::API_SECURITY)]
 #[Get(requirements: ['id' => "(?!.+\/(?:redirects|children)$).+"], security: Route::API_SECURITY)]
 #[Get(uriTemplate: '/routes/{id}/redirects{._format}', defaults: ['_api_item_operation_name' => 'route_redirects'], requirements: Route::API_REQUIREMENTS, order: ['createdAt' => 'DESC'], normalizationContext: ['groups' => ['Route:redirect:read']], security: Route::API_SECURITY)]
-#[Get(uriTemplate: '/routes/{id}/children{._format}', requirements: Route::API_REQUIREMENTS, provider: RouteChildrenStateProvider::class, security: "is_granted('ROLE_ADMIN')")]
+#[Get(uriTemplate: '/routes/{id}/children{._format}', requirements: Route::API_REQUIREMENTS, provider: RouteChildrenStateProvider::class, security: "is_granted('ROLE_CMS_ADMIN')")]
 #[Silverback\Timestamped]
 class Route
 {
@@ -92,7 +92,7 @@ class Route
 
     private const array API_REQUIREMENTS = ['id' => '(.+)'];
     private const string API_SECURITY = "is_granted('read_route', object)";
-    private const string API_PUBLICATION_SECURITY = "is_granted('ROLE_ADMIN')";
+    private const string API_PUBLICATION_SECURITY = "is_granted('ROLE_CMS_ADMIN')";
 
     #[ORM\Column(name: 'route', unique: true)]
     #[Assert\NotBlank]
@@ -253,7 +253,7 @@ class Route
         return $this;
     }
 
-    #[Groups(['Route:cwa_resource:read:ROLE_ADMIN'])]
+    #[Groups(['Route:cwa_resource:read:role_cms_admin'])]
     public function getAssociatedResources()
     {
         return [

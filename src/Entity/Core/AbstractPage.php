@@ -55,7 +55,7 @@ abstract class AbstractPage implements RoutableInterface
     protected ?AbstractPageData $parentPageData = null;
 
     #[ORM\Column(name: 'is_reachable_without_route', options: ['default' => false])]
-    #[ApiProperty(security: "is_granted('ROLE_ADMIN')", securityPostDenormalize: "is_granted('ROLE_ADMIN')")]
+    #[ApiProperty(security: "is_granted('ROLE_CMS_ADMIN')", securityPostDenormalize: "is_granted('ROLE_CMS_ADMIN')")]
     public bool $isReachableWithoutRoute = false;
 
     #[ORM\Column(nullable: true)]

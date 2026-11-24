@@ -25,6 +25,7 @@ use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 #[CoversClass(UserNormalizer::class)]
 final class UserNormalizerTest extends TestCase
@@ -57,7 +58,27 @@ final class UserNormalizerTest extends TestCase
         self::assertSame('hashed', $user->getEmailAddressVerifyToken());
     }
 
-    private function createNormalizer(User $denormalized): UserNormalizer
+    public function test_the_reachable_roles_are_written_into_the_output_and_never_onto_the_user(): void
+    {
+        $user = new User('admin', roles: ['ROLE_ADMIN']);
+
+        $output = $this->createNormalizer($user, ['ROLE_ADMIN' => ['ROLE_CMS_ADMIN'], 'ROLE_CMS_ADMIN' => ['ROLE_USER']])->normalize($user);
+
+        self::assertSame(['username' => 'admin', 'roles' => ['ROLE_ADMIN', 'ROLE_CMS_ADMIN', 'ROLE_USER']], $output);
+        self::assertSame(['ROLE_ADMIN'], $user->getRoles());
+    }
+
+    public function test_an_output_without_roles_gets_none(): void
+    {
+        $user = new User('admin', roles: ['ROLE_ADMIN']);
+
+        self::assertSame(['username' => 'admin'], $this->createNormalizer($user, ['ROLE_ADMIN' => ['ROLE_USER']], false)->normalize($user));
+    }
+
+    /**
+     * @param array<string, list<string>> $hierarchy
+     */
+    private function createNormalizer(User $denormalized, array $hierarchy = [], bool $outputsRoles = true): UserNormalizer
     {
         $hasher = $this->createStub(UserPasswordHasherInterface::class);
         $hasher->method('hashPassword')->willReturn('hashed');
@@ -71,7 +92,7 @@ final class UserNormalizerTest extends TestCase
                 true,
                 false,
             ),
-            new RoleHierarchy([]),
+            new RoleHierarchy($hierarchy),
             new ResourceMetadataProvider(),
             $this->createStub(MercureAuthorization::class),
         );
@@ -79,6 +100,9 @@ final class UserNormalizerTest extends TestCase
         $inner = $this->createStub(DenormalizerInterface::class);
         $inner->method('denormalize')->willReturn($denormalized);
         $normalizer->setDenormalizer($inner);
+        $innerNormalizer = $this->createStub(NormalizerInterface::class);
+        $innerNormalizer->method('normalize')->willReturnCallback(static fn (User $user): array => $outputsRoles ? ['username' => $user->getUsername(), 'roles' => $user->getRoles()] : ['username' => $user->getUsername()]);
+        $normalizer->setNormalizer($innerNormalizer);
 
         return $normalizer;
     }
