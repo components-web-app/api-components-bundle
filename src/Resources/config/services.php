@@ -239,6 +239,7 @@ use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressRequires
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\RequiresUploadedFileValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ResourceIriValidator;
+use Silverback\ApiComponentsBundle\Validator\Constraints\RoutePathCharactersValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\RoutePathStartValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\UploadedImageValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\UserPasswordValidator;
@@ -1026,6 +1027,13 @@ return static function (ContainerConfigurator $configurator) {
         ])
         ->tag('validator.constraint_validator');
     $services->alias(RoutePathStartValidator::class, 'silverback.api_components.validator.route_path_start');
+
+    $services
+        ->set('silverback.api_components.validator.route_path_characters')
+        ->class(RoutePathCharactersValidator::class)
+        ->args([new Reference(ManagerRegistry::class)])
+        ->tag('validator.constraint_validator');
+    $services->alias(RoutePathCharactersValidator::class, 'silverback.api_components.validator.route_path_characters');
 
     $services
         ->set('silverback.api_components.serializer.context_builder.publishable')

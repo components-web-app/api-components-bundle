@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Breaking
+- A route path containing any whitespace, `?` or `#` is refused with a 422 on `path` (`route.path` for an embedded route) wherever a path is written: a route `POST` or `PATCH`, a redirect, an embedded route, a `cascadeChildPaths` rewrite, a page move and fixture route generation; the path is never normalised, and a stored path is not re-checked until it is changed ([#609](https://github.com/components-web-app/api-components-bundle/pull/609))
 ### Changed
 - PHP 8.6 support: `ocramius/package-versions` is no longer required (the bundle version in the API docs comes from Composer's `InstalledVersions`), and `cocur/slugify` is required at `^4.8` ([#606](https://github.com/components-web-app/api-components-bundle/pull/606))
 
