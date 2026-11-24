@@ -5,6 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Fixed
+- A relation typed with an abstract class (a component, page data) given an IRI that matches no API resource route, such as `"component": "__new__"` on a collaboration state, a component position or a route, is refused with the status API Platform gives an IRI of a missing item (400, or a violation when denormalization errors are collected) instead of a 500 ([#608](https://github.com/components-web-app/api-components-bundle/pull/608))
 - A cache warm that reaches its maximum time starts no new request and lets those in flight finish (each bounded by its timeout) instead of cancelling them, which the proxy logged as 500s; they count by their real outcome, so a warm can run up to `max_time + timeout` ([#607](https://github.com/components-web-app/api-components-bundle/pull/607))
 
 ## [2.0.0-alpha.44](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.43...2.0.0-alpha.44) - 2026-11-20
