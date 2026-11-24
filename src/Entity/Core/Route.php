@@ -34,6 +34,7 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\RouteStateProvider
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentsBundle\Repository\Core\RouteRepository;
+use Silverback\ApiComponentsBundle\Validator\Constraints\RoutePathCharacters;
 use Silverback\ApiComponentsBundle\Validator\Constraints\RoutePathStart;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -97,6 +98,7 @@ class Route
     #[Assert\NotBlank]
     #[Groups(['Route:redirect:read', self::EMBEDDED_WRITE_GROUP])]
     #[Assert\Length(max: 255)]
+    #[RoutePathCharacters]
     private string $path = '';
 
     #[ORM\Column(unique: true)]

@@ -82,6 +82,18 @@ class RouteGeneratorTest extends TestCase
         self::assertSame($route, $child->getRoute());
     }
 
+    public function test_a_route_is_not_generated_under_a_parent_path_holding_a_character_a_path_cannot_contain(): void
+    {
+        $parent = $this->createPage('Conference');
+        $parent->setRoute((new Route())->setName('conference')->setPath('/the conference'));
+        $child = $this->createPage('Programme');
+        $child->setParentPage($parent);
+
+        $violations = $this->assertRefusedAsInvalid($child);
+
+        self::assertSame(['path'], $violations);
+    }
+
     public function test_a_route_is_not_generated_when_its_name_is_longer_than_the_name_column(): void
     {
         $page = $this->createPage(str_repeat('b', 256));
