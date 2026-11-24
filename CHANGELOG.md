@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Fixed
+- A cache warm that reaches its maximum time starts no new request and lets those in flight finish (each bounded by its timeout) instead of cancelling them, which the proxy logged as 500s; they count by their real outcome, so a warm can run up to `max_time + timeout` ([#PR](https://github.com/components-web-app/api-components-bundle/pull/PR))
+
 ## [2.0.0-alpha.44](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.43...2.0.0-alpha.44) - 2026-11-20
 
 ### Breaking
