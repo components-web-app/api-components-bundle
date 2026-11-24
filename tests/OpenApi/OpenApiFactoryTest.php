@@ -21,6 +21,7 @@ use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\PathItem;
 use ApiPlatform\OpenApi\Model\Paths;
 use ApiPlatform\OpenApi\OpenApi;
+use Composer\InstalledVersions;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
@@ -33,6 +34,15 @@ class OpenApiFactoryTest extends TestCase
 
         $this->assertStringStartsWith('3.1.0 (', $extended);
         $this->assertStringEndsWith(')', $extended);
+    }
+
+    public function test_get_extended_version_names_the_installed_bundle_version_and_reference(): void
+    {
+        $package = 'components-web-app/api-components-bundle';
+        $expected = \sprintf('3.1.0 (%s@%s)', InstalledVersions::getPrettyVersion($package), InstalledVersions::getReference($package));
+
+        $this->assertSame($expected, OpenApiFactory::getExtendedVersion('3.1.0'));
+        $this->assertMatchesRegularExpression('/^3\.1\.0 \(.+@.*\)$/', $expected);
     }
 
     public function test_get_extended_version_preserves_original_version(): void
