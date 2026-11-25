@@ -36,7 +36,7 @@ class AccessDeniedListener
             return;
         }
         $clearMercureCookie = $this->mercureAuthorization->getClearAuthorizationCookie();
-        if (!$request->cookies->has($clearMercureCookie->getName())) {
+        if (!$clearMercureCookie || !$request->cookies->has($clearMercureCookie->getName())) {
             return;
         }
         $response->headers->setCookie($clearMercureCookie);

@@ -86,6 +86,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpFoundation\Cookie;
+use Symfony\Component\Mercure\HubRegistry;
 
 /**
  * The extension reads `user.email_verification` keys straight out of the processed configuration.
@@ -541,8 +542,12 @@ class SilverbackApiComponentsExtensionTest extends TestCase
             self::assertSame("is_granted('ROLE_CMS_ADMIN')", $this->argument($container, $published, $argument));
         }
 
-        self::assertSame('%silverback.api_components.refresh_token.ttl%', $container->findDefinition(MercureAuthorization::class)->getArgument(8));
-        self::assertSame('cookieLifetime', new \ReflectionMethod(MercureAuthorization::class, '__construct')->getParameters()[8]->getName());
+        self::assertSame('%silverback.api_components.refresh_token.ttl%', $container->findDefinition(MercureAuthorization::class)->getArgument(9));
+        self::assertSame('cookieLifetime', new \ReflectionMethod(MercureAuthorization::class, '__construct')->getParameters()[9]->getName());
+        self::assertEquals(new Reference(HubRegistry::class), $container->findDefinition(MercureAuthorization::class)->getArgument(5));
+        self::assertSame('hubRegistry', new \ReflectionMethod(MercureAuthorization::class, '__construct')->getParameters()[5]->getName());
+        self::assertEquals(new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE), $container->findDefinition(MercureAuthorization::class)->getArgument(14));
+        self::assertSame('logger', new \ReflectionMethod(MercureAuthorization::class, '__construct')->getParameters()[14]->getName());
         self::assertSame(Cookie::SAMESITE_STRICT, $this->argument($container, MercureAuthorization::class, '$cookieSameSite'));
         self::assertNull($this->argument($container, MercureAuthorization::class, '$hubName'));
         self::assertNull($container->getParameter(RealtimeHubCompilerPass::HUB_NAME_PARAMETER));

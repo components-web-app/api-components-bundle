@@ -34,7 +34,9 @@ class LogoutListener
         $this->storage->expireAll($event->getToken()->getUser());
         $response = $event->getResponse() ?? new Response();
         $response->headers->setCookie($this->cookieProvider->createCookie('x.x.x', null, 1));
-        $response->headers->setCookie($this->mercureAuthorization->getClearAuthorizationCookie());
+        if ($clearMercureCookie = $this->mercureAuthorization->getClearAuthorizationCookie()) {
+            $response->headers->setCookie($clearMercureCookie);
+        }
         $response->headers->remove('Location');
         $response->setStatusCode(Response::HTTP_OK)->setContent('');
         $event->setResponse($response);

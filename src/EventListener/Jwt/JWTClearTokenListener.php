@@ -60,7 +60,7 @@ class JWTClearTokenListener
             $response->headers->setCookie($clearCookie);
         }
         $clearMercureCookie = $this->mercureAuthorization->getClearAuthorizationCookie();
-        if ($hasJwtCookie || $request->cookies->has($clearMercureCookie->getName())) {
+        if ($clearMercureCookie && ($hasJwtCookie || $request->cookies->has($clearMercureCookie->getName()))) {
             $response->headers->setCookie($clearMercureCookie);
         }
     }
@@ -68,7 +68,9 @@ class JWTClearTokenListener
     private function clearJwtCookie(Response $response): void
     {
         $response->headers->setCookie($this->cookieProvider->createCookie('x.x.x', null, 1));
-        $response->headers->setCookie($this->mercureAuthorization->getClearAuthorizationCookie());
+        if ($clearMercureCookie = $this->mercureAuthorization->getClearAuthorizationCookie()) {
+            $response->headers->setCookie($clearMercureCookie);
+        }
         $this->collectorData?->recordJwtCookieCleared();
     }
 }

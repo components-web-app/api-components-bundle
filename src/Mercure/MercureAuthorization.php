@@ -15,12 +15,16 @@ use ApiPlatform\Metadata\Exception\OperationNotFoundException;
 use ApiPlatform\Metadata\HttpOperation;
 use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
 use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
+use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Realtime\ApiResource\RealtimeEvent;
+use Silverback\ApiComponentsBundle\Utility\MercureCookieDomain;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\Authorization;
+use Symfony\Component\Mercure\Exception\RuntimeException as MercureRuntimeException;
+use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -39,6 +43,7 @@ class MercureAuthorization
         private readonly PublishableStatusChecker $publishableStatusChecker,
         private readonly RequestContext $requestContext,
         private readonly Authorization $mercureAuthorization,
+        private readonly HubRegistry $hubRegistry,
         private readonly RequestStack $requestStack,
         private readonly AuthorizationCheckerInterface $authorizationChecker,
         private readonly RouterInterface $router,
@@ -47,24 +52,48 @@ class MercureAuthorization
         private readonly ?string $hubName = null,
         private readonly bool $secureSubscriptions = false,
         private readonly bool $realtimeEnabled = true,
+        private readonly ?LoggerInterface $logger = null,
     ) {
     }
 
-    public function getAuthorizationCookie(): Cookie
+    public function getAuthorizationCookie(): ?Cookie
     {
-        $subscribeTopics = $this->getSubscribeTopics();
-        $expiresAt = new \DateTimeImmutable(\sprintf('+%d seconds', $this->cookieLifetime));
+        return $this->createWithinHubDomain(function (): Cookie {
+            $subscribeTopics = $this->getSubscribeTopics();
+            $expiresAt = new \DateTimeImmutable(\sprintf('+%d seconds', $this->cookieLifetime));
 
-        return $this->mercureAuthorization
-            ->createCookie($this->requestStack->getCurrentRequest(), ['urlpattern' => $subscribeTopics], null, ['exp' => $expiresAt], $this->hubName)
-            ->withSameSite($this->cookieSameSite);
+            return $this->mercureAuthorization->createCookie($this->requestStack->getCurrentRequest(), ['urlpattern' => $subscribeTopics], null, ['exp' => $expiresAt], $this->hubName);
+        });
     }
 
-    public function getClearAuthorizationCookie(): Cookie
+    public function getClearAuthorizationCookie(): ?Cookie
     {
-        return $this->mercureAuthorization
-            ->createClearCookie($this->requestStack->getCurrentRequest(), $this->hubName)
-            ->withSameSite($this->cookieSameSite);
+        return $this->createWithinHubDomain(fn (): Cookie => $this->mercureAuthorization->createClearCookie($this->requestStack->getCurrentRequest(), $this->hubName));
+    }
+
+    /**
+     * @param \Closure(): Cookie $create
+     */
+    private function createWithinHubDomain(\Closure $create): ?Cookie
+    {
+        try {
+            $cookie = $create();
+        } catch (MercureRuntimeException $exception) {
+            $host = $this->requestStack->getCurrentRequest()?->getHost();
+            $hubUrl = $this->hubRegistry->getHub($this->hubName)->getPublicUrl();
+            if (null === $host || !MercureCookieDomain::isOutside($host, $hubUrl)) {
+                throw $exception;
+            }
+            $this->logger?->warning('No Mercure subscriber cookie can be set for the host "{host}": it is outside the domain of the hub\'s public URL "{hub_url}", so real-time updates are unavailable on it.', [
+                'host' => $host,
+                'hub_url' => $hubUrl,
+                'exception' => $exception,
+            ]);
+
+            return null;
+        }
+
+        return $cookie->withSameSite($this->cookieSameSite);
     }
 
     public function getSubscribeTopics(): array

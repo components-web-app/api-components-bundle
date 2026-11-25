@@ -67,10 +67,18 @@ class AccessDeniedListenerTest extends TestCase
         self::assertSame([], $this->cookieNames($response));
     }
 
-    private function onPostRespond(Request $request, Response $response): void
+    public function test_a_failed_me_request_on_a_host_with_no_mercure_cookie_sets_no_cookie(): void
+    {
+        $response = new JWTAuthenticationFailureResponse();
+        $this->onPostRespond($this->makeRequest('_api_me', [self::MERCURE_COOKIE => 'token']), $response, mercureCookie: false);
+
+        self::assertSame([], $this->cookieNames($response));
+    }
+
+    private function onPostRespond(Request $request, Response $response, bool $mercureCookie = true): void
     {
         $mercure = $this->createStub(MercureAuthorization::class);
-        $mercure->method('getClearAuthorizationCookie')->willReturn(Cookie::create(self::MERCURE_COOKIE, null, 1, '/.well-known/mercure'));
+        $mercure->method('getClearAuthorizationCookie')->willReturn($mercureCookie ? Cookie::create(self::MERCURE_COOKIE, null, 1, '/.well-known/mercure') : null);
 
         (new AccessDeniedListener($mercure))->onPostRespond(new ResponseEvent($this->createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST, $response));
     }

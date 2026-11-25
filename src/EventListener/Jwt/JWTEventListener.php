@@ -42,8 +42,9 @@ final class JWTEventListener implements ResetInterface
 
     public function onJWTAuthenticationSuccess(AuthenticationSuccessEvent $event): void
     {
-        $responseHeaders = $event->getResponse()->headers;
-        $responseHeaders->setCookie($this->mercureAuthorization->getAuthorizationCookie());
+        if ($mercureCookie = $this->mercureAuthorization->getAuthorizationCookie()) {
+            $event->getResponse()->headers->setCookie($mercureCookie);
+        }
     }
 
     public function onJWTCreated(JWTCreatedEvent $event): void
@@ -89,7 +90,9 @@ final class JWTEventListener implements ResetInterface
         if (!empty($token)) {
             $responseHeaders = $event->getResponse()->headers;
             $responseHeaders->setCookie($this->cookieProvider->createCookie($token));
-            $responseHeaders->setCookie($this->mercureAuthorization->getAuthorizationCookie());
+            if ($mercureCookie = $this->mercureAuthorization->getAuthorizationCookie()) {
+                $responseHeaders->setCookie($mercureCookie);
+            }
         }
     }
 }
