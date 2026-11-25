@@ -22,6 +22,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Silverback\ApiComponentsBundle\Annotation as Silverback;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\LayoutStateProvider;
 use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\TimestampedTrait;
 use Silverback\ApiComponentsBundle\Entity\Utility\UiTrait;
@@ -45,6 +46,7 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
         'search' => new QueryParameter(filter: new FreeTextQueryFilter(new OrFilter(new PartialSearchFilter())), properties: ['reference', 'uiComponent']),
         'order[:property]' => new QueryParameter(filter: new SortFilter(), properties: ['createdAt', 'reference']),
     ],
+    provider: LayoutStateProvider::class,
 )]
 #[UniqueEntity(fields: ['reference'], message: 'There is already a Layout with that reference.')]
 class Layout
