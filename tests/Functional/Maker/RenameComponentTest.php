@@ -106,6 +106,32 @@ final class RenameComponentTest extends FunctionalTestCase
         self::assertEveryComponentHasTheDiscriminator('dummycomponent');
     }
 
+    public function test_the_generated_migration_renames_the_allowed_component_ui_key_and_reverts_it(): void
+    {
+        $group = self::newComponentGroup('collection');
+        $group->setCreatedAt(new \DateTimeImmutable())->setModifiedAt(new \DateTime());
+        $group->allowedComponentUi = ['/component/dummy_components' => ['ui' => [null, 'CwaHero'], 'styles' => ['style:large']]];
+        self::persistAndFlush($group);
+        self::getEntityManager()->clear();
+
+        $failure = $this->generateRenameComponentMigration([
+            'old-name' => 'DummyComponent',
+            'new-name' => 'RenamedComponent',
+            '--old-fqcn' => DummyComponent::class,
+            '--new-fqcn' => 'App\Entity\Component\RenamedComponent',
+            '--old-dtype' => 'dummycomponent',
+            '--new-dtype' => 'renamedcomponent',
+            '--new-iri' => '/component/renamed_components',
+        ]);
+        self::assertNull($failure, (string) $failure?->getMessage());
+
+        $this->generatedMigration()->migrate(self::connection(), 'up');
+        self::assertAllowedComponentUi(['/component/renamed_components' => ['ui' => [null, 'CwaHero'], 'styles' => ['style:large']]]);
+
+        $this->generatedMigration()->migrate(self::connection(), 'down');
+        self::assertAllowedComponentUi(['/component/dummy_components' => ['ui' => [null, 'CwaHero'], 'styles' => ['style:large']]]);
+    }
+
     public function test_the_console_command_asks_for_each_missing_value_and_only_the_iri_it_cannot_resolve(): void
     {
         $other = new DoctrineMigrationsFixture();
@@ -190,6 +216,16 @@ final class RenameComponentTest extends FunctionalTestCase
         foreach ($rows as $allowed) {
             self::assertSame([$iri], json_decode((string) $allowed, true));
         }
+    }
+
+    /**
+     * @param array<string, mixed> $expected
+     */
+    private static function assertAllowedComponentUi(array $expected): void
+    {
+        $rows = self::connection()->fetchFirstColumn(\sprintf('SELECT allowed_component_ui FROM %s', self::tableName(ComponentGroup::class)));
+        self::assertCount(1, $rows);
+        self::assertSame($expected, json_decode((string) $rows[0], true));
     }
 
     private static function assertEveryComponentHasTheDiscriminator(string $dtype): void

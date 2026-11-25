@@ -42,6 +42,17 @@ final class GenerateFixturesRoundTripTest extends FunctionalTestCase
         $this->assertCommandOutputNotContains('could not be reproduced');
     }
 
+    public function test_a_group_keeps_its_allowed_component_ui(): void
+    {
+        $this->siteHasGroupsWithAndWithoutAllowedComponentUi();
+        $this->generateSiteAndReload();
+
+        $this->assertGroupOfTheLayoutAllowsComponentUi('top', 'main', ['/component/dummy_components' => ['ui' => [null, 'CwaComponentHero'], 'styles' => ['style:large']]]);
+        $this->assertGroupOfThePageAllowsComponentUi('primary', 'home', null);
+        $this->assertGeneratedFixturesContain("allowUi: [DummyComponent::class => ['ui' => [null, 'CwaComponentHero'], 'styles' => ['style:large']]]");
+        $this->assertCommandOutputNotContains('could not be reproduced');
+    }
+
     public function test_published_components_stay_published_and_a_draft_stays_linked_to_its_published_component(): void
     {
         $this->siteHasAPublishedComponentWithADraft('live', 'live-draft');

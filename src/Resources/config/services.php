@@ -234,8 +234,10 @@ use Silverback\ApiComponentsBundle\Serializer\SerializeFormatResolver;
 use Silverback\ApiComponentsBundle\Utility\ApiResourceRouteFinder;
 use Silverback\ApiComponentsBundle\Validator\Constraints\AcyclicComponentGroupOwnersValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\AddedComponentPositionsValidator;
+use Silverback\ApiComponentsBundle\Validator\Constraints\AllowedComponentUiValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\AssignableRolesValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPositionValidator;
+use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentUiAllowedInGroupsValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\FormTypeClassValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressRequiresPasswordValidator;
 use Silverback\ApiComponentsBundle\Validator\Constraints\NewEmailAddressValidator;
@@ -552,6 +554,28 @@ return static function (ContainerConfigurator $configurator) {
         ->class(AddedComponentPositionsValidator::class)
         ->tag('validator.constraint_validator');
     $services->alias(AddedComponentPositionsValidator::class, 'silverback.api_components.validator.added_component_positions');
+
+    $services
+        ->set('silverback.api_components.validator.allowed_component_ui')
+        ->class(AllowedComponentUiValidator::class)
+        ->args([
+            new Reference(ResourceNameCollectionFactoryInterface::class),
+            new Reference(IriConverterInterface::class),
+        ])
+        ->tag('validator.constraint_validator');
+    $services->alias(AllowedComponentUiValidator::class, 'silverback.api_components.validator.allowed_component_ui');
+
+    $services
+        ->set('silverback.api_components.validator.component_ui_allowed_in_groups')
+        ->class(ComponentUiAllowedInGroupsValidator::class)
+        ->args([
+            new Reference(ManagerRegistry::class),
+            new Reference('silverback.doctrine.repository.component_group'),
+            new Reference(PublishableAttributeReader::class),
+            new Reference(IriConverterInterface::class),
+        ])
+        ->tag('validator.constraint_validator');
+    $services->alias(ComponentUiAllowedInGroupsValidator::class, 'silverback.api_components.validator.component_ui_allowed_in_groups');
 
     $services
         ->set('silverback.api_components.api_platform.property_metadata_factory.component')

@@ -26,6 +26,7 @@ class GroupBuilder
         private readonly array $allowedClasses = [],
         private readonly ?string $locationReference = null,
         private readonly ?int $maxComponents = null,
+        private readonly array $allowedComponentUi = [],
     ) {
     }
 
@@ -58,6 +59,14 @@ class GroupBuilder
     public function getMaxComponents(): ?int
     {
         return $this->maxComponents;
+    }
+
+    /**
+     * @return array<class-string, array{ui?: list<string|null>, styles?: list<string>}>
+     */
+    public function getAllowedComponentUi(): array
+    {
+        return $this->allowedComponentUi;
     }
 
     public function getLocationReference(): ?string

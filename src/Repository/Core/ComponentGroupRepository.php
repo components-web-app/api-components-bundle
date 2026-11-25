@@ -15,6 +15,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Exception\InvalidUuidStringException;
 use Ramsey\Uuid\Uuid;
+use Silverback\ApiComponentsBundle\Entity\Core\AbstractComponent;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
 
 /**
@@ -49,5 +50,21 @@ class ComponentGroupRepository extends ServiceEntityRepository
         }
 
         return null;
+    }
+
+    /**
+     * @return list<ComponentGroup>
+     */
+    public function findRestrictingUiOf(AbstractComponent $component): array
+    {
+        return $this->createQueryBuilder('g')
+            ->distinct()
+            ->innerJoin('g.componentPositions', 'p')
+            ->where('p.component = :component')
+            ->andWhere('g.allowedComponentUi IS NOT NULL')
+            ->setParameter('component', $component)
+            ->orderBy('g.reference', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 }

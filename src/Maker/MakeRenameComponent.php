@@ -48,7 +48,7 @@ final class MakeRenameComponent extends AbstractMaker
 
     public static function getCommandDescription(): string
     {
-        return 'Generate a Doctrine migration to rename a CWA component type (dtype + allowedComponents)';
+        return 'Generate a Doctrine migration to rename a CWA component type (dtype, allowedComponents and allowedComponentUi)';
     }
 
     public function configureCommand(Command $command, InputConfiguration $inputConf): void

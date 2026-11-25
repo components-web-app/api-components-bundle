@@ -35,6 +35,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\DiscriminatorColumn(name: 'dtype', type: 'string', length: 255)]
 #[ApiResource]
 #[Get]
+#[AcbAssert\ComponentUiAllowedInGroups]
 abstract class AbstractComponent implements ComponentInterface, VersionedInterface
 {
     use IdTrait;

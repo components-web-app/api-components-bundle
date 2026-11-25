@@ -7,7 +7,7 @@
       "description": "",
       "allOf": [
         {
-          "$ref": "abstract_page_data.schema.json#definitions/AbstractPageData:jsonld"
+          "$ref": "abstract_page_data.schema.json#/definitions/AbstractPageData:jsonld"
         },
         {
           "required": [

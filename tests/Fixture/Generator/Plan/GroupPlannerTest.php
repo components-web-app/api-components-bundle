@@ -122,6 +122,33 @@ class GroupPlannerTest extends TestCase
         self::assertSame([], $this->report->all());
     }
 
+    public function test_the_allowed_component_ui_is_written_after_the_maximum_keyed_by_imported_component_classes(): void
+    {
+        $group = $this->group('top_/_/layouts/main', '/_/layouts/main');
+        $group->maxComponents = 1;
+        $group->allowedComponentUi = [
+            '/component/dummy_components' => ['ui' => [null, 'CwaHero'], 'styles' => ['style:large']],
+            '/component/abstract_components' => ['ui' => ['CwaLost']],
+        ];
+
+        $plan = $this->plan($group, $this->layout('main', 'CwaLayoutPrimary'));
+
+        self::assertSame(["'top'", 'max: 1', "allowUi: [DummyComponent::class => ['ui' => [null, 'CwaHero'], 'styles' => ['style:large']]]"], $plan?->arguments);
+        self::assertContains('use ' . DummyComponent::class . ';', $this->imports->lines());
+        self::assertSame(['Allowed component UI for "/component/abstract_components" on the component group "top_/_/layouts/main" does not match a component class.'], $this->report->all());
+    }
+
+    public function test_an_allowed_component_ui_whose_keys_match_no_component_class_is_left_out(): void
+    {
+        $group = $this->group('top_/_/layouts/main', '/_/layouts/main');
+        $group->allowedComponentUi = ['/component/pages' => ['ui' => ['CwaLost']]];
+
+        $plan = $this->plan($group, $this->layout('main', 'CwaLayoutPrimary'));
+
+        self::assertSame(["'top'"], $plan?->arguments);
+        self::assertCount(1, $this->report->all());
+    }
+
     public function test_a_component_class_without_a_collection_iri_matches_nothing(): void
     {
         $iriConverter = $this->createStub(IriConverterInterface::class);

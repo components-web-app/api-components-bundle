@@ -11,7 +11,9 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\Fixture;
 
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\IriConverterInterface;
+use ApiPlatform\Metadata\UrlGeneratorInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata as OrmClassMetadata;
 use Doctrine\ORM\UnitOfWork;
@@ -2438,6 +2440,39 @@ class CwaFixtureBuilderTest extends TestCase
         }
         ksort($limits);
         $this->assertSame(['footer' => null, 'items' => 3, 'nav' => 1, 'primary' => 2], $limits);
+    }
+
+    public function test_a_group_takes_its_allowed_component_ui_by_collection_iri_from_every_owner_kind(): void
+    {
+        $persisted = [];
+        $em = $this->collectingEm($persisted);
+        $iriConverter = $this->createStub(IriConverterInterface::class);
+        $iriConverter->method('getIriFromResource')->willReturnCallback(
+            static fn ($resource, $referenceType = UrlGeneratorInterface::ABS_PATH, $operation = null) => \is_string($resource)
+                ? (UrlGeneratorInterface::ABS_PATH === $referenceType && $operation instanceof GetCollection && $operation->getClass() === $resource ? '/component/' . strtolower((new \ReflectionClass($resource))->getShortName()) : '/wrong')
+                : '/_/owners/' . spl_object_id($resource)
+        );
+
+        $builder = $this->makeBuilder($em, iriConverter: $iriConverter);
+        $builder->layout('main', 'Primary')->group('nav', allowUi: [\stdClass::class => ['ui' => [null, 'CwaHero']]]);
+        $builder->page('home', 'Primary', layout: 'main', route: '/')->group('primary', allowUi: [\stdClass::class => ['styles' => ['style:large']], \ArrayObject::class => ['ui' => ['CwaList']]]);
+        $builder->component(new class extends AbstractComponent {})->group('items', allowUi: [\ArrayObject::class => ['ui' => ['CwaGrid'], 'styles' => ['style:dark']]]);
+        $builder->layout('other', 'Primary')->group('footer');
+        $builder->flush();
+
+        $rules = [];
+        foreach ($persisted as $entity) {
+            if ($entity instanceof ComponentGroup) {
+                $rules[strstr((string) $entity->reference, '_', true)] = $entity->allowedComponentUi;
+            }
+        }
+        ksort($rules);
+        $this->assertSame([
+            'footer' => null,
+            'items' => ['/component/arrayobject' => ['ui' => ['CwaGrid'], 'styles' => ['style:dark']]],
+            'nav' => ['/component/stdclass' => ['ui' => [null, 'CwaHero']]],
+            'primary' => ['/component/stdclass' => ['styles' => ['style:large']], '/component/arrayobject' => ['ui' => ['CwaList']]],
+        ], $rules);
     }
 
     public function test_page_live_at_is_set_on_an_explicit_route(): void

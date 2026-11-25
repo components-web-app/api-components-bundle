@@ -9,3 +9,17 @@ foreach ($this->connection->fetchAllAssociative('SELECT id, allowed_components F
         ['components' => json_encode(array_map(static fn (string $c): string => <?php echo var_export($from_iri, true); ?> === $c ? <?php echo var_export($to_iri, true); ?> : $c, $components)), 'id' => $row['id']]
     );
 }
+foreach ($this->connection->fetchAllAssociative('SELECT id, allowed_component_ui FROM <?php echo $group_table; ?> WHERE allowed_component_ui IS NOT NULL') as $row) {
+    $rules = json_decode((string) $row['allowed_component_ui'], true);
+    if (!\is_array($rules) || !\array_key_exists(<?php echo var_export($from_iri, true); ?>, $rules)) {
+        continue;
+    }
+    $renamed = [];
+    foreach ($rules as $iri => $rule) {
+        $renamed[<?php echo var_export($from_iri, true); ?> === $iri ? <?php echo var_export($to_iri, true); ?> : $iri] = $rule;
+    }
+    $this->connection->executeStatement(
+        'UPDATE <?php echo $group_table; ?> SET allowed_component_ui = :rules WHERE id = :id',
+        ['rules' => json_encode($renamed), 'id' => $row['id']]
+    );
+}

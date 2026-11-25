@@ -86,6 +86,10 @@ final class GroupPlanner
         if (null !== $group->maxComponents) {
             $arguments[] = 'max: ' . $group->maxComponents;
         }
+        $allowedUi = $this->resolveAllowedComponentUi($group);
+        if ([] !== $allowedUi) {
+            $arguments[] = 'allowUi: [' . implode(', ', $allowedUi) . ']';
+        }
 
         return new GroupPlan($name, $arguments);
     }
@@ -103,6 +107,24 @@ final class GroupPlanner
                 continue;
             }
             $allowed[] = $this->imports->add($class) . '::class';
+        }
+
+        return $allowed;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function resolveAllowedComponentUi(ComponentGroup $group): array
+    {
+        $allowed = [];
+        foreach ($group->allowedComponentUi ?? [] as $iri => $rule) {
+            $class = $this->getComponentClassesByIri()[$iri] ?? null;
+            if (null === $class) {
+                $this->report->add(\sprintf('Allowed component UI for "%s" on the component group "%s" does not match a component class.', $iri, $group->reference));
+                continue;
+            }
+            $allowed[] = $this->imports->add($class) . '::class => ' . $this->export($rule);
         }
 
         return $allowed;

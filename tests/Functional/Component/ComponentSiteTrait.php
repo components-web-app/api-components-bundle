@@ -154,6 +154,42 @@ trait ComponentSiteTrait
         });
     }
 
+    /**
+     * @param array<string, array{ui?: list<string|null>, styles?: list<string>}> $allowedComponentUi
+     */
+    protected static function setAllowedComponentUi(string $groupIri, array $allowedComponentUi): void
+    {
+        static::updateResource($groupIri, static function (object $group) use ($allowedComponentUi): void {
+            \assert($group instanceof ComponentGroup);
+            $group->allowedComponentUi = $allowedComponentUi;
+        });
+    }
+
+    /**
+     * @param list<string>|null $uiClassNames
+     */
+    protected static function setComponentUi(string $componentIri, ?string $uiComponent, ?array $uiClassNames = null): void
+    {
+        static::updateResource($componentIri, static function (object $component) use ($uiComponent, $uiClassNames): void {
+            \assert($component instanceof AbstractComponent);
+            $component->uiComponent = $uiComponent;
+            $component->uiClassNames = $uiClassNames;
+        });
+    }
+
+    /**
+     * @param list<string>|null $uiClassNames
+     */
+    protected static function createComponentWithUi(?string $uiComponent, ?array $uiClassNames = null): string
+    {
+        $component = new DummyComponent();
+        $component->uiComponent = $uiComponent;
+        $component->uiClassNames = $uiClassNames;
+        static::persistAndFlush($component);
+
+        return static::iriOf($component);
+    }
+
     protected static function addPositionTo(string $groupIri, AbstractComponent|string|null $component, int $sortValue, ?string $pageDataProperty = null): string
     {
         $existing = \is_string($component) ? static::findByIri($component) : null;

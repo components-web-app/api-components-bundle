@@ -762,14 +762,13 @@ class CwaFixtureBuilder implements ResetInterface
             $componentGroup->maxComponents = $groupBuilder->getMaxComponents();
 
             foreach ($groupBuilder->getAllowedClasses() as $class) {
-                $componentGroup->addAllowedComponent(
-                    $this->iriConverter->getIriFromResource(
-                        $class,
-                        UrlGeneratorInterface::ABS_PATH,
-                        (new GetCollection())->withClass($class)
-                    )
-                );
+                $componentGroup->addAllowedComponent($this->collectionIri($class));
             }
+            $allowedComponentUi = [];
+            foreach ($groupBuilder->getAllowedComponentUi() as $class => $rule) {
+                $allowedComponentUi[$this->collectionIri($class)] = $rule;
+            }
+            $componentGroup->setAllowedComponentUi($allowedComponentUi);
 
             $this->timestampedPersister->persistTimestampedFields($componentGroup, true);
             $this->manager->persist($componentGroup);
@@ -782,6 +781,11 @@ class CwaFixtureBuilder implements ResetInterface
 
         $this->linkGroup($componentGroup, $owner);
         $this->componentGroupMap[$groupBuilderId] = $componentGroup;
+    }
+
+    private function collectionIri(string $class): string
+    {
+        return (string) $this->iriConverter->getIriFromResource($class, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($class));
     }
 
     private function publishedGroupOwner(Layout|Page|AbstractComponent $owner): Layout|Page|AbstractComponent
