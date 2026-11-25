@@ -16,6 +16,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\UriVariableTransformerInterface;
 use Silverback\ApiComponentsBundle\Entity\Component\Form;
 use Silverback\ApiComponentsBundle\Entity\Core\ComponentGroup;
+use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Route;
 
 /**
@@ -23,7 +24,7 @@ use Silverback\ApiComponentsBundle\Entity\Core\Route;
  */
 final class UuidUriVariableTransformer implements UriVariableTransformerInterface
 {
-    private const array ACCEPTS_ANY_IDENTIFIER = [Route::class, ComponentGroup::class, Form::class];
+    private const array ACCEPTS_ANY_IDENTIFIER = [Route::class, ComponentGroup::class, Layout::class, Form::class];
 
     /**
      * @var list<class-string>

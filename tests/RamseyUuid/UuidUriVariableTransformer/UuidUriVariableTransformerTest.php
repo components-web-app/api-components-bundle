@@ -42,6 +42,7 @@ class UuidUriVariableTransformerTest extends TestCase
     {
         yield 'a route, by path' => [Route::class];
         yield 'a component group, by reference' => [ComponentGroup::class];
+        yield 'a layout, by reference' => [Layout::class];
         yield 'a form, by name' => [Form::class];
     }
 
@@ -85,7 +86,7 @@ class UuidUriVariableTransformerTest extends TestCase
     {
         $this->expectException(InvalidUriVariableException::class);
 
-        self::transformer([Page::class])->transform('not-a-uuid', [UuidInterface::class], ['operation' => new Get(class: Layout::class)]);
+        self::transformer([Page::class])->transform('not-a-uuid', [UuidInterface::class], ['operation' => new Get(class: AbstractPage::class)]);
     }
 
     public function test_a_configured_class_is_matched_exactly_not_by_its_subclasses(): void
