@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.46](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.45...2.0.0-alpha.46) - 2026-11-25
+
 ### Breaking
 - Every bundle check that needed `ROLE_ADMIN` (content writes and publishing by default, route `liveAt`, `isReachableWithoutRoute`, collaboration state, the realtime channel, component usage, the orphan reports and the purge endpoints) now needs `ROLE_CMS_ADMIN`; the bundle adds `ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_USER_ADMIN, ROLE_ALLOWED_TO_SWITCH]`, `ROLE_ADMIN: [ROLE_CMS_ADMIN]`, `ROLE_CMS_ADMIN: [ROLE_USER]` and `ROLE_USER_ADMIN: [ROLE_USER]` to `security.role_hierarchy`, merged into the application's own lists for the same roles, so existing admins and super admins keep their access ([#611](https://github.com/components-web-app/api-components-bundle/pull/611))
 - `publishable.permission` and `routable_security` default to `is_granted('ROLE_CMS_ADMIN')`; `publishable` is no longer required, and `routable_security: null` must now be set explicitly to make a page no live route reaches public ([#611](https://github.com/components-web-app/api-components-bundle/pull/611))
