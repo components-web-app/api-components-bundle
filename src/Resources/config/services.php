@@ -77,6 +77,7 @@ use Silverback\ApiComponentsBundle\DataProvider\StateProvider\ComponentUsageStat
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DenyAccessStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\DownloadStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\FormStateProvider;
+use Silverback\ApiComponentsBundle\DataProvider\StateProvider\LayoutStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PageDataMetadataStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableDeserializeStateProvider;
 use Silverback\ApiComponentsBundle\DataProvider\StateProvider\PublishableReadStateProvider;
@@ -1461,6 +1462,18 @@ return static function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->tag('api_platform.state_provider');
     $services->alias('silverback.api_components.api_platform.state_provider.component_group', ComponentGroupStateProvider::class);
+
+    $services
+        ->set(LayoutStateProvider::class)
+        ->args(
+            [
+                new Reference('silverback.api_components.repository.layout'),
+                new Reference('api_platform.state_provider'),
+            ]
+        )
+        ->autoconfigure(false)
+        ->tag('api_platform.state_provider');
+    $services->alias('silverback.api_components.api_platform.state_provider.layout', LayoutStateProvider::class);
 
     $services
         ->set(FormStateProvider::class)

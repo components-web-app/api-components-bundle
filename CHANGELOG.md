@@ -4,6 +4,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+### Added
+- `GET /_/layouts/{reference}` finds a layout by its `reference` as well as its UUID, the reference winning when both match, as for component groups; the response's `@id` stays the UUID IRI
+
 ## [2.0.0-alpha.46](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.45...2.0.0-alpha.46) - 2026-11-25
 
 ### Breaking

@@ -13,6 +13,8 @@ namespace Silverback\ApiComponentsBundle\Repository\Core;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Ramsey\Uuid\Exception\InvalidUuidStringException;
+use Ramsey\Uuid\Uuid;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 
 /**
@@ -28,5 +30,21 @@ class LayoutRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Layout::class);
+    }
+
+    public function findOneByIdOrReference(string $idOrRef): ?Layout
+    {
+        $byRef = $this->findOneBy([
+            'reference' => $idOrRef,
+        ]);
+        if ($byRef) {
+            return $byRef;
+        }
+
+        try {
+            return $this->find(Uuid::fromString($idOrRef));
+        } catch (InvalidUuidStringException) {
+            return null;
+        }
     }
 }
