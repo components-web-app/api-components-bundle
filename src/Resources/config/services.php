@@ -268,6 +268,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mercure\Authorization;
+use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -1235,6 +1236,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(PublishableStatusChecker::class),
                 new Reference('router.request_context'),
                 new Reference(Authorization::class),
+                new Reference(HubRegistry::class),
                 new Reference('request_stack'),
                 new Reference(AuthorizationCheckerInterface::class),
                 new Reference(RouterInterface::class),
@@ -1243,6 +1245,7 @@ return static function (ContainerConfigurator $configurator) {
                 null,
                 false,
                 true,
+                new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ]
         );
     $services->alias(MercureAuthorization::class, 'silverback.api_components.mercure.authorization');

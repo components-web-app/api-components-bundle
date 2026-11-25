@@ -7,6 +7,9 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ### Added
 - `GET /_/layouts/{reference}` finds a layout by its `reference` as well as its UUID, the reference winning when both match, as for component groups; the response's `@id` stays the UUID IRI ([#615](https://github.com/components-web-app/api-components-bundle/pull/615))
 
+### Fixed
+- A request on a host that shares no registrable domain with the Mercure hub's public URL (a production alias, a tunnel) no longer 500s on login, JWT refresh, logout or a failed `/me`: no Mercure cookie is sent, a warning is logged, and only real-time is unavailable there ([#616](https://github.com/components-web-app/api-components-bundle/pull/616))
+
 ## [2.0.0-alpha.46](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.45...2.0.0-alpha.46) - 2026-11-25
 
 ### Breaking

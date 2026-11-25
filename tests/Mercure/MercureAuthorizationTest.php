@@ -20,6 +20,7 @@ use ApiPlatform\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface
 use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
 use ApiPlatform\Metadata\Resource\ResourceNameCollection;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Silverback\ApiComponentsBundle\Entity\Core\Layout;
 use Silverback\ApiComponentsBundle\Entity\Core\Page;
 use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
@@ -31,10 +32,13 @@ use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\Authorization;
+use Symfony\Component\Mercure\Exception\InvalidArgumentException as MercureInvalidArgumentException;
+use Symfony\Component\Mercure\Exception\RuntimeException as MercureRuntimeException;
 use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Jwt\DefaultClaimsTokenFactory;
 use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
+use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\MockHub;
 use Symfony\Component\Mercure\ProtocolVersion;
 use Symfony\Component\Routing\RequestContext;
@@ -330,6 +334,68 @@ class MercureAuthorizationTest extends TestCase
         self::assertTrue($authorization->getClearAuthorizationCookie()->isCleared());
     }
 
+    public function test_on_a_host_outside_the_hubs_domain_no_cookie_is_built_and_a_warning_is_logged(): void
+    {
+        $authorization = $this->createAuthorization([], [], requestHost: 'example.org', logger: $this->loggerExpectingForeignHostWarning());
+
+        self::assertNull($authorization->getAuthorizationCookie());
+    }
+
+    public function test_on_a_host_outside_the_hubs_domain_no_clear_cookie_is_built_and_a_warning_is_logged(): void
+    {
+        $authorization = $this->createAuthorization([], [], requestHost: 'example.org', logger: $this->loggerExpectingForeignHostWarning());
+
+        self::assertNull($authorization->getClearAuthorizationCookie());
+    }
+
+    public function test_on_a_host_outside_the_hubs_domain_no_cookie_is_built_with_no_logger(): void
+    {
+        $authorization = $this->createAuthorization([], [], requestHost: 'example.org');
+
+        self::assertNull($authorization->getAuthorizationCookie());
+        self::assertNull($authorization->getClearAuthorizationCookie());
+    }
+
+    public function test_a_mercure_runtime_exception_on_a_host_inside_the_hubs_domain_is_not_swallowed(): void
+    {
+        $failure = new MercureRuntimeException('Failed to fetch the JWK Set.');
+        $tokenFactory = $this->createStub(TokenFactoryInterface::class);
+        $tokenFactory->method('create')->willThrowException($failure);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::never())->method('warning');
+        $authorization = $this->createAuthorization([], [], requestHost: 'www.example.com', tokenFactory: $tokenFactory, logger: $logger);
+
+        try {
+            $authorization->getAuthorizationCookie();
+            self::fail('The token factory\'s failure was swallowed.');
+        } catch (MercureRuntimeException $exception) {
+            self::assertSame($failure, $exception);
+        }
+    }
+
+    public function test_an_invalid_hub_configuration_on_a_host_outside_the_hubs_domain_is_not_swallowed(): void
+    {
+        $tokenFactory = $this->createStub(TokenFactoryInterface::class);
+        $tokenFactory->method('create')->willThrowException(new MercureInvalidArgumentException('Invalid JWT configuration.'));
+        $authorization = $this->createAuthorization([], [], requestHost: 'example.org', tokenFactory: $tokenFactory);
+
+        $this->expectException(MercureInvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid JWT configuration.');
+
+        $authorization->getAuthorizationCookie();
+    }
+
+    private function loggerExpectingForeignHostWarning(): LoggerInterface
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('warning')->with(
+            'No Mercure subscriber cookie can be set for the host "{host}": it is outside the domain of the hub\'s public URL "{hub_url}", so real-time updates are unavailable on it.',
+            self::callback(static fn (array $context): bool => 'example.org' === $context['host'] && 'https://example.com/.well-known/mercure' === $context['hub_url'] && $context['exception'] instanceof MercureRuntimeException),
+        );
+
+        return $logger;
+    }
+
     private static function realtimeOperation(): Post
     {
         return new Post(uriTemplate: '/realtime', class: RealtimeEvent::class, name: RealtimeEvent::OPERATION_NAME, routePrefix: '/_', security: RealtimeEvent::SECURITY);
@@ -350,6 +416,9 @@ class MercureAuthorizationTest extends TestCase
         int $cookieLifetime = 604800,
         ?AuthorizationCheckerInterface $authorizationChecker = null,
         ?bool $realtimeEnabled = null,
+        string $requestHost = 'example.com',
+        ?TokenFactoryInterface $tokenFactory = null,
+        ?LoggerInterface $logger = null,
     ): MercureAuthorization {
         if (null === $resourceNames) {
             $resourceNames = $this->createStub(ResourceNameCollectionFactoryInterface::class);
@@ -378,16 +447,18 @@ class MercureAuthorizationTest extends TestCase
             new LcobucciFactory('ab0a54cf2375ab2368d97166b94e108cab0a54cf2375ab2368d97166b94e108c', protocolVersion: ProtocolVersion::V1),
             ['iss' => 'https://example.com', 'sub' => 'api', 'client_id' => 'api', 'aud' => 'https://example.com/.well-known/mercure'],
         );
-        $hub = new MockHub('https://' . $hubHost . '/.well-known/mercure', new StaticTokenProvider('jwt'), static fn (): string => 'id', $factory, protocolVersion: ProtocolVersion::V1);
+        $hub = new MockHub('https://' . $hubHost . '/.well-known/mercure', new StaticTokenProvider('jwt'), static fn (): string => 'id', $tokenFactory ?? $factory, protocolVersion: ProtocolVersion::V1);
+        $hubRegistry = new HubRegistry($hub);
         $requestStack = new RequestStack();
-        $requestStack->push(Request::create('https://example.com/login'));
+        $requestStack->push(Request::create('https://' . $requestHost . '/login'));
 
         return new MercureAuthorization(
             $resourceNames,
             $metadata,
             $publishableStatusChecker,
             new RequestContext(host: 'example.com'),
-            new Authorization(new HubRegistry($hub)),
+            new Authorization($hubRegistry),
+            $hubRegistry,
             $requestStack,
             $authorizationChecker ?? $this->createStub(AuthorizationCheckerInterface::class),
             $router,
@@ -395,7 +466,8 @@ class MercureAuthorizationTest extends TestCase
             $cookieSameSite,
             null,
             false,
-            ...(null === $realtimeEnabled ? [] : [$realtimeEnabled]),
+            $realtimeEnabled ?? true,
+            $logger,
         );
     }
 }

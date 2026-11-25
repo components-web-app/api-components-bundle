@@ -11,6 +11,7 @@
 
 namespace Silverback\ApiComponentsBundle\Tests\EventListener\Jwt;
 
+use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationSuccessEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Cookie\JWTCookieProvider;
 use PHPUnit\Framework\TestCase;
 use Silverback\ApiComponentsBundle\DataCollector\CwaCollectorData;
@@ -23,13 +24,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Role\RoleHierarchy;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 class JWTEventListenerTest extends TestCase
 {
-    private function buildListener(?CwaCollectorData $collectorData = null): JWTEventListener
+    private function buildListener(?CwaCollectorData $collectorData = null, bool $mercureCookie = true): JWTEventListener
     {
         $mercure = $this->createStub(MercureAuthorization::class);
-        $mercure->method('getAuthorizationCookie')->willReturn(new Cookie('__Secure-mercure_access_token', 'value'));
+        $mercure->method('getAuthorizationCookie')->willReturn($mercureCookie ? new Cookie('__Secure-mercure_access_token', 'value') : null);
 
         return new JWTEventListener(
             $this->createStub(RoleHierarchy::class),
@@ -173,5 +175,32 @@ class JWTEventListenerTest extends TestCase
 
         self::assertSame([], $subRequest->getResponse()->headers->getCookies());
         self::assertSame(['api_components', '__Secure-mercure_access_token'], array_map(static fn (Cookie $c) => $c->getName(), $main->getResponse()->headers->getCookies()));
+    }
+
+    public function test_a_refresh_on_a_host_with_no_mercure_cookie_sets_only_the_jwt_cookie(): void
+    {
+        $listener = $this->buildListener(mercureCookie: false);
+        $listener->onJWTRefreshed(new JWTRefreshedEvent('header.payload.signature'));
+
+        $responseEvent = $this->makeResponseEvent();
+        $listener->onKernelResponse($responseEvent);
+
+        self::assertSame(['api_components'], array_map(static fn (Cookie $c) => $c->getName(), $responseEvent->getResponse()->headers->getCookies()));
+    }
+
+    public function test_a_login_sets_the_mercure_cookie(): void
+    {
+        $response = new Response();
+        $this->buildListener()->onJWTAuthenticationSuccess(new AuthenticationSuccessEvent([], $this->createStub(UserInterface::class), $response));
+
+        self::assertSame(['__Secure-mercure_access_token'], array_map(static fn (Cookie $c) => $c->getName(), $response->headers->getCookies()));
+    }
+
+    public function test_a_login_on_a_host_with_no_mercure_cookie_sets_no_mercure_cookie(): void
+    {
+        $response = new Response();
+        $this->buildListener(mercureCookie: false)->onJWTAuthenticationSuccess(new AuthenticationSuccessEvent([], $this->createStub(UserInterface::class), $response));
+
+        self::assertSame([], $response->headers->getCookies());
     }
 }

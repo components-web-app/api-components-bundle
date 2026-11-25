@@ -125,10 +125,26 @@ class JWTClearTokenListenerTest extends TestCase
         self::assertFalse($collectorData->isJwtCookieCleared());
     }
 
-    private function buildListener(?CwaCollectorData $collectorData = null): JWTClearTokenListener
+    public function test_a_failed_me_request_on_a_host_with_no_mercure_cookie_clears_only_the_jwt_cookie(): void
+    {
+        $response = new Response('', Response::HTTP_UNAUTHORIZED);
+        $this->buildListener(mercureCookie: false)->onKernelResponse($this->makeResponseEvent($this->makeMeRequest(['api_components' => 'jwt', self::MERCURE_COOKIE => 'token']), $response));
+
+        self::assertSame(['api_components'], $this->cookieNames($response));
+    }
+
+    public function test_an_expired_jwt_on_a_host_with_no_mercure_cookie_clears_only_the_jwt_cookie(): void
+    {
+        $response = new Response();
+        $this->buildListener(mercureCookie: false)->onJwtExpired(new JWTExpiredEvent(new AuthenticationException(), $response));
+
+        self::assertSame(['api_components'], $this->cookieNames($response));
+    }
+
+    private function buildListener(?CwaCollectorData $collectorData = null, bool $mercureCookie = true): JWTClearTokenListener
     {
         $mercure = $this->createStub(MercureAuthorization::class);
-        $mercure->method('getClearAuthorizationCookie')->willReturn(Cookie::create(self::MERCURE_COOKIE, null, 1, '/.well-known/mercure'));
+        $mercure->method('getClearAuthorizationCookie')->willReturn($mercureCookie ? Cookie::create(self::MERCURE_COOKIE, null, 1, '/.well-known/mercure') : null);
 
         return new JWTClearTokenListener(new JWTCookieProvider('api_components'), $mercure, $collectorData);
     }
