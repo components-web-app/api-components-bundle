@@ -143,6 +143,15 @@ trait FixtureScenarioTrait
         });
     }
 
+    protected function siteHasGroupsWithAndWithoutAllowedComponentUi(): void
+    {
+        $cwa = $this->siteBuilder();
+        $cwa->layout('main', 'Primary')->group('top', allowUi: [DummyComponent::class => ['ui' => [null, 'CwaComponentHero'], 'styles' => ['style:large']]])->add(new DummyComponent());
+        $cwa->page('home', 'Primary', layout: 'main', route: '/', routeName: 'home', configure: static function (PageBuilder $page): void {
+            $page->group('primary')->add(new DummyComponent());
+        });
+    }
+
     protected function siteHasAPublishedComponentWithADraft(string $reference, string $draftReference): void
     {
         $cwa = $this->siteBuilder();
@@ -961,6 +970,24 @@ trait FixtureScenarioTrait
     {
         $owner = self::getEntityManager()->getRepository(Layout::class)->findOneBy(['reference' => $layout]);
         self::assertSame($max, self::findOwnedGroup($owner?->getComponentGroups() ?? [], $group)->maxComponents);
+    }
+
+    /**
+     * @param array<string, mixed>|null $expected
+     */
+    protected function assertGroupOfTheLayoutAllowsComponentUi(string $group, string $layout, ?array $expected): void
+    {
+        $owner = self::getEntityManager()->getRepository(Layout::class)->findOneBy(['reference' => $layout]);
+        self::assertSame($expected, self::findOwnedGroup($owner?->getComponentGroups() ?? [], $group)->allowedComponentUi);
+    }
+
+    /**
+     * @param array<string, mixed>|null $expected
+     */
+    protected function assertGroupOfThePageAllowsComponentUi(string $group, string $page, ?array $expected): void
+    {
+        $owner = self::getEntityManager()->getRepository(Page::class)->findOneBy(['reference' => $page]);
+        self::assertSame($expected, self::findOwnedGroup($owner?->getComponentGroups() ?? [], $group)->allowedComponentUi);
     }
 
     protected function assertGroupOfThePageHasNoMaximum(string $group, string $page): void

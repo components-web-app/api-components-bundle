@@ -24,6 +24,7 @@ use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentCycleDetect
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ComponentPositionIriResolver;
 use Silverback\ApiComponentsBundle\Helper\ComponentPosition\ListedComponentPositions;
 use Silverback\ApiComponentsBundle\Metadata\Provider\PageDataMetadataProvider;
+use Silverback\ApiComponentsBundle\Utility\AllowedComponentUi;
 use Silverback\ApiComponentsBundle\Validator\Constraints\ComponentPosition as ComponentPositionConstraint;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -60,8 +61,12 @@ class ComponentPositionValidator extends ConstraintValidator
 
         $component = $componentPosition->component;
         if ($component) {
-            $this->validateDirectComponent($componentPosition, $constraint, $component, $collection);
-            $this->validateNoCycle($componentPosition, $constraint, $component, $collection);
+            $iri = $this->collectionIri($component::class);
+            $this->validateDirectComponent($constraint, $component, $iri, $collection);
+            if ($this->isPlacementWritten($componentPosition)) {
+                $this->validateComponentUi($constraint, $component, $iri, $collection);
+                $this->validateNoCycle($constraint, $component, $collection);
+            }
 
             return;
         }
@@ -92,9 +97,36 @@ class ComponentPositionValidator extends ConstraintValidator
             ->addViolation();
     }
 
-    private function validateNoCycle(ComponentPosition $componentPosition, ComponentPositionConstraint $constraint, AbstractComponent $component, ComponentGroup $collection): void
+    private function collectionIri(string $resourceClass): string
     {
-        if (!$this->isPlacementWritten($componentPosition) || !$this->cycleDetector->isPlacementCyclic($component, $collection)) {
+        return (string) $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
+    }
+
+    private function validateComponentUi(ComponentPositionConstraint $constraint, AbstractComponent $component, string $iri, ComponentGroup $collection): void
+    {
+        if (!AllowedComponentUi::allowsUiComponent($collection->allowedComponentUi, $iri, $component->uiComponent)) {
+            $this->context->buildViolation($constraint->uiMessage)
+                ->atPath('component')
+                ->setParameter('{{ ui }}', AllowedComponentUi::describeUiComponent($component->uiComponent))
+                ->setParameter('{{ iri }}', $iri)
+                ->setParameter('{{ reference }}', (string) $collection->reference)
+                ->addViolation();
+        }
+
+        $disallowedStyles = AllowedComponentUi::disallowedStyles($collection->allowedComponentUi, $iri, $component->uiClassNames);
+        if ($disallowedStyles) {
+            $this->context->buildViolation($constraint->stylesMessage)
+                ->atPath('component')
+                ->setParameter('{{ styles }}', implode(', ', $disallowedStyles))
+                ->setParameter('{{ iri }}', $iri)
+                ->setParameter('{{ reference }}', (string) $collection->reference)
+                ->addViolation();
+        }
+    }
+
+    private function validateNoCycle(ComponentPositionConstraint $constraint, AbstractComponent $component, ComponentGroup $collection): void
+    {
+        if (!$this->cycleDetector->isPlacementCyclic($component, $collection)) {
             return;
         }
 
@@ -160,11 +192,8 @@ class ComponentPositionValidator extends ConstraintValidator
         }
     }
 
-    private function validateDirectComponent(ComponentPosition $componentPosition, ComponentPositionConstraint $constraint, object $component, object $collection): void
+    private function validateDirectComponent(ComponentPositionConstraint $constraint, object $component, string $iri, object $collection): void
     {
-        $resourceClass = $component::class;
-        $iri = $this->iriConverter->getIriFromResource($resourceClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($resourceClass));
-
         if ($allowedComponents = $collection->allowedComponents) {
             if (!\in_array($iri, $allowedComponents, true)) {
                 $this->context->buildViolation($constraint->message)
@@ -221,7 +250,7 @@ class ComponentPositionValidator extends ConstraintValidator
         }
 
         $componentClass = $propertyMetadata->getComponentClass();
-        $iri = $this->iriConverter->getIriFromResource($componentClass, UrlGeneratorInterface::ABS_PATH, (new GetCollection())->withClass($componentClass));
+        $iri = $this->collectionIri($componentClass);
 
         if ($allowedComponents = $collection->allowedComponents) {
             if (!\in_array($iri, $allowedComponents, true)) {

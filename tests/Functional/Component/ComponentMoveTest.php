@@ -439,6 +439,19 @@ final class ComponentMoveTest extends FunctionalTestCase
         self::assertJsonNodeMatches('violations[0].message', '/must be specifically allowed within the collection other_collection/');
     }
 
+    public function test_a_component_whose_ui_the_target_group_does_not_allow_cannot_be_moved_into_it(): void
+    {
+        $client = self::adminClient();
+        $names = self::createGroupWithPositions('A0');
+        $other = self::createGroupWithPositions('X0', 'other_collection');
+        self::setAllowedComponentUi($other['group'], ['/component/dummy_components' => ['ui' => ['CwaComponentHero']]]);
+
+        self::move($client, self::componentOf($names['A']), ['componentPosition' => $names['A']], ['componentGroup' => $other['group']]);
+
+        self::assertViolation('to.componentGroup', 'The UI `null` is not allowed for `/component/dummy_components` in the component group `other_collection`.');
+        self::assertGroupHoldsPositions($names['group'], 'A0', $names);
+    }
+
     public function test_a_component_cannot_be_moved_into_a_group_inside_itself(): void
     {
         $client = self::adminClient();

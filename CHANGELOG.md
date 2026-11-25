@@ -11,6 +11,12 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 - Assigning a role the signed-in user does not reach is a 422 on `roles`, and editing or deleting a user who reaches a role the caller does not is a 403 ([#611](https://github.com/components-web-app/api-components-bundle/pull/611))
 - `http_cache.personalised_resource_classes`, `scheduled_expiry_resource_classes` and `purge_rendered_html_classes` always keep the CWA defaults; configured or prepended classes are added to them instead of replacing them ([#611](https://github.com/components-web-app/api-components-bundle/pull/611))
 
+### Added
+- `ComponentGroup.allowedComponentUi` restricts, per component collection IRI, the `uiComponent` values (`ui`) and `uiClassNames` entries (`styles`) a group's components may have: placing a component the group does not allow is a 422 on `component` (`to.componentGroup` for `/move`), and changing a placed component's UI or styles to a value one of its groups does not allow is a 422 on `uiComponent` or `uiClassNames`, a draft checked through its published component; `CwaFixtureBuilder` groups take `allowUi:`, `generate-fixtures` writes it and `make:rename-component` renames its keys (PR_LINK)
+
+### Tooling
+- The page JSON schema's `$ref` to the page data schema is a valid JSON pointer, which `justinrainbow/json-schema` 6.15 requires (PR_LINK)
+
 ### Fixed
 - Normalizing a user no longer writes its reachable roles onto the entity, so a later flush in the same request cannot store them; `roles` in the output (including `/me`) is still every role the user reaches ([#611](https://github.com/components-web-app/api-components-bundle/pull/611))
 

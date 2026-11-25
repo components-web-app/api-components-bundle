@@ -81,6 +81,14 @@ class ComponentGroup
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write', 'Layout:read', 'Page:read'])]
     public ?array $allowedComponents = null;
 
+    /**
+     * @var array<string, array{ui?: list<string|null>, styles?: list<string>}>|null
+     */
+    #[ORM\Column(name: 'allowed_component_ui', type: 'json', nullable: true)]
+    #[Groups(['ComponentGroup:read', 'ComponentGroup:write', 'Layout:read', 'Page:read'])]
+    #[AcbAssert\AllowedComponentUi]
+    public ?array $allowedComponentUi = null;
+
     #[ORM\Column(name: 'max_components', type: 'integer', nullable: true)]
     #[Groups(['ComponentGroup:read', 'ComponentGroup:write', 'Layout:read', 'Page:read'])]
     #[Assert\Positive]
@@ -208,6 +216,13 @@ class ComponentGroup
             $this->allowedComponents = [];
         }
         $this->allowedComponents[] = $allowedComponent;
+
+        return $this;
+    }
+
+    public function setAllowedComponentUi(?array $allowedComponentUi): self
+    {
+        $this->allowedComponentUi = $allowedComponentUi ?: null;
 
         return $this;
     }

@@ -22,10 +22,10 @@ class LayoutBuilder
     {
     }
 
-    public function group(string $name, array $allow = [], ?\Closure $configure = null, ?string $locationReference = null, ?int $max = null): GroupBuilder
+    public function group(string $name, array $allow = [], ?\Closure $configure = null, ?string $locationReference = null, ?int $max = null, array $allowUi = []): GroupBuilder
     {
         if (!isset($this->groupBuilders[$name])) {
-            $this->groupBuilders[$name] = new GroupBuilder($name, $allow, $locationReference, $max);
+            $this->groupBuilders[$name] = new GroupBuilder($name, $allow, $locationReference, $max, $allowUi);
         }
         if (null !== $configure) {
             $configure($this->groupBuilders[$name]);

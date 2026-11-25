@@ -46,7 +46,7 @@ class RenameComponentMigrationTest extends TestCase
     {
         $this->connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
         $this->connection->executeStatement(\sprintf('CREATE TABLE %s (id VARCHAR(36) PRIMARY KEY, dtype VARCHAR(255) NOT NULL)', self::COMPONENT_TABLE));
-        $this->connection->executeStatement(\sprintf('CREATE TABLE %s (id VARCHAR(36) PRIMARY KEY, allowed_components CLOB DEFAULT NULL)', self::GROUP_TABLE));
+        $this->connection->executeStatement(\sprintf('CREATE TABLE %s (id VARCHAR(36) PRIMARY KEY, allowed_components CLOB DEFAULT NULL, allowed_component_ui CLOB DEFAULT NULL)', self::GROUP_TABLE));
     }
 
     public function test_up_renames_the_discriminator_in_the_mapped_component_table(): void
@@ -86,6 +86,54 @@ class RenameComponentMigrationTest extends TestCase
         $this->runMigration('up');
 
         $this->assertSame($before, $this->connection->fetchOne(\sprintf('SELECT allowed_components FROM %s WHERE id = ?', self::GROUP_TABLE), ['g1']));
+    }
+
+    public function test_up_renames_the_old_iri_key_of_allowed_component_ui_keeping_its_rule_and_order(): void
+    {
+        $this->insertGroupUi('g1', ['/component/images' => ['ui' => ['CwaHero']], self::OLD_IRI => ['ui' => [null, 'CwaLead'], 'styles' => ['style:large']], '/component/navigation_links' => ['styles' => ['style:dark']]]);
+
+        $this->runMigration('up');
+
+        $this->assertSame(['/component/images' => ['ui' => ['CwaHero']], self::NEW_IRI => ['ui' => [null, 'CwaLead'], 'styles' => ['style:large']], '/component/navigation_links' => ['styles' => ['style:dark']]], $this->allowedComponentUi('g1'));
+    }
+
+    public function test_down_reverts_the_allowed_component_ui_key(): void
+    {
+        $this->insertGroupUi('g1', [self::NEW_IRI => ['ui' => ['CwaLead']]]);
+
+        $this->runMigration('down');
+
+        $this->assertSame([self::OLD_IRI => ['ui' => ['CwaLead']]], $this->allowedComponentUi('g1'));
+    }
+
+    public function test_up_leaves_allowed_component_ui_without_the_old_iri_untouched(): void
+    {
+        $this->insertGroupUi('g1', ['/component/navigation_links' => ['ui' => [self::OLD_IRI]]]);
+        $this->insertGroupUi('g2', null);
+        $before = $this->connection->fetchAllAssociative(\sprintf('SELECT id, allowed_component_ui FROM %s ORDER BY id', self::GROUP_TABLE));
+
+        $this->runMigration('up');
+
+        $this->assertSame($before, $this->connection->fetchAllAssociative(\sprintf('SELECT id, allowed_component_ui FROM %s ORDER BY id', self::GROUP_TABLE)));
+    }
+
+    /**
+     * @param array<string, mixed>|null $allowedComponentUi
+     */
+    private function insertGroupUi(string $id, ?array $allowedComponentUi): void
+    {
+        $this->connection->insert(self::GROUP_TABLE, [
+            'id' => $id,
+            'allowed_component_ui' => Type::getType('json')->convertToDatabaseValue($allowedComponentUi, $this->connection->getDatabasePlatform()),
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function allowedComponentUi(string $id): array
+    {
+        return json_decode((string) $this->connection->fetchOne(\sprintf('SELECT allowed_component_ui FROM %s WHERE id = ?', self::GROUP_TABLE), [$id]), true);
     }
 
     private function insertGroup(string $id, array $allowedComponents): void

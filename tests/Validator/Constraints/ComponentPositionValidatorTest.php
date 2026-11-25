@@ -413,6 +413,72 @@ class ComponentPositionValidatorTest extends ConstraintValidatorTestCase
         $this->assertNoViolation();
     }
 
+    public function test_a_new_position_whose_component_ui_the_group_does_not_allow_is_refused_on_component(): void
+    {
+        $group = $this->groupHolding(0);
+        $group->allowedComponentUi = ['/component/dummy_components' => ['ui' => ['CwaHero']]];
+        $position = $this->newPosition($group);
+        \assert($position->component instanceof AbstractComponent);
+        $position->component->uiComponent = 'CwaBanner';
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->buildViolation('The UI `{{ ui }}` is not allowed for `{{ iri }}` in the component group `{{ reference }}`.')
+            ->atPath('property.path.component')
+            ->setParameter('{{ ui }}', 'CwaBanner')
+            ->setParameter('{{ iri }}', '/component/dummy_components')
+            ->setParameter('{{ reference }}', 'header')
+            ->assertRaised();
+    }
+
+    public function test_a_new_position_whose_component_styles_the_group_does_not_allow_is_refused_on_component(): void
+    {
+        $group = new ComponentGroup();
+        $group->allowedComponentUi = ['/component/dummy_components' => ['styles' => ['style:large']]];
+        $position = $this->newPosition($group);
+        \assert($position->component instanceof AbstractComponent);
+        $position->component->uiClassNames = ['style:large', 'style:dark', 'style:wide'];
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->buildViolation('The styles `{{ styles }}` are not allowed for `{{ iri }}` in the component group `{{ reference }}`.')
+            ->atPath('property.path.component')
+            ->setParameter('{{ styles }}', 'style:dark, style:wide')
+            ->setParameter('{{ iri }}', '/component/dummy_components')
+            ->setParameter('{{ reference }}', '')
+            ->assertRaised();
+    }
+
+    public function test_a_new_position_whose_component_ui_and_styles_the_group_allows_is_allowed(): void
+    {
+        $group = $this->groupHolding(0);
+        $group->allowedComponentUi = ['/component/dummy_components' => ['ui' => ['CwaHero'], 'styles' => ['style:large']]];
+        $position = $this->newPosition($group);
+        \assert($position->component instanceof AbstractComponent);
+        $position->component->uiComponent = 'CwaHero';
+        $position->component->uiClassNames = ['style:large'];
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->assertNoViolation();
+    }
+
+    public function test_an_unchanged_position_whose_component_ui_the_group_does_not_allow_is_not_checked(): void
+    {
+        $group = $this->groupHolding(0);
+        $group->allowedComponentUi = ['/component/dummy_components' => ['ui' => ['CwaHero'], 'styles' => ['style:large']]];
+        $position = $this->newPosition($group);
+        \assert($position->component instanceof AbstractComponent);
+        $position->component->uiComponent = 'CwaBanner';
+        $position->component->uiClassNames = ['style:dark'];
+        $group->addComponentPosition($position);
+        $this->originalData[$position] = ['component' => $position->component, 'componentGroup' => $group];
+
+        $this->validator->validate($position, new ComponentPositionConstraint());
+
+        $this->assertNoViolation();
+    }
+
     private function groupHolding(int $count): ComponentGroup
     {
         $group = new ComponentGroup();

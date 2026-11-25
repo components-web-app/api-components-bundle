@@ -53,4 +53,22 @@ class ComponentGroupTest extends TestCase
 
         self::assertNull($group->allowedComponents);
     }
+
+    public function test_set_allowed_component_ui_stores_the_rules(): void
+    {
+        $group = new ComponentGroup();
+        $rules = ['/component/images' => ['ui' => [null, 'CwaHero'], 'styles' => ['style:large']]];
+
+        self::assertSame($group, $group->setAllowedComponentUi($rules));
+        self::assertSame($rules, $group->allowedComponentUi);
+    }
+
+    public function test_set_allowed_component_ui_stores_empty_rules_as_null(): void
+    {
+        $group = new ComponentGroup();
+        $group->setAllowedComponentUi(['/component/images' => ['ui' => ['CwaHero']]]);
+        $group->setAllowedComponentUi([]);
+
+        self::assertNull($group->allowedComponentUi);
+    }
 }
