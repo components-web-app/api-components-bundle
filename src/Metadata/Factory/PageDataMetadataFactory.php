@@ -36,41 +36,38 @@ class PageDataMetadataFactory implements PageDataMetadataFactoryInterface
      */
     public function create(string $resourceClass): PageDataMetadata
     {
-        // needs to be a class
         if (!class_exists($resourceClass)) {
             throw new PageDataNotFoundException(\sprintf('`%s` was not found', $resourceClass));
         }
 
-        // Check it is page data
         $reflection = new \ReflectionClass($resourceClass);
         if (!$reflection->implementsInterface(PageDataInterface::class)) {
             throw new PageDataNotFoundException(\sprintf('Resource class `%s` is not a valid page data resource', $resourceClass));
         }
 
-        // Find the doctrine manager
         $manager = $this->registry->getManagerForClass($resourceClass);
         if (!$manager) {
             throw new PageDataNotFoundException(\sprintf('Cannot find manager for page data resource `%s`', $resourceClass));
         }
         $classMetadata = $manager->getClassMetadata($resourceClass);
 
-        // Get abstract prop names to exclude
         $abstractReflection = new \ReflectionClass(AbstractPageData::class);
         $reflProps = $abstractReflection->getProperties();
         $abstractProps = array_map(static function (\ReflectionProperty $prop) {
             return $prop->name;
         }, $reflProps);
 
-        // Get all fields with association
-        $assocFields = array_filter($classMetadata->getAssociationNames(), static function ($name) use ($abstractProps) {
-            return !\in_array($name, $abstractProps, true);
+        $assocFields = array_filter($classMetadata->getAssociationNames(), static function ($name) use ($abstractProps, $classMetadata) {
+            return !\in_array($name, $abstractProps, true) && !$classMetadata->isCollectionValuedAssociation($name);
         });
 
-        // Create metadata with relations
         $metadata = new PageDataMetadata($resourceClass);
         foreach ($assocFields as $assocField) {
             $targetClass = $classMetadata->getAssociationTargetClass($assocField);
             $metadataCollection = $this->resourceMetadataFactory->create($targetClass);
+            if (0 === \count($metadataCollection)) {
+                continue;
+            }
             /** @var ApiResource $apiResource */
             $apiResource = $metadataCollection[0];
             $relationName = $apiResource->getShortName();
