@@ -5,6 +5,7 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 ## Unreleased
 
 ### Fixed
+- On API Platform versions that buffer HTTP cache purges until the response (`BufferedPurger`, api-platform/core#8869), the bundle purges through the unbuffered purger, so a failed purge after a write is still logged rather than a 500 and an explicit purge is still a 502 ([#618](https://github.com/components-web-app/api-components-bundle/pull/618))
 - A page data class's to-many associations, and associations to a class that is not an API resource, are no longer page data properties, so writing an entity such an association holds no longer 500s ("SingleValuedAssociationField expected" on flush) and the page data metadata no longer lists them ([#617](https://github.com/components-web-app/api-components-bundle/pull/617))
 
 ## [2.0.0-alpha.47](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.46...2.0.0-alpha.47) - 2026-11-25

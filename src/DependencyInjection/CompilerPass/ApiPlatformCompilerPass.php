@@ -24,6 +24,8 @@ use Symfony\Component\DependencyInjection\Reference;
 class ApiPlatformCompilerPass implements CompilerPassInterface
 {
     private const string HTTP_CACHE_FLUSHER = 'silverback.api_components.http_cache.flusher';
+    private const string HTTP_CACHE_PURGER = 'silverback.api_components.http_cache.purger';
+    private const string BUFFERED_PURGER = 'api_platform.http_cache.purger.buffered';
     private const string INVALIDATION_CLIENT_PREFIX = 'api_platform.invalidation_http_client.';
     private const string EXCEPTION_TO_STATUS = 'api_platform.exception_to_status';
 
@@ -36,8 +38,10 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
         if ($container->hasAlias('api_platform.http_cache.purger')) {
             $container->removeDefinition('api_platform.doctrine.listener.http_cache.purge');
         } else {
-            $container->removeDefinition('silverback.api_components.http_cache.purger');
+            $container->removeDefinition(self::HTTP_CACHE_PURGER);
         }
+
+        $this->bypassBufferedPurger($container);
 
         $this->configureHttpCacheFlusher($container);
 
@@ -56,6 +60,28 @@ class ApiPlatformCompilerPass implements CompilerPassInterface
         $defaults = $tree->getChildren()['exception_to_status']->getDefaultValue();
 
         $container->setParameter(self::EXCEPTION_TO_STATUS, $container->getParameter(self::EXCEPTION_TO_STATUS) + $defaults);
+    }
+
+    private function bypassBufferedPurger(ContainerBuilder $container): void
+    {
+        if (!$container->hasDefinition(self::BUFFERED_PURGER)) {
+            return;
+        }
+
+        $decoratedService = $container->getDefinition(self::BUFFERED_PURGER)->getDecoratedService();
+        if (null === $decoratedService) {
+            return;
+        }
+
+        $innerPurger = new Reference($decoratedService[1] ?? self::BUFFERED_PURGER . '.inner');
+
+        if ($container->hasDefinition(self::HTTP_CACHE_PURGER)) {
+            $container->getDefinition(self::HTTP_CACHE_PURGER)->replaceArgument(2, $innerPurger);
+        }
+
+        if ($container->hasDefinition(self::HTTP_CACHE_FLUSHER)) {
+            $container->getDefinition(self::HTTP_CACHE_FLUSHER)->replaceArgument(0, $innerPurger);
+        }
     }
 
     private function configureHttpCacheFlusher(ContainerBuilder $container): void
