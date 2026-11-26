@@ -1,0 +1,30 @@
+<?php
+
+/*
+ * This file is part of the Silverback API Components Bundle Project
+ *
+ * (c) Daniel West <daniel@silverback.is>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Silverback\ApiComponentsBundle\Tests\Functional\TestBundle\Entity;
+
+use ApiPlatform\Metadata\ApiResource;
+use Doctrine\ORM\Mapping as ORM;
+use Silverback\ApiComponentsBundle\Entity\Utility\IdTrait;
+
+#[ApiResource]
+#[ORM\Entity]
+class DummyPageDataVariant
+{
+    use IdTrait;
+
+    #[ORM\ManyToOne(targetEntity: PageDataWithVariants::class, inversedBy: 'variants')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    public ?PageDataWithVariants $pageData = null;
+
+    #[ORM\Column(type: 'integer')]
+    public int $stock = 0;
+}
