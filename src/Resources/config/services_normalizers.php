@@ -25,6 +25,7 @@ use Silverback\ApiComponentsBundle\Helper\Publishable\PublishableStatusChecker;
 use Silverback\ApiComponentsBundle\Helper\Route\RouteLiveResolver;
 use Silverback\ApiComponentsBundle\Helper\Timestamped\TimestampedDataPersister;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\Helper\User\CurrentUserMatcher;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Mercure\MercureAuthorization;
 use Silverback\ApiComponentsBundle\OpenApi\OpenApiFactory;
@@ -292,6 +293,7 @@ return static function (ContainerConfigurator $configurator) {
                 new Reference(RoleHierarchyInterface::class),
                 new Reference(ResourceMetadataProvider::class),
                 new Reference(MercureAuthorization::class),
+                new Reference(CurrentUserMatcher::class),
             ]
         )
         ->tag('serializer.normalizer', ['priority' => -499]);

@@ -39,6 +39,18 @@ class AbstractUserTest extends TestCase
         $this->assertTrue($user->isEnabled());
     }
 
+    public function test_admin_preferences_default_to_null_and_an_empty_object_is_stored_as_null(): void
+    {
+        $user = new User();
+        self::assertNull($user->getAdminPreferences());
+
+        self::assertSame($user, $user->setAdminPreferences(['topBar' => ['pages']]));
+        self::assertSame(['topBar' => ['pages']], $user->getAdminPreferences());
+
+        $user->setAdminPreferences([]);
+        self::assertNull($user->getAdminPreferences());
+    }
+
     public function test_getters_and_setters(): void
     {
         $user = new class extends AbstractUser {

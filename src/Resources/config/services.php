@@ -184,6 +184,7 @@ use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoCacheManager;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\FileInfoDeduplicator;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableCacheControl;
 use Silverback\ApiComponentsBundle\Helper\Uploadable\UploadableFileManager;
+use Silverback\ApiComponentsBundle\Helper\User\CurrentUserMatcher;
 use Silverback\ApiComponentsBundle\Helper\User\EmailAddressManager;
 use Silverback\ApiComponentsBundle\Helper\User\UserDataProcessor;
 use Silverback\ApiComponentsBundle\Helper\User\UserMailer;
@@ -640,6 +641,12 @@ return static function (ContainerConfigurator $configurator) {
             ]
         );
     $services->alias(EmailAddressManager::class, 'silverback.api_components.helper.user.email_address_manager');
+
+    $services
+        ->set('silverback.api_components.helper.user.current_user_matcher')
+        ->class(CurrentUserMatcher::class)
+        ->args([new Reference(TokenStorageInterface::class)]);
+    $services->alias(CurrentUserMatcher::class, 'silverback.api_components.helper.user.current_user_matcher');
 
     $services
         ->set(EmailAddressConfirmAction::class)
