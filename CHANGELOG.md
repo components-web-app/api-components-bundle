@@ -4,6 +4,8 @@ Every change that reaches `main` adds a line under **Unreleased**. When a versio
 
 ## Unreleased
 
+## [2.0.0-alpha.49](https://github.com/components-web-app/api-components-bundle/compare/2.0.0-alpha.48...2.0.0-alpha.49) - 2026-11-27
+
 ### Added
 - `adminPreferences` on `AbstractUser`, a nullable JSON object (at most 4096 bytes of JSON) that only the user themselves reads (`/me` always carries it, and `GET` of their own IRI) and writes (their own `PATCH`, no `oldPassword`), never another user and never the users collection; an application must generate a migration for the new `admin_preferences` column ([#620](https://github.com/components-web-app/api-components-bundle/pull/620))
 
