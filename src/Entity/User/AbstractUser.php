@@ -42,6 +42,8 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     use IdTrait;
     use TimestampedTrait;
 
+    public const string SELF_GROUP = 'User:self';
+
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Please enter a username.', allowNull: false, groups: ['Default'])]
     #[Groups(['User:superAdmin', 'User:output', 'Form:cwa_resource:read'])]
@@ -141,6 +143,11 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     #[ORM\Column(name: 'email_address_verification_requested_at', type: 'datetime', nullable: true)]
     #[ApiProperty(readable: false, writable: false)]
     protected ?\DateTime $emailAddressVerificationRequestedAt = null;
+
+    #[ORM\Column(name: 'admin_preferences', type: 'json', nullable: true)]
+    #[AcbAssert\AdminPreferences]
+    #[Groups([self::SELF_GROUP])]
+    protected mixed $adminPreferences = null;
 
     /**
      * `final` to make `createFromPayload` safe. Could instead make an interface? Or abstract and force child to define constructor?
@@ -333,6 +340,18 @@ abstract class AbstractUser implements SymfonyUserInterface, PasswordAuthenticat
     public function setEmailAddressVerificationRequestedAt(?\DateTime $emailAddressVerificationRequestedAt): void
     {
         $this->emailAddressVerificationRequestedAt = $emailAddressVerificationRequestedAt;
+    }
+
+    public function getAdminPreferences(): mixed
+    {
+        return $this->adminPreferences;
+    }
+
+    public function setAdminPreferences(mixed $adminPreferences): self
+    {
+        $this->adminPreferences = [] === $adminPreferences ? null : $adminPreferences;
+
+        return $this;
     }
 
     public function isPasswordRequestLimitReached($ttl): bool

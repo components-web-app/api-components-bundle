@@ -36,7 +36,6 @@ parameters:
 			count: 1
 			path: src/Command/FormCachePurgeCommand.php
 
-
 		-
 			message: '#^Negated boolean expression is always false\.$#'
 			identifier: booleanNot.alwaysFalse
@@ -324,12 +323,6 @@ parameters:
 			identifier: attribute.notFound
 			count: 1
 			path: src/Security/EventListener/AccessDeniedListener.php
-
-		-
-			message: '#^If condition is always true\.$#'
-			identifier: if.alwaysTrue
-			count: 1
-			path: src/Serializer/Normalizer/UserNormalizer.php
 
 		-
 			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'

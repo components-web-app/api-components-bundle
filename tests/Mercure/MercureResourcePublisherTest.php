@@ -483,6 +483,22 @@ class MercureResourcePublisherTest extends TestCase
         return static fn (): never => throw new NotFoundHttpException();
     }
 
+    public function test_the_writer_view_is_serialized_with_the_mercure_update_marker(): void
+    {
+        $contexts = [];
+        $publisher = $this->buildPublisher($this->recordingHub(), writerData: static function (object $object, string $format, array $context) use (&$contexts): string {
+            $contexts[] = $context;
+
+            return '{"@id":"/_/layouts/first","admin":true}';
+        });
+        $publisher->add($this->layout('first'), 'updated');
+
+        $publisher->propagate();
+
+        self::assertCount(1, $contexts);
+        self::assertTrue($contexts[0][MercureResourcePublisher::NORMALIZATION_CONTEXT_KEY]);
+    }
+
     public function test_the_writer_view_is_not_published_when_it_is_the_public_payload(): void
     {
         $publisher = $this->buildPublisher($this->recordingHub(), writerData: static fn (object $object): string => '{"@id":"/_/layouts/' . $object->reference . '","public":true}');

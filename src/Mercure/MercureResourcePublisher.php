@@ -62,6 +62,8 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
         'hub' => true,
         'enable_async_update' => true,
     ];
+    public const string NORMALIZATION_CONTEXT_KEY = 'silverback_mercure_update';
+
     private const string ADMIN_TOPIC_QUERY = '?draft=1';
     private const string SERIALIZATION_ID_PATTERN = '~"@id":"[^"]*(?:\\.well-known(?:\\\\/|/)genid|media_objects)(?:\\\\/|/)[^"]*"~';
 
@@ -307,7 +309,7 @@ class MercureResourcePublisher implements SerializerAwareInterface, ResourceChan
             'resource_class' => $resourceClass,
         ];
         $baseContext = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
-        $context = array_merge($baseContext, $options['normalization_context'] ?? []);
+        $context = array_merge($baseContext, $options['normalization_context'] ?? [], [self::NORMALIZATION_CONTEXT_KEY => true]);
 
         return $this->serializer->serialize($object, key($this->formats), $context);
     }
